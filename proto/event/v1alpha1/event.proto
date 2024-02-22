@@ -13,7 +13,7 @@ import "validate/validate.proto";
 service EventService {
    rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {}
    rpc GetEvent(GetEventRequest) returns (GetEventResponse) {}
-   rpc SearchEvent(SearchEventRequest) returns (SearchEventResponse) {}
+   rpc SearchEvents(SearchEventsRequest) returns (SearchEventsResponse) {}
    rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
 }
 
@@ -64,7 +64,11 @@ message GetEventRequest {
    string event_id = 1;
 }
 
-message SearchEventRequest {
+message GetEventResponse {
+   EventResponse event = 1;
+}
+
+message SearchEventsRequest {
    string source = 1;
    string type = 2;
    string priority = 3;
@@ -74,13 +78,9 @@ message SearchEventRequest {
    google.protobuf.Timestamp end_date = 7;
 }
 
-message SearchEventResponse {
+message SearchEventsResponse {
    map<string, EventResponse> events = 1;
    uint32 total_count = 2;
-}
-
-message GetEventResponse {
-   EventResponse event = 1;
 }
 
 message ListEventsRequest {
@@ -95,24 +95,27 @@ message ListEventsResponse {
  
 
 enum Type {
-   TYPE_DEPLOYMENT_UNSPECIFIED = 0;
-   TYPE_OPERATION = 1;
+   TYPE_UNSPECIFIED = 0;
+   TYPE_DEPLOYMENT = 1;
+   TYPE_OPERATION = 2;
 }
 
 enum Priority {
-   PRIORITY_P1_UNSPECIFIED = 0;
-   PRIORITY_P2 = 1;
-   PRIORITY_P3 = 2;
-   PRIORITY_P4 = 3;
+   PRIORITY_UNSPECIFIED = 0;
+   PRIORITY_P1 = 1;
+   PRIORITY_P2 = 3;
+   PRIORITY_P3 = 4;
+   PRIORITY_P4 = 5;
 }
 
 enum Status {
-   STATUS_START_UNSPECIFIED = 0;
-   STATUS_FAILURE = 1;
-   STATUS_SUCCESS = 2;
-   STATUS_WARNING = 3;
-   STATUS_ERROR = 4;
-   STATUS_SNAPSHOT = 5;
-   STATUS_USER_UPDATE = 6;
-   STATUS_RECOMMENDATION = 7;
+   STATUS_UNSPECIFIED = 0;
+   STATUS_START = 1;
+   STATUS_FAILURE = 2;
+   STATUS_SUCCESS = 3;
+   STATUS_WARNING = 4;
+   STATUS_ERROR = 5;
+   STATUS_SNAPSHOT = 6;
+   STATUS_USER_UPDATE = 7;
+   STATUS_RECOMMENDATION = 8;
 }

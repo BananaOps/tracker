@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	EventService_CreateEvent_FullMethodName = "/eventstracker.event.v1alpha1.EventService/CreateEvent"
-	EventService_GetEvent_FullMethodName    = "/eventstracker.event.v1alpha1.EventService/GetEvent"
-	EventService_SearchEvent_FullMethodName = "/eventstracker.event.v1alpha1.EventService/SearchEvent"
-	EventService_ListEvents_FullMethodName  = "/eventstracker.event.v1alpha1.EventService/ListEvents"
+	EventService_CreateEvent_FullMethodName  = "/eventstracker.event.v1alpha1.EventService/CreateEvent"
+	EventService_GetEvent_FullMethodName     = "/eventstracker.event.v1alpha1.EventService/GetEvent"
+	EventService_SearchEvents_FullMethodName = "/eventstracker.event.v1alpha1.EventService/SearchEvents"
+	EventService_ListEvents_FullMethodName   = "/eventstracker.event.v1alpha1.EventService/ListEvents"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -31,7 +31,7 @@ const (
 type EventServiceClient interface {
 	CreateEvent(ctx context.Context, in *CreateEventRequest, opts ...grpc.CallOption) (*CreateEventResponse, error)
 	GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error)
-	SearchEvent(ctx context.Context, in *SearchEventRequest, opts ...grpc.CallOption) (*SearchEventResponse, error)
+	SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error)
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 }
 
@@ -61,9 +61,9 @@ func (c *eventServiceClient) GetEvent(ctx context.Context, in *GetEventRequest, 
 	return out, nil
 }
 
-func (c *eventServiceClient) SearchEvent(ctx context.Context, in *SearchEventRequest, opts ...grpc.CallOption) (*SearchEventResponse, error) {
-	out := new(SearchEventResponse)
-	err := c.cc.Invoke(ctx, EventService_SearchEvent_FullMethodName, in, out, opts...)
+func (c *eventServiceClient) SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error) {
+	out := new(SearchEventsResponse)
+	err := c.cc.Invoke(ctx, EventService_SearchEvents_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *eventServiceClient) ListEvents(ctx context.Context, in *ListEventsReque
 type EventServiceServer interface {
 	CreateEvent(context.Context, *CreateEventRequest) (*CreateEventResponse, error)
 	GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error)
-	SearchEvent(context.Context, *SearchEventRequest) (*SearchEventResponse, error)
+	SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error)
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
@@ -100,8 +100,8 @@ func (UnimplementedEventServiceServer) CreateEvent(context.Context, *CreateEvent
 func (UnimplementedEventServiceServer) GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvent not implemented")
 }
-func (UnimplementedEventServiceServer) SearchEvent(context.Context, *SearchEventRequest) (*SearchEventResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchEvent not implemented")
+func (UnimplementedEventServiceServer) SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchEvents not implemented")
 }
 func (UnimplementedEventServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
@@ -155,20 +155,20 @@ func _EventService_GetEvent_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventService_SearchEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchEventRequest)
+func _EventService_SearchEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchEventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventServiceServer).SearchEvent(ctx, in)
+		return srv.(EventServiceServer).SearchEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EventService_SearchEvent_FullMethodName,
+		FullMethod: EventService_SearchEvents_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventServiceServer).SearchEvent(ctx, req.(*SearchEventRequest))
+		return srv.(EventServiceServer).SearchEvents(ctx, req.(*SearchEventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -207,8 +207,8 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EventService_GetEvent_Handler,
 		},
 		{
-			MethodName: "SearchEvent",
-			Handler:    _EventService_SearchEvent_Handler,
+			MethodName: "SearchEvents",
+			Handler:    _EventService_SearchEvents_Handler,
 		},
 		{
 			MethodName: "ListEvents",

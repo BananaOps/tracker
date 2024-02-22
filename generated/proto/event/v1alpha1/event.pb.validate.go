@@ -1191,326 +1191,6 @@ var _ interface {
 	ErrorName() string
 } = GetEventRequestValidationError{}
 
-// Validate checks the field values on SearchEventRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SearchEventRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on SearchEventRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// SearchEventRequestMultiError, or nil if none found.
-func (m *SearchEventRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *SearchEventRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Source
-
-	// no validation rules for Type
-
-	// no validation rules for Priority
-
-	// no validation rules for Status
-
-	// no validation rules for Service
-
-	if all {
-		switch v := interface{}(m.GetStartDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchEventRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchEventRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetStartDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return SearchEventRequestValidationError{
-				field:  "StartDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetEndDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchEventRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchEventRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetEndDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return SearchEventRequestValidationError{
-				field:  "EndDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return SearchEventRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// SearchEventRequestMultiError is an error wrapping multiple validation errors
-// returned by SearchEventRequest.ValidateAll() if the designated constraints
-// aren't met.
-type SearchEventRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m SearchEventRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m SearchEventRequestMultiError) AllErrors() []error { return m }
-
-// SearchEventRequestValidationError is the validation error returned by
-// SearchEventRequest.Validate if the designated constraints aren't met.
-type SearchEventRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e SearchEventRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e SearchEventRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e SearchEventRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e SearchEventRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e SearchEventRequestValidationError) ErrorName() string {
-	return "SearchEventRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e SearchEventRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sSearchEventRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = SearchEventRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = SearchEventRequestValidationError{}
-
-// Validate checks the field values on SearchEventResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SearchEventResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on SearchEventResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// SearchEventResponseMultiError, or nil if none found.
-func (m *SearchEventResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *SearchEventResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	{
-		sorted_keys := make([]string, len(m.GetEvents()))
-		i := 0
-		for key := range m.GetEvents() {
-			sorted_keys[i] = key
-			i++
-		}
-		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
-		for _, key := range sorted_keys {
-			val := m.GetEvents()[key]
-			_ = val
-
-			// no validation rules for Events[key]
-
-			if all {
-				switch v := interface{}(val).(type) {
-				case interface{ ValidateAll() error }:
-					if err := v.ValidateAll(); err != nil {
-						errors = append(errors, SearchEventResponseValidationError{
-							field:  fmt.Sprintf("Events[%v]", key),
-							reason: "embedded message failed validation",
-							cause:  err,
-						})
-					}
-				case interface{ Validate() error }:
-					if err := v.Validate(); err != nil {
-						errors = append(errors, SearchEventResponseValidationError{
-							field:  fmt.Sprintf("Events[%v]", key),
-							reason: "embedded message failed validation",
-							cause:  err,
-						})
-					}
-				}
-			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return SearchEventResponseValidationError{
-						field:  fmt.Sprintf("Events[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-
-		}
-	}
-
-	// no validation rules for TotalCount
-
-	if len(errors) > 0 {
-		return SearchEventResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// SearchEventResponseMultiError is an error wrapping multiple validation
-// errors returned by SearchEventResponse.ValidateAll() if the designated
-// constraints aren't met.
-type SearchEventResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m SearchEventResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m SearchEventResponseMultiError) AllErrors() []error { return m }
-
-// SearchEventResponseValidationError is the validation error returned by
-// SearchEventResponse.Validate if the designated constraints aren't met.
-type SearchEventResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e SearchEventResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e SearchEventResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e SearchEventResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e SearchEventResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e SearchEventResponseValidationError) ErrorName() string {
-	return "SearchEventResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e SearchEventResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sSearchEventResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = SearchEventResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = SearchEventResponseValidationError{}
-
 // Validate checks the field values on GetEventResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -1639,6 +1319,326 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetEventResponseValidationError{}
+
+// Validate checks the field values on SearchEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchEventsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SearchEventsRequestMultiError, or nil if none found.
+func (m *SearchEventsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchEventsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Source
+
+	// no validation rules for Type
+
+	// no validation rules for Priority
+
+	// no validation rules for Status
+
+	// no validation rules for Service
+
+	if all {
+		switch v := interface{}(m.GetStartDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchEventsRequestValidationError{
+					field:  "StartDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchEventsRequestValidationError{
+					field:  "StartDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchEventsRequestValidationError{
+				field:  "StartDate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEndDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchEventsRequestValidationError{
+					field:  "EndDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchEventsRequestValidationError{
+					field:  "EndDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchEventsRequestValidationError{
+				field:  "EndDate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchEventsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchEventsRequestMultiError is an error wrapping multiple validation
+// errors returned by SearchEventsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SearchEventsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchEventsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchEventsRequestMultiError) AllErrors() []error { return m }
+
+// SearchEventsRequestValidationError is the validation error returned by
+// SearchEventsRequest.Validate if the designated constraints aren't met.
+type SearchEventsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchEventsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchEventsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchEventsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchEventsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchEventsRequestValidationError) ErrorName() string {
+	return "SearchEventsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchEventsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchEventsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchEventsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchEventsRequestValidationError{}
+
+// Validate checks the field values on SearchEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchEventsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SearchEventsResponseMultiError, or nil if none found.
+func (m *SearchEventsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchEventsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	{
+		sorted_keys := make([]string, len(m.GetEvents()))
+		i := 0
+		for key := range m.GetEvents() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetEvents()[key]
+			_ = val
+
+			// no validation rules for Events[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, SearchEventsResponseValidationError{
+							field:  fmt.Sprintf("Events[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, SearchEventsResponseValidationError{
+							field:  fmt.Sprintf("Events[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return SearchEventsResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	// no validation rules for TotalCount
+
+	if len(errors) > 0 {
+		return SearchEventsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchEventsResponseMultiError is an error wrapping multiple validation
+// errors returned by SearchEventsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SearchEventsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchEventsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchEventsResponseMultiError) AllErrors() []error { return m }
+
+// SearchEventsResponseValidationError is the validation error returned by
+// SearchEventsResponse.Validate if the designated constraints aren't met.
+type SearchEventsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchEventsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchEventsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchEventsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchEventsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchEventsResponseValidationError) ErrorName() string {
+	return "SearchEventsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchEventsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchEventsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchEventsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchEventsResponseValidationError{}
 
 // Validate checks the field values on ListEventsRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
