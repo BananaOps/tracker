@@ -1,0 +1,118 @@
+syntax="proto3";
+
+package eventstracker.event.v1alpha1;
+
+option go_package = "proto/event/v1alpha1";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "validate/validate.proto";
+
+ 
+service EventService {
+   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {}
+   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {}
+   rpc SearchEvent(SearchEventRequest) returns (SearchEventResponse) {}
+   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+}
+
+message EventAttributes {
+   string message = 1;
+   string source = 2;
+   Type type = 3;
+   Priority priority = 4;
+   string related_id = 5 [(validate.rules).string = {uuid: true}];
+   string service = 6;
+   Status status = 7;
+}
+
+message EventMetadata {
+	google.protobuf.Timestamp created_at = 1;
+   google.protobuf.Duration duration = 2;
+	string  id = 3 [(validate.rules).string = {uuid: true}];
+}
+
+message EventLinks {
+	string pull_request_link = 1;
+}
+
+message Event {
+   string title = 1;
+	EventAttributes attributes = 2;
+	EventLinks links = 3;
+}
+
+message EventResponse {
+   string title = 1;
+	EventAttributes attributes = 2;
+	EventLinks links = 3;
+	EventMetadata metadata = 4;
+}
+
+message CreateEventRequest {
+	string title = 1;
+	EventAttributes attributes = 2;
+	EventLinks links = 3;
+}
+
+message CreateEventResponse {
+   EventResponse event = 1;
+}
+
+message GetEventRequest {
+   string event_id = 1;
+}
+
+message SearchEventRequest {
+   string source = 1;
+   string type = 2;
+   string priority = 3;
+   string status = 4;
+   string service = 5;
+   google.protobuf.Timestamp start_date = 6;
+   google.protobuf.Timestamp end_date = 7;
+}
+
+message SearchEventResponse {
+   map<string, EventResponse> events = 1;
+   uint32 total_count = 2;
+}
+
+message GetEventResponse {
+   EventResponse event = 1;
+}
+
+message ListEventsRequest {
+   google.protobuf.UInt32Value per_page = 1;
+   google.protobuf.Int32Value page = 2;
+}
+
+message ListEventsResponse {
+   map<string, EventResponse> events = 1;
+   uint32 total_count = 2;
+ }
+ 
+
+enum Type {
+   TYPE_DEPLOYMENT_UNSPECIFIED = 0;
+   TYPE_OPERATION = 1;
+}
+
+enum Priority {
+   PRIORITY_P1_UNSPECIFIED = 0;
+   PRIORITY_P2 = 1;
+   PRIORITY_P3 = 2;
+   PRIORITY_P4 = 3;
+}
+
+enum Status {
+   STATUS_START_UNSPECIFIED = 0;
+   STATUS_FAILURE = 1;
+   STATUS_SUCCESS = 2;
+   STATUS_WARNING = 3;
+   STATUS_ERROR = 4;
+   STATUS_SNAPSHOT = 5;
+   STATUS_USER_UPDATE = 6;
+   STATUS_RECOMMENDATION = 7;
+}
