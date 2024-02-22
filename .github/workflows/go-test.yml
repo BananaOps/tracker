@@ -32,7 +32,7 @@ jobs:
         args: --timeout=30m
 
   security:
-    name: Go lint
+    name: Go Security
     runs-on: ubuntu-latest
     steps:
 
