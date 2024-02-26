@@ -4,6 +4,7 @@ package eventstracker.event.v1alpha1;
 
 option go_package = "proto/event/v1alpha1";
 
+import "google/api/annotations.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
@@ -11,10 +12,25 @@ import "validate/validate.proto";
 
  
 service EventService {
-   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {}
-   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {}
-   rpc SearchEvents(SearchEventsRequest) returns (SearchEventsResponse) {}
-   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+      option (google.api.http) = {
+         post: "/api/v1alpha1/event"
+         body: "*"
+       };   
+   }
+   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {
+      option (google.api.http) = {
+         get: "/api/v1alpha1/event/{id}"
+       };
+   }
+   rpc SearchEvents(SearchEventsRequest) returns (SearchEventsResponse) {
+      option (google.api.http) = {
+         get: "/api/v1alpha1/events/search"
+       };}
+   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+      option (google.api.http) = {
+         get: "/api/v1alpha1/events/list"
+       };}
 }
 
 message EventAttributes {
@@ -61,7 +77,7 @@ message CreateEventResponse {
 }
 
 message GetEventRequest {
-   string event_id = 1;
+   string id = 1;
 }
 
 message GetEventResponse {

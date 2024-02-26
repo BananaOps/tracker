@@ -14,6 +14,13 @@ plugins:
     opt:
       - paths=source_relative
 
+    # Generate gRPC Gateway binding for messages in golang
+  - name: grpc-gateway
+    out: generated/
+    strategy: all
+    opt:
+      - paths=source_relative
+
     # Generate validation function for messages in golang
   - name: validate
     out: generated/
