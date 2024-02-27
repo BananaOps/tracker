@@ -17,6 +17,22 @@ The idea behind this solution is to provide a simple way of keeping track of eve
 
 Each time an event is created, we create a log in json format, which enables EventsTracker to be coupled with a logging solution such as Opensearch or Loki to correlate with logs and metrics.  
 
+## Features
+
+- [x] Grpc Server
+- [x] Rest Server
+- [ ] Option to start server
+- [ ] Linked event in attributes
+- [ ] Link a pull_request to an event
+- [ ] Calculates the time between two linked events
+- [ ] Cli to create and search event
+- [ ] Lock deployment endpoint
+- [ ] Add to cli lock and unlock function
+- [ ] Config file for cli
+- [ ] function search event of the day on cli
+- [ ] Github Action to add event in CD pipeline
+- [ ] Gitlab example to add event in CD pipeline
+
 ## Getting Started 🚀
 
 ### Requirements
@@ -39,7 +55,6 @@ To updates protobuf files :
 ```bash
 make generate
 ```
-
 
 ### Test
 

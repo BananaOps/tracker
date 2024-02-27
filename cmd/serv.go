@@ -39,7 +39,7 @@ var serv = &cobra.Command{
 		// create socket to listen to requests
 		tl, err := net.Listen("tcp", "localhost:8765")
 		if err != nil {
-			log.Fatal(fmt.Println("Error starting tcp listener on port 8765", err))
+			log.Fatal(fmt.Println("error starting tcp listener on port 8765", err))
 		}
 
 		// start listening
@@ -69,7 +69,7 @@ var serv = &cobra.Command{
 		slog.Info("starting http listener on port 8080")
 		err = httpServer.ListenAndServe()
 		if err != nil {
-			log.Fatal(fmt.Println("Error starting http listener on port 8080", err))
+			log.Fatal(fmt.Println("error starting http listener on port 8080", err))
 		}
 
 	},

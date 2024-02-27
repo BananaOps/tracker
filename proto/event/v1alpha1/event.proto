@@ -57,13 +57,7 @@ message Event {
    string title = 1;
 	EventAttributes attributes = 2;
 	EventLinks links = 3;
-}
-
-message EventResponse {
-   string title = 1;
-	EventAttributes attributes = 2;
-	EventLinks links = 3;
-	EventMetadata metadata = 4;
+   EventMetadata metadata = 4;
 }
 
 message CreateEventRequest {
@@ -73,7 +67,7 @@ message CreateEventRequest {
 }
 
 message CreateEventResponse {
-   EventResponse event = 1;
+   Event event = 1;
 }
 
 message GetEventRequest {
@@ -81,7 +75,7 @@ message GetEventRequest {
 }
 
 message GetEventResponse {
-   EventResponse event = 1;
+   Event event = 1;
 }
 
 message SearchEventsRequest {
@@ -95,7 +89,7 @@ message SearchEventsRequest {
 }
 
 message SearchEventsResponse {
-   map<string, EventResponse> events = 1;
+   map<string, Event> events = 1;
    uint32 total_count = 2;
 }
 
@@ -105,7 +99,7 @@ message ListEventsRequest {
 }
 
 message ListEventsResponse {
-   map<string, EventResponse> events = 1;
+   map<string, Event> events = 1;
    uint32 total_count = 2;
  }
  

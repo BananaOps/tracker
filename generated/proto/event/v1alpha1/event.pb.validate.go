@@ -530,6 +530,35 @@ func (m *Event) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EventValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return EventMultiError(errors)
 	}
@@ -606,195 +635,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EventValidationError{}
-
-// Validate checks the field values on EventResponse with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *EventResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on EventResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in EventResponseMultiError, or
-// nil if none found.
-func (m *EventResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *EventResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Title
-
-	if all {
-		switch v := interface{}(m.GetAttributes()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Attributes",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Attributes",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetAttributes()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return EventResponseValidationError{
-				field:  "Attributes",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetLinks()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Links",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Links",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLinks()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return EventResponseValidationError{
-				field:  "Links",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetMetadata()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, EventResponseValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return EventResponseValidationError{
-				field:  "Metadata",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return EventResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// EventResponseMultiError is an error wrapping multiple validation errors
-// returned by EventResponse.ValidateAll() if the designated constraints
-// aren't met.
-type EventResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m EventResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m EventResponseMultiError) AllErrors() []error { return m }
-
-// EventResponseValidationError is the validation error returned by
-// EventResponse.Validate if the designated constraints aren't met.
-type EventResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e EventResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e EventResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e EventResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e EventResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e EventResponseValidationError) ErrorName() string { return "EventResponseValidationError" }
-
-// Error satisfies the builtin error interface
-func (e EventResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sEventResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = EventResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = EventResponseValidationError{}
 
 // Validate checks the field values on CreateEventRequest with the rules
 // defined in the proto definition for this message. If any rules are

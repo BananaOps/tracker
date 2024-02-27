@@ -4,14 +4,19 @@ import (
 	"context"
 
 	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
+	store "github.com/bananaops/events-tracker/internal/stores"
 )
 
 type Event struct {
 	v1alpha1.UnimplementedEventServiceServer
+	EventsDb store.MongoClient
 }
 
 func NewEvent() *Event {
-	return &Event{}
+	return &Event{
+		UnimplementedEventServiceServer: v1alpha1.UnimplementedEventServiceServer{},
+		EventsDb:                        store.NewClient(),
+	}
 }
 
 func (t *Event) CreateEvent(
@@ -20,7 +25,7 @@ func (t *Event) CreateEvent(
 ) (*v1alpha1.CreateEventResponse, error) {
 
 	eventResult := &v1alpha1.CreateEventResponse{
-		Event: &v1alpha1.EventResponse{
+		Event: &v1alpha1.Event{
 			Title: i.Title,
 			Attributes: &v1alpha1.EventAttributes{
 				Message:   "",
@@ -45,7 +50,7 @@ func (t *Event) GetEvent(
 ) (*v1alpha1.GetEventResponse, error) {
 
 	eventResult := &v1alpha1.GetEventResponse{
-		Event: &v1alpha1.EventResponse{
+		Event: &v1alpha1.Event{
 			Title:      "",
 			Attributes: &v1alpha1.EventAttributes{},
 			Links:      &v1alpha1.EventLinks{},
@@ -62,7 +67,7 @@ func (t *Event) SearchEvents(
 ) (*v1alpha1.SearchEventsResponse, error) {
 
 	eventsResult := &v1alpha1.SearchEventsResponse{
-		Events:     map[string]*v1alpha1.EventResponse{},
+		Events:     map[string]*v1alpha1.Event{},
 		TotalCount: 0,
 	}
 
@@ -75,7 +80,7 @@ func (t *Event) ListEvents(
 ) (*v1alpha1.ListEventsResponse, error) {
 
 	eventsResult := &v1alpha1.ListEventsResponse{
-		Events:     map[string]*v1alpha1.EventResponse{},
+		Events:     map[string]*v1alpha1.Event{},
 		TotalCount: 0,
 	}
 
