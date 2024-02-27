@@ -63,3 +63,28 @@ To run test:
 ```bash
 make test
 ```
+
+
+## Grpc Call
+
+You can use Grpcurl to call grpc api
+
+### Create an Event
+
+```bash
+grpcurl --plaintext -d '{
+  "attributes": {
+    "message": "deployment service serverless version v0.0.1",
+    "priority": "1",
+    "service": "service-event",
+    "source": "github_action",
+    "status": "1",
+    "type": "1"
+  },
+  "links": {
+    "pull_request_link": "https://github.com/bananaops/events-tracker/pull/240"
+  },
+  "title": "Deployment service lambda"
+}' localhost:8765 eventstracker.event.v1alpha1.EventService/CreateEvent
+
+```

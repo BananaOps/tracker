@@ -12,13 +12,13 @@ import "validate/validate.proto";
 
  
 service EventService {
-   rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+   rpc CreateEvent(CreateEventRequest) returns (Event) {
       option (google.api.http) = {
          post: "/api/v1alpha1/event"
          body: "*"
        };   
    }
-   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {
+   rpc GetEvent(GetEventRequest) returns (Event) {
       option (google.api.http) = {
          get: "/api/v1alpha1/event/{id}"
        };
@@ -66,16 +66,8 @@ message CreateEventRequest {
 	EventLinks links = 3;
 }
 
-message CreateEventResponse {
-   Event event = 1;
-}
-
 message GetEventRequest {
    string id = 1;
-}
-
-message GetEventResponse {
-   Event event = 1;
 }
 
 message SearchEventsRequest {

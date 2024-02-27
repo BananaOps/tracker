@@ -109,9 +109,9 @@ func createMongoUri(config config.Database) (uri string) {
 // List takes label and field selectors, and returns the list of Events that match those selectors.
 func (c *MongoClient) List(ctx context.Context) (results []v1alpha1.Event, err error) {
 	cursor, err := c.collection.Find(context.TODO(), bson.D{})
-
-	//var results []Event
-	// check for errors in the conversion
+	if err != nil {
+		return nil, err
+	}
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		return
 	}
