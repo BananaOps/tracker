@@ -58,7 +58,7 @@ func (e *Event) CreateEvent(
 
 	}
 
-	var eventResult *v1alpha1.CreateEventResponse = &v1alpha1.CreateEventResponse{}
+	var eventResult = &v1alpha1.CreateEventResponse{}
 	var err error
 	eventResult.Event, err = e.store.Create(context.Background(), event)
 	if err != nil {
@@ -73,8 +73,12 @@ func (e *Event) GetEvent(
 	i *v1alpha1.GetEventRequest,
 ) (*v1alpha1.GetEventResponse, error) {
 
-	eventResult := &v1alpha1.GetEventResponse{
-		Event: &v1alpha1.Event{},
+	var eventResult = &v1alpha1.GetEventResponse{}
+	var err error
+
+	eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		return nil, fmt.Errorf("no event found in events-tracker for id %s", i.Id)
 	}
 	return eventResult, nil
 }
@@ -97,7 +101,7 @@ func (e *Event) ListEvents(
 	i *v1alpha1.ListEventsRequest,
 ) (*v1alpha1.ListEventsResponse, error) {
 
-	var eventsResult *v1alpha1.ListEventsResponse = &v1alpha1.ListEventsResponse{}
+	var eventsResult = &v1alpha1.ListEventsResponse{}
 	var err error
 
 	eventsResult.Events, err = e.store.List(context.Background())

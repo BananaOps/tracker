@@ -95,3 +95,12 @@ grpcurl --plaintext -d '{
 grpcurl --plaintext localhost:8765 eventstracker.event.v1alpha1.EventService/ListEvents
 
 ```
+
+### Get Event Id
+
+```bash
+grpcurl --plaintext -d '{
+  "id": "3ac2d880-ad52-4d50-b60d-9b44f54ae58f"
+}' localhost:8765 eventstracker.event.v1alpha1.EventService/GetEvent  
+
+```
