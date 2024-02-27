@@ -25,7 +25,7 @@ func NewEvent() *Event {
 func (e *Event) CreateEvent(
 	ctx context.Context,
 	i *v1alpha1.CreateEventRequest,
-) (*v1alpha1.Event, error) {
+) (*v1alpha1.CreateEventResponse, error) {
 
 	var event = &v1alpha1.Event{
 		Title: i.Title,
@@ -58,7 +58,9 @@ func (e *Event) CreateEvent(
 
 	}
 
-	eventResult, err := e.store.Create(context.Background(), event)
+	var eventResult *v1alpha1.CreateEventResponse = &v1alpha1.CreateEventResponse{}
+	var err error
+	eventResult.Event, err = e.store.Create(context.Background(), event)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +71,10 @@ func (e *Event) CreateEvent(
 func (e *Event) GetEvent(
 	ctx context.Context,
 	i *v1alpha1.GetEventRequest,
-) (*v1alpha1.Event, error) {
+) (*v1alpha1.GetEventResponse, error) {
 
-	eventResult := &v1alpha1.Event{
-		Title:      "",
-		Attributes: &v1alpha1.EventAttributes{},
-		Links:      &v1alpha1.EventLinks{},
-		Metadata:   &v1alpha1.EventMetadata{},
+	eventResult := &v1alpha1.GetEventResponse{
+		Event: &v1alpha1.Event{},
 	}
 	return eventResult, nil
 }
@@ -86,7 +85,7 @@ func (e *Event) SearchEvents(
 ) (*v1alpha1.SearchEventsResponse, error) {
 
 	eventsResult := &v1alpha1.SearchEventsResponse{
-		Events:     map[string]*v1alpha1.Event{},
+		Events:     []*v1alpha1.Event{},
 		TotalCount: 0,
 	}
 
@@ -98,9 +97,12 @@ func (e *Event) ListEvents(
 	i *v1alpha1.ListEventsRequest,
 ) (*v1alpha1.ListEventsResponse, error) {
 
-	eventsResult := &v1alpha1.ListEventsResponse{
-		Events:     map[string]*v1alpha1.Event{},
-		TotalCount: 0,
+	var eventsResult *v1alpha1.ListEventsResponse = &v1alpha1.ListEventsResponse{}
+	var err error
+
+	eventsResult.Events, err = e.store.List(context.Background())
+	if err != nil {
+		return nil, err
 	}
 
 	return eventsResult, nil

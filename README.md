@@ -88,3 +88,10 @@ grpcurl --plaintext -d '{
 }' localhost:8765 eventstracker.event.v1alpha1.EventService/CreateEvent
 
 ```
+
+### List Events
+
+```bash
+grpcurl --plaintext localhost:8765 eventstracker.event.v1alpha1.EventService/ListEvents
+
+```

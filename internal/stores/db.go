@@ -11,9 +11,9 @@ import (
 	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gopkg.in/mgo.v2/bson"
 
 	"github.com/bananaops/events-tracker/internal/config"
 	"github.com/google/uuid"
@@ -107,7 +107,7 @@ func createMongoUri(config config.Database) (uri string) {
 }
 
 // List takes label and field selectors, and returns the list of Events that match those selectors.
-func (c *MongoClient) List(ctx context.Context) (results []v1alpha1.Event, err error) {
+func (c *MongoClient) List(ctx context.Context) (results []*v1alpha1.Event, err error) {
 	cursor, err := c.collection.Find(context.TODO(), bson.D{})
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (c *MongoClient) Count(ctx context.Context) (count int64, err error) {
 }
 
 // Search and returns the list of Events that match those selectors.
-func (c *MongoClient) Search(ctx context.Context, filter map[string]interface{}) (results []v1alpha1.Event, err error) {
+func (c *MongoClient) Search(ctx context.Context, filter map[string]interface{}) (results []*v1alpha1.Event, err error) {
 
 	cursor, err := c.collection.Find(context.TODO(), filter)
 
