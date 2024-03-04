@@ -1,0 +1,30 @@
+version: v1
+plugins:
+  # Generate marshalling/unmarshalling for messages in golang
+  - name: go
+    out: generated/
+    strategy: all
+    opt:
+      - paths=source_relative
+
+    # Generate gRPC binding for messages in golang
+  - name: go-grpc
+    out: generated/
+    strategy: all
+    opt:
+      - paths=source_relative
+
+    # Generate gRPC Gateway binding for messages in golang
+  - name: grpc-gateway
+    out: generated/
+    strategy: all
+    opt:
+      - paths=source_relative
+
+    # Generate validation function for messages in golang
+  - name: validate
+    out: generated/
+    strategy: all
+    opt:
+      - paths=source_relative
+      - lang=go

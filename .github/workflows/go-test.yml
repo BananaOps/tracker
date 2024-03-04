@@ -1,0 +1,74 @@
+name: Go Test
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/go-test.yml
+      - internal/**
+      - cmd/**
+      - docs/**
+      - generated/**
+      - go.mod
+      - go.sum
+      - main.go
+
+jobs:
+  linting:
+    name: Go lint
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v4
+      with:
+        args: --timeout=30m
+
+  security:
+    name: Go Security
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - name: Run Gosec Security Scanner
+      run: go get -u github.com/securego/gosec/v2/cmd/gosec && \
+           go install github.com/securego/gosec/v2/cmd/gosec && \
+           gosec ./... 
+
+    - name: Run Govulncheck Security Scanner
+      run: go get -u golang.org/x/vuln/cmd/govulncheck && \
+           go install golang.org/x/vuln/cmd/govulncheck && \
+           govulncheck ./... 
+
+  test:
+    name: Go test
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - name: Install
+      run: go mod download -x
+
+    - name: Test
+      run: go test -v ./...

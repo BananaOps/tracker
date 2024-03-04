@@ -19,3 +19,11 @@
 
 # Go workspace file
 go.work
+
+# Tls file
+*.pem
+*.crt
+*.key
+
+#binary files
+bin/
