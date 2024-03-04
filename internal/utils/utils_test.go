@@ -5,9 +5,37 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
 )
 
 var loc = time.Now().Local().Location()
+
+func TestCreateFilterError(t *testing.T) {
+
+	testCases := []struct {
+		name  string
+		event *v1alpha1.SearchEventsRequest
+	}{
+		{
+			name: "OK - Test error when all values is null",
+			event: &v1alpha1.SearchEventsRequest{
+				Source:    "",
+				Type:      0,
+				Priority:  0,
+				Status:    0,
+				Service:   "",
+				StartDate: "",
+				EndDate:   "",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		_, err := CreateFilter(testCase.event)
+		assert.Error(t, err, testCase.name)
+	}
+}
 
 func TestParseDate(t *testing.T) {
 

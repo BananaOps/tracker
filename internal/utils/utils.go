@@ -59,7 +59,7 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 		}
 		filter["metadata.createdat.seconds"] = bson.D{{Key: "$lte", Value: date.Unix()}}
 	}
-	if filter == nil {
+	if len(filter) == 0 {
 		err := errors.New("no filter for search events")
 		return nil, err
 	}
