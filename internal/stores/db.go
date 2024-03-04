@@ -51,7 +51,10 @@ func NewClient() (client MongoClient) {
 
 	// init client collection
 	db := m.Database(config.Name)
-	db.CreateCollection(ctx, config.Collection)
+	err = db.CreateCollection(ctx, config.Collection)
+	if err != nil {
+		log.Fatalf("error create collection %s", err)
+	}
 	client.collection = db.Collection(config.Collection)
 
 	return client
@@ -158,9 +161,9 @@ func (c *MongoClient) Count(ctx context.Context) (count int64, err error) {
 func (c *MongoClient) Search(ctx context.Context, filter map[string]interface{}) (results []*v1alpha1.Event, err error) {
 
 	cursor, err := c.collection.Find(context.TODO(), filter)
-
-	//var results []Event
-	// check for errors in the conversion
+	if err != nil {
+		return
+	}
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		return
 	}
