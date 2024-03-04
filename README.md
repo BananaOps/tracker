@@ -1,17 +1,17 @@
 <p align="center" style="margin-top: 120px">
 
-  <h3 align="center">EventsTracker</h3>
+  <h3 align="center">Tracker</h3>
 
   <p align="center">
-    An Open-Source monitoring events solution.
+    An Open-Source monitoring events tracking solution.
     <br />
   </p>
 </p>
 
 
-## About EventsTracker 
+## About Tracker 
  
-EventsTracker is open-source alternative to Datadog events or Newrelic custom events. The solution is composed of an api and a cli that enable the creation and retrieval of events in a Mongo or FeretDB database.
+Tracker is open-source alternative to Datadog events or Newrelic custom events. The solution is composed of an api and a cli that enable the creation and retrieval of events in a Mongo or FeretDB database.
 
 The idea behind this solution is to provide a simple way of keeping track of everything that happens on your platform, especially in a world of distributed services. Track the start and end of a deployment incident or the opening of an incident.
 
@@ -126,3 +126,10 @@ grpcurl --plaintext -d '{
 }' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
 
 ```
+
+## Contributing
+
+Please see the [contribution guidelines](https://github.com/BananaOps/tracker/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/BananaOps/tracker/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/BananaOps/tracker/blob/main/LICENSE).
+
+`help wanted` issues:
+- [Tracker](https://github.com/BananaOps/tracker/labels/help%20wanted)
