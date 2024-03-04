@@ -1,0 +1,17 @@
+name: Protobuf Lint
+
+on: 
+  pull_request:
+    paths:
+    - .github/workflows/protobuf.yml
+    - proto/**
+jobs:
+  linting:
+    name: Go lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    # Install the `buf` CLI
+    - uses: bufbuild/buf-setup-action@v1
+    # Lint your Protobuf sources
+    - uses: bufbuild/buf-lint-action@v1
