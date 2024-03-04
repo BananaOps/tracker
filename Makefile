@@ -41,3 +41,7 @@ fmt: ## Format protobuf, go files
 .PHONY: lint
 lint: ## lint protobuf, go files
 	buf lint
+
+.PHONY: build
+build: ## build go binary
+	go build -o bin/tracker
