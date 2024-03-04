@@ -45,9 +45,9 @@ jobs:
         go-version: stable
 
     - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: ./...
+      run: go get -u github.com/securego/gosec/v2/cmd/gosec && \
+           go install github.com/securego/gosec/v2/cmd/gosec && \
+           gosec ./... 
 
     - name: Run Govulncheck Security Scanner
       run: go get -u golang.org/x/vuln/cmd/govulncheck && \
