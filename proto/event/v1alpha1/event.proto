@@ -80,12 +80,12 @@ message GetEventResponse {
 
 message SearchEventsRequest {
    string source = 1;
-   string type = 2;
-   string priority = 3;
-   string status = 4;
+   Type type = 2;
+   Priority priority = 3;
+   Status status = 4;
    string service = 5;
-   google.protobuf.Timestamp start_date = 6;
-   google.protobuf.Timestamp end_date = 7;
+   string start_date = 6;
+   string end_date = 7;
 }
 
 message SearchEventsResponse {

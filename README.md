@@ -104,3 +104,25 @@ grpcurl --plaintext -d '{
 }' localhost:8765 eventstracker.event.v1alpha1.EventService/GetEvent  
 
 ```
+
+### Get Search Event
+
+```bash
+// With Priority P1
+grpcurl --plaintext -d '{
+  "priority": "1"
+}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+
+// With Priority P1 and Start Date
+grpcurl --plaintext -d '{
+  "priority": "1",
+  "start_date": "2024-02-27"
+}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+
+// With Priority P1 and End Date
+grpcurl --plaintext -d '{
+  "priority": "1",
+  "end_date": "2024-02-28T15:04:05-07:00"
+}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+
+```

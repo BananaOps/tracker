@@ -1192,63 +1192,9 @@ func (m *SearchEventsRequest) validate(all bool) error {
 
 	// no validation rules for Service
 
-	if all {
-		switch v := interface{}(m.GetStartDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchEventsRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchEventsRequestValidationError{
-					field:  "StartDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetStartDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return SearchEventsRequestValidationError{
-				field:  "StartDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for StartDate
 
-	if all {
-		switch v := interface{}(m.GetEndDate()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchEventsRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchEventsRequestValidationError{
-					field:  "EndDate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetEndDate()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return SearchEventsRequestValidationError{
-				field:  "EndDate",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for EndDate
 
 	if len(errors) > 0 {
 		return SearchEventsRequestMultiError(errors)

@@ -7,6 +7,7 @@ import (
 
 	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
 	store "github.com/bananaops/events-tracker/internal/stores"
+	"github.com/bananaops/events-tracker/internal/utils"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -88,10 +89,17 @@ func (e *Event) SearchEvents(
 	i *v1alpha1.SearchEventsRequest,
 ) (*v1alpha1.SearchEventsResponse, error) {
 
-	eventsResult := &v1alpha1.SearchEventsResponse{
-		Events:     []*v1alpha1.Event{},
-		TotalCount: 0,
+	filter, err := utils.CreateFilter(i)
+	if err != nil {
+		return nil, err
 	}
+
+	var eventsResult = &v1alpha1.SearchEventsResponse{}
+	eventsResult.Events, err = e.store.Search(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
 }
@@ -108,6 +116,7 @@ func (e *Event) ListEvents(
 	if err != nil {
 		return nil, err
 	}
+	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
 }
