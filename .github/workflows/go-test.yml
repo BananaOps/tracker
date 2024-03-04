@@ -22,12 +22,12 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: stable
 
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v4
       with:
         args: --timeout=30m
 
@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: stable
 
@@ -63,7 +63,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: stable
 
