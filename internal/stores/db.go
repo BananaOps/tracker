@@ -83,6 +83,7 @@ func loadTlsCerts(config config.Database) (tlsConfig *tls.Config) {
 	return &tls.Config{
 		RootCAs:      caCertPool,
 		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS13,
 	}
 
 }
