@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 	"time"
 
 	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
@@ -13,13 +15,15 @@ import (
 
 type Event struct {
 	v1alpha1.UnimplementedEventServiceServer
-	store store.MongoClient
+	store  store.MongoClient
+	logger *slog.Logger
 }
 
 func NewEvent() *Event {
 	return &Event{
 		UnimplementedEventServiceServer: v1alpha1.UnimplementedEventServiceServer{},
 		store:                           store.NewClient(),
+		logger:                          slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
 }
 
@@ -65,6 +69,19 @@ func (e *Event) CreateEvent(
 	if err != nil {
 		return nil, err
 	}
+
+	// log event to json format
+	e.logger.Info("event created",
+		"title", eventResult.Event.Title,
+		"message", eventResult.Event.Attributes.Message,
+		"priority", eventResult.Event.Attributes.Priority.String(),
+		"service", eventResult.Event.Attributes.Service,
+		"status", eventResult.Event.Attributes.Status.String(),
+		"type", eventResult.Event.Attributes.Type.String(),
+		"pull_request", eventResult.Event.Links.PullRequestLink,
+		"id", eventResult.Event.Metadata.Id,
+		"created_at", eventResult.Event.Metadata.CreatedAt.AsTime(),
+	)
 
 	return eventResult, nil
 }
