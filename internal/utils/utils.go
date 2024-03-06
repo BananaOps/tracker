@@ -8,7 +8,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 
-	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
+	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 )
 
 func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, error) {

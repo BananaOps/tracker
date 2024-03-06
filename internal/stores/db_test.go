@@ -3,7 +3,7 @@ package store
 import (
 	"testing"
 
-	"github.com/bananaops/events-tracker/internal/config"
+	"github.com/bananaops/tracker/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 

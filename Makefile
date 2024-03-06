@@ -41,3 +41,7 @@ fmt: ## Format protobuf, go files
 .PHONY: lint
 lint: ## lint protobuf, go files
 	buf lint
+
+.PHONY: run
+run: ## skaffold run to deploy app on k8s
+	skaffold run

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bananaops/events-tracker/cmd"
+	"github.com/bananaops/tracker/cmd"
 )
 
 func main() {

@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
-	event "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
-	"github.com/bananaops/events-tracker/server"
+	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	"github.com/bananaops/tracker/server"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	"github.com/spf13/cobra"
@@ -22,7 +22,7 @@ import (
 
 var serv = &cobra.Command{
 	Use:   "serv",
-	Short: "Run events-tracker server",
+	Short: "Run tracker server",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// create new gRPC server

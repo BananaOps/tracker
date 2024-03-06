@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
+	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 )
 
 var loc = time.Now().Local().Location()
@@ -124,12 +124,12 @@ func TestCatchPullRequestId(t *testing.T) {
 	}{
 		{
 			name:       "OK - Test Github Pull Request",
-			pull:       "https://github.com/jplanckeel/events-tracker/pull/1543",
+			pull:       "https://github.com/jplanckeel/tracker/pull/1543",
 			execptedId: "1543",
 		},
 		{
 			name:       "OK - Test Gitlab Merge Request",
-			pull:       "https://gitlab.com/jplanckeel/events-tracker/-/merge_requests/1503",
+			pull:       "https://gitlab.com/jplanckeel/tracker/-/merge_requests/1503",
 			execptedId: "1503",
 		},
 	}
@@ -148,7 +148,7 @@ func TestCatchPullRequestIdError(t *testing.T) {
 	}{
 		{
 			name: "OK - Url malformed",
-			pull: "https://github.com/jplanckeel/events-tracker/pull/1543/test",
+			pull: "https://github.com/jplanckeel/tracker/pull/1543/test",
 		},
 		{
 			name: "OK - Url is nill",
