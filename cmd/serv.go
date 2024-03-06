@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
@@ -25,33 +27,26 @@ var serv = &cobra.Command{
 	Short: "Run tracker server",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// create new gRPC server
+		// Set up gRPC server
+		grpcServerEndpoint := "localhost:8765"
 		grpcServer := grpc.NewServer()
-
-		// create new instance of Translation server
-		events := server.NewEvent()
 
 		// register reflection API https://github.com/grpc/grpc/blob/master/doc/server-reflection.md
 		reflection.Register(grpcServer)
 
-		// register it to the grpc server
+		// register event service
+		events := server.NewEvent()
 		event.RegisterEventServiceServer(grpcServer, events)
 
-		// create socket to listen to requests
-		tl, err := net.Listen("tcp", "localhost:8765")
-		if err != nil {
-			log.Fatal(fmt.Println("error starting tcp listener on port 8765", err))
-		}
-
-		// start listening
-		go grpcServer.Serve(tl)
-		slog.Info("starting tcp listener on port 8765")
+		// register health checK service
+		//healthCheckService := &server.HealthCheckService{}
+		//health.RegisterHealthServer(grpcServer, healthCheckService)
 
 		ctx := context.TODO()
 		mux := runtime.NewServeMux()
 
 		// Register generated routes to mux
-		err = event.RegisterEventServiceHandlerServer(ctx, mux, events)
+		err := event.RegisterEventServiceHandlerServer(ctx, mux, events)
 		if err != nil {
 			panic(err)
 		}
@@ -67,11 +62,49 @@ var serv = &cobra.Command{
 			ErrorLog:          httplogger,
 		}
 
-		slog.Info("starting http listener on port 8080")
-		err = httpServer.ListenAndServe()
-		if err != nil {
-			log.Fatal(fmt.Println("error starting http listener on port 8080", err))
+		// Start gRPC server in a separate goroutine
+		go func() {
+			// create socket to listen to requests
+			listener, err := net.Listen("tcp", grpcServerEndpoint)
+			if err != nil {
+				log.Fatal(fmt.Println("error starting tcp listener on port 8765", err))
+				os.Exit(1)
+			}
+
+			slog.Info("gRPC server listening on :8765")
+			// start listening
+			if err := grpcServer.Serve(listener); err != nil {
+				log.Fatal(fmt.Printf("Failed to serve gRPC server: %v\n", err))
+				os.Exit(1)
+			}
+
+		}()
+
+		// Start HTTP server in a separate goroutine
+		go func() {
+			slog.Info("HTTP server listening on :8080")
+			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatal(fmt.Printf("Failed to serve HTTP server: %v\n", err))
+				os.Exit(1)
+			}
+		}()
+
+		// Handle graceful shutdown
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		<-stop
+
+		slog.Info("shutting down servers...")
+
+		// Gracefully stop gRPC server
+		grpcServer.GracefulStop()
+
+		// Gracefully stop HTTP server
+		if err := httpServer.Shutdown(context.Background()); err != nil {
+			log.Fatal(fmt.Printf("Failed to shutdown HTTP server: %v\n", err))
 		}
+
+		slog.Info("servers stopped")
 
 	},
 }
