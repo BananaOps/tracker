@@ -2,10 +2,19 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+
 mongodb:
   enabled: true
+  auth:
+    enabled: false
+  useStatefulSet: true
 
 replicaCount: 1
+
+env:
+  db:
+    host: tracker-mongodb
+    port: 27017
 
 image:
   repository: bananaops/tracker
@@ -32,11 +41,15 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 9101
+  grpc:
+    port: 8765
+  http:
+    port: 8080
+  annotations: {}
 
 ingress:
-  enabled: false
-  className: ""
+  enabled: true
+  className: traefik
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
