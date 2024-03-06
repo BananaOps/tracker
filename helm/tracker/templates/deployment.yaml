@@ -33,17 +33,29 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: metrics
-              containerPort: {{ .Values.service.port }}
+            - name: http
+              containerPort: {{ .Values.service.http.port }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /status
-              port: metrics
-          readinessProbe:
-            httpGet:
-              path: /status
-              port: metrics
+            - name: grpc
+              containerPort: {{ .Values.service.grpc.port }}
+              protocol: TCP
+          #livenessProbe:
+          #  httpGet:
+          #    path: /status
+          #    port: metrics
+          #readinessProbe:
+          #  httpGet:
+          #    path: /status
+          #    port: metrics
+          env:
+            - name: DB_HOST
+              value: {{ .Values.env.db.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.env.db.port | quote }}
+            - name: HTTP_PORT
+              value: {{ .Values.service.http.port | quote }}
+            - name: GRPC_PORT
+              value: {{ .Values.service.grpc.port | quote }}
           command:
             - /ko-app/tracker
             - serv

@@ -4,12 +4,20 @@ metadata:
   name: {{ include "tracker.fullname" . }}
   labels:
     {{- include "tracker.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: metrics
+    - port: {{ .Values.service.http.port }}
+      targetPort: http
       protocol: TCP
-      name: metrics
+      name: http
+    - port: {{ .Values.service.grpc.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
   selector:
     {{- include "tracker.selectorLabels" . | nindent 4 }}
