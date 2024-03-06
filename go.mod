@@ -1,4 +1,4 @@
-module github.com/bananaops/events-tracker
+module github.com/bananaops/tracker
 
 go 1.21.3
 

@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
-	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
-	store "github.com/bananaops/events-tracker/internal/stores"
-	"github.com/bananaops/events-tracker/internal/utils"
+	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	store "github.com/bananaops/tracker/internal/stores"
+	"github.com/bananaops/tracker/internal/utils"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -54,7 +54,7 @@ func (e *Event) CreateEvent(
 		relatedEvent, err := e.store.Get(context.Background(), map[string]interface{}{"metadata.id": &i.Attributes.RelatedId})
 		if err != nil {
 			if err.Error() == "mongo: no documents in result" {
-				return nil, fmt.Errorf("no event found in events-tracker for attributes.related_id %s", i.Attributes.RelatedId)
+				return nil, fmt.Errorf("no event found in tracker for attributes.related_id %s", i.Attributes.RelatedId)
 			}
 			return nil, err
 		}
@@ -96,7 +96,7 @@ func (e *Event) GetEvent(
 
 	eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
 	if err != nil {
-		return nil, fmt.Errorf("no event found in events-tracker for id %s", i.Id)
+		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
 	}
 	return eventResult, nil
 }

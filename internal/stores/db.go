@@ -8,14 +8,14 @@ import (
 	"log"
 	"os"
 
-	v1alpha1 "github.com/bananaops/events-tracker/generated/proto/event/v1alpha1"
+	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/bananaops/events-tracker/internal/config"
+	"github.com/bananaops/tracker/internal/config"
 	"github.com/google/uuid"
 )
 

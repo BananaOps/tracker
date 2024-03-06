@@ -32,7 +32,7 @@ var ConfigDatabase = Database{
 	Collection: "events",
 	Host:       "127.0.0.1",
 	Port:       "27017",
-	Name:       "eventstracker",
+	Name:       "tracker",
 }
 
 func init() {

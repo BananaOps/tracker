@@ -39,15 +39,15 @@ jobs:
       - id: version_tag
         run: echo "::set-output name=tag::$(echo ${{steps.tag.outputs.value}} | cut -c 2-)"
 
-      # Update version in Chart.yaml
-      #- if: steps.tag.outputs.value != ''
-      #  run: |
-      #    sed -i '/^version:/c\version: ${{steps.version_tag.outputs.tag}}' ./helm/events-tracker/Chart.yaml
-      #    sed -i '/^appVersion:/c\appVersion: "${{steps.version_tag.outputs.tag}}"' ./helm/events-tracker/Chart.yaml 
-      #- if: steps.tag.outputs.value != ''
-      #  uses: stefanzweifel/git-auto-commit-action@v4
-      #  with:
-      #    commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
+       #Update version in Chart.yaml
+      - if: steps.tag.outputs.value != ''
+        run: |
+          sed -i '/^version:/c\version: ${{steps.version_tag.outputs.tag}}' ./helm/tracker/Chart.yaml
+          sed -i '/^appVersion:/c\appVersion: "${{steps.version_tag.outputs.tag}}"' ./helm/tracker/Chart.yaml 
+      - if: steps.tag.outputs.value != ''
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
 
       - name: Create release
         uses: shogo82148/actions-create-release@v1
@@ -80,31 +80,41 @@ jobs:
           KO_DOCKER_REPO: bananaops/tracker
         run: ko publish . --bare --tags latest,${{steps.version_tag.outputs.tag}}
 
-  #release-helm: 
-  #  needs: [release]
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-  #      uses: actions/checkout@v3
-  #      with:
-  #        fetch-depth: 0
-  #        ref: 'main'
-  #
-  #    - name: Configure Git
-  #      run: |
-  #        git config user.name "$GITHUB_ACTOR"
-  #        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-  #    - name: Install Helm
-  #      uses: azure/setup-helm@v3
-  #      with:
-  #        token: ${{ secrets.GITHUB_TOKEN }}
-  #
-  #    - name: Run chart-releaser
-  #      uses: helm/chart-releaser-action@v1.5.0
-  #      with:
-  #        charts_dir: helm
-  #      env:
-  #        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Run GoReleaser
+        if: "steps.tag.outputs.value != ''"
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: ${{steps.version_tag.outputs.tag}}
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-helm: 
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+  
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: helm
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   release-check:
     if: github.event.action == 'labeled'

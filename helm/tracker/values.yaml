@@ -1,0 +1,102 @@
+# Default values for tracker.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+mongodb:
+  enabled: true
+  auth:
+    enabled: false
+  useStatefulSet: true
+
+replicaCount: 1
+
+env:
+  db:
+    host: tracker-mongodb
+    port: 27017
+
+image:
+  repository: bananaops/tracker
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  grpc:
+    port: 8765
+  http:
+    port: 8080
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: tracker.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 128Mi
+  requests:
+    cpu: 250m
+    memory: 128Mi
+
+
+# Configure Prometheus service scrapping with
+prometheus:
+  monitor:
+    enabled: false
+    additionalLabels: {}
+    relabelings: []
+    scrapeTimeout: 10s
+
+# Configure VictoiraMetrics service scrapping with
+victoriametrics:
+  monitor: 
+    enabled: false
+    additionalLabels: {}
+    relabelings: []
+    scrapeTimeout: 10s
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

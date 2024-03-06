@@ -82,7 +82,7 @@ grpcurl --plaintext -d '{
     "type": "1"
   },
   "links": {
-    "pull_request_link": "https://github.com/bananaops/events-tracker/pull/240"
+    "pull_request_link": "https://github.com/bananaops/tracker/pull/240"
   },
   "title": "Deployment service lambda"
 }' localhost:8765 eventstracker.event.v1alpha1.EventService/CreateEvent
