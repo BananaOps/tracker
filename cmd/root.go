@@ -8,9 +8,9 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "event",
-	Short: "events tracker solution",
-	Long:  "an api to keep events in database and search in this event",
+	Use:   "tracker",
+	Short: "tracker events solution",
+	Long:  "an api to keep and search events in database",
 }
 
 func Execute() {
