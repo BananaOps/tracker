@@ -195,7 +195,7 @@ func RegisterEventServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/CreateEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/CreateEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -220,7 +220,7 @@ func RegisterEventServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/GetEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/GetEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -245,7 +245,7 @@ func RegisterEventServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/SearchEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/search"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/SearchEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -270,7 +270,7 @@ func RegisterEventServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/ListEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/list"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/ListEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/list"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -334,7 +334,7 @@ func RegisterEventServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/CreateEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/CreateEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -356,7 +356,7 @@ func RegisterEventServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/GetEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/GetEvent", runtime.WithHTTPPathPattern("/api/v1alpha1/event/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -378,7 +378,7 @@ func RegisterEventServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/SearchEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/search"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/SearchEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -400,7 +400,7 @@ func RegisterEventServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/eventstracker.event.v1alpha1.EventService/ListEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/list"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.event.v1alpha1.EventService/ListEvents", runtime.WithHTTPPathPattern("/api/v1alpha1/events/list"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package eventstracker.event.v1alpha1;
+package tracker.event.v1alpha1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";

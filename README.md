@@ -22,9 +22,9 @@ Each time an event is created, we create a log in json format, which enables Eve
 - [x] Grpc Server
 - [x] Rest Server
 - [ ] Option to start server
-- [ ] Linked event in attributes
-- [ ] Link a pull_request to an event
-- [ ] Calculates the time between two linked events
+- [x] Linked event in attributes
+- [x] Link a pull_request to an event
+- [x] Calculates the time between two linked events
 - [ ] Cli to create and search event
 - [ ] Lock deployment endpoint
 - [ ] Add to cli lock and unlock function

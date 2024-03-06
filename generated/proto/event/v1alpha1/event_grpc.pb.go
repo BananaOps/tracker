@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	EventService_CreateEvent_FullMethodName  = "/eventstracker.event.v1alpha1.EventService/CreateEvent"
-	EventService_GetEvent_FullMethodName     = "/eventstracker.event.v1alpha1.EventService/GetEvent"
-	EventService_SearchEvents_FullMethodName = "/eventstracker.event.v1alpha1.EventService/SearchEvents"
-	EventService_ListEvents_FullMethodName   = "/eventstracker.event.v1alpha1.EventService/ListEvents"
+	EventService_CreateEvent_FullMethodName  = "/tracker.event.v1alpha1.EventService/CreateEvent"
+	EventService_GetEvent_FullMethodName     = "/tracker.event.v1alpha1.EventService/GetEvent"
+	EventService_SearchEvents_FullMethodName = "/tracker.event.v1alpha1.EventService/SearchEvents"
+	EventService_ListEvents_FullMethodName   = "/tracker.event.v1alpha1.EventService/ListEvents"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -195,7 +195,7 @@ func _EventService_ListEvents_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var EventService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "eventstracker.event.v1alpha1.EventService",
+	ServiceName: "tracker.event.v1alpha1.EventService",
 	HandlerType: (*EventServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
