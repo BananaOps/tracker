@@ -15,16 +15,16 @@ Tracker is open-source alternative to Datadog events or Newrelic custom events. 
 
 The idea behind this solution is to provide a simple way of keeping track of everything that happens on your platform, especially in a world of distributed services. Track the start and end of a deployment incident or the opening of an incident.
 
-Each time an event is created, we create a log in json format, which enables EventsTracker to be coupled with a logging solution such as Opensearch or Loki to correlate with logs and metrics.  
+Each time an event is created, we create a log in json format, which enables tracker to be coupled with a logging solution such as Opensearch or Loki to correlate with logs and metrics.  
 
 ## Features
 
 - [x] Grpc Server
 - [x] Rest Server
 - [ ] Option to start server
-- [ ] Linked event in attributes
-- [ ] Link a pull_request to an event
-- [ ] Calculates the time between two linked events
+- [x] Linked event in attributes
+- [x] Link a pull_request to an event
+- [x] Calculates the time between two linked events
 - [ ] Cli to create and search event
 - [ ] Lock deployment endpoint
 - [ ] Add to cli lock and unlock function
@@ -42,7 +42,7 @@ Each time an event is created, we create a log in json format, which enables Eve
 
 ### Build 
 
-To compile EventsTracker run this command, output a binnary in bin/event
+To compile tracker run this command, output a binnary in bin/event
 
 ```bash
 make build
@@ -85,14 +85,14 @@ grpcurl --plaintext -d '{
     "pull_request_link": "https://github.com/bananaops/tracker/pull/240"
   },
   "title": "Deployment service lambda"
-}' localhost:8765 eventstracker.event.v1alpha1.EventService/CreateEvent
+}' localhost:8765 tracker.event.v1alpha1.EventService/CreateEvent
 
 ```
 
 ### List Events
 
 ```bash
-grpcurl --plaintext localhost:8765 eventstracker.event.v1alpha1.EventService/ListEvents
+grpcurl --plaintext localhost:8765 tracker.event.v1alpha1.EventService/ListEvents
 
 ```
 
@@ -101,7 +101,7 @@ grpcurl --plaintext localhost:8765 eventstracker.event.v1alpha1.EventService/Lis
 ```bash
 grpcurl --plaintext -d '{
   "id": "3ac2d880-ad52-4d50-b60d-9b44f54ae58f"
-}' localhost:8765 eventstracker.event.v1alpha1.EventService/GetEvent  
+}' localhost:8765 tracker.event.v1alpha1.EventService/GetEvent  
 
 ```
 
@@ -111,20 +111,50 @@ grpcurl --plaintext -d '{
 // With Priority P1
 grpcurl --plaintext -d '{
   "priority": "1"
-}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+}' localhost:8765 tracker.event.v1alpha1.EventService/SearchEvents
 
 // With Priority P1 and Start Date
 grpcurl --plaintext -d '{
   "priority": "1",
   "start_date": "2024-02-27"
-}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+}' localhost:8765 tracker.event.v1alpha1.EventService/SearchEvents
 
 // With Priority P1 and End Date
 grpcurl --plaintext -d '{
   "priority": "1",
   "end_date": "2024-02-28T15:04:05-07:00"
-}' localhost:8765 eventstracker.event.v1alpha1.EventService/SearchEvents
+}' localhost:8765 tracker.event.v1alpha1.EventService/SearchEvents
 
+```
+
+### Create Lock
+
+```bash
+grpcurl --plaintext -d '{
+  "service": "tracker-service",
+  "who": "jplanckeel"
+}' localhost:8765 tracker.lock.v1alpha1.LockService/CreateLock
+```
+### Get Lock
+
+```bash
+grpcurl --plaintext -d '{
+  "id": "2db91b8b-84ab-4e20-86e0-2104366bec5e"
+}' localhost:8765 tracker.lock.v1alpha1.LockService/GetLock
+```
+
+### Delete Lock
+
+```bash
+grpcurl --plaintext -d '{
+  "id": "2db91b8b-84ab-4e20-86e0-2104366bec5e"
+}' localhost:8765 tracker.lock.v1alpha1.LockService/UnLock
+```
+
+### List Locks
+
+```bash
+grpcurl --plaintext localhost:8765 tracker.lock.v1alpha1.LockService/ListLocks
 ```
 
 ## Contributing

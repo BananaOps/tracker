@@ -8,6 +8,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -15,14 +16,14 @@ import (
 
 type Event struct {
 	v1alpha1.UnimplementedEventServiceServer
-	store  store.MongoClient
+	store  *store.EventStoreClient
 	logger *slog.Logger
 }
 
 func NewEvent() *Event {
 	return &Event{
 		UnimplementedEventServiceServer: v1alpha1.UnimplementedEventServiceServer{},
-		store:                           store.NewClient(),
+		store:                           store.NewStoreEvent(config.ConfigDatabase.EventCollection),
 		logger:                          slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
 }

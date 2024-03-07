@@ -14,6 +14,7 @@ import (
 	"time"
 
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
@@ -38,6 +39,10 @@ var serv = &cobra.Command{
 		events := server.NewEvent()
 		event.RegisterEventServiceServer(grpcServer, events)
 
+		// register lock service
+		locks := server.NewLock()
+		lock.RegisterLockServiceServer(grpcServer, locks)
+
 		// register health checK service
 		//healthCheckService := &server.HealthCheckService{}
 		//health.RegisterHealthServer(grpcServer, healthCheckService)
@@ -47,6 +52,11 @@ var serv = &cobra.Command{
 
 		// Register generated routes to mux
 		err := event.RegisterEventServiceHandlerServer(ctx, mux, events)
+		if err != nil {
+			panic(err)
+		}
+
+		err = lock.RegisterLockServiceHandlerServer(ctx, mux, locks)
 		if err != nil {
 			panic(err)
 		}

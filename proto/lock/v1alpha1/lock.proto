@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package tracker.lock.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+
+option go_package = "proto/lock/v1alpha1";
+
+service LockService {
+  rpc CreateLock(CreateLockRequest) returns (CreateLockResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/lock"
+      body: "*"
+    };
+  }
+  rpc GetLock(GetLockRequest) returns (GetLockResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/lock/{id}"};
+  }
+  rpc UnLock(UnLockRequest) returns (UnLockResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/unlock/{id}"};
+  }
+  rpc ListLocks(ListLocksRequest) returns (ListLocksResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/locks/list"};
+  }
+}
+
+message Lock {
+  string id = 1 [(validate.rules).string = {uuid: true}];
+  string service = 2;
+  string who = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message CreateLockRequest {
+    string service = 2;
+    string who = 3;
+}
+
+message CreateLockResponse {
+  Lock lock = 1;
+}
+
+message GetLockRequest {
+  string id = 1;
+}
+
+message GetLockResponse {
+  Lock lock = 1;
+}
+
+message UnLockRequest {
+  string id = 1;
+}
+
+message UnLockResponse {
+    string message = 1;
+    string id = 2 [(validate.rules).string = {uuid: true}];
+    int64 count = 10;
+}  
+
+message ListLocksRequest {
+  google.protobuf.UInt32Value per_page = 1;
+  google.protobuf.Int32Value page = 2;
+}
+
+message ListLocksResponse {
+  repeated Lock locks = 1;
+  uint32 total_count = 2;
+}
