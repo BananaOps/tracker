@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -32,7 +31,7 @@ const (
 type LockServiceClient interface {
 	CreateLock(ctx context.Context, in *CreateLockRequest, opts ...grpc.CallOption) (*CreateLockResponse, error)
 	GetLock(ctx context.Context, in *GetLockRequest, opts ...grpc.CallOption) (*GetLockResponse, error)
-	UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*UnLockResponse, error)
 	ListLocks(ctx context.Context, in *ListLocksRequest, opts ...grpc.CallOption) (*ListLocksResponse, error)
 }
 
@@ -62,8 +61,8 @@ func (c *lockServiceClient) GetLock(ctx context.Context, in *GetLockRequest, opt
 	return out, nil
 }
 
-func (c *lockServiceClient) UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *lockServiceClient) UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*UnLockResponse, error) {
+	out := new(UnLockResponse)
 	err := c.cc.Invoke(ctx, LockService_UnLock_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -86,7 +85,7 @@ func (c *lockServiceClient) ListLocks(ctx context.Context, in *ListLocksRequest,
 type LockServiceServer interface {
 	CreateLock(context.Context, *CreateLockRequest) (*CreateLockResponse, error)
 	GetLock(context.Context, *GetLockRequest) (*GetLockResponse, error)
-	UnLock(context.Context, *UnLockRequest) (*emptypb.Empty, error)
+	UnLock(context.Context, *UnLockRequest) (*UnLockResponse, error)
 	ListLocks(context.Context, *ListLocksRequest) (*ListLocksResponse, error)
 	mustEmbedUnimplementedLockServiceServer()
 }
@@ -101,7 +100,7 @@ func (UnimplementedLockServiceServer) CreateLock(context.Context, *CreateLockReq
 func (UnimplementedLockServiceServer) GetLock(context.Context, *GetLockRequest) (*GetLockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLock not implemented")
 }
-func (UnimplementedLockServiceServer) UnLock(context.Context, *UnLockRequest) (*emptypb.Empty, error) {
+func (UnimplementedLockServiceServer) UnLock(context.Context, *UnLockRequest) (*UnLockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnLock not implemented")
 }
 func (UnimplementedLockServiceServer) ListLocks(context.Context, *ListLocksRequest) (*ListLocksResponse, error) {

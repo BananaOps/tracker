@@ -9,7 +9,6 @@ import (
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Lock struct {
@@ -90,7 +89,7 @@ func (e *Lock) GetLock(
 func (e *Lock) UnLock(
 	ctx context.Context,
 	i *v1alpha1.UnLockRequest,
-) (*emptypb.Empty, error) {
+) (*v1alpha1.UnLockResponse, error) {
 
 	var lockResult = &v1alpha1.GetLockResponse{}
 	var err error
@@ -100,19 +99,27 @@ func (e *Lock) UnLock(
 		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
 	}
 
-	_, err = e.store.Unlock(context.Background(), map[string]interface{}{"id": i.Id})
+	var countUnLock int64
+
+	countUnLock, err = e.store.Unlock(context.Background(), map[string]interface{}{"id": i.Id})
 	if err != nil {
 		return nil, fmt.Errorf("error to unlock id %s", i.Id)
 	}
 
 	// log lock delete to json format
-	e.logger.Info("lock delete",
+	e.logger.Info("lock deleted",
 		"service", lockResult.Lock.Service,
 		"who", lockResult.Lock.Who,
 		"id", lockResult.Lock.Id,
 	)
 
-	return &emptypb.Empty{}, nil
+	var UnLockResult = &v1alpha1.UnLockResponse{
+		Message: "lock deleted",
+		Id:      i.Id,
+		Count:   countUnLock,
+	}
+
+	return UnLockResult, nil
 }
 
 func (e *Lock) ListLocks(

@@ -759,6 +759,130 @@ var _ interface {
 	ErrorName() string
 } = UnLockRequestValidationError{}
 
+// Validate checks the field values on UnLockResponse with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *UnLockResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnLockResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UnLockResponseMultiError,
+// or nil if none found.
+func (m *UnLockResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnLockResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Message
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UnLockResponseValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return UnLockResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UnLockResponse) _validateUuid(uuid string) error {
+	if matched := _lock_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// UnLockResponseMultiError is an error wrapping multiple validation errors
+// returned by UnLockResponse.ValidateAll() if the designated constraints
+// aren't met.
+type UnLockResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnLockResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnLockResponseMultiError) AllErrors() []error { return m }
+
+// UnLockResponseValidationError is the validation error returned by
+// UnLockResponse.Validate if the designated constraints aren't met.
+type UnLockResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnLockResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnLockResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnLockResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnLockResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnLockResponseValidationError) ErrorName() string { return "UnLockResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UnLockResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnLockResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnLockResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnLockResponseValidationError{}
+
 // Validate checks the field values on ListLocksRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
