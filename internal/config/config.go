@@ -5,15 +5,16 @@ import (
 )
 
 type Database struct {
-	Collection string
-	Host       string
-	Port       string
-	Name       string
-	Username   string
-	Password   string
-	CAFile     string
-	CertFile   string
-	KeyFile    string
+	EventCollection string
+	LockCollection  string
+	Host            string
+	Port            string
+	Name            string
+	Username        string
+	Password        string
+	CAFile          string
+	CertFile        string
+	KeyFile         string
 }
 
 type General struct {
@@ -29,10 +30,11 @@ var ConfigGeneral = General{
 }
 
 var ConfigDatabase = Database{
-	Collection: "events",
-	Host:       "127.0.0.1",
-	Port:       "27017",
-	Name:       "tracker",
+	EventCollection: "events",
+	LockCollection:  "locks",
+	Host:            "127.0.0.1",
+	Port:            "27017",
+	Name:            "tracker",
 }
 
 func init() {
@@ -44,8 +46,11 @@ func init() {
 	if os.Getenv("DB_PORT") != "" {
 		ConfigDatabase.Port = os.Getenv("DB_PORT")
 	}
-	if os.Getenv("DB_COLLECTION") != "" {
-		ConfigDatabase.Name = os.Getenv("DB_COLLECTION")
+	if os.Getenv("DB_EVENT_COLLECTION") != "" {
+		ConfigDatabase.Name = os.Getenv("DB_EVENT_COLLECTION")
+	}
+	if os.Getenv("DB_LOCK_COLLECTION") != "" {
+		ConfigDatabase.Name = os.Getenv("DB_LOCK_COLLECTION")
 	}
 	if os.Getenv("DB_NAME") != "" {
 		ConfigDatabase.Name = os.Getenv("DB_NAME")

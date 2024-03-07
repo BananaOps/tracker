@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
 import "validate/validate.proto";
 
 option go_package = "proto/lock/v1alpha1";
@@ -20,7 +21,7 @@ service LockService {
   rpc GetLock(GetLockRequest) returns (GetLockResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/lock/{id}"};
   }
-  rpc UnLock(UnLockRequest) returns (UnLockResponse) {
+  rpc UnLock(UnLockRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {get: "/api/v1alpha1/unlock/{id}"};
   }
   rpc ListLocks(ListLocksRequest) returns (ListLocksResponse) {
@@ -32,12 +33,12 @@ message Lock {
   string id = 1 [(validate.rules).string = {uuid: true}];
   string service = 2;
   string who = 3;
-  bool lock = 4;
-  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp created_at = 4;
 }
 
 message CreateLockRequest {
-  Lock lock = 1;
+    string service = 2;
+    string who = 3;
 }
 
 message CreateLockResponse {
@@ -49,14 +50,10 @@ message GetLockRequest {
 }
 
 message GetLockResponse {
-  Lock event = 1;
+  Lock lock = 1;
 }
 message UnLockRequest {
   string id = 1;
-}
-
-message UnLockResponse {
-  Lock lock = 1;
 }
 
 message ListLocksRequest {

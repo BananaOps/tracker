@@ -75,8 +75,6 @@ func (m *Lock) validate(all bool) error {
 
 	// no validation rules for Who
 
-	// no validation rules for Lock
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -213,34 +211,9 @@ func (m *CreateLockRequest) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetLock()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateLockRequestValidationError{
-					field:  "Lock",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateLockRequestValidationError{
-					field:  "Lock",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLock()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CreateLockRequestValidationError{
-				field:  "Lock",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Service
+
+	// no validation rules for Who
 
 	if len(errors) > 0 {
 		return CreateLockRequestMultiError(errors)
@@ -578,11 +551,11 @@ func (m *GetLockResponse) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetEvent()).(type) {
+		switch v := interface{}(m.GetLock()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, GetLockResponseValidationError{
-					field:  "Event",
+					field:  "Lock",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -590,16 +563,16 @@ func (m *GetLockResponse) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, GetLockResponseValidationError{
-					field:  "Event",
+					field:  "Lock",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetEvent()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetLock()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return GetLockResponseValidationError{
-				field:  "Event",
+				field:  "Lock",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -785,135 +758,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UnLockRequestValidationError{}
-
-// Validate checks the field values on UnLockResponse with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *UnLockResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on UnLockResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in UnLockResponseMultiError,
-// or nil if none found.
-func (m *UnLockResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UnLockResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetLock()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UnLockResponseValidationError{
-					field:  "Lock",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, UnLockResponseValidationError{
-					field:  "Lock",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLock()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return UnLockResponseValidationError{
-				field:  "Lock",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return UnLockResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// UnLockResponseMultiError is an error wrapping multiple validation errors
-// returned by UnLockResponse.ValidateAll() if the designated constraints
-// aren't met.
-type UnLockResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UnLockResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UnLockResponseMultiError) AllErrors() []error { return m }
-
-// UnLockResponseValidationError is the validation error returned by
-// UnLockResponse.Validate if the designated constraints aren't met.
-type UnLockResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UnLockResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UnLockResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UnLockResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UnLockResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UnLockResponseValidationError) ErrorName() string { return "UnLockResponseValidationError" }
-
-// Error satisfies the builtin error interface
-func (e UnLockResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUnLockResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UnLockResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UnLockResponseValidationError{}
 
 // Validate checks the field values on ListLocksRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
