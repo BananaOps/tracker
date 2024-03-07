@@ -61,8 +61,8 @@ func (e *Lock) CreateLock(
 		return nil, err
 	}
 
-	// log event to json format
-	e.logger.Info("service lock created",
+	// log lock created to json format
+	e.logger.Info("lock created",
 		"service", lockResult.Lock.Service,
 		"who", lockResult.Lock.Who,
 		"id", lockResult.Lock.Id,
@@ -105,7 +105,8 @@ func (e *Lock) UnLock(
 		return nil, fmt.Errorf("error to unlock id %s", i.Id)
 	}
 
-	e.logger.Info("service lock delete",
+	// log lock delete to json format
+	e.logger.Info("lock delete",
 		"service", lockResult.Lock.Service,
 		"who", lockResult.Lock.Who,
 		"id", lockResult.Lock.Id,
