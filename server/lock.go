@@ -36,13 +36,9 @@ func (e *Lock) CreateLock(
 	}
 
 	var lockResult = &v1alpha1.CreateLockResponse{}
-	var lockPresent = &v1alpha1.Lock{}
 	var err error
 
-	lockPresent, _ = e.store.Get(context.Background(), map[string]interface{}{"service": i.Service})
-	//if err != fmt.Errorf("mongo: no documents in result") {
-	//	return nil, err
-	//}
+	lockPresent, _ := e.store.Get(context.Background(), map[string]interface{}{"service": i.Service})
 
 	// check if lock is already present for service
 	if len(lockPresent.Service) != 0 {
