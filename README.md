@@ -151,6 +151,11 @@ grpcurl --plaintext -d '{
 }' localhost:8765 tracker.lock.v1alpha1.LockService/UnLock
 ```
 
+### List Locks
+
+```bash
+grpcurl --plaintext localhost:8765 tracker.lock.v1alpha1.LockService/ListLocks
+```
 
 ## Contributing
 
