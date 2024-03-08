@@ -20,7 +20,7 @@ service LockService {
     option (google.api.http) = {get: "/api/v1alpha1/lock/{id}"};
   }
   rpc UnLock(UnLockRequest) returns (UnLockResponse) {
-    option (google.api.http) = {get: "/api/v1alpha1/unlock/{id}"};
+    option (google.api.http) = {delete: "/api/v1alpha1/unlock/{id}"};
   }
   rpc ListLocks(ListLocksRequest) returns (ListLocksResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/locks/list"};
