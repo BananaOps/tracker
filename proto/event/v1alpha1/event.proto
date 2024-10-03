@@ -38,13 +38,14 @@ message EventAttributes {
   Status status = 7;
   Environment environment = 8;
   bool impact = 9;
+  google.protobuf.Timestamp start_at = 10;
+  google.protobuf.Timestamp end_at = 11;
 }
 
 message EventMetadata {
   google.protobuf.Timestamp created_at = 1;
   google.protobuf.Duration duration = 2;
   string id = 3 [(validate.rules).string = {uuid: true}];
-  google.protobuf.Timestamp end_at = 4;
 }
 
 message EventLinks {
@@ -137,7 +138,7 @@ enum Environment {
   TNR = 3;
   UAT = 4;
   recette = 5;
-  prepoduction = 6;
+  preproduction = 6;
   production = 7;
   mco = 8;
 }
