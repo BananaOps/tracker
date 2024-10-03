@@ -36,16 +36,20 @@ message EventAttributes {
   string related_id = 5 [(validate.rules).string = {uuid: true}];
   string service = 6;
   Status status = 7;
+  Environment environment = 8;
+  bool impact = 9;
 }
 
 message EventMetadata {
   google.protobuf.Timestamp created_at = 1;
   google.protobuf.Duration duration = 2;
   string id = 3 [(validate.rules).string = {uuid: true}];
+  google.protobuf.Timestamp end_at = 4;
 }
 
 message EventLinks {
   string pull_request_link = 1;
+  string ticket= 2;
 }
 
 message Event {
@@ -81,6 +85,8 @@ message SearchEventsRequest {
   string service = 5;
   string start_date = 6;
   string end_date = 7;
+  Environment environment = 8;
+  bool impact = 9;
 }
 
 message SearchEventsResponse {
@@ -122,4 +128,16 @@ enum Status {
   snapshot = 6;
   user_update = 7;
   recommandation = 8;
+}
+
+enum Environment {
+  ENVIRONMENT_UNSPECIFIED = 0;
+  development = 1;
+  integration = 2;
+  TNR = 3;
+  UAT = 4;
+  recette = 5;
+  prepoduction = 6;
+  production = 7;
+  mco = 8;
 }

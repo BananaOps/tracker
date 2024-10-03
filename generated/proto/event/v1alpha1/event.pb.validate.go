@@ -84,6 +84,10 @@ func (m *EventAttributes) validate(all bool) error {
 
 	// no validation rules for Status
 
+	// no validation rules for Environment
+
+	// no validation rules for Impact
+
 	if len(errors) > 0 {
 		return EventAttributesMultiError(errors)
 	}
@@ -262,6 +266,35 @@ func (m *EventMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if all {
+		switch v := interface{}(m.GetEndAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EventMetadataValidationError{
+					field:  "EndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EventMetadataValidationError{
+					field:  "EndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EventMetadataValidationError{
+				field:  "EndAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return EventMetadataMultiError(errors)
 	}
@@ -371,6 +404,8 @@ func (m *EventLinks) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for PullRequestLink
+
+	// no validation rules for Ticket
 
 	if len(errors) > 0 {
 		return EventLinksMultiError(errors)
@@ -1195,6 +1230,10 @@ func (m *SearchEventsRequest) validate(all bool) error {
 	// no validation rules for StartDate
 
 	// no validation rules for EndDate
+
+	// no validation rules for Environment
+
+	// no validation rules for Impact
 
 	if len(errors) > 0 {
 		return SearchEventsRequestMultiError(errors)
