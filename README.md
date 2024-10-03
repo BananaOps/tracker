@@ -75,7 +75,7 @@ You can use Grpcurl to call grpc api
 grpcurl --plaintext -d '{
   "attributes": {
     "message": "deployment service serverless version v0.0.1",
-    "priority": "1",
+    "priority": "4",
     "service": "service-event",
     "source": "github_action",
     "status": "1",
