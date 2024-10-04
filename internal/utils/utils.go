@@ -24,6 +24,9 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 	if e.Priority != 0 {
 		filter["attributes.priority"] = e.Priority
 	}
+	if e.Environment != 0 {
+		filter["attributes.environment"] = e.Environment 
+	}
 	if e.Status != 0 {
 		filter["attributes.status"] = e.Status
 	}
@@ -43,21 +46,21 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 		if err != nil {
 			return nil, err
 		}
-		filter["metadata.createdat.seconds"] = bson.D{{Key: "$gte", Value: start.Unix()}, {Key: "$lte", Value: end.Unix()}}
+		filter["attributes.startdate.seconds"] = bson.D{{Key: "$gte", Value: start.Unix()}, {Key: "$lte", Value: end.Unix()}}
 	}
 	if e.StartDate != "" && e.EndDate == "" {
 		date, err := parseDate(e.StartDate)
 		if err != nil {
 			return nil, err
 		}
-		filter["metadata.createdat.seconds"] = bson.D{{Key: "$gte", Value: date.Unix()}}
+		filter["attributes.startdate.seconds"] = bson.D{{Key: "$gte", Value: date.Unix()}}
 	}
 	if e.StartDate == "" && e.EndDate != "" {
 		date, err := parseDate(e.EndDate)
 		if err != nil {
 			return nil, err
 		}
-		filter["metadata.createdat.seconds"] = bson.D{{Key: "$lte", Value: date.Unix()}}
+		filter["attributes.startdate.seconds"] = bson.D{{Key: "$lte", Value: date.Unix()}}
 	}
 	if len(filter) == 0 {
 		err := errors.New("no filter for search events")

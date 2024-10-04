@@ -84,6 +84,70 @@ func (m *EventAttributes) validate(all bool) error {
 
 	// no validation rules for Status
 
+	// no validation rules for Environment
+
+	// no validation rules for Impact
+
+	if all {
+		switch v := interface{}(m.GetStartDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EventAttributesValidationError{
+					field:  "StartDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EventAttributesValidationError{
+					field:  "StartDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EventAttributesValidationError{
+				field:  "StartDate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEndDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EventAttributesValidationError{
+					field:  "EndDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EventAttributesValidationError{
+					field:  "EndDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EventAttributesValidationError{
+				field:  "EndDate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Owner
+
 	if len(errors) > 0 {
 		return EventAttributesMultiError(errors)
 	}
@@ -371,6 +435,8 @@ func (m *EventLinks) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for PullRequestLink
+
+	// no validation rules for Ticket
 
 	if len(errors) > 0 {
 		return EventLinksMultiError(errors)
@@ -1195,6 +1261,10 @@ func (m *SearchEventsRequest) validate(all bool) error {
 	// no validation rules for StartDate
 
 	// no validation rules for EndDate
+
+	// no validation rules for Environment
+
+	// no validation rules for Impact
 
 	if len(errors) > 0 {
 		return SearchEventsRequestMultiError(errors)
