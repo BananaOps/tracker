@@ -78,7 +78,7 @@ jobs:
         if: "steps.tag.outputs.value != ''"
         env:
           KO_DOCKER_REPO: bananaops/tracker
-        run: ko publish ./cmd --bare --tags latest,${{steps.version_tag.outputs.tag}}
+        run: ko publish . --bare --tags latest,${{steps.version_tag.outputs.tag}}
 
   release-helm: 
     needs: [release]
