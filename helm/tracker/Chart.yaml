@@ -2,8 +2,8 @@ apiVersion: v2
 name: tracker
 description: A Helm chart dedicated to deploy tracker api en open source solution
 type: application
-version: 0.2.2
-appVersion: "0.2.2"
+version: 0.2.4
+appVersion: "0.2.4"
 dependencies:
 - condition: mongodb.enabled
   name: mongodb
