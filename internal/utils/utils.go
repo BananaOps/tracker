@@ -24,6 +24,9 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 	if e.Priority != 0 {
 		filter["attributes.priority"] = e.Priority
 	}
+	if e.Environment != 0 {
+		filter["attributes.environment"] = e.Environment 
+	}
 	if e.Status != 0 {
 		filter["attributes.status"] = e.Status
 	}
