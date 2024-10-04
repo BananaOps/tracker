@@ -326,6 +326,8 @@ func (m *EventMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for SlackId
+
 	if len(errors) > 0 {
 		return EventMetadataMultiError(errors)
 	}
@@ -783,6 +785,8 @@ func (m *CreateEventRequest) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for SlackId
 
 	if len(errors) > 0 {
 		return CreateEventRequestMultiError(errors)
@@ -1265,6 +1269,8 @@ func (m *SearchEventsRequest) validate(all bool) error {
 	// no validation rules for Environment
 
 	// no validation rules for Impact
+
+	// no validation rules for SlackId
 
 	if len(errors) > 0 {
 		return SearchEventsRequestMultiError(errors)
@@ -1781,3 +1787,515 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListEventsResponseValidationError{}
+
+// Validate checks the field values on UpdateEventRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateEventRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateEventRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateEventRequestMultiError, or nil if none found.
+func (m *UpdateEventRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateEventRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Title
+
+	if all {
+		switch v := interface{}(m.GetAttributes()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateEventRequestValidationError{
+					field:  "Attributes",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateEventRequestValidationError{
+					field:  "Attributes",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAttributes()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateEventRequestValidationError{
+				field:  "Attributes",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLinks()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateEventRequestValidationError{
+					field:  "Links",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateEventRequestValidationError{
+					field:  "Links",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLinks()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateEventRequestValidationError{
+				field:  "Links",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for SlackId
+
+	if len(errors) > 0 {
+		return UpdateEventRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateEventRequestMultiError is an error wrapping multiple validation errors
+// returned by UpdateEventRequest.ValidateAll() if the designated constraints
+// aren't met.
+type UpdateEventRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateEventRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateEventRequestMultiError) AllErrors() []error { return m }
+
+// UpdateEventRequestValidationError is the validation error returned by
+// UpdateEventRequest.Validate if the designated constraints aren't met.
+type UpdateEventRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateEventRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateEventRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateEventRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateEventRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateEventRequestValidationError) ErrorName() string {
+	return "UpdateEventRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateEventRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateEventRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateEventRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateEventRequestValidationError{}
+
+// Validate checks the field values on UpdateEventResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateEventResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateEventResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateEventResponseMultiError, or nil if none found.
+func (m *UpdateEventResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateEventResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetEvents() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateEventResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateEventResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateEventResponseValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return UpdateEventResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateEventResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateEventResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateEventResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateEventResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateEventResponseMultiError) AllErrors() []error { return m }
+
+// UpdateEventResponseValidationError is the validation error returned by
+// UpdateEventResponse.Validate if the designated constraints aren't met.
+type UpdateEventResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateEventResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateEventResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateEventResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateEventResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateEventResponseValidationError) ErrorName() string {
+	return "UpdateEventResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateEventResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateEventResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateEventResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateEventResponseValidationError{}
+
+// Validate checks the field values on DeleteEventRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteEventRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteEventRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteEventRequestMultiError, or nil if none found.
+func (m *DeleteEventRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteEventRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for SlackId
+
+	if len(errors) > 0 {
+		return DeleteEventRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteEventRequestMultiError is an error wrapping multiple validation errors
+// returned by DeleteEventRequest.ValidateAll() if the designated constraints
+// aren't met.
+type DeleteEventRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteEventRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteEventRequestMultiError) AllErrors() []error { return m }
+
+// DeleteEventRequestValidationError is the validation error returned by
+// DeleteEventRequest.Validate if the designated constraints aren't met.
+type DeleteEventRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteEventRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteEventRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteEventRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteEventRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteEventRequestValidationError) ErrorName() string {
+	return "DeleteEventRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteEventRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteEventRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteEventRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteEventRequestValidationError{}
+
+// Validate checks the field values on DeleteEventResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteEventResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteEventResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteEventResponseMultiError, or nil if none found.
+func (m *DeleteEventResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteEventResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for SlackId
+
+	if len(errors) > 0 {
+		return DeleteEventResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteEventResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteEventResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteEventResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteEventResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteEventResponseMultiError) AllErrors() []error { return m }
+
+// DeleteEventResponseValidationError is the validation error returned by
+// DeleteEventResponse.Validate if the designated constraints aren't met.
+type DeleteEventResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteEventResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteEventResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteEventResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteEventResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteEventResponseValidationError) ErrorName() string {
+	return "DeleteEventResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteEventResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteEventResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteEventResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteEventResponseValidationError{}

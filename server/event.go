@@ -52,7 +52,9 @@ func (e *Event) CreateEvent(
 		Links: &v1alpha1.EventLinks{
 			PullRequestLink: i.Links.PullRequestLink,
 		},
-		Metadata: &v1alpha1.EventMetadata{},
+		Metadata: &v1alpha1.EventMetadata{
+			SlackId: i.SlackId,
+		},
 	}
 
 	if event.Attributes.RelatedId != "" {
