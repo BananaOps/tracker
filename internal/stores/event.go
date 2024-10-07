@@ -86,3 +86,14 @@ func (c *EventStoreClient) Search(ctx context.Context, filter map[string]interfa
 
 	return
 }
+
+func (c *EventStoreClient) Update(ctx context.Context, filter map[string]interface{},  eventUpdate *v1alpha1.Event) (result *v1alpha1.Event, err error) {
+	result = &v1alpha1.Event{}
+	err = c.collection.FindOneAndUpdate(context.TODO(), filter, eventUpdate).Decode(&result)
+	return
+}
+
+func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interface{}) (err error) {
+	_, err = c.collection.DeleteOne(context.TODO(), filter)
+	return
+}

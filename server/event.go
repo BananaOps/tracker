@@ -148,3 +148,60 @@ func (e *Event) ListEvents(
 
 	return eventsResult, nil
 }
+
+func (e *Event) UpdateEvent(
+	ctx context.Context,
+	i *v1alpha1.UpdateEventRequest,
+) (*v1alpha1.UpdateEventResponse, error) {
+
+	var eventResult = &v1alpha1.UpdateEventResponse{}
+	var err error
+
+	var event = &v1alpha1.Event{
+		Title: i.Title,
+		Attributes: &v1alpha1.EventAttributes{
+			Message:     i.Attributes.Message,
+			Source:      i.Attributes.Source,
+			Type:        i.Attributes.Type,
+			Priority:    i.Attributes.Priority,
+			Impact:      i.Attributes.Impact,
+			Environment: i.Attributes.Environment,
+			Owner:       i.Attributes.Owner,
+			RelatedId:   i.Attributes.RelatedId,
+			Service:     i.Attributes.Service,
+			Status:      i.Attributes.Status,
+			StartDate:   i.Attributes.StartDate,
+			EndDate:     i.Attributes.EndDate,
+		},
+		Links: &v1alpha1.EventLinks{
+			PullRequestLink: i.Links.PullRequestLink,
+		},
+		Metadata: &v1alpha1.EventMetadata{
+			SlackId: i.SlackId,
+		},
+	}
+
+
+	eventResult.Event, err = e.store.Update(context.Background(),map[string]interface{}{"metadata.slack_id": i.SlackId},  event)
+	if err != nil {
+		return nil, err
+	}
+
+	return eventResult, nil
+}
+
+func (e *Event) DeleteEvent(
+	ctx context.Context,
+	i *v1alpha1.DeleteEventRequest,
+) (*v1alpha1.DeleteEventResponse, error) {
+
+	var eventResult = &v1alpha1.DeleteEventResponse{}
+	var err error
+
+	err = e.store.Delete(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		return nil, err
+	}
+
+	return eventResult, nil
+}
