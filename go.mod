@@ -30,7 +30,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/net v0.26.0 // indirect
