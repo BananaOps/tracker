@@ -17,7 +17,7 @@ service EventService {
       body: "*"
     };
   }
-  rpc UpdateEvents(UpdateEventRequest) returns (UpdateEventResponse) {
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
     option (google.api.http) = {
       put: "/api/v1alpha1/event"
       body: "*"
