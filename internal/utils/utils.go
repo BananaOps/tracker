@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	"github.com/google/uuid"
 )
 
 func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, error) {
@@ -25,7 +26,7 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 		filter["attributes.priority"] = e.Priority
 	}
 	if e.Environment != 0 {
-		filter["attributes.environment"] = e.Environment 
+		filter["attributes.environment"] = e.Environment
 	}
 	if e.Status != 0 {
 		filter["attributes.status"] = e.Status
@@ -115,4 +116,9 @@ func CatchPullRequestId(input string) (id string, err error) {
 		err = fmt.Errorf("no pull request id found in %s", input)
 	}
 	return
+}
+
+func IsUUID(s string) bool {
+	_, err := uuid.Parse(s)
+	return err == nil
 }

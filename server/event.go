@@ -36,23 +36,28 @@ func (e *Event) CreateEvent(
 	var event = &v1alpha1.Event{
 		Title: i.Title,
 		Attributes: &v1alpha1.EventAttributes{
-			Message:     i.Attributes.Message,
-			Source:      i.Attributes.Source,
-			Type:        i.Attributes.Type,
-			Priority:    i.Attributes.Priority,
-			Impact:      i.Attributes.Impact,
-			Environment: i.Attributes.Environment,
-			Owner:       i.Attributes.Owner,
-			RelatedId:   i.Attributes.RelatedId,
-			Service:     i.Attributes.Service,
-			Status:      i.Attributes.Status,
-			StartDate:   i.Attributes.StartDate,
-			EndDate:     i.Attributes.EndDate,
+			Message:      i.Attributes.Message,
+			Source:       i.Attributes.Source,
+			Type:         i.Attributes.Type,
+			Priority:     i.Attributes.Priority,
+			Impact:       i.Attributes.Impact,
+			Environment:  i.Attributes.Environment,
+			Owner:        i.Attributes.Owner,
+			RelatedId:    i.Attributes.RelatedId,
+			Service:      i.Attributes.Service,
+			Status:       i.Attributes.Status,
+			StartDate:    i.Attributes.StartDate,
+			EndDate:      i.Attributes.EndDate,
+			StackHolders: i.Attributes.StackHolders,
+			Notification: i.Attributes.Notification,
 		},
 		Links: &v1alpha1.EventLinks{
 			PullRequestLink: i.Links.PullRequestLink,
+			Ticket:          i.Links.Ticket,
 		},
-		Metadata: &v1alpha1.EventMetadata{},
+		Metadata: &v1alpha1.EventMetadata{
+			SlackId: i.SlackId,
+		},
 	}
 
 	if event.Attributes.RelatedId != "" {
@@ -103,10 +108,18 @@ func (e *Event) GetEvent(
 	var eventResult = &v1alpha1.GetEventResponse{}
 	var err error
 
-	eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
-	if err != nil {
-		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+	if utils.IsUUID(i.Id) {
+		eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+		if err != nil {
+			return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+		}
+	} else {
+		eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.Id})
+		if err != nil {
+			return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+		}
 	}
+
 	return eventResult, nil
 }
 
@@ -145,4 +158,63 @@ func (e *Event) ListEvents(
 	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
+}
+
+func (e *Event) UpdateEvent(
+	ctx context.Context,
+	i *v1alpha1.UpdateEventRequest,
+) (*v1alpha1.UpdateEventResponse, error) {
+
+	var eventResult = &v1alpha1.UpdateEventResponse{}
+	var err error
+
+	var event = &v1alpha1.Event{
+		Title: i.Title,
+		Attributes: &v1alpha1.EventAttributes{
+			Message:      i.Attributes.Message,
+			Source:       i.Attributes.Source,
+			Type:         i.Attributes.Type,
+			Priority:     i.Attributes.Priority,
+			Impact:       i.Attributes.Impact,
+			Environment:  i.Attributes.Environment,
+			Owner:        i.Attributes.Owner,
+			RelatedId:    i.Attributes.RelatedId,
+			Service:      i.Attributes.Service,
+			Status:       i.Attributes.Status,
+			StartDate:    i.Attributes.StartDate,
+			EndDate:      i.Attributes.EndDate,
+			StackHolders: i.Attributes.StackHolders,
+			Notification: i.Attributes.Notification,
+		},
+		Links: &v1alpha1.EventLinks{
+			PullRequestLink: i.Links.PullRequestLink,
+			Ticket:          i.Links.Ticket,
+		},
+		Metadata: &v1alpha1.EventMetadata{
+			SlackId: i.SlackId,
+		},
+	}
+
+	eventResult.Event, err = e.store.Update(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId}, event)
+	if err != nil {
+		return nil, err
+	}
+
+	return eventResult, nil
+}
+
+func (e *Event) DeleteEvent(
+	ctx context.Context,
+	i *v1alpha1.DeleteEventRequest,
+) (*v1alpha1.DeleteEventResponse, error) {
+
+	var eventResult = &v1alpha1.DeleteEventResponse{}
+	var err error
+
+	err = e.store.Delete(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		return nil, err
+	}
+
+	return eventResult, nil
 }

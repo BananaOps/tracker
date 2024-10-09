@@ -17,6 +17,17 @@ service EventService {
       body: "*"
     };
   }
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/event"
+      body: "*"
+    };
+  }
+  rpc DeleteEvents(DeleteEventRequest) returns (DeleteEventResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1alpha1/event/{id}"
+    };
+  }
   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/event/{id}"};
   }
@@ -41,12 +52,15 @@ message EventAttributes {
   google.protobuf.Timestamp start_date = 10;
   google.protobuf.Timestamp end_date = 11;
   string owner = 12;
+  repeated string stackHolders = 13;
+  bool notification = 14;
 }
 
 message EventMetadata {
   google.protobuf.Timestamp created_at = 1;
   google.protobuf.Duration duration = 2;
   string id = 3 [(validate.rules).string = {uuid: true}];
+  string slack_id = 4;
 }
 
 message EventLinks {
@@ -65,6 +79,7 @@ message CreateEventRequest {
   string title = 1;
   EventAttributes attributes = 2;
   EventLinks links = 3;
+  string slack_id = 4;
 }
 
 message CreateEventResponse {
@@ -89,6 +104,7 @@ message SearchEventsRequest {
   string end_date = 7;
   Environment environment = 8;
   bool impact = 9;
+  string slack_id = 10;
 }
 
 message SearchEventsResponse {
@@ -104,6 +120,28 @@ message ListEventsRequest {
 message ListEventsResponse {
   repeated Event events = 1;
   uint32 total_count = 2;
+}
+
+
+message UpdateEventRequest {
+  string title = 1;
+  EventAttributes attributes = 2;
+  EventLinks links = 3;
+  string slack_id = 4;
+}
+
+message UpdateEventResponse {
+  Event event = 1;
+}
+
+message DeleteEventRequest {
+  string id = 1;
+  string slack_id = 2;
+}
+
+message DeleteEventResponse {
+  string id = 1;
+  string slack_id = 2;
 }
 
 enum Type {
