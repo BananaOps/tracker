@@ -52,6 +52,8 @@ message EventAttributes {
   google.protobuf.Timestamp start_date = 10;
   google.protobuf.Timestamp end_date = 11;
   string owner = 12;
+  repeated string stackHolders = 13;
+  bool notification = 14;
 }
 
 message EventMetadata {

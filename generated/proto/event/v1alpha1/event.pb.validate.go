@@ -148,6 +148,8 @@ func (m *EventAttributes) validate(all bool) error {
 
 	// no validation rules for Owner
 
+	// no validation rules for Notification
+
 	if len(errors) > 0 {
 		return EventAttributesMultiError(errors)
 	}
