@@ -16,13 +16,13 @@ service catalogService {
       body: "*"
     };
   }
-  rpc Getcatalog(GetcatalogRequest) returns (GetcatalogResponse) {
+  rpc Getcatalog(GetCatalogRequest) returns (GetCatalogResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalog/{name}"};
   }
-  rpc Uncatalog(UncatalogRequest) returns (UncatalogResponse) {
+  rpc Uncatalog(UnCatalogRequest) returns (UnCatalogResponse) {
     option (google.api.http) = {delete: "/api/v1alpha1/catalog/{name}"};
   }
-  rpc Listcatalogs(ListcatalogsRequest) returns (ListcatalogsResponse) {
+  rpc Listcatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};
   }
 }
@@ -71,11 +71,11 @@ message CreateUpdateCatalogResponse {
   Catalog catalog = 1;
 }
 
-message GetcatalogRequest {
+message GetCatalogRequest {
   string name = 1;
 }
 
-message GetcatalogResponse {
+message GetCatalogResponse {
   Catalog catalog = 1;
 }
 
