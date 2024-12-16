@@ -102,8 +102,7 @@ jobs:
 
       - name: Helm add mongo repository
         run: |
-          helm repo add mongodb https://repo.broadcom.com/bitnami-files
-          helm dependency update helm/tracker
+          helm repo add mongodb oci://registry-1.docker.io/bitnamicharts
   
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1

@@ -7,5 +7,5 @@ appVersion: "0.4.8"
 dependencies:
 - condition: mongodb.enabled
   name: mongodb
-  repository: https://repo.broadcom.com/bitnami-files
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 14.x.x
