@@ -100,6 +100,7 @@ func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interfa
 	return
 }
 
+/*
 // Fonction pour construire dynamiquement bson.D en fonction des champs non vides
 func buildBsonUpdate(event *v1alpha1.Event) bson.D {
 	update := bson.D{}
@@ -159,3 +160,4 @@ func buildBsonUpdate(event *v1alpha1.Event) bson.D {
 
 	return update
 }
+*/
