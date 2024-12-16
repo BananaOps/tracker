@@ -102,7 +102,7 @@ jobs:
 
       - name: Helm add mongo repository
         run: |
-          helm repo add mongodb https://charts.bitnami.com/bitnami
+          helm repo add mongodb https://repo.broadcom.com/bitnami-files
   
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1
