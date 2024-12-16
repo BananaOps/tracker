@@ -106,7 +106,7 @@ jobs:
           helm dependency update helm/tracker
   
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v
+        uses: helm/chart-releaser-action@v1
         with:
           charts_dir: helm
         env:
