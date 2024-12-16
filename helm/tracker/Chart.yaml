@@ -2,10 +2,10 @@ apiVersion: v2
 name: tracker
 description: A Helm chart dedicated to deploy tracker api en open source solution
 type: application
-version: 0.0.1
-appVersion: "0.0.1"
+version: 0.4.1
+appVersion: "0.4.1"
 dependencies:
 - condition: mongodb.enabled
   name: mongodb
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://repo.broadcom.com/bitnami-files
   version: 14.x.x

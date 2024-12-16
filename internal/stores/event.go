@@ -86,3 +86,77 @@ func (c *EventStoreClient) Search(ctx context.Context, filter map[string]interfa
 
 	return
 }
+
+func (c *EventStoreClient) Update(ctx context.Context, filter map[string]interface{}, eventUpdate *v1alpha1.Event) (result *v1alpha1.Event, err error) {
+	result = &v1alpha1.Event{}
+	updateFilter := bson.D{{Key: "$set", Value: eventUpdate}}
+	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter).Decode(&result)
+	return
+}
+
+func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interface{}) (err error) {
+	_, err = c.collection.DeleteOne(context.TODO(), filter)
+	return
+}
+
+/*
+// Fonction pour construire dynamiquement bson.D en fonction des champs non vides
+func buildBsonUpdate(event *v1alpha1.Event) bson.D {
+	update := bson.D{}
+
+	// Vérifier chaque champ de la structure Event
+	if event.Title != "" {
+		update = append(update, bson.E{Key: "title", Value: event.Title})
+	}
+
+	// Vérifier les champs de Attributes s'ils ne sont pas nil et non vides
+	if event.Attributes != nil {
+		attributes := bson.D{}
+		v := reflect.ValueOf(event.Attributes).Elem()
+		t := reflect.TypeOf(event.Attributes).Elem()
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if !field.IsZero() { // Si le champ n'est pas vide
+				attributes = append(attributes, bson.E{t.Field(i).Tag.Get("json"), field.Interface()})
+			}
+		}
+		if len(attributes) > 0 {
+			update = append(update, bson.E{"attributes", attributes})
+		}
+	}
+
+	// Vérifier les champs de Links s'ils ne sont pas nil et non vides
+	if event.Links != nil {
+		links := bson.D{}
+		v := reflect.ValueOf(event.Links).Elem()
+		t := reflect.TypeOf(event.Links).Elem()
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if !field.IsZero() { // Si le champ n'est pas vide
+				links = append(links, bson.E{t.Field(i).Tag.Get("json"), field.Interface()})
+			}
+		}
+		if len(links) > 0 {
+			update = append(update, bson.E{"links", links})
+		}
+	}
+
+	// Vérifier les champs de Metadata s'ils ne sont pas nil et non vides
+	if event.Metadata != nil {
+		metadata := bson.D{}
+		v := reflect.ValueOf(event.Metadata).Elem()
+		t := reflect.TypeOf(event.Metadata).Elem()
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if !field.IsZero() { // Si le champ n'est pas vide
+				metadata = append(metadata, bson.E{t.Field(i).Tag.Get("json"), field.Interface()})
+			}
+		}
+		if len(metadata) > 0 {
+			update = append(update, bson.E{"metadata", metadata})
+		}
+	}
+
+	return update
+}
+*/

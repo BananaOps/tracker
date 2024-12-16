@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package tracker.catalog.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "proto/catalog/v1alpha1";
+
+service CatalogService {
+  rpc CreateUpdateCatalog(CreateUpdateCatalogRequest) returns (CreateUpdateCatalogResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/catalog"
+      body: "*"
+    };
+  }
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/catalog/{name}"};
+  }
+  rpc DeleteCatalog(DeleteCatalogRequest) returns (DeleteCatalogResponse) {
+    option (google.api.http) = {delete: "/api/v1alpha1/catalog/{name}"};
+  }
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};
+  }
+}
+
+message Catalog {
+  string name = 1;
+  Type type = 2;
+  Languages languages = 3;
+  string owner = 4;
+  string version = 5;
+  string link = 6;
+  string description = 7;
+  string repository = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message CreateUpdateCatalogRequest {
+  string name = 1;
+  Type type = 2;
+  Languages languages = 3;
+  string owner = 4;
+  string version = 5;
+  string link = 6;
+  string description = 7;
+  string repository = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message CreateUpdateCatalogResponse {
+  Catalog catalog = 1;
+}
+
+message GetCatalogRequest {
+  string name = 1;
+}
+
+message GetCatalogResponse {
+  Catalog catalog = 1;
+}
+
+message DeleteCatalogRequest {
+  string name = 1;
+}
+
+message DeleteCatalogResponse {
+    string message = 1;
+    string name = 2;
+}  
+
+message ListCatalogsRequest {
+  google.protobuf.UInt32Value per_page = 1;
+  google.protobuf.Int32Value page = 2;
+}
+
+message ListCatalogsResponse {
+  repeated Catalog catalogs = 1;
+  uint32 total_count = 2;
+}
+
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  module = 1;
+  library = 2;
+  workflow = 3;
+  project = 4;
+  chart = 5;
+  package = 6;
+  container = 7;
+}
+
+enum Languages {
+  LANGUAGES_UNSPECIFIED = 0;
+  golang = 1;
+  kotlin = 2;
+  java = 3;
+  terraform = 4;
+  helm = 5;
+  javascript = 6;
+  yaml = 7;
+  docker = 8;
+}

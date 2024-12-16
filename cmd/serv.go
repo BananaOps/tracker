@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	catalog "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
@@ -43,6 +44,10 @@ var serv = &cobra.Command{
 		locks := server.NewLock()
 		lock.RegisterLockServiceServer(grpcServer, locks)
 
+		// register catalog service
+		catalogs := server.NewCatalog()
+		catalog.RegisterCatalogServiceServer(grpcServer, catalogs)
+
 		// register health checK service
 		//healthCheckService := &server.HealthCheckService{}
 		//health.RegisterHealthServer(grpcServer, healthCheckService)
@@ -57,6 +62,11 @@ var serv = &cobra.Command{
 		}
 
 		err = lock.RegisterLockServiceHandlerServer(ctx, mux, locks)
+		if err != nil {
+			panic(err)
+		}
+
+		err = catalog.RegisterCatalogServiceHandlerServer(ctx, mux, catalogs)
 		if err != nil {
 			panic(err)
 		}
