@@ -57,7 +57,7 @@ func local_request_CatalogService_CreateUpdateCatalog_0(ctx context.Context, mar
 
 }
 
-func request_CatalogService_Getcatalog_0(ctx context.Context, marshaler runtime.Marshaler, client CatalogServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_CatalogService_GetCatalog_0(ctx context.Context, marshaler runtime.Marshaler, client CatalogServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetCatalogRequest
 	var metadata runtime.ServerMetadata
 
@@ -78,12 +78,12 @@ func request_CatalogService_Getcatalog_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := client.Getcatalog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetCatalog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_CatalogService_Getcatalog_0(ctx context.Context, marshaler runtime.Marshaler, server CatalogServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_CatalogService_GetCatalog_0(ctx context.Context, marshaler runtime.Marshaler, server CatalogServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetCatalogRequest
 	var metadata runtime.ServerMetadata
 
@@ -104,12 +104,12 @@ func local_request_CatalogService_Getcatalog_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := server.Getcatalog(ctx, &protoReq)
+	msg, err := server.GetCatalog(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_CatalogService_Deletecatalog_0(ctx context.Context, marshaler runtime.Marshaler, client CatalogServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_CatalogService_DeleteCatalog_0(ctx context.Context, marshaler runtime.Marshaler, client CatalogServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteCatalogRequest
 	var metadata runtime.ServerMetadata
 
@@ -130,12 +130,12 @@ func request_CatalogService_Deletecatalog_0(ctx context.Context, marshaler runti
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := client.Deletecatalog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.DeleteCatalog(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_CatalogService_Deletecatalog_0(ctx context.Context, marshaler runtime.Marshaler, server CatalogServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_CatalogService_DeleteCatalog_0(ctx context.Context, marshaler runtime.Marshaler, server CatalogServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq DeleteCatalogRequest
 	var metadata runtime.ServerMetadata
 
@@ -156,7 +156,7 @@ func local_request_CatalogService_Deletecatalog_0(ctx context.Context, marshaler
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
-	msg, err := server.Deletecatalog(ctx, &protoReq)
+	msg, err := server.DeleteCatalog(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -228,7 +228,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("GET", pattern_CatalogService_Getcatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_CatalogService_GetCatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -236,12 +236,12 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/Getcatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/GetCatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_CatalogService_Getcatalog_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_CatalogService_GetCatalog_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -249,11 +249,11 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 			return
 		}
 
-		forward_CatalogService_Getcatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_CatalogService_GetCatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_CatalogService_Deletecatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_CatalogService_DeleteCatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -261,12 +261,12 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/Deletecatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/DeleteCatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_CatalogService_Deletecatalog_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_CatalogService_DeleteCatalog_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -274,7 +274,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 			return
 		}
 
-		forward_CatalogService_Deletecatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_CatalogService_DeleteCatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -366,47 +366,47 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("GET", pattern_CatalogService_Getcatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_CatalogService_GetCatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/Getcatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/GetCatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_CatalogService_Getcatalog_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_CatalogService_GetCatalog_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_CatalogService_Getcatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_CatalogService_GetCatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_CatalogService_Deletecatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_CatalogService_DeleteCatalog_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/Deletecatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/DeleteCatalog", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_CatalogService_Deletecatalog_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_CatalogService_DeleteCatalog_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_CatalogService_Deletecatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_CatalogService_DeleteCatalog_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -438,9 +438,9 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 var (
 	pattern_CatalogService_CreateUpdateCatalog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1alpha1", "catalog"}, ""))
 
-	pattern_CatalogService_Getcatalog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1alpha1", "catalog", "name"}, ""))
+	pattern_CatalogService_GetCatalog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1alpha1", "catalog", "name"}, ""))
 
-	pattern_CatalogService_Deletecatalog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1alpha1", "catalog", "name"}, ""))
+	pattern_CatalogService_DeleteCatalog_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1alpha1", "catalog", "name"}, ""))
 
 	pattern_CatalogService_ListCatalogs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "catalogs", "list"}, ""))
 )
@@ -448,9 +448,9 @@ var (
 var (
 	forward_CatalogService_CreateUpdateCatalog_0 = runtime.ForwardResponseMessage
 
-	forward_CatalogService_Getcatalog_0 = runtime.ForwardResponseMessage
+	forward_CatalogService_GetCatalog_0 = runtime.ForwardResponseMessage
 
-	forward_CatalogService_Deletecatalog_0 = runtime.ForwardResponseMessage
+	forward_CatalogService_DeleteCatalog_0 = runtime.ForwardResponseMessage
 
 	forward_CatalogService_ListCatalogs_0 = runtime.ForwardResponseMessage
 )
