@@ -1,6 +1,6 @@
 dependencies:
 - name: mongodb
-  repository: https://repo.broadcom.com/bitnami-files
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 14.13.0
-digest: sha256:034ee0c485d7cd14ed72e5bc38e1720eea15a09de5873d61288564648d2f94d4
-generated: "2024-12-16T09:20:37.363885148+01:00"
+digest: sha256:04d739e31eaaf9f459ec963c102b31af46ff18eb5b7b4fbc4286247eb48a3de2
+generated: "2024-12-16T11:26:20.808867143+01:00"
