@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"log"
-	"reflect"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -100,6 +99,7 @@ func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interfa
 	return
 }
 
+/*
 // Fonction pour construire dynamiquement bson.D en fonction des champs non vides
 func buildBsonUpdate(event *v1alpha1.Event) bson.D {
 	update := bson.D{}
@@ -159,3 +159,4 @@ func buildBsonUpdate(event *v1alpha1.Event) bson.D {
 
 	return update
 }
+*/
