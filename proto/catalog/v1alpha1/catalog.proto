@@ -16,10 +16,10 @@ service CatalogService {
     };
   }
   rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse) {
-    option (google.api.http) = {get: "/api/v1alpha1/catalog/{name}"};
+    option (google.api.http) = {get: "/api/v1alpha1/catalog"};
   }
   rpc DeleteCatalog(DeleteCatalogRequest) returns (DeleteCatalogResponse) {
-    option (google.api.http) = {delete: "/api/v1alpha1/catalog/{name}"};
+    option (google.api.http) = {delete: "/api/v1alpha1/catalog"};
   }
   rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};

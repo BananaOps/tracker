@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -121,4 +122,14 @@ func CatchPullRequestId(input string) (id string, err error) {
 func IsUUID(s string) bool {
 	_, err := uuid.Parse(s)
 	return err == nil
+}
+
+// DecodeEscapedChars prend une chaîne contenant des caractères encodés en URL
+// et retourne la chaîne décodée.
+func DecodeEscapedChars(encodedStr string) (string, error) {
+	decodedStr, err := url.QueryUnescape(encodedStr)
+	if err != nil {
+		return "", err // Retourne une erreur si le décodage échoue
+	}
+	return decodedStr, nil
 }
