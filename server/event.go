@@ -209,9 +209,8 @@ func (e *Event) DeleteEvent(
 ) (*v1alpha1.DeleteEventResponse, error) {
 
 	var eventResult = &v1alpha1.DeleteEventResponse{}
-	var err error
 
-	err = e.store.Delete(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+	err := e.store.Delete(context.Background(), map[string]interface{}{"metadata.id": i.Id})
 	if err != nil {
 		return nil, err
 	}

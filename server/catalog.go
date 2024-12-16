@@ -52,7 +52,7 @@ func (e *Catalog) CreateUpdateCatalog(
 	_, err = e.store.Get(context.Background(), map[string]interface{}{"name": &i.Name})
 	if err != nil {
 		catalog.CreatedAt = timestamppb.Now()
-		logMessage = fmt.Sprint("catalog created")
+		logMessage = "catalog created"
 	}
 
 	catalogResult.Catalog, err = e.store.Update(context.Background(), map[string]interface{}{"name": i.Name}, catalog)
@@ -115,9 +115,8 @@ func (e *Catalog) DeleteCatalog(
 ) (*v1alpha1.DeleteCatalogResponse, error) {
 
 	var catalogResult = &v1alpha1.DeleteCatalogResponse{}
-	var err error
 
-	err = e.store.Delete(context.Background(), map[string]interface{}{"name": i.Name})
+	err := e.store.Delete(context.Background(), map[string]interface{}{"name": i.Name})
 	if err != nil {
 		return nil, err
 	}

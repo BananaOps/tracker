@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"log"
-	"reflect"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"google.golang.org/protobuf/types/known/timestamppb"
