@@ -5,16 +5,17 @@ import (
 )
 
 type Database struct {
-	EventCollection string
-	LockCollection  string
-	Host            string
-	Port            string
-	Name            string
-	Username        string
-	Password        string
-	CAFile          string
-	CertFile        string
-	KeyFile         string
+	EventCollection   string
+	LockCollection    string
+	CatalogCollection string
+	Host              string
+	Port              string
+	Name              string
+	Username          string
+	Password          string
+	CAFile            string
+	CertFile          string
+	KeyFile           string
 }
 
 type General struct {
@@ -30,11 +31,12 @@ var ConfigGeneral = General{
 }
 
 var ConfigDatabase = Database{
-	EventCollection: "events",
-	LockCollection:  "locks",
-	Host:            "127.0.0.1",
-	Port:            "27017",
-	Name:            "tracker",
+	EventCollection:   "events",
+	LockCollection:    "locks",
+	CatalogCollection: "catalog",
+	Host:              "127.0.0.1",
+	Port:              "27017",
+	Name:              "tracker",
 }
 
 func init() {

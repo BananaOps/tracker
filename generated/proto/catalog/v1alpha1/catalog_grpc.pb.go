@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CatalogService_CreateUpdateCatalog_FullMethodName = "/tracker.catalog.v1alpha1.catalogService/CreateUpdateCatalog"
-	CatalogService_Getcatalog_FullMethodName          = "/tracker.catalog.v1alpha1.catalogService/Getcatalog"
-	CatalogService_Uncatalog_FullMethodName           = "/tracker.catalog.v1alpha1.catalogService/Uncatalog"
-	CatalogService_Listcatalogs_FullMethodName        = "/tracker.catalog.v1alpha1.catalogService/Listcatalogs"
+	CatalogService_CreateUpdateCatalog_FullMethodName = "/tracker.catalog.v1alpha1.CatalogService/CreateUpdateCatalog"
+	CatalogService_Getcatalog_FullMethodName          = "/tracker.catalog.v1alpha1.CatalogService/Getcatalog"
+	CatalogService_Deletecatalog_FullMethodName       = "/tracker.catalog.v1alpha1.CatalogService/Deletecatalog"
+	CatalogService_ListCatalogs_FullMethodName        = "/tracker.catalog.v1alpha1.CatalogService/ListCatalogs"
 )
 
 // CatalogServiceClient is the client API for CatalogService service.
@@ -31,8 +31,8 @@ const (
 type CatalogServiceClient interface {
 	CreateUpdateCatalog(ctx context.Context, in *CreateUpdateCatalogRequest, opts ...grpc.CallOption) (*CreateUpdateCatalogResponse, error)
 	Getcatalog(ctx context.Context, in *GetCatalogRequest, opts ...grpc.CallOption) (*GetCatalogResponse, error)
-	Uncatalog(ctx context.Context, in *UnCatalogRequest, opts ...grpc.CallOption) (*UnCatalogResponse, error)
-	Listcatalogs(ctx context.Context, in *ListCatalogsRequest, opts ...grpc.CallOption) (*ListCatalogsResponse, error)
+	Deletecatalog(ctx context.Context, in *DeleteCatalogRequest, opts ...grpc.CallOption) (*DeleteCatalogResponse, error)
+	ListCatalogs(ctx context.Context, in *ListCatalogsRequest, opts ...grpc.CallOption) (*ListCatalogsResponse, error)
 }
 
 type catalogServiceClient struct {
@@ -63,20 +63,20 @@ func (c *catalogServiceClient) Getcatalog(ctx context.Context, in *GetCatalogReq
 	return out, nil
 }
 
-func (c *catalogServiceClient) Uncatalog(ctx context.Context, in *UnCatalogRequest, opts ...grpc.CallOption) (*UnCatalogResponse, error) {
+func (c *catalogServiceClient) Deletecatalog(ctx context.Context, in *DeleteCatalogRequest, opts ...grpc.CallOption) (*DeleteCatalogResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UnCatalogResponse)
-	err := c.cc.Invoke(ctx, CatalogService_Uncatalog_FullMethodName, in, out, cOpts...)
+	out := new(DeleteCatalogResponse)
+	err := c.cc.Invoke(ctx, CatalogService_Deletecatalog_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *catalogServiceClient) Listcatalogs(ctx context.Context, in *ListCatalogsRequest, opts ...grpc.CallOption) (*ListCatalogsResponse, error) {
+func (c *catalogServiceClient) ListCatalogs(ctx context.Context, in *ListCatalogsRequest, opts ...grpc.CallOption) (*ListCatalogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCatalogsResponse)
-	err := c.cc.Invoke(ctx, CatalogService_Listcatalogs_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CatalogService_ListCatalogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,8 @@ func (c *catalogServiceClient) Listcatalogs(ctx context.Context, in *ListCatalog
 type CatalogServiceServer interface {
 	CreateUpdateCatalog(context.Context, *CreateUpdateCatalogRequest) (*CreateUpdateCatalogResponse, error)
 	Getcatalog(context.Context, *GetCatalogRequest) (*GetCatalogResponse, error)
-	Uncatalog(context.Context, *UnCatalogRequest) (*UnCatalogResponse, error)
-	Listcatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error)
+	Deletecatalog(context.Context, *DeleteCatalogRequest) (*DeleteCatalogResponse, error)
+	ListCatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error)
 	mustEmbedUnimplementedCatalogServiceServer()
 }
 
@@ -107,11 +107,11 @@ func (UnimplementedCatalogServiceServer) CreateUpdateCatalog(context.Context, *C
 func (UnimplementedCatalogServiceServer) Getcatalog(context.Context, *GetCatalogRequest) (*GetCatalogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Getcatalog not implemented")
 }
-func (UnimplementedCatalogServiceServer) Uncatalog(context.Context, *UnCatalogRequest) (*UnCatalogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Uncatalog not implemented")
+func (UnimplementedCatalogServiceServer) Deletecatalog(context.Context, *DeleteCatalogRequest) (*DeleteCatalogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Deletecatalog not implemented")
 }
-func (UnimplementedCatalogServiceServer) Listcatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Listcatalogs not implemented")
+func (UnimplementedCatalogServiceServer) ListCatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCatalogs not implemented")
 }
 func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
 func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
@@ -170,38 +170,38 @@ func _CatalogService_Getcatalog_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CatalogService_Uncatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UnCatalogRequest)
+func _CatalogService_Deletecatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCatalogRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CatalogServiceServer).Uncatalog(ctx, in)
+		return srv.(CatalogServiceServer).Deletecatalog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CatalogService_Uncatalog_FullMethodName,
+		FullMethod: CatalogService_Deletecatalog_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CatalogServiceServer).Uncatalog(ctx, req.(*UnCatalogRequest))
+		return srv.(CatalogServiceServer).Deletecatalog(ctx, req.(*DeleteCatalogRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CatalogService_Listcatalogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CatalogService_ListCatalogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCatalogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CatalogServiceServer).Listcatalogs(ctx, in)
+		return srv.(CatalogServiceServer).ListCatalogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CatalogService_Listcatalogs_FullMethodName,
+		FullMethod: CatalogService_ListCatalogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CatalogServiceServer).Listcatalogs(ctx, req.(*ListCatalogsRequest))
+		return srv.(CatalogServiceServer).ListCatalogs(ctx, req.(*ListCatalogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -210,7 +210,7 @@ func _CatalogService_Listcatalogs_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CatalogService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "tracker.catalog.v1alpha1.catalogService",
+	ServiceName: "tracker.catalog.v1alpha1.CatalogService",
 	HandlerType: (*CatalogServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -222,12 +222,12 @@ var CatalogService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CatalogService_Getcatalog_Handler,
 		},
 		{
-			MethodName: "Uncatalog",
-			Handler:    _CatalogService_Uncatalog_Handler,
+			MethodName: "Deletecatalog",
+			Handler:    _CatalogService_Deletecatalog_Handler,
 		},
 		{
-			MethodName: "Listcatalogs",
-			Handler:    _CatalogService_Listcatalogs_Handler,
+			MethodName: "ListCatalogs",
+			Handler:    _CatalogService_ListCatalogs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

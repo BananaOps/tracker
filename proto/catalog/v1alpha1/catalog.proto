@@ -9,7 +9,7 @@ import "validate/validate.proto";
 
 option go_package = "proto/catalog/v1alpha1";
 
-service catalogService {
+service CatalogService {
   rpc CreateUpdateCatalog(CreateUpdateCatalogRequest) returns (CreateUpdateCatalogResponse) {
     option (google.api.http) = {
       put: "/api/v1alpha1/catalog"
@@ -19,10 +19,10 @@ service catalogService {
   rpc Getcatalog(GetCatalogRequest) returns (GetCatalogResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalog/{name}"};
   }
-  rpc Uncatalog(UnCatalogRequest) returns (UnCatalogResponse) {
+  rpc Deletecatalog(DeleteCatalogRequest) returns (DeleteCatalogResponse) {
     option (google.api.http) = {delete: "/api/v1alpha1/catalog/{name}"};
   }
-  rpc Listcatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};
   }
 }
@@ -31,40 +31,26 @@ message Catalog {
   string name = 1;
   Type type = 2;
   Languages languages = 3;
-  string owner =4;
-  string version =5;
-  string link =6;
-  string description =7;
-  string repository =8;
+  string owner = 4;
+  string version = 5;
+  string link = 6;
+  string description = 7;
+  string repository = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
 }
 
-message Type {
-  string module = 1;
-  string library = 2;
-  string workflow = 3;
-  string project = 4;
-  string chart = 5;
-  string package = 6;
-  string container = 7;
-}
-
-message Languages {
-  string golang = 1;
-  string kotlin = 2;
-  string java = 3;
-  string terraform = 4;
-  string helm = 5;
-  string javascript = 6;
-  string yaml = 7;
-  string docker = 8;
-}
-
-
 message CreateUpdateCatalogRequest {
-    string service = 2;
-    string who = 3;
+  string name = 1;
+  Type type = 2;
+  Languages languages = 3;
+  string owner = 4;
+  string version = 5;
+  string link = 6;
+  string description = 7;
+  string repository = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
 message CreateUpdateCatalogResponse {
@@ -79,11 +65,11 @@ message GetCatalogResponse {
   Catalog catalog = 1;
 }
 
-message UnCatalogRequest {
+message DeleteCatalogRequest {
   string name = 1;
 }
 
-message UnCatalogResponse {
+message DeleteCatalogResponse {
     string message = 1;
     string name = 2;
 }  
@@ -96,4 +82,27 @@ message ListCatalogsRequest {
 message ListCatalogsResponse {
   repeated Catalog catalogs = 1;
   uint32 total_count = 2;
+}
+
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  module = 1;
+  library = 2;
+  workflow = 3;
+  project = 4;
+  chart = 5;
+  package = 6;
+  container = 7;
+}
+
+enum Languages {
+  LANGUAGES_UNSPECIFIED = 0;
+  golang = 1;
+  kotlin = 2;
+  java = 3;
+  terraform = 4;
+  helm = 5;
+  javascript = 6;
+  yaml = 7;
+  docker = 8;
 }

@@ -58,63 +58,9 @@ func (m *Catalog) validate(all bool) error {
 
 	// no validation rules for Name
 
-	if all {
-		switch v := interface{}(m.GetType()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CatalogValidationError{
-					field:  "Type",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CatalogValidationError{
-					field:  "Type",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetType()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CatalogValidationError{
-				field:  "Type",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Type
 
-	if all {
-		switch v := interface{}(m.GetLanguages()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CatalogValidationError{
-					field:  "Languages",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CatalogValidationError{
-					field:  "Languages",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetLanguages()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CatalogValidationError{
-				field:  "Languages",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Languages
 
 	// no validation rules for Owner
 
@@ -261,233 +207,6 @@ var _ interface {
 	ErrorName() string
 } = CatalogValidationError{}
 
-// Validate checks the field values on Type with the rules defined in the proto
-// definition for this message. If any rules are violated, the first error
-// encountered is returned, or nil if there are no violations.
-func (m *Type) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on Type with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in TypeMultiError, or nil if none found.
-func (m *Type) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *Type) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Module
-
-	// no validation rules for Library
-
-	// no validation rules for Workflow
-
-	// no validation rules for Project
-
-	// no validation rules for Chart
-
-	// no validation rules for Package
-
-	// no validation rules for Container
-
-	if len(errors) > 0 {
-		return TypeMultiError(errors)
-	}
-
-	return nil
-}
-
-// TypeMultiError is an error wrapping multiple validation errors returned by
-// Type.ValidateAll() if the designated constraints aren't met.
-type TypeMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m TypeMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m TypeMultiError) AllErrors() []error { return m }
-
-// TypeValidationError is the validation error returned by Type.Validate if the
-// designated constraints aren't met.
-type TypeValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e TypeValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e TypeValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e TypeValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e TypeValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e TypeValidationError) ErrorName() string { return "TypeValidationError" }
-
-// Error satisfies the builtin error interface
-func (e TypeValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sType.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = TypeValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = TypeValidationError{}
-
-// Validate checks the field values on Languages with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Languages) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on Languages with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in LanguagesMultiError, or nil
-// if none found.
-func (m *Languages) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *Languages) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Golang
-
-	// no validation rules for Kotlin
-
-	// no validation rules for Java
-
-	// no validation rules for Terraform
-
-	// no validation rules for Helm
-
-	// no validation rules for Javascript
-
-	// no validation rules for Yaml
-
-	// no validation rules for Docker
-
-	if len(errors) > 0 {
-		return LanguagesMultiError(errors)
-	}
-
-	return nil
-}
-
-// LanguagesMultiError is an error wrapping multiple validation errors returned
-// by Languages.ValidateAll() if the designated constraints aren't met.
-type LanguagesMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m LanguagesMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m LanguagesMultiError) AllErrors() []error { return m }
-
-// LanguagesValidationError is the validation error returned by
-// Languages.Validate if the designated constraints aren't met.
-type LanguagesValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e LanguagesValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e LanguagesValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e LanguagesValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e LanguagesValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e LanguagesValidationError) ErrorName() string { return "LanguagesValidationError" }
-
-// Error satisfies the builtin error interface
-func (e LanguagesValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sLanguages.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = LanguagesValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = LanguagesValidationError{}
-
 // Validate checks the field values on CreateUpdateCatalogRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -510,9 +229,79 @@ func (m *CreateUpdateCatalogRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Service
+	// no validation rules for Name
 
-	// no validation rules for Who
+	// no validation rules for Type
+
+	// no validation rules for Languages
+
+	// no validation rules for Owner
+
+	// no validation rules for Version
+
+	// no validation rules for Link
+
+	// no validation rules for Description
+
+	// no validation rules for Repository
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateUpdateCatalogRequestValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateUpdateCatalogRequestValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return CreateUpdateCatalogRequestMultiError(errors)
@@ -961,22 +750,22 @@ var _ interface {
 	ErrorName() string
 } = GetCatalogResponseValidationError{}
 
-// Validate checks the field values on UnCatalogRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *UnCatalogRequest) Validate() error {
+// Validate checks the field values on DeleteCatalogRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteCatalogRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UnCatalogRequest with the rules
+// ValidateAll checks the field values on DeleteCatalogRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UnCatalogRequestMultiError, or nil if none found.
-func (m *UnCatalogRequest) ValidateAll() error {
+// DeleteCatalogRequestMultiError, or nil if none found.
+func (m *DeleteCatalogRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UnCatalogRequest) validate(all bool) error {
+func (m *DeleteCatalogRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -986,19 +775,19 @@ func (m *UnCatalogRequest) validate(all bool) error {
 	// no validation rules for Name
 
 	if len(errors) > 0 {
-		return UnCatalogRequestMultiError(errors)
+		return DeleteCatalogRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UnCatalogRequestMultiError is an error wrapping multiple validation errors
-// returned by UnCatalogRequest.ValidateAll() if the designated constraints
-// aren't met.
-type UnCatalogRequestMultiError []error
+// DeleteCatalogRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteCatalogRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteCatalogRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UnCatalogRequestMultiError) Error() string {
+func (m DeleteCatalogRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1007,11 +796,11 @@ func (m UnCatalogRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UnCatalogRequestMultiError) AllErrors() []error { return m }
+func (m DeleteCatalogRequestMultiError) AllErrors() []error { return m }
 
-// UnCatalogRequestValidationError is the validation error returned by
-// UnCatalogRequest.Validate if the designated constraints aren't met.
-type UnCatalogRequestValidationError struct {
+// DeleteCatalogRequestValidationError is the validation error returned by
+// DeleteCatalogRequest.Validate if the designated constraints aren't met.
+type DeleteCatalogRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1019,22 +808,24 @@ type UnCatalogRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UnCatalogRequestValidationError) Field() string { return e.field }
+func (e DeleteCatalogRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UnCatalogRequestValidationError) Reason() string { return e.reason }
+func (e DeleteCatalogRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UnCatalogRequestValidationError) Cause() error { return e.cause }
+func (e DeleteCatalogRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UnCatalogRequestValidationError) Key() bool { return e.key }
+func (e DeleteCatalogRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UnCatalogRequestValidationError) ErrorName() string { return "UnCatalogRequestValidationError" }
+func (e DeleteCatalogRequestValidationError) ErrorName() string {
+	return "DeleteCatalogRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e UnCatalogRequestValidationError) Error() string {
+func (e DeleteCatalogRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1046,14 +837,14 @@ func (e UnCatalogRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUnCatalogRequest.%s: %s%s",
+		"invalid %sDeleteCatalogRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UnCatalogRequestValidationError{}
+var _ error = DeleteCatalogRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -1061,24 +852,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UnCatalogRequestValidationError{}
+} = DeleteCatalogRequestValidationError{}
 
-// Validate checks the field values on UnCatalogResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *UnCatalogResponse) Validate() error {
+// Validate checks the field values on DeleteCatalogResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteCatalogResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UnCatalogResponse with the rules
+// ValidateAll checks the field values on DeleteCatalogResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UnCatalogResponseMultiError, or nil if none found.
-func (m *UnCatalogResponse) ValidateAll() error {
+// DeleteCatalogResponseMultiError, or nil if none found.
+func (m *DeleteCatalogResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UnCatalogResponse) validate(all bool) error {
+func (m *DeleteCatalogResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1090,19 +881,19 @@ func (m *UnCatalogResponse) validate(all bool) error {
 	// no validation rules for Name
 
 	if len(errors) > 0 {
-		return UnCatalogResponseMultiError(errors)
+		return DeleteCatalogResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UnCatalogResponseMultiError is an error wrapping multiple validation errors
-// returned by UnCatalogResponse.ValidateAll() if the designated constraints
-// aren't met.
-type UnCatalogResponseMultiError []error
+// DeleteCatalogResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteCatalogResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteCatalogResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UnCatalogResponseMultiError) Error() string {
+func (m DeleteCatalogResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1111,11 +902,11 @@ func (m UnCatalogResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UnCatalogResponseMultiError) AllErrors() []error { return m }
+func (m DeleteCatalogResponseMultiError) AllErrors() []error { return m }
 
-// UnCatalogResponseValidationError is the validation error returned by
-// UnCatalogResponse.Validate if the designated constraints aren't met.
-type UnCatalogResponseValidationError struct {
+// DeleteCatalogResponseValidationError is the validation error returned by
+// DeleteCatalogResponse.Validate if the designated constraints aren't met.
+type DeleteCatalogResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1123,24 +914,24 @@ type UnCatalogResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UnCatalogResponseValidationError) Field() string { return e.field }
+func (e DeleteCatalogResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UnCatalogResponseValidationError) Reason() string { return e.reason }
+func (e DeleteCatalogResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UnCatalogResponseValidationError) Cause() error { return e.cause }
+func (e DeleteCatalogResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UnCatalogResponseValidationError) Key() bool { return e.key }
+func (e DeleteCatalogResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UnCatalogResponseValidationError) ErrorName() string {
-	return "UnCatalogResponseValidationError"
+func (e DeleteCatalogResponseValidationError) ErrorName() string {
+	return "DeleteCatalogResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UnCatalogResponseValidationError) Error() string {
+func (e DeleteCatalogResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1152,14 +943,14 @@ func (e UnCatalogResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUnCatalogResponse.%s: %s%s",
+		"invalid %sDeleteCatalogResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UnCatalogResponseValidationError{}
+var _ error = DeleteCatalogResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1167,7 +958,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UnCatalogResponseValidationError{}
+} = DeleteCatalogResponseValidationError{}
 
 // Validate checks the field values on ListCatalogsRequest with the rules
 // defined in the proto definition for this message. If any rules are
