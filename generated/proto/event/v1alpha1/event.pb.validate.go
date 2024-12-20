@@ -1790,6 +1790,304 @@ var _ interface {
 	ErrorName() string
 } = ListEventsResponseValidationError{}
 
+// Validate checks the field values on TodayEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TodayEventsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TodayEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TodayEventsRequestMultiError, or nil if none found.
+func (m *TodayEventsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TodayEventsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPerPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TodayEventsRequestValidationError{
+					field:  "PerPage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TodayEventsRequestValidationError{
+					field:  "PerPage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPerPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TodayEventsRequestValidationError{
+				field:  "PerPage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TodayEventsRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TodayEventsRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TodayEventsRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return TodayEventsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// TodayEventsRequestMultiError is an error wrapping multiple validation errors
+// returned by TodayEventsRequest.ValidateAll() if the designated constraints
+// aren't met.
+type TodayEventsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TodayEventsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TodayEventsRequestMultiError) AllErrors() []error { return m }
+
+// TodayEventsRequestValidationError is the validation error returned by
+// TodayEventsRequest.Validate if the designated constraints aren't met.
+type TodayEventsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TodayEventsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TodayEventsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TodayEventsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TodayEventsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TodayEventsRequestValidationError) ErrorName() string {
+	return "TodayEventsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TodayEventsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTodayEventsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TodayEventsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TodayEventsRequestValidationError{}
+
+// Validate checks the field values on TodayEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TodayEventsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TodayEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TodayEventsResponseMultiError, or nil if none found.
+func (m *TodayEventsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TodayEventsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetEvents() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TodayEventsResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TodayEventsResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TodayEventsResponseValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for TotalCount
+
+	if len(errors) > 0 {
+		return TodayEventsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// TodayEventsResponseMultiError is an error wrapping multiple validation
+// errors returned by TodayEventsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type TodayEventsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TodayEventsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TodayEventsResponseMultiError) AllErrors() []error { return m }
+
+// TodayEventsResponseValidationError is the validation error returned by
+// TodayEventsResponse.Validate if the designated constraints aren't met.
+type TodayEventsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TodayEventsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TodayEventsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TodayEventsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TodayEventsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TodayEventsResponseValidationError) ErrorName() string {
+	return "TodayEventsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TodayEventsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTodayEventsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TodayEventsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TodayEventsResponseValidationError{}
+
 // Validate checks the field values on UpdateEventRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

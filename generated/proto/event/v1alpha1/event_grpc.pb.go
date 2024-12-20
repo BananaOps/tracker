@@ -25,6 +25,7 @@ const (
 	EventService_GetEvent_FullMethodName     = "/tracker.event.v1alpha1.EventService/GetEvent"
 	EventService_SearchEvents_FullMethodName = "/tracker.event.v1alpha1.EventService/SearchEvents"
 	EventService_ListEvents_FullMethodName   = "/tracker.event.v1alpha1.EventService/ListEvents"
+	EventService_TodayEvents_FullMethodName  = "/tracker.event.v1alpha1.EventService/TodayEvents"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -37,6 +38,7 @@ type EventServiceClient interface {
 	GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error)
 	SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error)
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
+	TodayEvents(ctx context.Context, in *TodayEventsRequest, opts ...grpc.CallOption) (*TodayEventsResponse, error)
 }
 
 type eventServiceClient struct {
@@ -107,6 +109,16 @@ func (c *eventServiceClient) ListEvents(ctx context.Context, in *ListEventsReque
 	return out, nil
 }
 
+func (c *eventServiceClient) TodayEvents(ctx context.Context, in *TodayEventsRequest, opts ...grpc.CallOption) (*TodayEventsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TodayEventsResponse)
+	err := c.cc.Invoke(ctx, EventService_TodayEvents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type EventServiceServer interface {
 	GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error)
 	SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error)
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
+	TodayEvents(context.Context, *TodayEventsRequest) (*TodayEventsResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedEventServiceServer) SearchEvents(context.Context, *SearchEven
 }
 func (UnimplementedEventServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
+}
+func (UnimplementedEventServiceServer) TodayEvents(context.Context, *TodayEventsRequest) (*TodayEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TodayEvents not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -274,6 +290,24 @@ func _EventService_ListEvents_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_TodayEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TodayEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).TodayEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_TodayEvents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).TodayEvents(ctx, req.(*TodayEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEvents",
 			Handler:    _EventService_ListEvents_Handler,
+		},
+		{
+			MethodName: "TodayEvents",
+			Handler:    _EventService_TodayEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

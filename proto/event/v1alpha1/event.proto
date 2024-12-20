@@ -37,6 +37,9 @@ service EventService {
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/events/list"};
   }
+  rpc TodayEvents(TodayEventsRequest) returns (TodayEventsResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/events/today"};
+  }
 }
 
 message EventAttributes {
@@ -122,6 +125,15 @@ message ListEventsResponse {
   uint32 total_count = 2;
 }
 
+message TodayEventsRequest {
+  google.protobuf.UInt32Value per_page = 1;
+  google.protobuf.Int32Value page = 2;
+}
+
+message TodayEventsResponse {
+  repeated Event events = 1;
+  uint32 total_count = 2;
+}
 
 message UpdateEventRequest {
   string title = 1;
