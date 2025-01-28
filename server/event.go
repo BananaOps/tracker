@@ -160,6 +160,33 @@ func (e *Event) ListEvents(
 	return eventsResult, nil
 }
 
+func (e *Event) TodayEvents(
+	ctx context.Context,
+	i *v1alpha1.TodayEventsRequest,
+) (*v1alpha1.TodayEventsResponse, error) {
+
+	today := time.Now().Format("2006-01-02")
+
+	var todayFilter *v1alpha1.SearchEventsRequest = &v1alpha1.SearchEventsRequest{
+		StartDate: today + "T00:00:00Z",
+		EndDate: today + "T23:59:59Z",
+	}
+
+	filter, err := utils.CreateFilter(todayFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	var eventsResult = &v1alpha1.TodayEventsResponse{}
+	eventsResult.Events, err = e.store.Search(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+	eventsResult.TotalCount = uint32(len(eventsResult.Events))
+
+	return eventsResult, nil
+}
+
 func (e *Event) UpdateEvent(
 	ctx context.Context,
 	i *v1alpha1.UpdateEventRequest,

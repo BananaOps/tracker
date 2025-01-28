@@ -14,7 +14,9 @@ grpcurl --plaintext -d '{
     "service": "service-event",
     "source": "github_action",
     "status": "1",
-    "type": "1"
+    "type": "1",
+    "start_date": "2024-12-20T09:00:00Z",
+    "end_date": "2024-12-20T09:00:00Z"
   },
   "links": {
     "pull_request_link": "https://github.com/bananaops/tracker/pull/240"
@@ -30,6 +32,13 @@ grpcurl --plaintext -d '{
 grpcurl --plaintext localhost:8765 tracker.event.v1alpha1.EventService/ListEvents
 
 ```
+### List Events Today
+
+```bash
+grpcurl --plaintext localhost:8765 tracker.event.v1alpha1.EventService/TodayEvents
+
+```
+
 
 ### Get Event Id
 

@@ -5,8 +5,8 @@ go 1.22.7
 toolchain go1.23.3
 
 require (
-	google.golang.org/grpc v1.69.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/grpc v1.69.2
+	google.golang.org/protobuf v1.36.0
 )
 
 require (
@@ -26,7 +26,7 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/crypto v0.30.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
@@ -37,13 +37,13 @@ require (
 require (
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/google/uuid v1.6.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	go.mongodb.org/mongo-driver v1.14.0
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241219192143-6b3ec007d9bb
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241219192143-6b3ec007d9bb // indirect
 )
