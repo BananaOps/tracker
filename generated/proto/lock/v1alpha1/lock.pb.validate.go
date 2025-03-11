@@ -125,7 +125,7 @@ type LockMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m LockMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -229,7 +229,7 @@ type CreateLockRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m CreateLockRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -360,7 +360,7 @@ type CreateLockResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m CreateLockResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -464,7 +464,7 @@ type GetLockRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GetLockRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -593,7 +593,7 @@ type GetLockResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GetLockResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -695,7 +695,7 @@ type UnLockRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m UnLockRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -819,7 +819,7 @@ type UnLockResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m UnLockResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -977,7 +977,7 @@ type ListLocksRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ListLocksRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -1113,7 +1113,7 @@ type ListLocksResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ListLocksResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}

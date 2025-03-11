@@ -143,7 +143,7 @@ type CatalogMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m CatalogMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -317,7 +317,7 @@ type CreateUpdateCatalogRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m CreateUpdateCatalogRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -448,7 +448,7 @@ type CreateUpdateCatalogResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m CreateUpdateCatalogResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -553,7 +553,7 @@ type GetCatalogRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GetCatalogRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -684,7 +684,7 @@ type GetCatalogResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GetCatalogResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -788,7 +788,7 @@ type DeleteCatalogRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m DeleteCatalogRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -894,7 +894,7 @@ type DeleteCatalogResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m DeleteCatalogResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -1054,7 +1054,7 @@ type ListCatalogsRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ListCatalogsRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -1192,7 +1192,7 @@ type ListCatalogsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ListCatalogsResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
