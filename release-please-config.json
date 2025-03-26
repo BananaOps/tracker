@@ -1,0 +1,11 @@
+{
+  "include-component-in-tag": true,
+  "release-type": "simple",
+  "separate-pull-requests": true,
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "package-name": "tracker"
+    }
+  }
+}

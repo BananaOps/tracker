@@ -2,31 +2,14 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
-  pull_request:
-    types:
-      - labeled
 
 jobs:
   release:
-    if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Bump version on merging Pull Requests with specific labels
-        id: bumpr
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: haya14busa/action-bumpr@v1
-
-      - name: Update corresponding major and minor tag
-        uses: haya14busa/action-update-semver@v1
-        if: "!steps.bumpr.outputs.skip"
-        with:
-          tag: ${{ steps.bumpr.outputs.next_version }}
 
       - name: Get tag name
         id: tag
@@ -39,35 +22,12 @@ jobs:
       - id: version_tag
         run: echo "::set-output name=tag::$(echo ${{steps.tag.outputs.value}} | cut -c 2-)"
 
-       #Update version in Chart.yaml
-      - if: steps.tag.outputs.value != ''
-        run: |
-          sed -i '/^version:/c\version: ${{steps.version_tag.outputs.tag}}' ./helm/tracker/Chart.yaml
-          sed -i '/^appVersion:/c\appVersion: "${{steps.version_tag.outputs.tag}}"' ./helm/tracker/Chart.yaml 
-      - if: steps.tag.outputs.value != ''
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
-
-      - name: Create release
-        uses: shogo82148/actions-create-release@v1
-        if: "steps.tag.outputs.value != ''"
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ steps.tag.outputs.value }}
-          release_name: Release ${{ steps.tag.outputs.value }}
-          body: ${{ steps.bumpr.outputs.message }}
-          draft: false
-          prerelease: false
-
       - uses: actions/setup-go@v5
-        if: "steps.tag.outputs.value != ''"
         with:
           go-version: stable
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
-        if: "steps.tag.outputs.value != ''"
         with:
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{ secrets.DOCKER_AUTH_TOKEN }}
@@ -75,14 +35,12 @@ jobs:
       - uses: imjasonh/setup-ko@v0.8
 
       - name: Build and Push on Docker Hub  
-        if: "steps.tag.outputs.value != ''"
         env:
           KO_DOCKER_REPO: bananaops/tracker
         run: ko publish . --bare --tags latest,${{steps.version_tag.outputs.tag}}
 
   release-helm: 
     needs: [release]
-    if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
@@ -106,11 +64,3 @@ jobs:
           charts_dir: helm
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-  release-check:
-    if: github.event.action == 'labeled'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Post bumpr status comment
-        uses: haya14busa/action-bumpr@v1
