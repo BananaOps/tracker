@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/BananaOps/tracker/compare/v0.7.2...v0.7.3) (2025-03-26)
+
+
+### Bug Fixes
+
+* add action autocommit ([52559b8](https://github.com/BananaOps/tracker/commit/52559b873687696ec036145d7ac3b4999678cd87))
+
 ## [0.7.2](https://github.com/BananaOps/tracker/compare/v0.7.1...v0.7.2) (2025-03-26)
 
 
