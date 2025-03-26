@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/BananaOps/tracker/compare/v0.7.4...v0.7.5) (2025-03-26)
+
+
+### Bug Fixes
+
+* correct dokcer tag ([b08c972](https://github.com/BananaOps/tracker/commit/b08c9720e09659250952e1f91347978927b1323d))
+
 ## [0.7.4](https://github.com/BananaOps/tracker/compare/v0.7.3...v0.7.4) (2025-03-26)
 
 
