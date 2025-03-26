@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/BananaOps/tracker/compare/v0.7.1...v0.7.2) (2025-03-26)
+
+
+### Bug Fixes
+
+* correct helm release ([#72](https://github.com/BananaOps/tracker/issues/72)) ([cbf017d](https://github.com/BananaOps/tracker/commit/cbf017df065dbb1204e76246b841b0969bdc27fc))
+
 ## [0.7.1](https://github.com/BananaOps/tracker/compare/v0.7.0...v0.7.1) (2025-03-26)
 
 
