@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/BananaOps/tracker/compare/v0.7.0...v0.7.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* dora metrics duration ([#70](https://github.com/BananaOps/tracker/issues/70)) ([82ee757](https://github.com/BananaOps/tracker/commit/82ee75740fd4890780a98577346919266d46e99b))
+
 ## [0.7.0](https://github.com/BananaOps/tracker/compare/v0.6.0...v0.7.0) (2025-03-26)
 
 
