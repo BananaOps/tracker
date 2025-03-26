@@ -18,6 +18,7 @@ import (
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -107,6 +108,13 @@ var serv = &cobra.Command{
 				log.Fatal(fmt.Printf("Failed to serve HTTP server: %v\n", err))
 				os.Exit(1)
 			}
+		}()
+
+		go func() {
+			// Exposer les métriques via HTTP
+			slog.Info("HTTP  metrics server listening on :8081")
+			http.Handle("/metrics", promhttp.Handler())
+			log.Fatal(http.ListenAndServe(":8081", nil))
 		}()
 
 		// Handle graceful shutdown
