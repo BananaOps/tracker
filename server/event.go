@@ -258,8 +258,9 @@ func (e *Event) UpdateEvent(
 	if event.Attributes.Status == 2 || event.Attributes.Status == 3 {
 		duration := time.Since(eventDatabase.Event.Metadata.CreatedAt.AsTime())
 		event.Metadata.Duration = durationpb.New(duration)
-		eventResult.Event.Metadata.Duration = event.Metadata.Duration
+		if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
 		recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
+		}
 	}
 
 	eventResult.Event, err = e.store.Update(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId}, event)
