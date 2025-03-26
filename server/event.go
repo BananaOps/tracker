@@ -216,7 +216,13 @@ func (e *Event) UpdateEvent(
 ) (*v1alpha1.UpdateEventResponse, error) {
 
 	var eventResult = &v1alpha1.UpdateEventResponse{}
+	var eventDatabase = &v1alpha1.GetEventResponse{}
 	var err error
+
+	eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId})
+	if err != nil {
+		return nil, fmt.Errorf("no event found in tracker for id %s", i.SlackId)
+	}
 
 	var event = &v1alpha1.Event{
 		Title: i.Title,
@@ -242,12 +248,17 @@ func (e *Event) UpdateEvent(
 			Ticket:          i.Links.Ticket,
 		},
 		Metadata: &v1alpha1.EventMetadata{
-			SlackId: i.SlackId,
+			SlackId:   i.SlackId,
+			CreatedAt: eventDatabase.Event.Metadata.CreatedAt,
+			Duration:  eventDatabase.Event.Metadata.Duration,
+			Id:        eventDatabase.Event.Metadata.Id,
 		},
 	}
+
 	if event.Attributes.Status == 2 || event.Attributes.Status == 3 {
-		duration := time.Since(event.Metadata.CreatedAt.AsTime())
+		duration := time.Since(eventDatabase.Event.Metadata.CreatedAt.AsTime())
 		event.Metadata.Duration = durationpb.New(duration)
+		eventResult.Event.Metadata.Duration = event.Metadata.Duration
 		recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
 	}
 
