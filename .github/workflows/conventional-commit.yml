@@ -1,0 +1,17 @@
+---
+name: PR Conventional Commit Validation
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  validate-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Conventional Commit Validation
+        uses: ytanikin/pr-conventional-commits@1.4.1
+        with:
+          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert"]'
+          add_label: true
+          add_scope_label: true
