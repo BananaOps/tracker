@@ -83,6 +83,19 @@ var serv = &cobra.Command{
 			ErrorLog:          httplogger,
 		}
 
+		// Create a new mux for metrics
+		muxMetrics := http.NewServeMux()
+
+		// Add a handler for the /metrics endpoint
+		muxMetrics.Handle("/metrics", promhttp.Handler())
+
+		metricsServer := &http.Server{
+			Addr:              "0.0.0.0:8081",
+			ReadHeaderTimeout: 2 * time.Second, // Fix CWE-400 Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server
+			Handler:           muxMetrics,
+			ErrorLog:          httplogger,
+		}
+
 		// Start gRPC server in a separate goroutine
 		go func() {
 			// create socket to listen to requests
@@ -111,10 +124,12 @@ var serv = &cobra.Command{
 		}()
 
 		go func() {
-			// Exposer les métriques via HTTP
-			slog.Info("HTTP  metrics server listening on :8081")
-			http.Handle("/metrics", promhttp.Handler())
-			log.Fatal(http.ListenAndServe(":8081", nil))
+			// Exposer prometheus metrics
+			slog.Info("metrics server listening on :8081")
+			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatal(fmt.Printf("Failed to serve metrics server: %v\n", err))
+				os.Exit(1)
+			}
 		}()
 
 		// Handle graceful shutdown
