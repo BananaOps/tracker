@@ -29,8 +29,13 @@ jobs:
       - if: steps.tag.outputs.value != ''
         run: |
           sed -i '/^version:/c\version: ${{steps.version_tag.outputs.tag_chart}}' ./helm/tracker/Chart.yaml
-          sed -i '/^appVersion:/c\appVersion: "${{steps.version_tag.outputs.tag_chart}}"' ./helm/tracker/Chart.yaml 
+          sed -i '/^appVersion:/c\appVersion: "${{steps.version_tag.outputs.tag_chart}}"' ./helm/tracker/Chart.yaml
 
+      - if: steps.tag.outputs.value != ''
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
+  
       - uses: actions/setup-go@v5
         with:
           go-version: stable
