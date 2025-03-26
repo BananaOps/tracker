@@ -190,7 +190,7 @@ func (e *Event) TodayEvents(
 
 	today := time.Now().Format("2006-01-02")
 
-	var todayFilter *v1alpha1.SearchEventsRequest = &v1alpha1.SearchEventsRequest{
+	var todayFilter = &v1alpha1.SearchEventsRequest{
 		StartDate: today + "T00:00:00Z",
 		EndDate:   today + "T23:59:59Z",
 	}

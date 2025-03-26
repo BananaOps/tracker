@@ -1,21 +1,25 @@
-# Options for analysis running.
+version: "2"
 run:
-  # Number of CPUs to use when running golangci-lint.
-  # Default: the number of logical CPUs in the machine
   concurrency: 1
-  # Timeout for analysis, e.g. 30s, 5m.
-  # Default: 1m
-  timeout: 10m
-  # Include test files or not.
-  # Default: true
-  tests: false
-  skip-dirs:
-    - generated
   modules-download-mode: readonly
-  # Allow multiple parallel golangci-lint instances running.
-  # If false, golangci-lint acquires file lock on start.
-  # Default: false
+  tests: false
   allow-parallel-runners: true
-  # Show statistics per linter.
-  # Default: false
-  show-stats: true
+linters:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

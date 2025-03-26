@@ -46,7 +46,7 @@ func (e *Catalog) CreateUpdateCatalog(
 
 	var catalogResult = &v1alpha1.CreateUpdateCatalogResponse{}
 	var err error
-	var logMessage string = "catalog updated"
+	var logMessage  = "catalog updated"
 
 	// check entry exist in catalog colection
 	_, err = e.store.Get(context.Background(), map[string]interface{}{"name": &i.Name})
