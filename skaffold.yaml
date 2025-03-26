@@ -7,7 +7,7 @@ build:
 deploy:
   helm:
     releases:
-      - name: tracker
+      - name: tracker-dev
         chartPath: helm/tracker
         namespace: tracker
         createNamespace: true

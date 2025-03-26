@@ -36,6 +36,9 @@ spec:
             - name: http
               containerPort: {{ .Values.service.http.port }}
               protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.service.metrics.port }}
+              protocol: TCP
             - name: grpc
               containerPort: {{ .Values.service.grpc.port }}
               protocol: TCP

@@ -11,7 +11,27 @@ import (
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/protobuf/types/known/durationpb"
+)
+
+var (
+	eventCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "tracker_event_status_total",
+			Help: "Total number of events by status",
+		},
+		[]string{"service", "status", "environment"},
+	)
+
+	eventDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "tracker_event_duration_seconds",
+			Help:    "Duration of events in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"service", "status", "environment"},
+	)
 )
 
 type Event struct {
@@ -74,6 +94,8 @@ func (e *Event) CreateEvent(
 		event.Metadata.Duration = durationpb.New(time.Since(relatedEvent.Metadata.CreatedAt.AsTime()))
 
 	}
+
+	eventCounter.With(prometheus.Labels{"status": i.Attributes.Status.String(), "service": i.Attributes.Service, "environment": i.Attributes.Environment.String()}).Inc()
 
 	var eventResult = &v1alpha1.CreateEventResponse{}
 	var err error
@@ -168,7 +190,7 @@ func (e *Event) TodayEvents(
 
 	today := time.Now().Format("2006-01-02")
 
-	var todayFilter *v1alpha1.SearchEventsRequest = &v1alpha1.SearchEventsRequest{
+	var todayFilter = &v1alpha1.SearchEventsRequest{
 		StartDate: today + "T00:00:00Z",
 		EndDate:   today + "T23:59:59Z",
 	}
@@ -223,6 +245,11 @@ func (e *Event) UpdateEvent(
 			SlackId: i.SlackId,
 		},
 	}
+	if event.Attributes.Status == 2 || event.Attributes.Status == 3 {
+		duration := time.Since(event.Metadata.CreatedAt.AsTime())
+		event.Metadata.Duration = durationpb.New(duration)
+		recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
+	}
 
 	eventResult.Event, err = e.store.Update(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId}, event)
 	if err != nil {
@@ -245,4 +272,18 @@ func (e *Event) DeleteEvent(
 	}
 
 	return eventResult, nil
+}
+
+func recordEvent(status string, service string, environment string, duration time.Duration) {
+	// Incrase the counter of events
+	eventCounter.With(prometheus.Labels{"status": status, "service": service, "environment": environment}).Inc()
+
+	// save duration of events
+	eventDuration.With(prometheus.Labels{"status": status, "service": service, "environment": environment}).Observe(duration.Seconds())
+}
+
+func init() {
+	// Enregistrer les métriques
+	prometheus.MustRegister(eventCounter)
+	prometheus.MustRegister(eventDuration)
 }

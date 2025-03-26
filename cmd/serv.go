@@ -18,6 +18,7 @@ import (
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -82,6 +83,19 @@ var serv = &cobra.Command{
 			ErrorLog:          httplogger,
 		}
 
+		// Create a new mux for metrics
+		muxMetrics := http.NewServeMux()
+
+		// Add a handler for the /metrics endpoint
+		muxMetrics.Handle("/metrics", promhttp.Handler())
+
+		metricsServer := &http.Server{
+			Addr:              "0.0.0.0:8081",
+			ReadHeaderTimeout: 2 * time.Second, // Fix CWE-400 Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server
+			Handler:           muxMetrics,
+			ErrorLog:          httplogger,
+		}
+
 		// Start gRPC server in a separate goroutine
 		go func() {
 			// create socket to listen to requests
@@ -105,6 +119,15 @@ var serv = &cobra.Command{
 			slog.Info("HTTP server listening on :8080")
 			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				log.Fatal(fmt.Printf("Failed to serve HTTP server: %v\n", err))
+				os.Exit(1)
+			}
+		}()
+
+		go func() {
+			// Exposer prometheus metrics
+			slog.Info("metrics server listening on :8081")
+			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatal(fmt.Printf("Failed to serve metrics server: %v\n", err))
 				os.Exit(1)
 			}
 		}()
