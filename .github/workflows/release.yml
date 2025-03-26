@@ -35,6 +35,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
+          branch: main
   
       - uses: actions/setup-go@v5
         with:
