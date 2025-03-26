@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4](https://github.com/BananaOps/tracker/compare/v0.7.3...v0.7.4) (2025-03-26)
+
+
+### Bug Fixes
+
+* add branch main ([c250282](https://github.com/BananaOps/tracker/commit/c250282066418dde25e7a48d04dd035d6a4846f7))
+
 ## [0.7.3](https://github.com/BananaOps/tracker/compare/v0.7.2...v0.7.3) (2025-03-26)
 
 
