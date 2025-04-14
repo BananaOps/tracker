@@ -47,7 +47,7 @@ jobs:
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{ secrets.DOCKER_AUTH_TOKEN }}
 
-      - uses: imjasonh/setup-ko@v0.8
+      - uses: imjasonh/setup-ko@v0.9
 
       - name: Build and Push on Docker Hub  
         env:
