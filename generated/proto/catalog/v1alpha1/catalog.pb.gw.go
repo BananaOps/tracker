@@ -66,6 +66,7 @@ func request_CatalogService_GetCatalog_0(ctx context.Context, marshaler runtime.
 		protoReq GetCatalogRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -98,6 +99,7 @@ func request_CatalogService_DeleteCatalog_0(ctx context.Context, marshaler runti
 		protoReq DeleteCatalogRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -130,6 +132,7 @@ func request_CatalogService_ListCatalogs_0(ctx context.Context, marshaler runtim
 		protoReq ListCatalogsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
