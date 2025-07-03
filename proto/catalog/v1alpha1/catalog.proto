@@ -104,4 +104,10 @@ enum Languages {
   javascript = 6;
   yaml = 7;
   docker = 8;
+  python = 9;
+  php = 10;
+  rust = 11;
+  typescript = 12;
+  javascrypt = 13;
+  groovy = 15;
 }

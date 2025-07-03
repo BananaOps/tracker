@@ -100,20 +100,32 @@ const (
 	Languages_javascript            Languages = 6
 	Languages_yaml                  Languages = 7
 	Languages_docker                Languages = 8
+	Languages_python                Languages = 9
+	Languages_php                   Languages = 10
+	Languages_rust                  Languages = 11
+	Languages_typescript            Languages = 12
+	Languages_javascrypt            Languages = 13
+	Languages_groovy                Languages = 15
 )
 
 // Enum value maps for Languages.
 var (
 	Languages_name = map[int32]string{
-		0: "LANGUAGES_UNSPECIFIED",
-		1: "golang",
-		2: "kotlin",
-		3: "java",
-		4: "terraform",
-		5: "helm",
-		6: "javascript",
-		7: "yaml",
-		8: "docker",
+		0:  "LANGUAGES_UNSPECIFIED",
+		1:  "golang",
+		2:  "kotlin",
+		3:  "java",
+		4:  "terraform",
+		5:  "helm",
+		6:  "javascript",
+		7:  "yaml",
+		8:  "docker",
+		9:  "python",
+		10: "php",
+		11: "rust",
+		12: "typescript",
+		13: "javascrypt",
+		15: "groovy",
 	}
 	Languages_value = map[string]int32{
 		"LANGUAGES_UNSPECIFIED": 0,
@@ -125,6 +137,12 @@ var (
 		"javascript":            6,
 		"yaml":                  7,
 		"docker":                8,
+		"python":                9,
+		"php":                   10,
+		"rust":                  11,
+		"typescript":            12,
+		"javascrypt":            13,
+		"groovy":                15,
 	}
 )
 
@@ -783,7 +801,7 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\aproject\x10\x04\x12\t\n" +
 	"\x05chart\x10\x05\x12\v\n" +
 	"\apackage\x10\x06\x12\r\n" +
-	"\tcontainer\x10\a*\x87\x01\n" +
+	"\tcontainer\x10\a*\xd2\x01\n" +
 	"\tLanguages\x12\x19\n" +
 	"\x15LANGUAGES_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
@@ -797,7 +815,18 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"javascript\x10\x06\x12\b\n" +
 	"\x04yaml\x10\a\x12\n" +
 	"\n" +
-	"\x06docker\x10\b2\xe7\x04\n" +
+	"\x06docker\x10\b\x12\n" +
+	"\n" +
+	"\x06python\x10\t\x12\a\n" +
+	"\x03php\x10\n" +
+	"\x12\b\n" +
+	"\x04rust\x10\v\x12\x0e\n" +
+	"\n" +
+	"typescript\x10\f\x12\x0e\n" +
+	"\n" +
+	"javascrypt\x10\r\x12\n" +
+	"\n" +
+	"\x06groovy\x10\x0f2\xe7\x04\n" +
 	"\x0eCatalogService\x12\xa4\x01\n" +
 	"\x13CreateUpdateCatalog\x124.tracker.catalog.v1alpha1.CreateUpdateCatalogRequest\x1a5.tracker.catalog.v1alpha1.CreateUpdateCatalogResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1alpha1/catalog\x12\x86\x01\n" +
 	"\n" +
