@@ -69,9 +69,9 @@ message DeleteCatalogRequest {
 }
 
 message DeleteCatalogResponse {
-    string message = 1;
-    string name = 2;
-}  
+  string message = 1;
+  string name = 2;
+}
 
 message ListCatalogsRequest {
   google.protobuf.UInt32Value per_page = 1;
