@@ -24,9 +24,7 @@ service EventService {
     };
   }
   rpc DeleteEvents(DeleteEventRequest) returns (DeleteEventResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1alpha1/event/{id}"
-    };
+    option (google.api.http) = {delete: "/api/v1alpha1/event/{id}"};
   }
   rpc GetEvent(GetEventRequest) returns (GetEventResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/event/{id}"};
@@ -55,7 +53,7 @@ message EventAttributes {
   google.protobuf.Timestamp start_date = 10;
   google.protobuf.Timestamp end_date = 11;
   string owner = 12;
-  repeated string stakeHolders = 13;
+  repeated string stake_holders = 13;
   bool notification = 14;
   repeated string notifications = 15;
 }
@@ -69,7 +67,7 @@ message EventMetadata {
 
 message EventLinks {
   string pull_request_link = 1;
-  string ticket= 2;
+  string ticket = 2;
 }
 
 message Event {
@@ -161,6 +159,8 @@ enum Type {
   TYPE_UNSPECIFIED = 0;
   deployment = 1;
   operation = 2;
+  drift = 3;
+  incident = 4;
 }
 
 enum Priority {
@@ -169,6 +169,7 @@ enum Priority {
   P2 = 2;
   P3 = 3;
   P4 = 4;
+  P5 = 5;
 }
 
 enum Status {
@@ -181,6 +182,9 @@ enum Status {
   snapshot = 6;
   user_update = 7;
   recommandation = 8;
+  open = 9;
+  close = 10;
+  done = 11;
 }
 
 enum Environment {
