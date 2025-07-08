@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/BananaOps/tracker/compare/v0.7.4...v0.8.0) (2025-07-08)
+
+
+### Features
+
+* add incident drift ([#86](https://github.com/BananaOps/tracker/issues/86)) ([350cf05](https://github.com/BananaOps/tracker/commit/350cf05ece72fe2e499c8aaaa370ac3eaa6b56da))
+
+
+### Bug Fixes
+
+* correct dokcer tag ([b08c972](https://github.com/BananaOps/tracker/commit/b08c9720e09659250952e1f91347978927b1323d))
+
 ## [0.7.4](https://github.com/BananaOps/tracker/compare/v0.7.3...v0.7.4) (2025-03-26)
 
 
