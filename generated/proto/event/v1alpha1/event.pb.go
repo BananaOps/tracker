@@ -1208,6 +1208,7 @@ type UpdateEventRequest struct {
 	Attributes    *EventAttributes       `protobuf:"bytes,2,opt,name=attributes,proto3" json:"attributes,omitempty"`
 	Links         *EventLinks            `protobuf:"bytes,3,opt,name=links,proto3" json:"links,omitempty"`
 	SlackId       string                 `protobuf:"bytes,4,opt,name=slack_id,json=slackId,proto3" json:"slack_id,omitempty"`
+	Id            string                 `protobuf:"bytes,5,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1266,6 +1267,13 @@ func (x *UpdateEventRequest) GetLinks() *EventLinks {
 func (x *UpdateEventRequest) GetSlackId() string {
 	if x != nil {
 		return x.SlackId
+	}
+	return ""
+}
+
+func (x *UpdateEventRequest) GetId() string {
+	if x != nil {
+		return x.Id
 	}
 	return ""
 }
@@ -1502,14 +1510,15 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x13TodayEventsResponse\x125\n" +
 	"\x06events\x18\x01 \x03(\v2\x1d.tracker.event.v1alpha1.EventR\x06events\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\rR\n" +
-	"totalCount\"\xc8\x01\n" +
+	"totalCount\"\xd8\x01\n" +
 	"\x12UpdateEventRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12G\n" +
 	"\n" +
 	"attributes\x18\x02 \x01(\v2'.tracker.event.v1alpha1.EventAttributesR\n" +
 	"attributes\x128\n" +
 	"\x05links\x18\x03 \x01(\v2\".tracker.event.v1alpha1.EventLinksR\x05links\x12\x19\n" +
-	"\bslack_id\x18\x04 \x01(\tR\aslackId\"J\n" +
+	"\bslack_id\x18\x04 \x01(\tR\aslackId\x12\x0e\n" +
+	"\x02id\x18\x05 \x01(\tR\x02id\"J\n" +
 	"\x13UpdateEventResponse\x123\n" +
 	"\x05event\x18\x01 \x01(\v2\x1d.tracker.event.v1alpha1.EventR\x05event\"?\n" +
 	"\x12DeleteEventRequest\x12\x0e\n" +

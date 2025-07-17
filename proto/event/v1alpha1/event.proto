@@ -139,6 +139,7 @@ message UpdateEventRequest {
   EventAttributes attributes = 2;
   EventLinks links = 3;
   string slack_id = 4;
+  string id = 5;
 }
 
 message UpdateEventResponse {
