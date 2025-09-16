@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/BananaOps/tracker/compare/v0.8.0...v0.8.1) (2025-09-16)
+
+
+### Bug Fixes
+
+* add id in update event ([#92](https://github.com/BananaOps/tracker/issues/92)) ([0e4d82c](https://github.com/BananaOps/tracker/commit/0e4d82cc0d1a8186b8276c3b009a643952889b9d))
+
 ## [0.8.0](https://github.com/BananaOps/tracker/compare/v0.7.4...v0.8.0) (2025-07-08)
 
 
