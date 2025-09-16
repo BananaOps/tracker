@@ -2172,6 +2172,8 @@ func (m *UpdateEventRequest) validate(all bool) error {
 
 	// no validation rules for SlackId
 
+	// no validation rules for Id
+
 	if len(errors) > 0 {
 		return UpdateEventRequestMultiError(errors)
 	}

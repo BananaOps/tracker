@@ -139,7 +139,7 @@ func (e *Event) GetEvent(
 	} else {
 		eventResult.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.Id})
 		if err != nil {
-			return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+			return nil, fmt.Errorf("no event found in tracker for slack id %s", i.Id)
 		}
 	}
 
@@ -222,6 +222,18 @@ func (e *Event) UpdateEvent(
 	eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId})
 	if err != nil {
 		return nil, fmt.Errorf("no event found in tracker for id %s", i.SlackId)
+	}
+
+	if i.SlackId == "" {
+		eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
+		if err != nil {
+			return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+		}
+	} else {
+		eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId})
+		if err != nil {
+			return nil, fmt.Errorf("no event found in tracker for slack id %s", i.SlackId)
+		}
 	}
 
 	var event = &v1alpha1.Event{

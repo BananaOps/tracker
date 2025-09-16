@@ -17,6 +17,7 @@ import (
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -72,6 +73,20 @@ var serv = &cobra.Command{
 			panic(err)
 		}
 
+		// Setup Swagger documentation with go-swagger
+		opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.json"}
+		sh := middleware.SwaggerUI(opts, nil)
+
+		// Serve swagger.json
+		mux.HandlePath("GET", "/swagger.json", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			http.ServeFile(w, r, "generated/openapiv2/apidocs.swagger.json")
+		})
+
+		// Serve Swagger UI
+		mux.HandlePath("GET", "/docs", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			sh.ServeHTTP(w, r)
+		})
+
 		//define logger for http server error
 		handler := slog.NewJSONHandler(os.Stdout, nil)
 		httplogger := slog.NewLogLogger(handler, slog.LevelError)
@@ -117,6 +132,8 @@ var serv = &cobra.Command{
 		// Start HTTP server in a separate goroutine
 		go func() {
 			slog.Info("HTTP server listening on :8080")
+			slog.Info("Swagger UI available at http://localhost:8080/docs")
+			slog.Info("Swagger JSON available at http://localhost:8080/swagger.json")
 			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				log.Fatal(fmt.Printf("Failed to serve HTTP server: %v\n", err))
 				os.Exit(1)

@@ -1,8 +1,43 @@
-# Lock Documentation
+# Locks API Documentation
 
-## Grpc Call
+L'API Locks permet de gérer des verrous distribués pour la synchronisation entre services.
 
-You can use Grpcurl to call grpc api
+## Structure d'un Lock
+
+```json
+{
+  "id": "uuid",
+  "service": "string", 
+  "who": "string",
+  "createdAt": "timestamp"
+}
+```
+
+## Endpoints REST
+
+### Créer un Lock
+`POST /api/v1alpha1/lock`
+
+### Récupérer un Lock
+`GET /api/v1alpha1/lock/{id}`
+
+### Libérer un Lock  
+`GET /api/v1alpha1/unlock/{id}`
+
+### Lister les Locks
+`GET /api/v1alpha1/locks/list?per_page=10&page=1`
+
+## Cas d'usage
+
+Les locks sont utilisés pour :
+- Synchroniser les déploiements
+- Éviter les opérations concurrentes
+- Gérer l'accès exclusif à des ressources
+- Coordonner les tâches entre services
+
+## Appels gRPC
+
+Vous pouvez utiliser grpcurl pour appeler l'API gRPC directement :
 
 
 ### Create Lock
@@ -36,7 +71,7 @@ grpcurl --plaintext -d '{
 }' localhost:8765 tracker.lock.v1alpha1.LockService/UnLock
 ```
 
-## Rest Call
+## Exemples d'appels REST
 
 
 ### Create Lock

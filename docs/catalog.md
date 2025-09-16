@@ -1,8 +1,55 @@
-# Catalogs Documentation
+# Catalog API Documentation
 
-## Grpc Call
+L'API Catalog permet de gérer un catalogue de modules, bibliothèques, projets et autres ressources.
 
-You can use Grpcurl to call grpc api
+## Structure d'un Catalog
+
+```json
+{
+  "name": "string",
+  "type": "module|library|workflow|project|chart|package|container",
+  "languages": "golang|java|kotlin|python|javascript|typescript|terraform|helm|yaml|docker|php|rust|groovy",
+  "owner": "string",
+  "version": "string",
+  "link": "string",
+  "description": "string", 
+  "repository": "string",
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+## Endpoints REST
+
+### Créer/Mettre à jour un élément du Catalog
+`PUT /api/v1alpha1/catalog`
+
+### Récupérer un élément du Catalog  
+`GET /api/v1alpha1/catalog?name=module-name`
+
+### Supprimer un élément du Catalog
+`DELETE /api/v1alpha1/catalog?name=module-name`
+
+### Lister les éléments du Catalog
+`GET /api/v1alpha1/catalogs/list?per_page=10&page=1`
+
+## Types disponibles
+
+- **module** - Module réutilisable
+- **library** - Bibliothèque de code
+- **workflow** - Workflow CI/CD
+- **project** - Projet complet
+- **chart** - Chart Helm
+- **package** - Package distribué
+- **container** - Image de conteneur
+
+## Langages supportés
+
+golang, java, kotlin, python, javascript, typescript, terraform, helm, yaml, docker, php, rust, groovy
+
+## Appels gRPC
+
+Vous pouvez utiliser grpcurl pour appeler l'API gRPC directement :
 
 ### Create an Catalog
 
@@ -35,7 +82,7 @@ grpcurl --plaintext -d '{
 
 ```
 
-## Rest Call
+## Exemples d'appels REST
 
 ### Create an Catalog
 
