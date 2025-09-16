@@ -1,8 +1,68 @@
-# Events Documentation
+# Events API Documentation
 
-## Grpc Call
+L'API Events permet de gérer les événements du système (déploiements, incidents, opérations, etc.).
 
-You can use Grpcurl to call grpc api
+## Structure d'un Event
+
+```json
+{
+  "title": "string",
+  "attributes": {
+    "message": "string",
+    "source": "string", 
+    "type": "deployment|operation|drift|incident",
+    "priority": "P1|P2|P3|P4|P5",
+    "relatedId": "uuid",
+    "service": "string",
+    "status": "start|success|failure|warning|error|open|close|done",
+    "environment": "development|integration|TNR|UAT|recette|preproduction|production|mco",
+    "impact": boolean,
+    "startDate": "timestamp",
+    "endDate": "timestamp", 
+    "owner": "string",
+    "stakeHolders": ["string"],
+    "notification": boolean,
+    "notifications": ["string"]
+  },
+  "links": {
+    "pullRequestLink": "string",
+    "ticket": "string"
+  },
+  "metadata": {
+    "id": "uuid",
+    "createdAt": "timestamp",
+    "duration": "duration",
+    "slackId": "string"
+  }
+}
+```
+
+## Endpoints REST
+
+### Créer un Event
+`POST /api/v1alpha1/event`
+
+### Mettre à jour un Event  
+`PUT /api/v1alpha1/event`
+
+### Récupérer un Event
+`GET /api/v1alpha1/event/{id}`
+
+### Supprimer un Event
+`DELETE /api/v1alpha1/event/{id}`
+
+### Lister les Events
+`GET /api/v1alpha1/events/list?per_page=10&page=1`
+
+### Rechercher des Events
+`GET /api/v1alpha1/events/search?priority=P1&service=my-service&start_date=2024-01-01`
+
+### Events du jour
+`GET /api/v1alpha1/events/today?per_page=10&page=1`
+
+## Appels gRPC
+
+Vous pouvez utiliser grpcurl pour appeler l'API gRPC directement :
 
 ### Create an Event
 
@@ -71,7 +131,7 @@ grpcurl --plaintext -d '{
 
 ```
 
-## Rest Call
+## Exemples d'appels REST
 
 ### Create an Event
 

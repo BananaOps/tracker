@@ -28,3 +28,10 @@ plugins:
     opt:
       - paths=source_relative
       - lang=go
+
+  - plugin: buf.build/grpc-ecosystem/openapiv2
+    out: generated/openapiv2
+    opt:
+      - logtostderr=true
+      - allow_merge=true
+      - json_names_for_fields=false
