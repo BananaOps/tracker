@@ -162,6 +162,7 @@ enum Type {
   operation = 2;
   drift = 3;
   incident = 4;
+  rpa_usage = 5;
 }
 
 enum Priority {

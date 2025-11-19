@@ -15,18 +15,11 @@ export default function RpaUsage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   
   const { data, isLoading } = useQuery({
-    queryKey: ['events', 'operations'],
-    queryFn: () => eventsApi.search({ type: EventType.OPERATION as unknown as number }),
+    queryKey: ['events', 'rpa_usage'],
+    queryFn: () => eventsApi.search({ type: EventType.RPA_USAGE as unknown as number }),
   })
 
-  const operations = data?.events || []
-
-  // Filter RPA operations (based on source or service)
-  const rpaOperations = operations.filter(op => 
-    op.attributes.source.toLowerCase().includes('rpa') ||
-    op.attributes.service.toLowerCase().includes('rpa') ||
-    op.attributes.message.toLowerCase().includes('rpa')
-  )
+  const rpaOperations = data?.events || []
 
   // Statistiques
   const currentMonth = new Date()
@@ -94,7 +87,7 @@ export default function RpaUsage() {
             <Clock className="h-6 w-6 text-purple-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">RPA Services</p>
-              <p className="text-2xl font-semibold text-gray-900">{Object.keys(byService).length}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{Object.keys(byService).length}</p>
             </div>
           </div>
         </div>

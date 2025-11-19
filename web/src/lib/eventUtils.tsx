@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faRocket, faWrench, faCodeBranch, faFire } from '@fortawesome/free-solid-svg-icons'
+import { faRocket, faWrench, faCodeBranch, faFire, faRobot } from '@fortawesome/free-solid-svg-icons'
 import { EventType, Environment, Priority, Status } from '../types/api'
 
 export const getEventTypeIcon = (type: EventType | string, className: string = 'w-5 h-5') => {
@@ -31,6 +31,11 @@ export const getEventTypeIcon = (type: EventType | string, className: string = '
     case '4':
       console.log('✅ → FIRE (Incident)')
       return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-red-600 dark:text-red-400`} />
+    
+    case 'rpa_usage':
+    case '5':
+      console.log('✅ → ROBOT (RPA Usage)')
+      return <FontAwesomeIcon icon={faRobot} className={`${finalClass} text-indigo-600 dark:text-indigo-400`} />
     
     default:
       console.warn('⚠️ Type inconnu:', type, typeStr)
@@ -74,6 +79,14 @@ export const getEventTypeColor = (type: EventType | string) => {
         border: 'border-red-200',
         bgSolid: 'bg-red-600',
       }
+    case 'rpa_usage':
+    case '5':
+      return {
+        bg: 'bg-indigo-100',
+        text: 'text-indigo-800',
+        border: 'border-indigo-200',
+        bgSolid: 'bg-indigo-600',
+      }
     default:
       return {
         bg: 'bg-gray-100',
@@ -100,6 +113,9 @@ export const getEventTypeLabel = (type: EventType | string) => {
     case 'incident':
     case '4':
       return 'Incident'
+    case 'rpa_usage':
+    case '5':
+      return 'RPA Usage'
     default:
       return 'Event'
   }

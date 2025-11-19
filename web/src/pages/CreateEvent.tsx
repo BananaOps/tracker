@@ -133,6 +133,7 @@ export default function CreateEvent() {
               <option value={EventType.OPERATION}>Operation</option>
               <option value={EventType.DRIFT}>Drift</option>
               <option value={EventType.INCIDENT}>Incident</option>
+              <option value={EventType.RPA_USAGE}>RPA Usage</option>
             </select>
           </div>
 

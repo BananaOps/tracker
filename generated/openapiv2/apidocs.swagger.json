@@ -346,7 +346,8 @@
               "deployment",
               "operation",
               "drift",
-              "incident"
+              "incident",
+              "rpa_usage"
             ],
             "default": "TYPE_UNSPECIFIED"
           },
@@ -677,7 +678,8 @@
         "deployment",
         "operation",
         "drift",
-        "incident"
+        "incident",
+        "rpa_usage"
       ],
       "default": "TYPE_UNSPECIFIED"
     },

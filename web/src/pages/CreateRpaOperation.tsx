@@ -24,7 +24,7 @@ export default function CreateRpaOperation() {
     attributes: {
       message: '',
       source: 'tracker',
-      type: EventType.OPERATION,
+      type: EventType.RPA_USAGE,
       priority: Priority.P3,
       service: '',
       status: Status.START,
@@ -71,7 +71,7 @@ export default function CreateRpaOperation() {
       title: formData.title,
       attributes: {
         message: formData.attributes.message,
-        type: EventType.OPERATION,
+        type: EventType.RPA_USAGE,
         priority: Priority.P1,
         source: 'tracker',
         service: formData.attributes.service,

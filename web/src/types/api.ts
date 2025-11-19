@@ -4,6 +4,7 @@ export enum EventType {
   OPERATION = 'operation',
   DRIFT = 'drift',
   INCIDENT = 'incident',
+  RPA_USAGE = 'rpa_usage',
 }
 
 // Mapping pour la conversion si nécessaire
@@ -12,6 +13,7 @@ export const EventTypeNumber = {
   operation: 2,
   drift: 3,
   incident: 4,
+  rpa_usage: 5,
 } as const
 
 // L'API retourne des strings pour Priority

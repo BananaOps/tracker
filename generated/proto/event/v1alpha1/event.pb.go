@@ -34,6 +34,7 @@ const (
 	Type_operation        Type = 2
 	Type_drift            Type = 3
 	Type_incident         Type = 4
+	Type_rpa_usage        Type = 5
 )
 
 // Enum value maps for Type.
@@ -44,6 +45,7 @@ var (
 		2: "operation",
 		3: "drift",
 		4: "incident",
+		5: "rpa_usage",
 	}
 	Type_value = map[string]int32{
 		"TYPE_UNSPECIFIED": 0,
@@ -51,6 +53,7 @@ var (
 		"operation":        2,
 		"drift":            3,
 		"incident":         4,
+		"rpa_usage":        5,
 	}
 )
 
@@ -1526,14 +1529,15 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\bslack_id\x18\x02 \x01(\tR\aslackId\"@\n" +
 	"\x13DeleteEventResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bslack_id\x18\x02 \x01(\tR\aslackId*T\n" +
+	"\bslack_id\x18\x02 \x01(\tR\aslackId*c\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"deployment\x10\x01\x12\r\n" +
 	"\toperation\x10\x02\x12\t\n" +
 	"\x05drift\x10\x03\x12\f\n" +
-	"\bincident\x10\x04*L\n" +
+	"\bincident\x10\x04\x12\r\n" +
+	"\trpa_usage\x10\x05*L\n" +
 	"\bPriority\x12\x18\n" +
 	"\x14PRIORITY_UNSPECIFIED\x10\x00\x12\x06\n" +
 	"\x02P1\x10\x01\x12\x06\n" +
