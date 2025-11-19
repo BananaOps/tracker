@@ -3,7 +3,8 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { useState, useMemo } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Filter, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Filter, X, Plus } from 'lucide-react'
 // import { Status, EventType } from '../types/api'
 import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
@@ -154,22 +155,29 @@ export default function EventsCalendar() {
           </p>
         </div>
         
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-            showFilters || activeFiltersCount > 0
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-          }`}
-        >
-          <Filter className="w-4 h-4" />
-          <span>Filtres</span>
-          {activeFiltersCount > 0 && (
-            <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
-              {activeFiltersCount}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center space-x-3">
+          <Link to="/events/create" className="btn-primary flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Create Event</span>
+          </Link>
+          
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+              showFilters || activeFiltersCount > 0
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filtres</span>
+            {activeFiltersCount > 0 && (
+              <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {showFilters && (

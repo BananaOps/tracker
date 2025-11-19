@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
 import { convertEventForAPI } from '../lib/apiConverters'
+import Toast from '../components/Toast'
 
 export default function CreateEvent() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showToast, setShowToast] = useState(false)
 
   // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -46,10 +47,10 @@ export default function CreateEvent() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      setSuccessMessage('Event created successfully!')
+      setShowToast(true)
       setTimeout(() => {
         navigate('/events/timeline')
-      }, 1500)
+      }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating event:', error)
@@ -58,7 +59,7 @@ export default function CreateEvent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSuccessMessage(null)
+    setShowToast(false)
     
     // Convertir les dates en ISO complet
     let startDateISO = undefined
@@ -95,16 +96,17 @@ export default function CreateEvent() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new event in the system</p>
       </div>
 
-      {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
-        </div>
-      )}
-
       {createMutation.isError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-red-800 dark:text-red-200 font-medium">Error creating event. Please try again.</p>
         </div>
+      )}
+      
+      {showToast && (
+        <Toast 
+          message="Event created successfully!"
+          onClose={() => setShowToast(false)}
+        />
       )}
 
       <form onSubmit={handleSubmit} className="card space-y-6">

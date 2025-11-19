@@ -8,7 +8,6 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Timeline', href: '/events/timeline', icon: Clock },
   { name: 'Calendar', href: '/events/calendar', icon: Calendar },
-  { name: 'Create Event', href: '/events/create', icon: Plus },
   { name: 'Catalog', href: '/catalog', icon: Table },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },

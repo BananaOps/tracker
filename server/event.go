@@ -271,11 +271,19 @@ func (e *Event) UpdateEvent(
 		duration := time.Since(eventDatabase.Event.Metadata.CreatedAt.AsTime())
 		event.Metadata.Duration = durationpb.New(duration)
 		if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
-		recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
+			recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
 		}
 	}
 
-	eventResult.Event, err = e.store.Update(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId}, event)
+	// Use the appropriate filter based on whether SlackId or Id is provided
+	var filter map[string]interface{}
+	if i.SlackId != "" {
+		filter = map[string]interface{}{"metadata.slackid": i.SlackId}
+	} else {
+		filter = map[string]interface{}{"metadata.id": i.Id}
+	}
+
+	eventResult.Event, err = e.store.Update(context.Background(), filter, event)
 	if err != nil {
 		return nil, err
 	}

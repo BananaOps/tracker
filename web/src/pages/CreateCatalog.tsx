@@ -4,10 +4,12 @@ import { catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { CatalogType, Language } from '../types/api'
 import type { Catalog } from '../types/api'
+import Toast from '../components/Toast'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showToast, setShowToast] = useState(false)
 
   const [formData, setFormData] = useState<Catalog>({
     name: '',
@@ -24,7 +26,10 @@ export default function CreateCatalog() {
     mutationFn: catalogApi.createOrUpdate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['catalog'] })
-      navigate('/catalog')
+      setShowToast(true)
+      setTimeout(() => {
+        navigate('/catalog')
+      }, 2000)
     },
   })
 
@@ -171,6 +176,13 @@ export default function CreateCatalog() {
           </button>
         </div>
       </form>
+      
+      {showToast && (
+        <Toast 
+          message="Catalog item created successfully!"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   )
 }

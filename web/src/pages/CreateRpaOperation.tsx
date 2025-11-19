@@ -7,10 +7,12 @@ import type { CreateEventRequest } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWrench, faRobot } from '@fortawesome/free-solid-svg-icons'
 import { convertEventForAPI } from '../lib/apiConverters'
+import Toast from '../components/Toast'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showToast, setShowToast] = useState(false)
 
   // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -35,16 +37,14 @@ export default function CreateRpaOperation() {
     links: {},
   })
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
   const createMutation = useMutation({
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      setSuccessMessage('RPA Operation created successfully!')
+      setShowToast(true)
       setTimeout(() => {
         navigate('/rpa')
-      }, 1500)
+      }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating RPA Operation:', error)
@@ -53,7 +53,7 @@ export default function CreateRpaOperation() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSuccessMessage(null)
+    setShowToast(false)
     
     // Convertir startDate et calculer endDate
     let startDateISO = undefined
@@ -100,16 +100,17 @@ export default function CreateRpaOperation() {
         </div>
       </div>
 
-      {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
-        </div>
-      )}
-
       {createMutation.isError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-red-800 dark:text-red-200 font-medium">Error creating RPA operation. Please try again.</p>
         </div>
+      )}
+      
+      {showToast && (
+        <Toast 
+          message="RPA Operation created successfully!"
+          onClose={() => setShowToast(false)}
+        />
       )}
 
       <form onSubmit={handleSubmit} className="card space-y-6">

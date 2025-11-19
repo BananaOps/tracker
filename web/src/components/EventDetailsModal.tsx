@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { X, Edit2, Save } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -8,6 +8,8 @@ import type { Event } from '../types/api'
 import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from './EventLinks'
+import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
+import Toast from './Toast'
 
 interface EventDetailsModalProps {
   event: Event
@@ -16,8 +18,26 @@ interface EventDetailsModalProps {
 
 export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editedEvent, setEditedEvent] = useState(event)
+  const [showToast, setShowToast] = useState(false)
+  
+  // Convertir les nombres en strings enum si nécessaire
+  const normalizedEvent = useMemo(() => {
+    const normalized = convertEventFromAPI(event)
+    console.log('🔄 Event normalisé:', {
+      original: event.attributes.priority,
+      normalized: normalized.attributes.priority,
+      status_original: event.attributes.status,
+      status_normalized: normalized.attributes.status,
+    })
+    return normalized
+  }, [event])
+  const [editedEvent, setEditedEvent] = useState(normalizedEvent)
   const queryClient = useQueryClient()
+  
+  // Mettre à jour editedEvent quand normalizedEvent change
+  useEffect(() => {
+    setEditedEvent(normalizedEvent)
+  }, [normalizedEvent])
   
   const typeColor = getEventTypeColor(editedEvent.attributes.type)
 
@@ -28,12 +48,17 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
         attributes: editedEvent.attributes,
         links: editedEvent.links,
       }
-      return eventsApi.update(editedEvent.metadata!.id!, updateData)
+      // Convertir les enums string en nombres pour l'API
+      const convertedData = convertEventForAPI(updateData)
+      return eventsApi.update(editedEvent.metadata!.id!, convertedData)
     },
     onSuccess: (updatedEvent) => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      setEditedEvent(updatedEvent)
+      // Normaliser la réponse de l'API (nombres -> strings enum)
+      const normalized = convertEventFromAPI(updatedEvent)
+      setEditedEvent(normalized)
       setIsEditing(false)
+      setShowToast(true)
     },
     onError: (error: any) => {
       console.error('Error updating event:', error)
@@ -49,7 +74,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   }
 
   const handleCancel = () => {
-    setEditedEvent(event)
+    setEditedEvent(normalizedEvent)
     setIsEditing(false)
   }
 
@@ -193,72 +218,72 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Service</h4>
-                <p className="text-gray-900 dark:text-gray-100">{event.attributes.service}</p>
+                <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.service}</p>
               </div>
 
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Source</h4>
                 <div className="flex items-center space-x-2">
-                  <SourceIcon source={event.attributes.source} />
-                  <p className="text-gray-900 dark:text-gray-100">{event.attributes.source}</p>
+                  <SourceIcon source={editedEvent.attributes.source} />
+                  <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.source}</p>
                 </div>
               </div>
 
-              {event.attributes.owner && (
+              {editedEvent.attributes.owner && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Owner</h4>
-                  <p className="text-gray-900 dark:text-gray-100">{event.attributes.owner}</p>
+                  <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.owner}</p>
                 </div>
               )}
 
-              {event.metadata?.createdAt && (
+              {editedEvent.metadata?.createdAt && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Created At</h4>
                   <p className="text-gray-900 dark:text-gray-100">
-                    {format(new Date(event.metadata.createdAt), 'PPpp', { locale: fr })}
+                    {format(new Date(editedEvent.metadata.createdAt), 'PPpp', { locale: fr })}
                   </p>
                 </div>
               )}
 
-              {event.attributes.startDate && (
+              {editedEvent.attributes.startDate && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Start Date</h4>
                   <p className="text-gray-900 dark:text-gray-100">
-                    {format(new Date(event.attributes.startDate), 'PPpp', { locale: fr })}
+                    {format(new Date(editedEvent.attributes.startDate), 'PPpp', { locale: fr })}
                   </p>
                 </div>
               )}
 
-              {event.attributes.endDate && (
+              {editedEvent.attributes.endDate && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">End Date</h4>
                   <p className="text-gray-900 dark:text-gray-100">
-                    {format(new Date(event.attributes.endDate), 'PPpp', { locale: fr })}
+                    {format(new Date(editedEvent.attributes.endDate), 'PPpp', { locale: fr })}
                   </p>
                 </div>
               )}
 
-              {event.metadata?.id && (
+              {editedEvent.metadata?.id && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Event ID</h4>
-                  <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{event.metadata.id}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{editedEvent.metadata.id}</p>
                 </div>
               )}
 
-              {event.metadata?.slackId && (
+              {editedEvent.metadata?.slackId && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Slack ID</h4>
-                  <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{event.metadata.slackId}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{editedEvent.metadata.slackId}</p>
                 </div>
               )}
             </div>
 
             {/* Stakeholders */}
-            {event.attributes.stakeHolders && event.attributes.stakeHolders.length > 0 && (
+            {editedEvent.attributes.stakeHolders && editedEvent.attributes.stakeHolders.length > 0 && (
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Stakeholders</h4>
                 <div className="flex flex-wrap gap-2">
-                  {event.attributes.stakeHolders.map((stakeholder, idx) => (
+                  {editedEvent.attributes.stakeHolders.map((stakeholder, idx) => (
                     <span key={idx} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-full text-sm">
                       {stakeholder}
                     </span>
@@ -268,27 +293,27 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             )}
 
             {/* Links */}
-            {(event.links?.pullRequestLink || event.links?.ticket) && (
+            {(editedEvent.links?.pullRequestLink || editedEvent.links?.ticket) && (
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Links</h4>
                 <EventLinks 
-                  links={event.links}
-                  source={event.attributes.source}
-                  slackId={event.metadata?.slackId}
+                  links={editedEvent.links}
+                  source={editedEvent.attributes.source}
+                  slackId={editedEvent.metadata?.slackId}
                 />
               </div>
             )}
 
             {/* Impact (for drifts) */}
-            {event.attributes.impact !== undefined && (
+            {editedEvent.attributes.impact !== undefined && (
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Impact</h4>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  event.attributes.impact 
+                  editedEvent.attributes.impact 
                     ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400' 
                     : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
                 }`}>
-                  {event.attributes.impact ? 'Has Impact' : 'No Impact'}
+                  {editedEvent.attributes.impact ? 'Has Impact' : 'No Impact'}
                 </span>
               </div>
             )}
@@ -325,6 +350,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
           </div>
         </div>
       </div>
+      
+      {/* Toast notification */}
+      {showToast && (
+        <Toast 
+          message="Event updated successfully!"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   )
 }

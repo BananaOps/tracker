@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
-import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock, TrendingUp, Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Status, Priority } from '../types/api'
 import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
@@ -52,9 +53,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Overview of today's events</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Overview of today's events</p>
+        </div>
+        <Link to="/events/create" className="btn-primary flex items-center space-x-2">
+          <Plus className="w-4 h-4" />
+          <span>Create Event</span>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

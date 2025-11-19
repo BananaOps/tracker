@@ -7,11 +7,12 @@ import type { CreateEventRequest } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { convertEventForAPI } from '../lib/apiConverters'
+import Toast from '../components/Toast'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [showToast, setShowToast] = useState(false)
 
   // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -41,10 +42,10 @@ export default function CreateDrift() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      setSuccessMessage('Drift created successfully!')
+      setShowToast(true)
       setTimeout(() => {
         navigate('/drifts')
-      }, 1500)
+      }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating drift:', error)
@@ -53,7 +54,7 @@ export default function CreateDrift() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSuccessMessage(null)
+    setShowToast(false)
     
     // Convertir les enums en nombres pour l'API
     const apiData = convertEventForAPI(formData)
@@ -70,16 +71,17 @@ export default function CreateDrift() {
         </div>
       </div>
 
-      {successMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
-        </div>
-      )}
-
       {createMutation.isError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <p className="text-red-800 dark:text-red-200 font-medium">Error creating drift. Please try again.</p>
         </div>
+      )}
+      
+      {showToast && (
+        <Toast 
+          message="Drift created successfully!"
+          onClose={() => setShowToast(false)}
+        />
       )}
 
       <form onSubmit={handleSubmit} className="card space-y-6">
