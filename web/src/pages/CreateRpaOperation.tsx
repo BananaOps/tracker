@@ -22,6 +22,10 @@ export default function CreateRpaOperation() {
 
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
+  // Date par défaut : maintenant
+  const now = new Date()
+  const defaultStartDate = now.toISOString().slice(0, 16) // Format datetime-local
+
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
     attributes: {
@@ -33,6 +37,7 @@ export default function CreateRpaOperation() {
       status: Status.START,
       environment: Environment.PRODUCTION,
       owner: '',
+      startDate: defaultStartDate,
     },
     links: {},
   })

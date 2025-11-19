@@ -6,6 +6,19 @@
   body {
     @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
   }
+  
+  /* Fix calendar icon color in dark mode for datetime-local inputs */
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    @apply dark:invert dark:opacity-70;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    @apply dark:invert dark:opacity-70;
+  }
+  
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    @apply dark:invert dark:opacity-70;
+  }
 }
 
 @layer components {
