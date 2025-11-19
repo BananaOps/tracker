@@ -15,27 +15,27 @@ export const getEventTypeIcon = (type: EventType | string, className: string = '
     case 'deployment':
     case '1':
       console.log('✅ → ROCKET (Déploiement)')
-      return <FontAwesomeIcon icon={faRocket} className={`${finalClass} text-blue-600 dark:text-blue-400`} />
+      return <FontAwesomeIcon icon={faRocket} className={`${finalClass} icon-gradient-blue`} />
     
     case 'operation':
     case '2':
       console.log('✅ → WRENCH (Opération)')
-      return <FontAwesomeIcon icon={faWrench} className={`${finalClass} text-purple-600 dark:text-purple-400`} />
+      return <FontAwesomeIcon icon={faWrench} className={`${finalClass} icon-gradient-purple`} />
     
     case 'drift':
     case '3':
       console.log('✅ → CODE_BRANCH (Drift)')
-      return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} text-yellow-600 dark:text-yellow-400`} />
+      return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} icon-gradient-yellow`} />
     
     case 'incident':
     case '4':
       console.log('✅ → FIRE (Incident)')
-      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-red-600 dark:text-red-400`} />
+      return <FontAwesomeIcon icon={faFire} className={`${finalClass} icon-gradient-red`} />
     
     case 'rpa_usage':
     case '5':
       console.log('✅ → ROBOT (RPA Usage)')
-      return <FontAwesomeIcon icon={faRobot} className={`${finalClass} text-indigo-600 dark:text-indigo-400`} />
+      return <FontAwesomeIcon icon={faRobot} className={`${finalClass} icon-gradient`} />
     
     default:
       console.warn('⚠️ Type inconnu:', type, typeStr)

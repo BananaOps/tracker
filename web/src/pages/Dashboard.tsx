@@ -138,7 +138,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (eventsByType.deployment / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -154,7 +154,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (eventsByType.operation / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -170,7 +170,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-yellow-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (eventsByType.drift / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -186,7 +186,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-red-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (eventsByType.incident / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -208,7 +208,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (stats.success / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -224,7 +224,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-red-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (stats.failure / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -240,7 +240,7 @@ export default function Dashboard() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
-                  className="bg-yellow-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.total > 0 ? (stats.inProgress / stats.total) * 100 : 0}%` }}
                 ></div>
               </div>
@@ -261,10 +261,10 @@ export default function Dashboard() {
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-500 ${
-                      priority === 'p1' ? 'bg-red-600' :
-                      priority === 'p2' ? 'bg-orange-600' :
-                      priority === 'p3' ? 'bg-yellow-600' :
-                      'bg-blue-600'
+                      priority === 'p1' ? 'bg-gradient-to-r from-red-400 to-red-600' :
+                      priority === 'p2' ? 'bg-gradient-to-r from-orange-400 to-orange-600' :
+                      priority === 'p3' ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
+                      'bg-gradient-to-r from-blue-400 to-blue-600'
                     }`}
                     style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
                   ></div>
@@ -287,10 +287,10 @@ export default function Dashboard() {
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-500 ${
-                      env === 'production' ? 'bg-red-600' :
-                      env === 'preproduction' ? 'bg-orange-600' :
-                      env === 'development' ? 'bg-green-600' :
-                      'bg-blue-600'
+                      env === 'production' || env === '7' ? 'bg-gradient-to-r from-red-400 to-red-600' :
+                      env === 'preproduction' || env === '6' ? 'bg-gradient-to-r from-orange-400 to-orange-600' :
+                      env === 'development' || env === '1' ? 'bg-gradient-to-r from-green-400 to-green-600' :
+                      'bg-gradient-to-r from-blue-400 to-blue-600'
                     }`}
                     style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
                   ></div>

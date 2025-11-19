@@ -218,7 +218,19 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Service</h4>
-                <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.service}</p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className="input text-sm"
+                    value={editedEvent.attributes.service}
+                    onChange={(e) => setEditedEvent({
+                      ...editedEvent,
+                      attributes: { ...editedEvent.attributes, service: e.target.value }
+                    })}
+                  />
+                ) : (
+                  <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.service}</p>
+                )}
               </div>
 
               <div>
@@ -245,21 +257,45 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 </div>
               )}
 
-              {editedEvent.attributes.startDate && (
+              {(editedEvent.attributes.startDate || isEditing) && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Start Date</h4>
-                  <p className="text-gray-900 dark:text-gray-100">
-                    {format(new Date(editedEvent.attributes.startDate), 'PPpp', { locale: fr })}
-                  </p>
+                  {isEditing ? (
+                    <input
+                      type="datetime-local"
+                      className="input text-sm"
+                      value={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => setEditedEvent({
+                        ...editedEvent,
+                        attributes: { ...editedEvent.attributes, startDate: e.target.value }
+                      })}
+                    />
+                  ) : (
+                    <p className="text-gray-900 dark:text-gray-100">
+                      {format(new Date(editedEvent.attributes.startDate), 'PPpp', { locale: fr })}
+                    </p>
+                  )}
                 </div>
               )}
 
-              {editedEvent.attributes.endDate && (
+              {(editedEvent.attributes.endDate || isEditing) && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">End Date</h4>
-                  <p className="text-gray-900 dark:text-gray-100">
-                    {format(new Date(editedEvent.attributes.endDate), 'PPpp', { locale: fr })}
-                  </p>
+                  {isEditing ? (
+                    <input
+                      type="datetime-local"
+                      className="input text-sm"
+                      value={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate).toISOString().slice(0, 16) : ''}
+                      onChange={(e) => setEditedEvent({
+                        ...editedEvent,
+                        attributes: { ...editedEvent.attributes, endDate: e.target.value }
+                      })}
+                    />
+                  ) : (
+                    <p className="text-gray-900 dark:text-gray-100">
+                      {format(new Date(editedEvent.attributes.endDate), 'PPpp', { locale: fr })}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -277,6 +313,37 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 </div>
               )}
             </div>
+            
+            {/* Impact (for drifts) - Editable */}
+            {(editedEvent.attributes.impact !== undefined || isEditing) && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Impact</h4>
+                {isEditing ? (
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editedEvent.attributes.impact || false}
+                      onChange={(e) => setEditedEvent({
+                        ...editedEvent,
+                        attributes: { ...editedEvent.attributes, impact: e.target.checked }
+                      })}
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      This event has an impact
+                    </span>
+                  </label>
+                ) : (
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    editedEvent.attributes.impact 
+                      ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400' 
+                      : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                  }`}>
+                    {editedEvent.attributes.impact ? 'Has Impact' : 'No Impact'}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Stakeholders */}
             {editedEvent.attributes.stakeHolders && editedEvent.attributes.stakeHolders.length > 0 && (
@@ -301,20 +368,6 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                   source={editedEvent.attributes.source}
                   slackId={editedEvent.metadata?.slackId}
                 />
-              </div>
-            )}
-
-            {/* Impact (for drifts) */}
-            {editedEvent.attributes.impact !== undefined && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Impact</h4>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  editedEvent.attributes.impact 
-                    ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400' 
-                    : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                }`}>
-                  {editedEvent.attributes.impact ? 'Has Impact' : 'No Impact'}
-                </span>
               </div>
             )}
           </div>
