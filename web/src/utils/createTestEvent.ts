@@ -16,7 +16,7 @@ export async function createTestEventWithLinks() {
         status: Status.SUCCESS,
       },
       links: {
-        pullRequestLink: 'https://github.com/energypool/infra/pull/123',
+        pullRequestLink: 'https://github.com/company/infra/pull/123',
         ticket: 'INFRA-286',
       },
     })

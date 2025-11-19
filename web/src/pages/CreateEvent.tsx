@@ -17,6 +17,12 @@ export default function CreateEvent() {
 
   const catalogServices = catalogData?.catalogs.map(c => c.name).sort() || []
 
+  // Calculer les dates par défaut
+  const now = new Date()
+  const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+  const defaultStartDate = now.toISOString().slice(0, 16) // Format datetime-local
+  const defaultEndDate = oneHourLater.toISOString().slice(0, 16)
+
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
     attributes: {
@@ -28,6 +34,8 @@ export default function CreateEvent() {
       status: Status.START,
       environment: Environment.PRODUCTION,
       owner: '', // Champ auteur
+      startDate: defaultStartDate,
+      endDate: defaultEndDate,
     },
     links: {},
   })
@@ -42,12 +50,27 @@ export default function CreateEvent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Convertir les dates en ISO complet
+    let startDateISO = undefined
+    let endDateISO = undefined
+    
+    if (formData.attributes.startDate) {
+      startDateISO = new Date(formData.attributes.startDate).toISOString()
+    }
+    
+    if (formData.attributes.endDate) {
+      endDateISO = new Date(formData.attributes.endDate).toISOString()
+    }
+    
     // S'assurer que la source est toujours "manual"
     const eventData = {
       ...formData,
       attributes: {
         ...formData.attributes,
         source: 'manual',
+        startDate: startDateISO,
+        endDate: endDateISO,
       },
     }
     createMutation.mutate(eventData)
@@ -219,6 +242,34 @@ export default function CreateEvent() {
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+            <input
+              type="datetime-local"
+              className="input"
+              value={formData.attributes.startDate || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                attributes: { ...formData.attributes, startDate: e.target.value }
+              })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+            <input
+              type="datetime-local"
+              className="input"
+              value={formData.attributes.endDate || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                attributes: { ...formData.attributes, endDate: e.target.value }
+              })}
+            />
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pull Request (optional)</label>
           <input
@@ -234,17 +285,20 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket URL (optional)</label>
           <input
-            type="text"
+            type="url"
             className="input"
             value={formData.links?.ticket || ''}
             onChange={(e) => setFormData({
               ...formData,
               links: { ...formData.links, ticket: e.target.value }
             })}
-            placeholder="JIRA-123"
+            placeholder="https://jira.company.com/browse/PROJ-123"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Full Jira ticket URL (e.g., https://jira.company.com/browse/PROJ-123)
+          </p>
         </div>
 
         <div className="flex justify-end space-x-3">

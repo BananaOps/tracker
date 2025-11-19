@@ -1,7 +1,11 @@
-import { X } from 'lucide-react'
+import { useState } from 'react'
+import { X, Edit2, Save } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { eventsApi } from '../lib/api'
 import type { Event } from '../types/api'
+import { EventType, Priority, Status, Environment } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from './EventLinks'
 
@@ -11,7 +15,43 @@ interface EventDetailsModalProps {
 }
 
 export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
-  const typeColor = getEventTypeColor(event.attributes.type)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedEvent, setEditedEvent] = useState(event)
+  const queryClient = useQueryClient()
+  
+  const typeColor = getEventTypeColor(editedEvent.attributes.type)
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      const updateData = {
+        title: editedEvent.title,
+        attributes: editedEvent.attributes,
+        links: editedEvent.links,
+      }
+      return eventsApi.update(editedEvent.metadata!.id!, updateData)
+    },
+    onSuccess: (updatedEvent) => {
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+      setEditedEvent(updatedEvent)
+      setIsEditing(false)
+    },
+    onError: (error: any) => {
+      console.error('Error updating event:', error)
+    },
+  })
+
+  const handleSave = () => {
+    if (!editedEvent.metadata?.id) {
+      console.error('Cannot update event: missing ID')
+      return
+    }
+    updateMutation.mutate()
+  }
+
+  const handleCancel = () => {
+    setEditedEvent(event)
+    setIsEditing(false)
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -27,50 +67,126 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
           {/* Header */}
           <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Event Details</h2>
+              {getEventTypeIcon(editedEvent.attributes.type, 'w-6 h-6')}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {isEditing ? 'Edit Event' : 'Event Details'}
+              </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                  title="Edit event"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           {/* Content */}
           <div className="px-6 py-4 space-y-6">
             {/* Title */}
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-                {event.title}
-              </h3>
+              {isEditing ? (
+                <input
+                  type="text"
+                  className="input text-2xl font-bold mb-3"
+                  value={editedEvent.title}
+                  onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
+                />
+              ) : (
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                  {editedEvent.title}
+                </h3>
+              )}
               
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2">
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
-                  {getEventTypeLabel(event.attributes.type)}
-                </span>
-                {event.attributes.environment && (
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
-                    {getEnvironmentLabel(event.attributes.environment)}
+              {/* Badges / Selects */}
+              {isEditing ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Priority</label>
+                    <select
+                      className="select text-sm"
+                      value={editedEvent.attributes.priority}
+                      onChange={(e) => setEditedEvent({
+                        ...editedEvent,
+                        attributes: { ...editedEvent.attributes, priority: e.target.value as Priority }
+                      })}
+                    >
+                      <option value={Priority.P1}>P1 - Critical</option>
+                      <option value={Priority.P2}>P2 - High</option>
+                      <option value={Priority.P3}>P3 - Medium</option>
+                      <option value={Priority.P4}>P4 - Low</option>
+                      <option value={Priority.P5}>P5 - Very Low</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                    <select
+                      className="select text-sm"
+                      value={editedEvent.attributes.status}
+                      onChange={(e) => setEditedEvent({
+                        ...editedEvent,
+                        attributes: { ...editedEvent.attributes, status: e.target.value as Status }
+                      })}
+                    >
+                      <option value={Status.START}>Started</option>
+                      <option value={Status.SUCCESS}>Success</option>
+                      <option value={Status.FAILURE}>Failed</option>
+                      <option value={Status.WARNING}>Warning</option>
+                      <option value={Status.ERROR}>Error</option>
+                      <option value={Status.DONE}>Done</option>
+                      <option value={Status.OPEN}>Open</option>
+                      <option value={Status.CLOSE}>Closed</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
+                    {getEventTypeLabel(editedEvent.attributes.type)}
                   </span>
-                )}
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
-                  {getPriorityLabel(event.attributes.priority)}
-                </span>
-                <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
-                  {getStatusLabel(event.attributes.status)}
-                </span>
-              </div>
+                  {editedEvent.attributes.environment && (
+                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${getEnvironmentColor(editedEvent.attributes.environment).bg} ${getEnvironmentColor(editedEvent.attributes.environment).text}`}>
+                      {getEnvironmentLabel(editedEvent.attributes.environment)}
+                    </span>
+                  )}
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(editedEvent.attributes.priority).bg} ${getPriorityColor(editedEvent.attributes.priority).text}`}>
+                    {getPriorityLabel(editedEvent.attributes.priority)}
+                  </span>
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(editedEvent.attributes.status).bg} ${getStatusColor(editedEvent.attributes.status).text}`}>
+                    {getStatusLabel(editedEvent.attributes.status)}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Message */}
             <div>
               <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</h4>
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{event.attributes.message}</p>
-              </div>
+              {isEditing ? (
+                <textarea
+                  rows={4}
+                  className="input"
+                  value={editedEvent.attributes.message}
+                  onChange={(e) => setEditedEvent({
+                    ...editedEvent,
+                    attributes: { ...editedEvent.attributes, message: e.target.value }
+                  })}
+                />
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                  <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editedEvent.attributes.message}</p>
+                </div>
+              )}
             </div>
 
             {/* Details Grid */}
@@ -180,12 +296,32 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
 
           {/* Footer */}
           <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 px-6 py-4">
-            <button
-              onClick={onClose}
-              className="btn-primary w-full"
-            >
-              Close
-            </button>
+            {isEditing ? (
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCancel}
+                  className="btn-secondary flex-1"
+                  disabled={updateMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  className="btn-primary flex-1 flex items-center justify-center space-x-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{updateMutation.isPending ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onClose}
+                className="btn-primary w-full"
+              >
+                Close
+              </button>
+            )}
           </div>
         </div>
       </div>

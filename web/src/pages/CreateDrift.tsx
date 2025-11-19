@@ -255,17 +255,20 @@ export default function CreateDrift() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket associé</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket URL (optional)</label>
           <input
-            type="text"
+            type="url"
             className="input"
             value={formData.links?.ticket || ''}
             onChange={(e) => setFormData({
               ...formData,
               links: { ...formData.links, ticket: e.target.value }
             })}
-            placeholder="Ex: JIRA-1234, DRIFT-567"
+            placeholder="https://jira.company.com/browse/DRIFT-123"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Full Jira ticket URL
+          </p>
         </div>
 
         <div className="flex justify-end space-x-3 pt-4 border-t">

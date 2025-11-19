@@ -77,8 +77,8 @@ function extractTicketId(ticketOrUrl: string): string {
   }
   
   // Extraire depuis une URL Jira comme:
-  // https://energypool.atlassian.net/browse/PROJECT-123
   // https://jira.company.com/browse/PROJECT-123
+  // https://company.atlassian.net/browse/PROJECT-123
   const urlMatch = ticketOrUrl.match(/\/browse\/([A-Z]+-\d+)/)
   if (urlMatch) {
     return urlMatch[1]
@@ -107,7 +107,7 @@ function getTicketUrl(ticket: string): string {
   console.log('getTicketUrl - VITE_JIRA_URL:', import.meta.env.VITE_JIRA_URL)
   
   if (isJiraTicket(ticket)) {
-    const jiraBaseUrl = import.meta.env.VITE_JIRA_URL || 'https://energypool.atlassian.net'
+    const jiraBaseUrl = import.meta.env.VITE_JIRA_URL || 'https://jira.company.com'
     const url = `${jiraBaseUrl}/browse/${ticket}`
     console.log('getTicketUrl - Generated URL:', url)
     return url
