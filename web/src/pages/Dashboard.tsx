@@ -21,6 +21,30 @@ export default function Dashboard() {
     critical: events.filter(e => e.attributes.priority === Priority.P1).length,
   }
 
+  // Statistiques par type
+  const eventsByType = {
+    deployment: events.filter(e => String(e.attributes.type).toLowerCase() === 'deployment').length,
+    operation: events.filter(e => String(e.attributes.type).toLowerCase() === 'operation').length,
+    drift: events.filter(e => String(e.attributes.type).toLowerCase() === 'drift').length,
+    incident: events.filter(e => String(e.attributes.type).toLowerCase() === 'incident').length,
+  }
+
+  // Statistiques par environnement
+  const eventsByEnv = events.reduce((acc, e) => {
+    const env = String(e.attributes.environment || 'unknown').toLowerCase()
+    acc[env] = (acc[env] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  // Statistiques par priorité
+  const eventsByPriority = {
+    p1: events.filter(e => String(e.attributes.priority).toLowerCase() === 'p1').length,
+    p2: events.filter(e => String(e.attributes.priority).toLowerCase() === 'p2').length,
+    p3: events.filter(e => String(e.attributes.priority).toLowerCase() === 'p3').length,
+    p4: events.filter(e => String(e.attributes.priority).toLowerCase() === 'p4').length,
+    p5: events.filter(e => String(e.attributes.priority).toLowerCase() === 'p5').length,
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -82,6 +106,185 @@ export default function Dashboard() {
                 <dd className="text-3xl font-semibold text-gray-900">{stats.inProgress}</dd>
               </dl>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Diagrammes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Diagramme par Type */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par type</h3>
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  {getEventTypeIcon('deployment', 'w-4 h-4')}
+                  <span>Déploiements</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{eventsByType.deployment}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (eventsByType.deployment / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  {getEventTypeIcon('operation', 'w-4 h-4')}
+                  <span>Opérations</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{eventsByType.operation}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (eventsByType.operation / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  {getEventTypeIcon('drift', 'w-4 h-4')}
+                  <span>Drifts</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{eventsByType.drift}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-yellow-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (eventsByType.drift / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  {getEventTypeIcon('incident', 'w-4 h-4')}
+                  <span>Incidents</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{eventsByType.incident}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-red-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (eventsByType.incident / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Diagramme par Statut */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par statut</h3>
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span>Succès</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{stats.success}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (stats.success / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <span>Échecs</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{stats.failure}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-red-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (stats.failure / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <span>En cours</span>
+                </span>
+                <span className="text-sm font-semibold text-gray-900">{stats.inProgress}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-yellow-600 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.total > 0 ? (stats.inProgress / stats.total) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Diagramme par Priorité */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par priorité</h3>
+          <div className="space-y-3">
+            {Object.entries(eventsByPriority).map(([priority, count]) => (
+              <div key={priority}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">{priority.toUpperCase()}</span>
+                  <span className="text-sm font-semibold text-gray-900">{count}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      priority === 'p1' ? 'bg-red-600' :
+                      priority === 'p2' ? 'bg-orange-600' :
+                      priority === 'p3' ? 'bg-yellow-600' :
+                      'bg-blue-600'
+                    }`}
+                    style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Diagramme par Environnement */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par environnement</h3>
+          <div className="space-y-3">
+            {Object.entries(eventsByEnv).sort((a, b) => b[1] - a[1]).map(([env, count]) => (
+              <div key={env}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700 capitalize">{getEnvironmentLabel(env) || env}</span>
+                  <span className="text-sm font-semibold text-gray-900">{count}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      env === 'production' ? 'bg-red-600' :
+                      env === 'preproduction' ? 'bg-orange-600' :
+                      env === 'development' ? 'bg-green-600' :
+                      'bg-blue-600'
+                    }`}
+                    style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
