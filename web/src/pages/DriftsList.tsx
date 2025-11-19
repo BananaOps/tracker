@@ -75,10 +75,10 @@ export default function DriftsList() {
         {drifts.map((drift) => (
           <div key={drift.metadata?.id} className="card">
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">{drift.title}</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-2 flex-wrap">
+                  <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                  <h3 className="text-lg font-semibold text-gray-900 break-words flex-1 min-w-0">{drift.title}</h3>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     drift.attributes.status === Status.DONE || drift.attributes.status === Status.CLOSE
                       ? 'bg-green-100 text-green-800'
@@ -90,29 +90,31 @@ export default function DriftsList() {
                   </span>
                 </div>
 
-                <p className="text-gray-600 mb-3">{drift.attributes.message}</p>
+                <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-32 overflow-y-auto">
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{drift.attributes.message}</p>
+                </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-gray-500">Service:</span>
-                    <span className="ml-2 font-medium text-gray-900">{drift.attributes.service}</span>
+                    <span className="ml-2 font-medium text-gray-900 break-words">{drift.attributes.service}</span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-gray-500">Source:</span>
-                    <span className="ml-2 font-medium text-gray-900">{drift.attributes.source}</span>
+                    <span className="ml-2 font-medium text-gray-900 break-words">{drift.attributes.source}</span>
                   </div>
                   {drift.attributes.environment && (
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-gray-500">Environnement:</span>
-                      <span className="ml-2 font-medium text-gray-900">
+                      <span className="ml-2 font-medium text-gray-900 break-words">
                         {drift.attributes.environment}
                       </span>
                     </div>
                   )}
                   {drift.attributes.owner && (
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-gray-500">Owner:</span>
-                      <span className="ml-2 font-medium text-gray-900">{drift.attributes.owner}</span>
+                      <span className="ml-2 font-medium text-gray-900 break-words">{drift.attributes.owner}</span>
                     </div>
                   )}
                 </div>
@@ -120,12 +122,12 @@ export default function DriftsList() {
                 {drift.links?.ticket && (
                   <div className="mt-3">
                     <span className="text-sm text-gray-500">Ticket: </span>
-                    <span className="text-sm font-medium text-primary-600">{drift.links.ticket}</span>
+                    <span className="text-sm font-medium text-primary-600 break-words">{drift.links.ticket}</span>
                   </div>
                 )}
               </div>
 
-              <div className="text-right text-sm text-gray-500 ml-4">
+              <div className="text-right text-sm text-gray-500 ml-4 flex-shrink-0">
                 {drift.metadata?.createdAt && (
                   <time>
                     {format(new Date(drift.metadata.createdAt), 'PPp', { locale: fr })}

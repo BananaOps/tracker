@@ -2,6 +2,21 @@ import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
 import { Package, ExternalLink } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faJava, 
+  faPython, 
+  faPhp, 
+  faJs, 
+  faDocker, 
+  faRust,
+  faGolang
+} from '@fortawesome/free-brands-svg-icons'
+import { 
+  faCode, 
+  faFileCode, 
+  faCube 
+} from '@fortawesome/free-solid-svg-icons'
 
 export default function CatalogTable() {
   const { data, isLoading } = useQuery({
@@ -11,36 +26,73 @@ export default function CatalogTable() {
 
   const catalogs = data?.catalogs || []
 
-  const getCatalogTypeLabel = (type: CatalogType) => {
-    const labels: Record<CatalogType, string> = {
-      [CatalogType.MODULE]: 'Module',
-      [CatalogType.LIBRARY]: 'Bibliothèque',
-      [CatalogType.WORKFLOW]: 'Workflow',
-      [CatalogType.PROJECT]: 'Projet',
-      [CatalogType.CHART]: 'Chart',
-      [CatalogType.PACKAGE]: 'Package',
-      [CatalogType.CONTAINER]: 'Container',
+  const getCatalogTypeLabel = (type: CatalogType | string) => {
+    const typeStr = String(type).toLowerCase()
+    const labels: Record<string, string> = {
+      'module': 'Module',
+      'library': 'Bibliothèque',
+      'workflow': 'Workflow',
+      'project': 'Projet',
+      'chart': 'Chart',
+      'package': 'Package',
+      'container': 'Container',
     }
-    return labels[type] || 'Inconnu'
+    return labels[typeStr] || 'Inconnu'
   }
 
-  const getLanguageLabel = (lang: Language) => {
-    const labels: Record<Language, string> = {
-      [Language.GOLANG]: 'Go',
-      [Language.KOTLIN]: 'Kotlin',
-      [Language.JAVA]: 'Java',
-      [Language.TERRAFORM]: 'Terraform',
-      [Language.HELM]: 'Helm',
-      [Language.JAVASCRIPT]: 'JavaScript',
-      [Language.YAML]: 'YAML',
-      [Language.DOCKER]: 'Docker',
-      [Language.PYTHON]: 'Python',
-      [Language.PHP]: 'PHP',
-      [Language.RUST]: 'Rust',
-      [Language.TYPESCRIPT]: 'TypeScript',
-      [Language.GROOVY]: 'Groovy',
+  const getLanguageLabel = (lang: Language | string) => {
+    const langStr = String(lang).toLowerCase()
+    const labels: Record<string, string> = {
+      'golang': 'Go',
+      'kotlin': 'Kotlin',
+      'java': 'Java',
+      'terraform': 'Terraform',
+      'helm': 'Helm',
+      'javascript': 'JavaScript',
+      'yaml': 'YAML',
+      'docker': 'Docker',
+      'python': 'Python',
+      'php': 'PHP',
+      'rust': 'Rust',
+      'typescript': 'TypeScript',
+      'groovy': 'Groovy',
     }
-    return labels[lang] || 'Inconnu'
+    return labels[langStr] || 'Inconnu'
+  }
+
+  const getLanguageIcon = (lang: Language | string) => {
+    const langStr = String(lang).toLowerCase()
+    
+    switch (langStr) {
+      case 'java':
+        return <FontAwesomeIcon icon={faJava} className="w-4 h-4" style={{ color: '#f89820' }} />
+      case 'python':
+        return <FontAwesomeIcon icon={faPython} className="w-4 h-4" style={{ color: '#3776ab' }} />
+      case 'php':
+        return <FontAwesomeIcon icon={faPhp} className="w-4 h-4" style={{ color: '#777bb4' }} />
+      case 'javascript':
+        return <FontAwesomeIcon icon={faJs} className="w-4 h-4" style={{ color: '#f7df1e' }} />
+      case 'typescript':
+        return <FontAwesomeIcon icon={faJs} className="w-4 h-4" style={{ color: '#3178c6' }} />
+      case 'docker':
+        return <FontAwesomeIcon icon={faDocker} className="w-4 h-4" style={{ color: '#2496ed' }} />
+      case 'rust':
+        return <FontAwesomeIcon icon={faRust} className="w-4 h-4" style={{ color: '#ce422b' }} />
+      case 'golang':
+        return <FontAwesomeIcon icon={faGolang} className="w-4 h-4" style={{ color: '#00add8' }} />
+      case 'kotlin':
+        return <FontAwesomeIcon icon={faJava} className="w-4 h-4" style={{ color: '#7f52ff' }} />
+      case 'terraform':
+        return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-purple-700" />
+      case 'helm':
+        return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-blue-700" />
+      case 'yaml':
+        return <FontAwesomeIcon icon={faFileCode} className="w-4 h-4 text-red-500" />
+      case 'groovy':
+        return <FontAwesomeIcon icon={faCode} className="w-4 h-4 text-teal-600" />
+      default:
+        return <FontAwesomeIcon icon={faCode} className="w-4 h-4 text-gray-600" />
+    }
   }
 
   if (isLoading) {
@@ -107,8 +159,9 @@ export default function CatalogTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
-                      {getLanguageLabel(catalog.languages)}
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 flex items-center space-x-1 w-fit">
+                      {getLanguageIcon(catalog.languages)}
+                      <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -117,7 +170,7 @@ export default function CatalogTable() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {catalog.owner}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                  <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate">
                     {catalog.description || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">

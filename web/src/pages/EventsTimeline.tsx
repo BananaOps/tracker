@@ -409,8 +409,10 @@ export default function EventsTimeline() {
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-gray-900">{event.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{event.attributes.message}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 break-words">{event.title}</h3>
+                      <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-32 overflow-y-auto">
+                        <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{event.attributes.message}</p>
+                      </div>
                       
                       <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
                         <span>Service: <span className="font-medium">{event.attributes.service}</span></span>

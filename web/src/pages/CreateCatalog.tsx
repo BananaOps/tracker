@@ -59,7 +59,7 @@ export default function CreateCatalog() {
             <select
               className="select"
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: Number(e.target.value) as CatalogType })}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as CatalogType })}
             >
               <option value={CatalogType.MODULE}>Module</option>
               <option value={CatalogType.LIBRARY}>Bibliothèque</option>
@@ -76,7 +76,7 @@ export default function CreateCatalog() {
             <select
               className="select"
               value={formData.languages}
-              onChange={(e) => setFormData({ ...formData, languages: Number(e.target.value) as Language })}
+              onChange={(e) => setFormData({ ...formData, languages: e.target.value as Language })}
             >
               <option value={Language.JAVASCRIPT}>JavaScript</option>
               <option value={Language.TYPESCRIPT}>TypeScript</option>

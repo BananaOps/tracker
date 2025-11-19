@@ -50,30 +50,32 @@ export enum Environment {
   MCO = 'mco',
 }
 
+// L'API retourne des strings pour CatalogType
 export enum CatalogType {
-  MODULE = 1,
-  LIBRARY = 2,
-  WORKFLOW = 3,
-  PROJECT = 4,
-  CHART = 5,
-  PACKAGE = 6,
-  CONTAINER = 7,
+  MODULE = 'module',
+  LIBRARY = 'library',
+  WORKFLOW = 'workflow',
+  PROJECT = 'project',
+  CHART = 'chart',
+  PACKAGE = 'package',
+  CONTAINER = 'container',
 }
 
+// L'API retourne des strings pour Language
 export enum Language {
-  GOLANG = 1,
-  KOTLIN = 2,
-  JAVA = 3,
-  TERRAFORM = 4,
-  HELM = 5,
-  JAVASCRIPT = 6,
-  YAML = 7,
-  DOCKER = 8,
-  PYTHON = 9,
-  PHP = 10,
-  RUST = 11,
-  TYPESCRIPT = 12,
-  GROOVY = 15,
+  GOLANG = 'golang',
+  KOTLIN = 'kotlin',
+  JAVA = 'java',
+  TERRAFORM = 'terraform',
+  HELM = 'helm',
+  JAVASCRIPT = 'javascript',
+  YAML = 'yaml',
+  DOCKER = 'docker',
+  PYTHON = 'python',
+  PHP = 'php',
+  RUST = 'rust',
+  TYPESCRIPT = 'typescript',
+  GROOVY = 'groovy',
 }
 
 export interface EventAttributes {
