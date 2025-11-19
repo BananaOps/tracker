@@ -1,11 +1,13 @@
-<p align="center" style="margin-top: 120px">
+<p align="center">
+  <img src="./docs/assets/logo.svg" alt="Tracker Logo" width="300">
+</p>
 
-  <h3 align="center">Tracker</h3>
+<h1 align="center">Tracker</h1>
 
-  <p align="center">
-    An Open-Source monitoring events tracking solution.
-    <br />
-  </p>
+<p align="center">
+  <strong>Open-Source Event Tracking</strong>
+  <br />
+  <em>Track events, monitor deployments, and manage your infrastructure</em>
 </p>
 
 <p align="center">
@@ -27,328 +29,323 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BananaOps/tracker/issues">
-    <img src="https://img.shields.io/github/issues/BananaOps/tracker" alt="Issues">
-  </a>
-  <a href="https://github.com/BananaOps/tracker/pulls">
-    <img src="https://img.shields.io/github/issues-pr/BananaOps/tracker" alt="Pull Requests">
-  </a>
-  <a href="https://github.com/BananaOps/tracker/stargazers">
-    <img src="https://img.shields.io/github/stars/BananaOps/tracker?style=social" alt="GitHub Stars">
-  </a>
-  <a href="https://github.com/BananaOps/tracker/network/members">
-    <img src="https://img.shields.io/github/forks/BananaOps/tracker?style=social" alt="GitHub Forks">
-  </a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go Version">
+  <img src="https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
   <img src="https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
   <img src="https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/gRPC-1.71+-4285F4?style=flat&logo=grpc&logoColor=white" alt="gRPC">
-  <img src="https://img.shields.io/badge/Protocol_Buffers-3.0+-4285F4?style=flat&logo=protocolbuffers&logoColor=white" alt="Protocol Buffers">
-  <img src="https://img.shields.io/badge/MongoDB-Compatible-47A248?style=flat&logo=mongodb&logoColor=white" alt="MongoDB">
-  <img src="https://img.shields.io/badge/Swagger-OpenAPI_2.0-85EA2D?style=flat&logo=swagger&logoColor=black" alt="Swagger">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/Kubernetes-Ready-326CE5?style=flat&logo=kubernetes&logoColor=white" alt="Kubernetes">
 </p>
 
+---
 
-## About Tracker 
- 
-Tracker is an open-source alternative to Datadog events or New Relic custom events. The solution provides a comprehensive API for tracking events, managing catalogs, and handling distributed locks across your infrastructure.
+## 🎯 What is Tracker?
 
-Built with gRPC and exposed via REST endpoints, Tracker enables you to keep track of everything happening on your platform in a distributed services world. Monitor deployments, incidents, operations, and maintain a catalog of your infrastructure components.
+**Tracker** is a comprehensive event tracking and observability platform designed for modern distributed systems. It helps teams monitor deployments, track incidents, manage infrastructure catalogs, and coordinate operations across services.
 
-Key capabilities:
-- **Events tracking** - Monitor deployments, incidents, operations with rich metadata
-- **Catalog management** - Maintain an inventory of modules, libraries, projects, and containers  
-- **Distributed locks** - Coordinate operations across services with distributed locking
-- **Multi-protocol** - Native gRPC API with REST endpoints via grpc-gateway
-- **Interactive documentation** - Built-in Swagger UI for API exploration
-- **Observability** - Prometheus metrics and structured logging  
+### Why Tracker?
 
-## Features
+- **🆓 Free & Open Source** - No vendor lock-in, full control over your data
+- **🚀 Easy to Deploy** - Single Docker image with frontend & backend
+- **📊 Rich UI** - Beautiful React interface with dark mode
+- **🔌 Multi-Protocol** - gRPC, REST, and Swagger UI
+- **📈 Observable** - Built-in Prometheus metrics
+- **🔄 Real-time** - Track events as they happen
+- **🎨 Customizable** - Extend and adapt to your needs
 
-![gRPC](https://img.shields.io/badge/gRPC-Server-4285F4?style=for-the-badge&logo=grpc&logoColor=white)
-![REST](https://img.shields.io/badge/REST-API-FF6B35?style=for-the-badge&logo=fastapi&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
-![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
+### Use Cases
 
-### Core Services
-- [x] **EventService** - Create, update, search, and manage events
-- [x] **CatalogService** - Manage inventory of modules, libraries, and projects  
-- [x] **LockService** - Distributed locking for service coordination
+- **Deployment Tracking** - Monitor all deployments across environments
+- **Incident Management** - Track incidents from detection to resolution
+- **Configuration Drift** - Detect and manage infrastructure drifts
+- **RPA Monitoring** - Track robotic process automation executions
+- **Service Catalog** - Maintain inventory of services, libraries, and modules
+- **Distributed Locking** - Coordinate operations across services
 
-### API & Documentation
-- [x] gRPC Server (port 8765)
-- [x] REST Server via grpc-gateway (port 8080)
-- [x] Swagger UI integration (`/docs`)
-- [x] OpenAPI specification (`/swagger.json`)
-- [x] Prometheus metrics (port 8081)
+---
 
-### Event Management
-- [x] Rich event attributes (priority, status, environment, impact)
-- [x] Event linking and relationships
-- [x] Pull request and ticket linking
-- [x] Duration calculation between linked events
-- [x] Search and filtering capabilities
-- [x] Today's events endpoint
+## ✨ Features
 
-### Infrastructure
-- [x] Structured JSON logging
-- [x] Graceful shutdown handling
-- [x] MongoDB/FeretDB storage
-- [x] Protocol buffer definitions
-- [x] Automatic code generation
+### 🎯 Event Management
+- **Multiple Event Types**: Deployments, Operations, Drifts, Incidents, RPA Usage
+- **Rich Metadata**: Priority, Status, Environment, Owner, Impact tracking
+- **Linking**: Connect events to PRs, tickets, and related events
+- **Search & Filter**: Powerful search across all event attributes
+- **Timeline View**: Visualize events chronologically
+- **Calendar View**: See events in a calendar format
 
-### Roadmap
-- [ ] CLI tool for event management
-- [ ] Configuration file support
-- [ ] GitHub Actions integration
-- [ ] GitLab CI/CD examples
-- [ ] Advanced search capabilities
+### 📦 Service Catalog
+- **Inventory Management**: Track modules, libraries, projects, containers
+- **Version Tracking**: Monitor versions across your infrastructure
+- **Multi-Language**: Support for Go, Java, Python, JavaScript, and more
+- **Repository Links**: Direct links to GitHub/GitLab repositories
+- **Documentation**: Link to service documentation
 
-## Getting Started 🚀
+### 🔒 Distributed Locking
+- **Exclusive Locks**: Prevent concurrent operations
+- **Lock Ownership**: Track who owns which locks
+- **Automatic Cleanup**: Locks expire automatically
+- **Coordination**: Synchronize deployments and operations
 
-### Requirements
+### 🎨 Modern UI
+- **Dashboard**: Overview of recent events and statistics
+- **Timeline**: Chronological event view with filtering
+- **Calendar**: Monthly calendar view of events
+- **Dark Mode**: Beautiful dark theme support
+- **Responsive**: Works on desktop, tablet, and mobile
+- **Real-time**: Auto-refresh and live updates
 
-![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat-square&logo=go&logoColor=white)
-![Buf](https://img.shields.io/badge/Buf-CLI-40E0D0?style=flat-square&logo=buffer&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Compatible-47A248?style=flat-square&logo=mongodb&logoColor=white)
+### 🔌 API & Integration
+- **gRPC API**: High-performance native API
+- **REST API**: HTTP/JSON endpoints via grpc-gateway
+- **Swagger UI**: Interactive API documentation
+- **OpenAPI Spec**: Standard API specification
+- **Prometheus**: Built-in metrics endpoint
 
-- [Go](https://go.dev/) >= 1.23
-- [buf](https://buf.build/explore) for protobuf management
-- MongoDB or FeretDB for data storage
+---
 
-### Quick Start
+## 🚀 Quick Start
 
-### Backend
+### Using Docker (Recommended)
 
-1. **Clone and build**
-   ```bash
-   git clone https://github.com/BananaOps/tracker.git
-   cd tracker
-   make build
-   ```
+```bash
+# Build the image
+docker build -t bananaops/tracker:latest .
 
-2. **Start the server**
-   ```bash
-   ./bin/tracker serv
-   ```
+# Run the container
+docker run -p 8080:8080 -p 8081:8081 -p 8765:8765 bananaops/tracker:latest
+```
 
-3. **Access the API**
-   - **Swagger UI**: http://localhost:8080/docs
-   - **REST API**: http://localhost:8080/api/v1alpha1/
-   - **gRPC**: localhost:8765
-   - **Metrics**: http://localhost:8081/metrics
+**Access the application:**
+- 🌐 **Web UI**: http://localhost:8080
+- 📚 **Swagger UI**: http://localhost:8080/docs
+- 📊 **Metrics**: http://localhost:8081/metrics
+- 🔌 **gRPC**: localhost:8765
 
-### Frontend
+### Using Docker Compose
 
-1. **Install dependencies**
-   ```bash
-   cd web
-   npm install
-   ```
+```bash
+# Start the application
+docker-compose up -d
 
-2. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+# View logs
+docker-compose logs -f
 
-3. **Access the web interface**
-   - **Web UI**: http://localhost:3000
-   - Dashboard, Timeline, Calendar, Catalog views
-   - Create events, track drifts, monitor RPA usage
+# Stop the application
+docker-compose down
+```
+
+### From Source
+
+**Backend:**
+```bash
+# Clone the repository
+git clone https://github.com/BananaOps/tracker.git
+cd tracker
+
+# Run the server
+go run main.go serv
+```
+
+**Frontend:**
+```bash
+# Install dependencies
+cd web
+npm install
+
+# Start development server
+npm run dev
+```
+
+---
+
+## 📖 Documentation
+
+### Getting Started
+- [🚀 Quick Start Guide](./docs/DEPLOYMENT.md)
+- [🐳 Docker Build Guide](./docs/DOCKER_BUILD.md)
+- [☸️ Kubernetes Deployment](./docs/SKAFFOLD.md)
 
 ### Development
+- [🔧 Build Fixes](./docs/BUILD_FIXES.md)
+- [🔄 API Enum Conversion](./docs/API_ENUM_CONVERSION.md)
+- [🎨 Catalog UI Improvements](./docs/CATALOG_UI_IMPROVEMENTS.md)
+- [📝 Changes Summary](./docs/CHANGES_SUMMARY.md)
 
-#### Generate code from protobuf
-```bash
-make generate
-# or directly with buf
-buf generate
+### Integration
+- [🔗 Integration Summary](./docs/INTEGRATION_SUMMARY.md)
+- [🌐 Open Source Banner](./docs/OPEN_SOURCE_BANNER.md)
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Web Browser                          │
+│                    http://localhost:8080                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+    ┌────▼────┐    ┌────▼────┐    ┌────▼────┐
+    │ React   │    │  REST   │    │ Swagger │
+    │   UI    │    │   API   │    │   UI    │
+    └─────────┘    └────┬────┘    └─────────┘
+                        │
+                ┌───────▼────────┐
+                │  grpc-gateway  │
+                │  (REST→gRPC)   │
+                └───────┬────────┘
+                        │
+         ┌──────────────┼──────────────┐
+         │              │              │
+    ┌────▼────┐    ┌───▼────┐    ┌───▼────┐
+    │ Event   │    │Catalog │    │  Lock  │
+    │ Service │    │Service │    │Service │
+    └────┬────┘    └───┬────┘    └───┬────┘
+         │             │              │
+         └─────────────┼──────────────┘
+                       │
+                ┌──────▼──────┐
+                │   MongoDB   │
+                │  / FeretDB  │
+                └─────────────┘
 ```
 
-#### Run tests
-```bash
-make test
-```
+---
 
-#### Lint protobuf files
-```bash
-buf lint
-```
+## 🎯 Use Cases & Examples
 
-### API Examples
+### 1. Track Deployments
 
-#### Create an event (REST)
 ```bash
 curl -X POST http://localhost:8080/api/v1alpha1/event \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Deployment completed",
+    "title": "Deploy service-api v2.1.0 to production",
     "attributes": {
-      "message": "Service deployed successfully",
-      "source": "github_actions",
+      "message": "Deployed via GitHub Actions",
       "type": 1,
       "priority": 2,
-      "service": "my-service",
+      "service": "service-api",
       "status": 3,
-      "environment": 7
+      "environment": 7,
+      "owner": "platform-team"
+    },
+    "links": {
+      "pullRequestLink": "https://github.com/org/repo/pull/123",
+      "ticket": "PROJ-456"
     }
   }'
 ```
 
-#### List events (REST)
-```bash
-curl http://localhost:8080/api/v1alpha1/events/list
-```
+### 2. Monitor Configuration Drifts
 
-#### Create an event (gRPC)
-```bash
-grpcurl --plaintext -d '{
-  "title": "Deployment completed",
-  "attributes": {
-    "message": "Service deployed successfully",
-    "source": "github_actions",
-    "type": 1,
-    "priority": 2,
-    "service": "my-service", 
-    "status": 3
-  }
-}' localhost:8765 tracker.event.v1alpha1.EventService/CreateEvent
-```
+Track when infrastructure configuration deviates from expected state:
+- Detect manual changes
+- Monitor Terraform drifts
+- Track Kubernetes config changes
 
-## Architecture
+### 3. RPA Usage Tracking
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   gRPC Client   │    │   REST Client   │    │  Swagger UI     │
-│   (port 8765)   │    │   (port 8080)   │    │   (/docs)       │
-└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
-          │                      │                      │
-          │              ┌───────▼──────────────────────▼───────┐
-          │              │         grpc-gateway                 │
-          │              │      (REST → gRPC proxy)             │
-          │              └───────┬──────────────────────────────┘
-          │                      │
-          └──────────────────────▼──────────────────────────────┐
-                                 │                              │
-                         ┌───────▼───────┐              ┌──────▼──────┐
-                         │  gRPC Server  │              │  Prometheus │
-                         │               │              │   Metrics   │
-                         │ ┌───────────┐ │              │ (port 8081) │
-                         │ │EventSvc   │ │              └─────────────┘
-                         │ │CatalogSvc │ │
-                         │ │LockSvc    │ │
-                         │ └───────────┘ │
-                         └───────┬───────┘
-                                 │
-                         ┌───────▼───────┐
-                         │   MongoDB/    │
-                         │   FeretDB     │
-                         └───────────────┘
-```
+Monitor robotic process automation executions:
+- Track automation runs
+- Monitor success/failure rates
+- Analyze execution patterns
 
-## Services
+### 4. Service Catalog
 
-### EventService
-![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=flat-square)
-![Port](https://img.shields.io/badge/gRPC-8765-blue?style=flat-square)
-![REST](https://img.shields.io/badge/REST-8080-green?style=flat-square)
-Manage events across your infrastructure:
-- **Types**: deployment, operation, drift, incident
-- **Priorities**: P1 (critical) to P5 (low)
-- **Statuses**: start, success, failure, warning, error, open, close, done
-- **Environments**: development, integration, UAT, production, etc.
+Maintain an inventory of your services:
+- Track versions across environments
+- Link to repositories and documentation
+- Monitor technology stack
 
-### CatalogService
-![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=flat-square)
-![Port](https://img.shields.io/badge/gRPC-8765-blue?style=flat-square)
-![REST](https://img.shields.io/badge/REST-8080-green?style=flat-square)
+---
 
-Maintain an inventory of your components:
-- **Types**: module, library, workflow, project, chart, package, container
-- **Languages**: Go, Java, Python, JavaScript, Terraform, Helm, etc.
-- **Metadata**: version, owner, repository, description
+## 🛠️ Technology Stack
 
-### LockService
-![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=flat-square)
-![Port](https://img.shields.io/badge/gRPC-8765-blue?style=flat-square)
-![REST](https://img.shields.io/badge/REST-8080-green?style=flat-square)
+### Backend
+- **Language**: Go 1.23+
+- **API**: gRPC + REST (grpc-gateway)
+- **Database**: MongoDB / FeretDB
+- **Metrics**: Prometheus
+- **Logging**: Structured JSON logs
 
-Coordinate distributed operations:
-- Create exclusive locks for deployments
-- Prevent concurrent operations
-- Track lock ownership and timing
+### Frontend
+- **Framework**: React 18
+- **Language**: TypeScript 5
+- **Build**: Vite
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React + Font Awesome
+- **State**: React Query (TanStack Query)
 
-## Documentation
+### DevOps
+- **Containerization**: Docker multi-stage builds
+- **Orchestration**: Kubernetes + Helm
+- **CI/CD**: Skaffold
+- **Protocol**: Protocol Buffers (protobuf)
 
-### API Documentation
-- [📖 Complete API Documentation](./docs/) 
-- [🔧 Events API](./docs/events.md)
-- [📦 Catalog API](./docs/catalog.md) 
-- [🔒 Locks API](./docs/locks.md)
-- [⚙️ API Specification](./docs/api-specification.md)
+---
 
-### Frontend Documentation
-- [🌐 Web Frontend](./web/README.md) - React/TypeScript interface
-- **Features**: Dashboard, Timeline, Calendar, Catalog table, Drifts tracking, RPA usage monitoring
+## 🤝 Contributing
 
+We welcome contributions! Here's how you can help:
 
-## Configuration
+1. **🐛 Report Bugs**: [Open an issue](https://github.com/BananaOps/tracker/issues)
+2. **💡 Suggest Features**: [Start a discussion](https://github.com/BananaOps/tracker/discussions)
+3. **📝 Improve Docs**: Submit documentation improvements
+4. **🔧 Submit PRs**: Fix bugs or add features
 
-### Environment Variables
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GRPC_PORT` | `8765` | gRPC server port |
-| `HTTP_PORT` | `8080` | REST server port |  
-| `METRICS_PORT` | `8081` | Prometheus metrics port |
-| `MONGO_URI` | - | MongoDB connection string |
-| `LOG_LEVEL` | `info` | Logging level |
+### Good First Issues
+Looking for a place to start? Check out issues labeled [`good first issue`](https://github.com/BananaOps/tracker/labels/good%20first%20issue) or [`help wanted`](https://github.com/BananaOps/tracker/labels/help%20wanted).
 
-### Server Ports
+---
 
-- **gRPC API**: `:8765`
-- **REST API**: `:8080` 
-- **Swagger UI**: `:8080/docs`
-- **OpenAPI Spec**: `:8080/swagger.json`
-- **Prometheus Metrics**: `:8081/metrics`
+## 📊 Project Status
 
-## Deployment
+- ✅ **Core API**: Production ready
+- ✅ **Web UI**: Production ready
+- ✅ **Docker**: Production ready
+- ✅ **Kubernetes**: Production ready
+- 🚧 **CLI Tool**: In development
+- 🚧 **Webhooks**: Planned
+- 🚧 **Notifications**: Planned
 
-### Kubernetes
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tracker
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: tracker
-  template:
-    metadata:
-      labels:
-        app: tracker
-    spec:
-      containers:
-      - name: tracker
-        image: tracker:latest
-        ports:
-        - containerPort: 8080
-        - containerPort: 8765
-        - containerPort: 8081
-```
+---
 
-## Contributing
+## 📜 License
 
-Please see the [contribution guidelines](https://github.com/BananaOps/tracker/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/BananaOps/tracker/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/BananaOps/tracker/blob/main/LICENSE).
+This project is licensed under the **Apache 2.0 License** - see the [LICENSE](LICENSE) file for details.
 
-`help wanted` issues:
-- [Tracker](https://github.com/BananaOps/tracker/labels/help%20wanted)
+---
 
-## License
+## 🌟 Star History
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+If you find Tracker useful, please consider giving it a star! ⭐
+
+[![Star History Chart](https://api.star-history.com/svg?repos=BananaOps/tracker&type=Date)](https://star-history.com/#BananaOps/tracker&Date)
+
+---
+
+## 💬 Community & Support
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/BananaOps/tracker/issues)
+- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/BananaOps/tracker/discussions)
+- **Documentation**: [Read the docs](./docs/)
+
+---
+
+<p align="center">
+  Made with ❤️ by the <a href="https://github.com/BananaOps">BananaOps</a> community
+</p>
+
+<p align="center">
+  <a href="https://github.com/BananaOps/tracker/stargazers">⭐ Star us on GitHub</a>
+  •
+  <a href="https://github.com/BananaOps/tracker/issues">🐛 Report a Bug</a>
+  •
+  <a href="https://github.com/BananaOps/tracker/discussions">💬 Join Discussion</a>
+</p>
