@@ -1,11 +1,16 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
 import { Status, Priority, EventType } from '../types/api'
+import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import { SourceIcon } from '../components/EventLinks'
+import EventDetailsModal from '../components/EventDetailsModal'
 
 export default function Dashboard() {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  
   const { data: todayEvents } = useQuery({
     queryKey: ['events', 'today'],
     queryFn: () => eventsApi.today({ perPage: 100 }),
@@ -296,7 +301,11 @@ export default function Dashboard() {
             console.log('Dashboard event:', event.title, 'type:', event.attributes.type, 'typeof:', typeof event.attributes.type)
             const typeColor = getEventTypeColor(event.attributes.type)
             return (
-              <div key={event.metadata?.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div 
+                key={event.metadata?.id} 
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                onClick={() => setSelectedEvent(event)}
+              >
                 <div className="flex items-center space-x-3 flex-1">
                   <div className="flex-shrink-0">
                     {getEventTypeIcon(event.attributes.type, 'w-5 h-5')}
@@ -330,6 +339,14 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal 
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   )
 }

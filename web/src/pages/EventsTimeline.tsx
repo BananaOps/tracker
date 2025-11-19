@@ -3,9 +3,11 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { format, subDays, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Status, Priority, EventType, Environment } from '../types/api'
+import type { Event } from '../types/api'
 import { Clock, AlertCircle, CheckCircle, XCircle, Filter, X } from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
+import EventDetailsModal from '../components/EventDetailsModal'
 import { useState, useMemo } from 'react'
 
 type TimeFilter = 7 | 15 | 30 | 'all'
@@ -13,6 +15,7 @@ type TimeFilter = 7 | 15 | 30 | 'all'
 export default function EventsTimeline() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>(30)
   const [showFilters, setShowFilters] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   
   // États des filtres
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
@@ -388,7 +391,10 @@ export default function EventsTimeline() {
                   {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
                 </div>
                 
-                <div className="flex-1 card">
+                <div 
+                  className="flex-1 card cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setSelectedEvent(event)}
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
@@ -450,6 +456,14 @@ export default function EventsTimeline() {
           </>
         )}
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal 
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   )
 }

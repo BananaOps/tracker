@@ -5,12 +5,15 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday
 import { fr } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Filter, X } from 'lucide-react'
 import { Status, EventType } from '../types/api'
+import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks from '../components/EventLinks'
+import EventDetailsModal from '../components/EventDetailsModal'
 
 export default function EventsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   
   // États des filtres
@@ -361,7 +364,11 @@ export default function EventsCalendar() {
               {selectedDayEvents.map(event => {
                 const typeColor = getEventTypeColor(event.attributes.type)
                 return (
-                  <div key={event.metadata?.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div 
+                    key={event.metadata?.id} 
+                    className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => setSelectedEvent(event)}
+                  >
                     <div className="flex items-center space-x-2 mb-2">
                       {getEventTypeIcon(event.attributes.type, 'w-4 h-4')}
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
@@ -401,6 +408,14 @@ export default function EventsCalendar() {
           )}
         </div>
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal 
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   )
 }
