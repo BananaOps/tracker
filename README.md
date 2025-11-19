@@ -43,6 +43,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go Version">
+  <img src="https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/gRPC-1.71+-4285F4?style=flat&logo=grpc&logoColor=white" alt="gRPC">
   <img src="https://img.shields.io/badge/Protocol_Buffers-3.0+-4285F4?style=flat&logo=protocolbuffers&logoColor=white" alt="Protocol Buffers">
   <img src="https://img.shields.io/badge/MongoDB-Compatible-47A248?style=flat&logo=mongodb&logoColor=white" alt="MongoDB">
@@ -119,6 +121,8 @@ Key capabilities:
 
 ### Quick Start
 
+### Backend
+
 1. **Clone and build**
    ```bash
    git clone https://github.com/BananaOps/tracker.git
@@ -136,6 +140,24 @@ Key capabilities:
    - **REST API**: http://localhost:8080/api/v1alpha1/
    - **gRPC**: localhost:8765
    - **Metrics**: http://localhost:8081/metrics
+
+### Frontend
+
+1. **Install dependencies**
+   ```bash
+   cd web
+   npm install
+   ```
+
+2. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the web interface**
+   - **Web UI**: http://localhost:3000
+   - Dashboard, Timeline, Calendar, Catalog views
+   - Create events, track drifts, monitor RPA usage
 
 ### Development
 
@@ -261,11 +283,16 @@ Coordinate distributed operations:
 
 ## Documentation
 
+### API Documentation
 - [📖 Complete API Documentation](./docs/) 
 - [🔧 Events API](./docs/events.md)
 - [📦 Catalog API](./docs/catalog.md) 
 - [🔒 Locks API](./docs/locks.md)
 - [⚙️ API Specification](./docs/api-specification.md)
+
+### Frontend Documentation
+- [🌐 Web Frontend](./web/README.md) - React/TypeScript interface
+- **Features**: Dashboard, Timeline, Calendar, Catalog table, Drifts tracking, RPA usage monitoring
 
 
 ## Configuration
