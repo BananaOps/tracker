@@ -38,20 +38,21 @@ export default function EventLinks({ links, source, slackId, className = '' }: E
         </a>
       )}
 
-      {/* Ticket Link (Jira) */}
+      {/* Ticket Link (Jira) - même style que GitHub */}
       {links?.ticket && (() => {
-        const ticketUrl = getTicketUrl(links.ticket)
-        console.log('Rendering Jira ticket:', links.ticket, 'URL:', ticketUrl)
+        const ticketId = extractTicketId(links.ticket)
+        const ticketUrl = getTicketUrl(ticketId)
+        console.log('Rendering Jira ticket:', links.ticket, '→ ID:', ticketId, 'URL:', ticketUrl)
         return (
           <a
             href={ticketUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-            title={`Voir le ticket ${links.ticket}`}
+            className="inline-flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            title={`Voir le ticket: ${ticketId}`}
           >
             <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
-            <span>{links.ticket}</span>
+            <span>{ticketId}</span>
           </a>
         )
       })()}
@@ -66,6 +67,31 @@ function extractPRNumber(url: string): string {
   // https://github.com/org/repo/pulls/123
   const match = url.match(/\/pull[s]?\/(\d+)/)
   return match ? match[1] : '?'
+}
+
+// Helper pour extraire l'ID du ticket Jira depuis une URL ou un texte
+function extractTicketId(ticketOrUrl: string): string {
+  // Si c'est déjà au format PROJECT-123, le retourner tel quel
+  if (/^[A-Z]+-\d+$/.test(ticketOrUrl)) {
+    return ticketOrUrl
+  }
+  
+  // Extraire depuis une URL Jira comme:
+  // https://energypool.atlassian.net/browse/PROJECT-123
+  // https://jira.company.com/browse/PROJECT-123
+  const urlMatch = ticketOrUrl.match(/\/browse\/([A-Z]+-\d+)/)
+  if (urlMatch) {
+    return urlMatch[1]
+  }
+  
+  // Chercher un pattern PROJECT-123 n'importe où dans le texte
+  const textMatch = ticketOrUrl.match(/([A-Z]+-\d+)/)
+  if (textMatch) {
+    return textMatch[1]
+  }
+  
+  // Si rien ne correspond, retourner le texte original
+  return ticketOrUrl
 }
 
 // Helper pour détecter si c'est un ticket Jira
