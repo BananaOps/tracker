@@ -56,6 +56,12 @@ export default function CatalogTable() {
             Inventaire des modules, bibliothèques et projets ({catalogs.length} éléments)
           </p>
         </div>
+        <a
+          href="/catalog/create"
+          className="btn-primary"
+        >
+          Ajouter au catalogue
+        </a>
       </div>
 
       <div className="card overflow-hidden p-0">
