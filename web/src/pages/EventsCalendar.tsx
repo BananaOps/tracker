@@ -5,7 +5,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday
 import { fr } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Status, EventType } from '../types/api'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks from '../components/EventLinks'
 
 export default function EventsCalendar() {
@@ -129,12 +129,16 @@ export default function EventsCalendar() {
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
                         {getEventTypeLabel(event.attributes.type)}
                       </span>
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        event.attributes.status === Status.SUCCESS ? 'bg-green-100 text-green-800' :
-                        event.attributes.status === Status.FAILURE || event.attributes.status === Status.ERROR ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {Status[event.attributes.status]}
+                      {event.attributes.environment && (
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
+                          {getEnvironmentLabel(event.attributes.environment)}
+                        </span>
+                      )}
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
+                        {getPriorityLabel(event.attributes.priority)}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
+                        {getStatusLabel(event.attributes.status)}
                       </span>
                     </div>
                     <p className="font-medium text-gray-900 text-sm">{event.title}</p>

@@ -2,11 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
 import { Status, Priority, EventType } from '../types/api'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import { SourceIcon } from '../components/EventLinks'
-import IconTest from '../components/IconTest'
-import LinksTest from '../components/LinksTest'
-import { testEventsApi } from '../utils/testApi'
 
 export default function Dashboard() {
   const { data: todayEvents } = useQuery({
@@ -26,22 +23,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-          <p className="mt-1 text-sm text-gray-500">Vue d'ensemble des événements du jour</p>
-        </div>
-        <button
-          onClick={() => testEventsApi()}
-          className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-        >
-          🔍 Tester l'API
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <IconTest />
-        <LinksTest />
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+        <p className="mt-1 text-sm text-gray-500">Vue d'ensemble des événements du jour</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -126,20 +110,16 @@ export default function Dashboard() {
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
                     {getEventTypeLabel(event.attributes.type)}
                   </span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    event.attributes.status === Status.SUCCESS ? 'bg-green-100 text-green-800' :
-                    event.attributes.status === Status.FAILURE ? 'bg-red-100 text-red-800' :
-                    event.attributes.status === Status.START ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {Status[event.attributes.status]}
+                  {event.attributes.environment && (
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
+                      {getEnvironmentLabel(event.attributes.environment)}
+                    </span>
+                  )}
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
+                    {getPriorityLabel(event.attributes.priority)}
                   </span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    event.attributes.priority === Priority.P1 ? 'bg-red-100 text-red-800' :
-                    event.attributes.priority === Priority.P2 ? 'bg-orange-100 text-orange-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    P{event.attributes.priority}
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
+                    {getStatusLabel(event.attributes.status)}
                   </span>
                 </div>
               </div>

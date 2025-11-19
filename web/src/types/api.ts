@@ -14,37 +14,40 @@ export const EventTypeNumber = {
   incident: 4,
 } as const
 
+// L'API retourne des strings pour Priority
 export enum Priority {
-  P1 = 1,
-  P2 = 2,
-  P3 = 3,
-  P4 = 4,
-  P5 = 5,
+  P1 = 'p1',
+  P2 = 'p2',
+  P3 = 'p3',
+  P4 = 'p4',
+  P5 = 'p5',
 }
 
+// L'API retourne des strings pour Status
 export enum Status {
-  START = 1,
-  FAILURE = 2,
-  SUCCESS = 3,
-  WARNING = 4,
-  ERROR = 5,
-  SNAPSHOT = 6,
-  USER_UPDATE = 7,
-  RECOMMENDATION = 8,
-  OPEN = 9,
-  CLOSE = 10,
-  DONE = 11,
+  START = 'start',
+  FAILURE = 'failure',
+  SUCCESS = 'success',
+  WARNING = 'warning',
+  ERROR = 'error',
+  SNAPSHOT = 'snapshot',
+  USER_UPDATE = 'user_update',
+  RECOMMENDATION = 'recommendation',
+  OPEN = 'open',
+  CLOSE = 'close',
+  DONE = 'done',
 }
 
+// L'API retourne des strings pour Environment
 export enum Environment {
-  DEVELOPMENT = 1,
-  INTEGRATION = 2,
-  TNR = 3,
-  UAT = 4,
-  RECETTE = 5,
-  PREPRODUCTION = 6,
-  PRODUCTION = 7,
-  MCO = 8,
+  DEVELOPMENT = 'development',
+  INTEGRATION = 'integration',
+  TNR = 'tnr',
+  UAT = 'uat',
+  RECETTE = 'recette',
+  PREPRODUCTION = 'preproduction',
+  PRODUCTION = 'production',
+  MCO = 'mco',
 }
 
 export enum CatalogType {

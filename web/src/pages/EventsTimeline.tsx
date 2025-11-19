@@ -4,7 +4,7 @@ import { format, subDays, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Status, Priority, EventType } from '../types/api'
 import { Clock, AlertCircle, CheckCircle, XCircle, Filter } from 'lucide-react'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { useState } from 'react'
 
@@ -125,21 +125,16 @@ export default function EventsTimeline() {
                           {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
                           <span>{getEventTypeLabel(event.attributes.type)}</span>
                         </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          event.attributes.priority === Priority.P1 ? 'bg-red-100 text-red-800' :
-                          event.attributes.priority === Priority.P2 ? 'bg-orange-100 text-orange-800' :
-                          event.attributes.priority === Priority.P3 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          P{event.attributes.priority}
+                        {event.attributes.environment && (
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
+                            {getEnvironmentLabel(event.attributes.environment)}
+                          </span>
+                        )}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
+                          {getPriorityLabel(event.attributes.priority)}
                         </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          event.attributes.status === Status.SUCCESS ? 'bg-green-100 text-green-800' :
-                          event.attributes.status === Status.FAILURE || event.attributes.status === Status.ERROR ? 'bg-red-100 text-red-800' :
-                          event.attributes.status === Status.START ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {Status[event.attributes.status]}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
+                          {getStatusLabel(event.attributes.status)}
                         </span>
                       </div>
                       
