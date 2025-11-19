@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
-import { Package, ExternalLink } from 'lucide-react'
+import { Package, BookOpen } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -10,7 +10,8 @@ import {
   faJs, 
   faDocker, 
   faRust,
-  faGolang
+  faGolang,
+  faGithub
 } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
@@ -164,7 +165,7 @@ export default function CatalogTable() {
                       <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {catalog.version}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -174,16 +175,16 @@ export default function CatalogTable() {
                     {catalog.description || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                       {catalog.repository && (
                         <a
                           href={catalog.repository}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700"
+                          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Repository"
                         >
-                          <ExternalLink className="w-4 h-4" />
+                          <FontAwesomeIcon icon={faGithub} className="w-5 h-5" />
                         </a>
                       )}
                       {catalog.link && (
@@ -191,10 +192,10 @@ export default function CatalogTable() {
                           href={catalog.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700"
+                          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Documentation"
                         >
-                          <ExternalLink className="w-4 h-4" />
+                          <BookOpen className="w-5 h-5" />
                         </a>
                       )}
                     </div>
