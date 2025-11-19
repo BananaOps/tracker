@@ -13,12 +13,13 @@ export default function CreateEvent() {
     title: '',
     attributes: {
       message: '',
-      source: '',
+      source: 'manual', // Source automatique
       type: EventType.DEPLOYMENT,
       priority: Priority.P3,
       service: '',
       status: Status.START,
       environment: Environment.PRODUCTION,
+      owner: '', // Champ auteur
     },
     links: {},
   })
@@ -33,7 +34,15 @@ export default function CreateEvent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    createMutation.mutate(formData)
+    // S'assurer que la source est toujours "manual"
+    const eventData = {
+      ...formData,
+      attributes: {
+        ...formData.attributes,
+        source: 'manual',
+      },
+    }
+    createMutation.mutate(eventData)
   }
 
   return (
@@ -131,34 +140,36 @@ export default function CreateEvent() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.attributes.service}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { ...formData.attributes, service: e.target.value }
-            })}
-            placeholder="Ex: service-api"
-          />
-        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+            <input
+              type="text"
+              required
+              className="input"
+              value={formData.attributes.service}
+              onChange={(e) => setFormData({
+                ...formData,
+                attributes: { ...formData.attributes, service: e.target.value }
+              })}
+              placeholder="Ex: service-api"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Source</label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.attributes.source}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { ...formData.attributes, source: e.target.value }
-            })}
-            placeholder="Ex: github_actions, gitlab_ci, manual"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Auteur</label>
+            <input
+              type="text"
+              required
+              className="input"
+              value={formData.attributes.owner || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                attributes: { ...formData.attributes, owner: e.target.value }
+              })}
+              placeholder="Ex: john.doe"
+            />
+          </div>
         </div>
 
         <div>
