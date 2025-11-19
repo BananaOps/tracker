@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { eventsApi } from '../lib/api'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
@@ -10,6 +10,14 @@ import { faWrench, faRobot } from '@fortawesome/free-solid-svg-icons'
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+
+  // Charger le catalogue pour la liste des services
+  const { data: catalogData, isLoading: catalogLoading } = useQuery({
+    queryKey: ['catalogs', 'list'],
+    queryFn: () => catalogApi.list({ perPage: 1000 }),
+  })
+
+  const catalogServices = catalogData?.catalogs.map(c => c.name).sort() || []
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
@@ -80,20 +88,40 @@ export default function CreateRpaOperation() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Service / RPA Robot <span className="text-red-500">*</span>
+              {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
             </label>
-            <input
-              type="text"
-              required
-              className="input"
-              value={formData.attributes.service}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, service: e.target.value }
-              })}
-              placeholder="Ex: rpa-invoice-processor, rpa-data-sync"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Name of the robot or RPA service
+            {catalogServices.length > 0 ? (
+              <select
+                required
+                className="select"
+                value={formData.attributes.service}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  attributes: { ...formData.attributes, service: e.target.value }
+                })}
+              >
+                <option value="">Select a service</option>
+                {catalogServices.map(service => (
+                  <option key={service} value={service}>{service}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                required
+                className="input"
+                value={formData.attributes.service}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  attributes: { ...formData.attributes, service: e.target.value }
+                })}
+                placeholder="Ex: rpa-invoice-processor, rpa-data-sync"
+              />
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {catalogServices.length > 0 
+                ? 'Name of the robot or RPA service' 
+                : 'No services in catalog. Add services in the Catalog first.'}
             </p>
           </div>
 
