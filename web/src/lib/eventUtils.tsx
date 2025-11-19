@@ -90,10 +90,10 @@ export const getEventTypeLabel = (type: EventType | string) => {
   switch (typeStr) {
     case 'deployment':
     case '1':
-      return 'Déploiement'
+      return 'Deployment'
     case 'operation':
     case '2':
-      return 'Opération'
+      return 'Operation'
     case 'drift':
     case '3':
       return 'Drift'
@@ -101,7 +101,7 @@ export const getEventTypeLabel = (type: EventType | string) => {
     case '4':
       return 'Incident'
     default:
-      return 'Événement'
+      return 'Event'
   }
 }
 
@@ -280,37 +280,37 @@ export const getStatusLabel = (status?: Status | string) => {
   switch (statusStr) {
     case 'start':
     case '1':
-      return 'En cours'
+      return 'In Progress'
     case 'failure':
     case '2':
-      return 'Échec'
+      return 'Failed'
     case 'success':
     case '3':
-      return 'Succès'
+      return 'Success'
     case 'warning':
     case '4':
-      return 'Avertissement'
+      return 'Warning'
     case 'error':
     case '5':
-      return 'Erreur'
+      return 'Error'
     case 'snapshot':
     case '6':
       return 'Snapshot'
     case 'user_update':
     case '7':
-      return 'Mise à jour'
+      return 'Update'
     case 'recommendation':
     case '8':
-      return 'Recommandation'
+      return 'Recommendation'
     case 'open':
     case '9':
-      return 'Ouvert'
+      return 'Open'
     case 'close':
     case '10':
-      return 'Fermé'
+      return 'Closed'
     case 'done':
     case '11':
-      return 'Terminé'
+      return 'Done'
     default:
       return 'Unknown'
   }

@@ -36,13 +36,13 @@ export default function CreateCatalog() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Ajouter au catalogue</h2>
-        <p className="mt-1 text-sm text-gray-500">Enregistrer un nouveau module, bibliothèque ou projet</p>
+        <h2 className="text-3xl font-bold text-gray-900">Add to Catalog</h2>
+        <p className="mt-1 text-sm text-gray-500">Register a new module, library or project</p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
           <input
             type="text"
             required
@@ -62,9 +62,9 @@ export default function CreateCatalog() {
               onChange={(e) => setFormData({ ...formData, type: e.target.value as CatalogType })}
             >
               <option value={CatalogType.MODULE}>Module</option>
-              <option value={CatalogType.LIBRARY}>Bibliothèque</option>
+              <option value={CatalogType.LIBRARY}>Library</option>
               <option value={CatalogType.WORKFLOW}>Workflow</option>
-              <option value={CatalogType.PROJECT}>Projet</option>
+              <option value={CatalogType.PROJECT}>Project</option>
               <option value={CatalogType.CHART}>Chart</option>
               <option value={CatalogType.PACKAGE}>Package</option>
               <option value={CatalogType.CONTAINER}>Container</option>
@@ -72,7 +72,7 @@ export default function CreateCatalog() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Langage</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
             <select
               className="select"
               value={formData.languages}
@@ -128,12 +128,12 @@ export default function CreateCatalog() {
             className="input"
             value={formData.description || ''}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Description du module ou projet"
+            placeholder="Module or project description"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Repository (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Repository (optional)</label>
           <input
             type="url"
             className="input"
@@ -144,7 +144,7 @@ export default function CreateCatalog() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Documentation (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Documentation (optional)</label>
           <input
             type="url"
             className="input"
@@ -167,7 +167,7 @@ export default function CreateCatalog() {
             disabled={createMutation.isPending}
             className="btn-primary"
           >
-            {createMutation.isPending ? 'Création...' : 'Ajouter au catalogue'}
+            {createMutation.isPending ? 'Creating...' : 'Add to Catalog'}
           </button>
         </div>
       </form>

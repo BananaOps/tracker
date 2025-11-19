@@ -169,12 +169,12 @@ export default function EventsTimeline() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Timeline des événements</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Events Timeline</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Historique chronologique ({events.length} événement{events.length > 1 ? 's' : ''})
+            Chronological History ({events.length} event{events.length > 1 ? 's' : ''})
             {activeFiltersCount > 0 && (
               <span className="ml-2 text-primary-600 font-medium">
-                • {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
+                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
               </span>
             )}
           </p>
@@ -190,7 +190,7 @@ export default function EventsTimeline() {
             }`}
           >
             <Filter className="w-4 h-4" />
-            <span>Filtres</span>
+            <span>Filters</span>
             {activeFiltersCount > 0 && (
               <span className="px-2 py-0.5 text-xs bg-white text-primary-600 rounded-full font-medium">
                 {activeFiltersCount}
@@ -207,7 +207,7 @@ export default function EventsTimeline() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              7 jours
+              7 days
             </button>
             <button
               onClick={() => setTimeFilter(15)}
@@ -217,7 +217,7 @@ export default function EventsTimeline() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              15 jours
+              15 days
             </button>
             <button
               onClick={() => setTimeFilter(30)}
@@ -227,7 +227,7 @@ export default function EventsTimeline() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              30 jours
+              30 days
             </button>
             <button
               onClick={() => setTimeFilter('all')}
@@ -237,7 +237,7 @@ export default function EventsTimeline() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Tout
+              All
             </button>
           </div>
         </div>
@@ -246,14 +246,14 @@ export default function EventsTimeline() {
       {showFilters && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Filtres avancés</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
                 className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
               >
                 <X className="w-4 h-4" />
-                <span>Effacer tous les filtres</span>
+                <span>Clear All Filters</span>
               </button>
             )}
           </div>
@@ -261,7 +261,7 @@ export default function EventsTimeline() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Filtre Type */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Type d'événement</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Event Type</h4>
               <div className="space-y-2">
                 {uniqueTypes.map(type => (
                   <label key={type} className="flex items-center space-x-2 cursor-pointer">
@@ -279,7 +279,7 @@ export default function EventsTimeline() {
 
             {/* Filtre Environnement */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Environnement</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Environment</h4>
               <div className="space-y-2">
                 {uniqueEnvironments.map(env => (
                   <label key={env} className="flex items-center space-x-2 cursor-pointer">
@@ -297,7 +297,7 @@ export default function EventsTimeline() {
 
             {/* Filtre Priorité */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Priorité</h4>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Priority</h4>
               <div className="space-y-2">
                 {uniquePriorities.map(priority => (
                   <label key={priority} className="flex items-center space-x-2 cursor-pointer">
@@ -334,8 +334,8 @@ export default function EventsTimeline() {
             {/* Filtre Service (depuis le catalogue) */}
             <div className="md:col-span-2">
               <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Service (Catalogue)
-                {catalogLoading && <span className="ml-2 text-xs text-gray-500">Chargement...</span>}
+                Service (Catalog)
+                {catalogLoading && <span className="ml-2 text-xs text-gray-500">Loading...</span>}
               </h4>
               {catalogServices.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
@@ -352,7 +352,7 @@ export default function EventsTimeline() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">Aucun service dans le catalogue</p>
+                <p className="text-sm text-gray-500 italic">No services in catalog</p>
               )}
             </div>
           </div>
@@ -362,13 +362,13 @@ export default function EventsTimeline() {
       <div className="relative">
         {events.length === 0 ? (
           <div className="card text-center py-12">
-            <p className="text-gray-500 text-lg">Aucun événement trouvé avec les filtres sélectionnés</p>
+            <p className="text-gray-500 text-lg">No events found with selected filters</p>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
                 className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
-                Effacer tous les filtres
+                Clear All Filters
               </button>
             )}
           </div>

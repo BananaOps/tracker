@@ -43,8 +43,8 @@ export default function CreateRpaOperation() {
       <div className="flex items-center space-x-3">
         <FontAwesomeIcon icon={faWrench} className="w-8 h-8 text-purple-600" />
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Créer une opération RPA</h2>
-          <p className="mt-1 text-sm text-gray-500">Enregistrer une opération d'automatisation RPA</p>
+          <h2 className="text-3xl font-bold text-gray-900">Create RPA Operation</h2>
+          <p className="mt-1 text-sm text-gray-500">Register an RPA automation operation</p>
         </div>
       </div>
 
@@ -53,10 +53,10 @@ export default function CreateRpaOperation() {
           <div className="flex items-start">
             <FontAwesomeIcon icon={faRobot} className="w-5 h-5 text-purple-600 mt-0.5 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-purple-800">Qu'est-ce qu'une opération RPA ?</h3>
+              <h3 className="text-sm font-medium text-purple-800">What is an RPA operation?</h3>
               <p className="text-sm text-purple-700 mt-1">
-                RPA (Robotic Process Automation) désigne l'automatisation de processus métier répétitifs.
-                Utilisez cette page pour tracker les exécutions de vos robots, scripts d'automatisation, ou workflows automatisés.
+                RPA (Robotic Process Automation) refers to the automation of repetitive business processes.
+                Use this page to track executions of your robots, automation scripts, or automated workflows.
               </p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function CreateRpaOperation() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nom de l'opération <span className="text-red-500">*</span>
+            Operation Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -72,14 +72,14 @@ export default function CreateRpaOperation() {
             className="input"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Ex: Traitement automatique des factures, Synchronisation des données clients"
+            placeholder="Ex: Automatic invoice processing, Customer data synchronization"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service / Robot RPA <span className="text-red-500">*</span>
+              Service / RPA Robot <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -93,12 +93,12 @@ export default function CreateRpaOperation() {
               placeholder="Ex: rpa-invoice-processor, rpa-data-sync"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Nom du robot ou du service RPA
+              Name of the robot or RPA service
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environnement</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Environment</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -119,7 +119,7 @@ export default function CreateRpaOperation() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Statut de l'opération</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Operation Status</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -128,17 +128,17 @@ export default function CreateRpaOperation() {
                 attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
               })}
             >
-              <option value={Status.START}>Démarré</option>
-              <option value={Status.SUCCESS}>Succès</option>
-              <option value={Status.FAILURE}>Échec</option>
-              <option value={Status.WARNING}>Avertissement</option>
-              <option value={Status.ERROR}>Erreur</option>
-              <option value={Status.DONE}>Terminé</option>
+              <option value={Status.START}>Started</option>
+              <option value={Status.SUCCESS}>Success</option>
+              <option value={Status.FAILURE}>Failure</option>
+              <option value={Status.WARNING}>Warning</option>
+              <option value={Status.ERROR}>Error</option>
+              <option value={Status.DONE}>Done</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -147,18 +147,18 @@ export default function CreateRpaOperation() {
                 attributes: { ...formData.attributes, priority: Number(e.target.value) as Priority }
               })}
             >
-              <option value={Priority.P1}>P1 - Critique</option>
-              <option value={Priority.P2}>P2 - Élevée</option>
-              <option value={Priority.P3}>P3 - Moyenne</option>
-              <option value={Priority.P4}>P4 - Faible</option>
-              <option value={Priority.P5}>P5 - Très faible</option>
+              <option value={Priority.P1}>P1 - Critical</option>
+              <option value={Priority.P2}>P2 - High</option>
+              <option value={Priority.P3}>P3 - Medium</option>
+              <option value={Priority.P4}>P4 - Low</option>
+              <option value={Priority.P5}>P5 - Very Low</option>
             </select>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Source / Plateforme RPA <span className="text-red-500">*</span>
+            Source / RPA Platform <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -172,13 +172,13 @@ export default function CreateRpaOperation() {
             placeholder="Ex: uipath, automation_anywhere, blue_prism, custom_script"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Plateforme ou outil utilisé pour l'automatisation
+            Platform or tool used for automation
           </p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description de l'opération <span className="text-red-500">*</span>
+            Operation Description <span className="text-red-500">*</span>
           </label>
           <textarea
             required
@@ -189,13 +189,13 @@ export default function CreateRpaOperation() {
               ...formData,
               attributes: { ...formData.attributes, message: e.target.value }
             })}
-            placeholder="Décrivez l'opération effectuée : nombre d'éléments traités, durée, résultats, erreurs éventuelles..."
+            placeholder="Describe the operation performed: number of items processed, duration, results, any errors..."
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
             <input
               type="datetime-local"
               className="input"
@@ -208,7 +208,7 @@ export default function CreateRpaOperation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de fin</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
             <input
               type="datetime-local"
               className="input"
@@ -222,7 +222,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Owner / Responsable</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Owner / Responsible</label>
           <input
             type="text"
             className="input"
@@ -237,7 +237,7 @@ export default function CreateRpaOperation() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Parties prenantes (séparées par des virgules)
+            Stakeholders (comma separated)
           </label>
           <input
             type="text"
@@ -255,7 +255,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket / Référence</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket / Reference</label>
           <input
             type="text"
             className="input"
@@ -269,7 +269,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Lien vers les logs / dashboard</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Link to logs / dashboard</label>
           <input
             type="url"
             className="input"
@@ -288,7 +288,7 @@ export default function CreateRpaOperation() {
             onClick={() => navigate('/rpa')}
             className="btn-secondary"
           >
-            Annuler
+            Cancel
           </button>
           <button
             type="submit"
@@ -296,7 +296,7 @@ export default function CreateRpaOperation() {
             className="btn-primary flex items-center space-x-2"
           >
             <FontAwesomeIcon icon={faWrench} className="w-4 h-4" />
-            <span>{createMutation.isPending ? 'Création...' : 'Créer l\'opération RPA'}</span>
+            <span>{createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}</span>
           </button>
         </div>
       </form>

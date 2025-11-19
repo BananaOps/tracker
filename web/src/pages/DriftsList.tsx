@@ -24,14 +24,14 @@ export default function DriftsList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Drifts de configuration</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Configuration Drifts</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Détection des dérives de configuration ({drifts.length} drifts détectés)
+            Configuration drift detection ({drifts.length} drifts detected)
           </p>
         </div>
         <Link to="/drifts/create" className="btn-primary flex items-center space-x-2">
           <Plus className="w-4 h-4" />
-          <span>Créer un drift</span>
+          <span>Create Drift</span>
         </Link>
       </div>
 
@@ -50,7 +50,7 @@ export default function DriftsList() {
           <div className="flex items-center">
             <AlertTriangle className="h-6 w-6 text-red-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Non résolus</p>
+              <p className="text-sm font-medium text-gray-500">Unresolved</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {drifts.filter(d => d.attributes.status !== Status.DONE && d.attributes.status !== Status.CLOSE).length}
               </p>
@@ -62,7 +62,7 @@ export default function DriftsList() {
           <div className="flex items-center">
             <FontAwesomeIcon icon={faCodeBranch} className="h-6 w-6 text-green-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Résolus</p>
+              <p className="text-sm font-medium text-gray-500">Resolved</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {drifts.filter(d => d.attributes.status === Status.DONE || d.attributes.status === Status.CLOSE).length}
               </p>
@@ -85,8 +85,8 @@ export default function DriftsList() {
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
                     {drift.attributes.status === Status.DONE || drift.attributes.status === Status.CLOSE
-                      ? 'Résolu'
-                      : 'En cours'}
+                      ? 'Resolved'
+                      : 'In Progress'}
                   </span>
                 </div>
 
@@ -105,7 +105,7 @@ export default function DriftsList() {
                   </div>
                   {drift.attributes.environment && (
                     <div className="min-w-0">
-                      <span className="text-gray-500">Environnement:</span>
+                      <span className="text-gray-500">Environment:</span>
                       <span className="ml-2 font-medium text-gray-900 break-words">
                         {drift.attributes.environment}
                       </span>
@@ -141,7 +141,7 @@ export default function DriftsList() {
 
       {drifts.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          Aucun drift détecté
+          No drifts detected
         </div>
       )}
     </div>

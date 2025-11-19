@@ -140,12 +140,12 @@ export default function EventsCalendar() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Calendrier des événements</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Events Calendar</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Vue mensuelle des événements ({events.length} événement{events.length > 1 ? 's' : ''})
+            Monthly View ({events.length} event{events.length > 1 ? 's' : ''})
             {activeFiltersCount > 0 && (
               <span className="ml-2 text-primary-600 font-medium">
-                • {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
+                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
               </span>
             )}
           </p>
@@ -172,7 +172,7 @@ export default function EventsCalendar() {
       {showFilters && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Filtres</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
@@ -353,7 +353,7 @@ export default function EventsCalendar() {
 
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Sélectionnez une date'}
+            {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
           </h3>
           
           {selectedDayEvents.length > 0 ? (
@@ -397,7 +397,7 @@ export default function EventsCalendar() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">Aucun événement pour cette date</p>
+            <p className="text-sm text-gray-500">No events for this date</p>
           )}
         </div>
       </div>

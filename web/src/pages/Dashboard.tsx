@@ -49,7 +49,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-        <p className="mt-1 text-sm text-gray-500">Vue d'ensemble des événements du jour</p>
+        <p className="mt-1 text-sm text-gray-500">Overview of today's events</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -74,7 +74,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Succès</dt>
+                <dt className="text-sm font-medium text-gray-500 truncate">Success</dt>
                 <dd className="text-3xl font-semibold text-gray-900">{stats.success}</dd>
               </dl>
             </div>
@@ -88,7 +88,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-5 w-0 flex-1">
               <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Échecs</dt>
+                <dt className="text-sm font-medium text-gray-500 truncate">Failures</dt>
                 <dd className="text-3xl font-semibold text-gray-900">{stats.failure}</dd>
               </dl>
             </div>
@@ -114,13 +114,13 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Diagramme par Type */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par type</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Events by Type</h3>
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
                   {getEventTypeIcon('deployment', 'w-4 h-4')}
-                  <span>Déploiements</span>
+                  <span>Deployments</span>
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{eventsByType.deployment}</span>
               </div>
@@ -136,7 +136,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
                   {getEventTypeIcon('operation', 'w-4 h-4')}
-                  <span>Opérations</span>
+                  <span>Operations</span>
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{eventsByType.operation}</span>
               </div>
@@ -184,13 +184,13 @@ export default function Dashboard() {
 
         {/* Diagramme par Statut */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par statut</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Events by Status</h3>
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <span>Succès</span>
+                  <span>Success</span>
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{stats.success}</span>
               </div>
@@ -206,7 +206,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700 flex items-center space-x-2">
                   <AlertCircle className="w-4 h-4 text-red-600" />
-                  <span>Échecs</span>
+                  <span>Failures</span>
                 </span>
                 <span className="text-sm font-semibold text-gray-900">{stats.failure}</span>
               </div>
@@ -238,7 +238,7 @@ export default function Dashboard() {
 
         {/* Diagramme par Priorité */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par priorité</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Events by Priority</h3>
           <div className="space-y-3">
             {Object.entries(eventsByPriority).map(([priority, count]) => (
               <div key={priority}>
@@ -264,7 +264,7 @@ export default function Dashboard() {
 
         {/* Diagramme par Environnement */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Événements par environnement</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Events by Environment</h3>
           <div className="space-y-3">
             {Object.entries(eventsByEnv).sort((a, b) => b[1] - a[1]).map(([env, count]) => (
               <div key={env}>
@@ -290,7 +290,7 @@ export default function Dashboard() {
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Événements récents</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Events</h3>
         <div className="space-y-3">
           {events.slice(0, 10).map((event) => {
             console.log('Dashboard event:', event.title, 'type:', event.attributes.type, 'typeof:', typeof event.attributes.type)

@@ -48,20 +48,20 @@ export default function CreateEvent() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Créer un événement</h2>
-        <p className="mt-1 text-sm text-gray-500">Enregistrer un nouvel événement dans le système</p>
+        <h2 className="text-3xl font-bold text-gray-900">Create Event</h2>
+        <p className="mt-1 text-sm text-gray-500">Register a new event in the system</p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
           <input
             type="text"
             required
             className="input"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Ex: Déploiement service-api v2.1.0"
+            placeholder="Ex: Deployment service-api v2.1.0"
           />
         </div>
 
@@ -76,15 +76,15 @@ export default function CreateEvent() {
                 attributes: { ...formData.attributes, type: Number(e.target.value) as EventType }
               })}
             >
-              <option value={EventType.DEPLOYMENT}>Déploiement</option>
-              <option value={EventType.OPERATION}>Opération</option>
+              <option value={EventType.DEPLOYMENT}>Deployment</option>
+              <option value={EventType.OPERATION}>Operation</option>
               <option value={EventType.DRIFT}>Drift</option>
               <option value={EventType.INCIDENT}>Incident</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -93,18 +93,18 @@ export default function CreateEvent() {
                 attributes: { ...formData.attributes, priority: Number(e.target.value) as Priority }
               })}
             >
-              <option value={Priority.P1}>P1 - Critique</option>
-              <option value={Priority.P2}>P2 - Élevée</option>
-              <option value={Priority.P3}>P3 - Moyenne</option>
-              <option value={Priority.P4}>P4 - Faible</option>
-              <option value={Priority.P5}>P5 - Très faible</option>
+              <option value={Priority.P1}>P1 - Critical</option>
+              <option value={Priority.P2}>P2 - High</option>
+              <option value={Priority.P3}>P3 - Medium</option>
+              <option value={Priority.P4}>P4 - Low</option>
+              <option value={Priority.P5}>P5 - Very Low</option>
             </select>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -113,16 +113,16 @@ export default function CreateEvent() {
                 attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
               })}
             >
-              <option value={Status.START}>Démarré</option>
-              <option value={Status.SUCCESS}>Succès</option>
-              <option value={Status.FAILURE}>Échec</option>
-              <option value={Status.WARNING}>Avertissement</option>
-              <option value={Status.ERROR}>Erreur</option>
+              <option value={Status.START}>Started</option>
+              <option value={Status.SUCCESS}>Success</option>
+              <option value={Status.FAILURE}>Failed</option>
+              <option value={Status.WARNING}>Warning</option>
+              <option value={Status.ERROR}>Error</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environnement</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Environment</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -157,7 +157,7 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Auteur</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
             <input
               type="text"
               required
@@ -183,12 +183,12 @@ export default function CreateEvent() {
               ...formData,
               attributes: { ...formData.attributes, message: e.target.value }
             })}
-            placeholder="Description détaillée de l'événement"
+            placeholder="Detailed event description"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pull Request (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Pull Request (optional)</label>
           <input
             type="url"
             className="input"
@@ -202,7 +202,7 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket (optionnel)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket (optional)</label>
           <input
             type="text"
             className="input"
@@ -221,14 +221,14 @@ export default function CreateEvent() {
             onClick={() => navigate('/events/timeline')}
             className="btn-secondary"
           >
-            Annuler
+            Cancel
           </button>
           <button
             type="submit"
             disabled={createMutation.isPending}
             className="btn-primary"
           >
-            {createMutation.isPending ? 'Création...' : 'Créer l\'événement'}
+            {createMutation.isPending ? 'Creating...' : 'Create Event'}
           </button>
         </div>
       </form>

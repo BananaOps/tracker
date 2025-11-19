@@ -1,14 +1,14 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Plus, Table, TrendingDown, Activity, LayoutDashboard } from 'lucide-react'
+import { Calendar, Clock, Plus, Table, GitBranch, Bot, LayoutDashboard } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Timeline', href: '/events/timeline', icon: Clock },
-  { name: 'Calendrier', href: '/events/calendar', icon: Calendar },
-  { name: 'Créer Event', href: '/events/create', icon: Plus },
+  { name: 'Calendar', href: '/events/calendar', icon: Calendar },
+  { name: 'Create Event', href: '/events/create', icon: Plus },
   { name: 'Catalog', href: '/catalog', icon: Table },
-  { name: 'Drifts', href: '/drifts', icon: TrendingDown },
-  { name: 'RPA Usage', href: '/rpa', icon: Activity },
+  { name: 'Drifts', href: '/drifts', icon: GitBranch },
+  { name: 'RPA Usage', href: '/rpa', icon: Bot },
 ]
 
 export default function Layout() {

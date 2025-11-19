@@ -30,7 +30,7 @@ export default function CatalogTable() {
     const typeStr = String(type).toLowerCase()
     const labels: Record<string, string> = {
       'module': 'Module',
-      'library': 'Bibliothèque',
+      'library': 'Library',
       'workflow': 'Workflow',
       'project': 'Projet',
       'chart': 'Chart',
@@ -105,14 +105,14 @@ export default function CatalogTable() {
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Catalogue</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Inventaire des modules, bibliothèques et projets ({catalogs.length} éléments)
+            Inventory of modules, libraries and projects ({catalogs.length} items)
           </p>
         </div>
         <a
           href="/catalog/create"
           className="btn-primary"
         >
-          Ajouter au catalogue
+          Add to Catalog
         </a>
       </div>
 
@@ -208,7 +208,7 @@ export default function CatalogTable() {
 
       {catalogs.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          Aucun élément dans le catalogue
+          No items in catalog
         </div>
       )}
     </div>
