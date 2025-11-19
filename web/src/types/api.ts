@@ -25,6 +25,15 @@ export enum Priority {
   P5 = 'p5',
 }
 
+// Mapping pour la conversion Priority string -> number (pour POST)
+export const PriorityToNumber: Record<Priority, number> = {
+  [Priority.P1]: 1,
+  [Priority.P2]: 2,
+  [Priority.P3]: 3,
+  [Priority.P4]: 4,
+  [Priority.P5]: 5,
+}
+
 // L'API retourne des strings pour Status
 export enum Status {
   START = 'start',
@@ -40,6 +49,21 @@ export enum Status {
   DONE = 'done',
 }
 
+// Mapping pour la conversion Status string -> number (pour POST)
+export const StatusToNumber: Record<Status, number> = {
+  [Status.START]: 1,
+  [Status.FAILURE]: 2,
+  [Status.SUCCESS]: 3,
+  [Status.WARNING]: 4,
+  [Status.ERROR]: 5,
+  [Status.SNAPSHOT]: 6,
+  [Status.USER_UPDATE]: 7,
+  [Status.RECOMMENDATION]: 8,
+  [Status.OPEN]: 9,
+  [Status.CLOSE]: 10,
+  [Status.DONE]: 11,
+}
+
 // L'API retourne des strings pour Environment
 export enum Environment {
   DEVELOPMENT = 'development',
@@ -52,6 +76,18 @@ export enum Environment {
   MCO = 'mco',
 }
 
+// Mapping pour la conversion Environment string -> number (pour POST)
+export const EnvironmentToNumber: Record<Environment, number> = {
+  [Environment.DEVELOPMENT]: 1,
+  [Environment.INTEGRATION]: 2,
+  [Environment.TNR]: 3,
+  [Environment.UAT]: 4,
+  [Environment.RECETTE]: 5,
+  [Environment.PREPRODUCTION]: 6,
+  [Environment.PRODUCTION]: 7,
+  [Environment.MCO]: 8,
+}
+
 // L'API retourne des strings pour CatalogType
 export enum CatalogType {
   MODULE = 'module',
@@ -61,6 +97,7 @@ export enum CatalogType {
   CHART = 'chart',
   PACKAGE = 'package',
   CONTAINER = 'container',
+  RPA_USAGE = 'rpa_usage',
 }
 
 // L'API retourne des strings pour Language

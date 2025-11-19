@@ -4,6 +4,7 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
+import { convertEventForAPI } from '../lib/apiConverters'
 
 export default function CreateEvent() {
   const navigate = useNavigate()
@@ -81,7 +82,10 @@ export default function CreateEvent() {
         endDate: endDateISO,
       },
     }
-    createMutation.mutate(eventData)
+    
+    // Convertir les enums en nombres pour l'API
+    const apiData = convertEventForAPI(eventData)
+    createMutation.mutate(apiData)
   }
 
   return (

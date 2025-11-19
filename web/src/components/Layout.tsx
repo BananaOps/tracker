@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Plus, Table, GitBranch, Bot, LayoutDashboard } from 'lucide-react'
+import { Calendar, Clock, Plus, Table, GitBranch, Bot, LayoutDashboard, Rocket } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
+import OpenSourceBanner from './OpenSourceBanner'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -17,13 +18,25 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <OpenSourceBanner />
       <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Tracker</h1>
-              </div>
+              <Link to="/dashboard" className="flex-shrink-0 flex items-center group">
+                <div className="relative">
+                  {/* Cercle de fond avec gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg transform group-hover:scale-110 transition-transform duration-200"></div>
+                  {/* Icône fusée */}
+                  <div className="relative p-2">
+                    <Rocket className="w-6 h-6 text-white transform -rotate-45" />
+                  </div>
+                </div>
+                {/* Texte Tracker */}
+                <h1 className="ml-3 text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
+                  Tracker
+                </h1>
+              </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navigation.map((item) => {
                   const Icon = item.icon

@@ -6,6 +6,7 @@ import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWrench, faRobot } from '@fortawesome/free-solid-svg-icons'
+import { convertEventForAPI } from '../lib/apiConverters'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
@@ -72,7 +73,7 @@ export default function CreateRpaOperation() {
       attributes: {
         message: formData.attributes.message,
         type: EventType.RPA_USAGE,
-        priority: Priority.P1,
+        priority: formData.attributes.priority,
         source: 'tracker',
         service: formData.attributes.service,
         status: formData.attributes.status,
@@ -84,7 +85,9 @@ export default function CreateRpaOperation() {
       links: {},
     }
     
-    createMutation.mutate(submitData)
+    // Convertir les enums en nombres pour l'API
+    const apiData = convertEventForAPI(submitData)
+    createMutation.mutate(apiData)
   }
 
   return (

@@ -6,6 +6,7 @@ import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
+import { convertEventForAPI } from '../lib/apiConverters'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
@@ -53,7 +54,10 @@ export default function CreateDrift() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setSuccessMessage(null)
-    createMutation.mutate(formData)
+    
+    // Convertir les enums en nombres pour l'API
+    const apiData = convertEventForAPI(formData)
+    createMutation.mutate(apiData)
   }
 
   return (
@@ -154,7 +158,7 @@ export default function CreateDrift() {
               value={formData.attributes.environment}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, environment: Number(e.target.value) as unknown as Environment }
+                attributes: { ...formData.attributes, environment: e.target.value as Environment }
               })}
             >
               <option value={Environment.DEVELOPMENT}>Development</option>
@@ -175,7 +179,7 @@ export default function CreateDrift() {
               value={formData.attributes.priority}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, priority: Number(e.target.value) as unknown as Priority }
+                attributes: { ...formData.attributes, priority: e.target.value as Priority }
               })}
             >
               <option value={Priority.P1}>P1 - Critique (impact production)</option>
@@ -193,7 +197,7 @@ export default function CreateDrift() {
               value={formData.attributes.status}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, status: Number(e.target.value) as unknown as Status }
+                attributes: { ...formData.attributes, status: e.target.value as Status }
               })}
             >
               <option value={Status.OPEN}>Ouvert (détecté)</option>
