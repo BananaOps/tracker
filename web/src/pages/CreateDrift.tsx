@@ -4,7 +4,8 @@ import { eventsApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
-import { TrendingDown } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
@@ -41,7 +42,7 @@ export default function CreateDrift() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center space-x-3">
-        <TrendingDown className="w-8 h-8 text-yellow-600" />
+        <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 text-yellow-600" />
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Créer un Drift</h2>
           <p className="mt-1 text-sm text-gray-500">Enregistrer une dérive de configuration détectée</p>
@@ -51,7 +52,7 @@ export default function CreateDrift() {
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-start">
-            <TrendingDown className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" />
+            <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" />
             <div>
               <h3 className="text-sm font-medium text-yellow-800">Qu'est-ce qu'un drift ?</h3>
               <p className="text-sm text-yellow-700 mt-1">
@@ -249,7 +250,7 @@ export default function CreateDrift() {
             disabled={createMutation.isPending}
             className="btn-primary flex items-center space-x-2"
           >
-            <TrendingDown className="w-4 h-4" />
+            <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" />
             <span>{createMutation.isPending ? 'Création...' : 'Créer le drift'}</span>
           </button>
         </div>

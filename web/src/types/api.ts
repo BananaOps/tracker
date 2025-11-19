@@ -1,9 +1,18 @@
+// L'API retourne des strings, pas des nombres
 export enum EventType {
-  DEPLOYMENT = 1,
-  OPERATION = 2,
-  DRIFT = 3,
-  INCIDENT = 4,
+  DEPLOYMENT = 'deployment',
+  OPERATION = 'operation',
+  DRIFT = 'drift',
+  INCIDENT = 'incident',
 }
+
+// Mapping pour la conversion si nécessaire
+export const EventTypeNumber = {
+  deployment: 1,
+  operation: 2,
+  drift: 3,
+  incident: 4,
+} as const
 
 export enum Priority {
   P1 = 1,

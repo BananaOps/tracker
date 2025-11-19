@@ -5,6 +5,7 @@ import { fr } from 'date-fns/locale'
 import { Status, Priority, EventType } from '../types/api'
 import { Clock, AlertCircle, CheckCircle, XCircle, Filter } from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { useState } from 'react'
 
 type TimeFilter = 7 | 15 | 30 | 'all'
@@ -147,22 +148,22 @@ export default function EventsTimeline() {
                       
                       <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
                         <span>Service: <span className="font-medium">{event.attributes.service}</span></span>
-                        <span>Source: <span className="font-medium">{event.attributes.source}</span></span>
+                        <span className="flex items-center space-x-1">
+                          <span>Source:</span>
+                          <SourceIcon source={event.attributes.source} />
+                          <span className="font-medium">{event.attributes.source}</span>
+                        </span>
                         {event.attributes.owner && (
                           <span>Owner: <span className="font-medium">{event.attributes.owner}</span></span>
                         )}
                       </div>
 
-                      {event.links?.pullRequestLink && (
-                        <a 
-                          href={event.links.pullRequestLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary-600 hover:text-primary-700 mt-2 inline-block"
-                        >
-                          Voir la Pull Request →
-                        </a>
-                      )}
+                      <EventLinks 
+                        links={event.links}
+                        source={event.attributes.source}
+                        slackId={event.metadata?.slackId}
+                        className="mt-3"
+                      />
                     </div>
                     
                     <div className="text-right text-sm text-gray-500">

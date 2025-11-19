@@ -63,7 +63,8 @@ Interface web moderne pour Tracker, construite avec React, TypeScript et Vite.
 - **TanStack Query** - Gestion des données
 - **Axios** - Client HTTP
 - **date-fns** - Manipulation de dates
-- **Lucide React** - Icônes
+- **Font Awesome** - Icônes (solid + brands)
+- **Lucide React** - Icônes complémentaires
 
 ## 📦 Installation
 
@@ -116,8 +117,17 @@ server: {
 Créer un fichier `.env.local` pour personnaliser :
 
 ```env
+# API
 VITE_API_URL=http://localhost:8080
+
+# Jira (pour les liens de tickets)
+VITE_JIRA_URL=https://your-company.atlassian.net
+
+# Slack (pour les liens de messages)
+VITE_SLACK_WORKSPACE=your-workspace
 ```
+
+Voir `.env.example` pour plus de détails.
 
 ## 📁 Structure du projet
 

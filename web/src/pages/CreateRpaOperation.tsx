@@ -4,7 +4,8 @@ import { eventsApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
-import { Activity, Bot } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faWrench, faRobot } from '@fortawesome/free-solid-svg-icons'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
@@ -40,7 +41,7 @@ export default function CreateRpaOperation() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center space-x-3">
-        <Activity className="w-8 h-8 text-purple-600" />
+        <FontAwesomeIcon icon={faWrench} className="w-8 h-8 text-purple-600" />
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Créer une opération RPA</h2>
           <p className="mt-1 text-sm text-gray-500">Enregistrer une opération d'automatisation RPA</p>
@@ -50,7 +51,7 @@ export default function CreateRpaOperation() {
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="flex items-start">
-            <Bot className="w-5 h-5 text-purple-600 mt-0.5 mr-3" />
+            <FontAwesomeIcon icon={faRobot} className="w-5 h-5 text-purple-600 mt-0.5 mr-3" />
             <div>
               <h3 className="text-sm font-medium text-purple-800">Qu'est-ce qu'une opération RPA ?</h3>
               <p className="text-sm text-purple-700 mt-1">
@@ -294,7 +295,7 @@ export default function CreateRpaOperation() {
             disabled={createMutation.isPending}
             className="btn-primary flex items-center space-x-2"
           >
-            <Activity className="w-4 h-4" />
+            <FontAwesomeIcon icon={faWrench} className="w-4 h-4" />
             <span>{createMutation.isPending ? 'Création...' : 'Créer l\'opération RPA'}</span>
           </button>
         </div>

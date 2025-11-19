@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Status, EventType } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import EventLinks from '../components/EventLinks'
 
 export default function EventsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -138,6 +139,17 @@ export default function EventsCalendar() {
                     </div>
                     <p className="font-medium text-gray-900 text-sm">{event.title}</p>
                     <p className="text-xs text-gray-500 mt-1">{event.attributes.service}</p>
+                    {(() => {
+                      console.log('Calendar event:', event.title, 'links:', event.links)
+                      return (
+                        <EventLinks 
+                          links={event.links}
+                          source={event.attributes.source}
+                          slackId={event.metadata?.slackId}
+                          className="mt-2"
+                        />
+                      )
+                    })()}
                   </div>
                 )
               })}

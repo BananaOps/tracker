@@ -3,8 +3,10 @@ import { eventsApi } from '../lib/api'
 import { EventType, Status } from '../types/api'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { TrendingDown, AlertTriangle, Plus } from 'lucide-react'
+import { AlertTriangle, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 
 export default function DriftsList() {
   const { data, isLoading } = useQuery({
@@ -36,7 +38,7 @@ export default function DriftsList() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="card">
           <div className="flex items-center">
-            <TrendingDown className="h-6 w-6 text-yellow-600" />
+            <FontAwesomeIcon icon={faCodeBranch} className="h-6 w-6 text-yellow-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total Drifts</p>
               <p className="text-2xl font-semibold text-gray-900">{drifts.length}</p>
@@ -58,7 +60,7 @@ export default function DriftsList() {
 
         <div className="card">
           <div className="flex items-center">
-            <TrendingDown className="h-6 w-6 text-green-600" />
+            <FontAwesomeIcon icon={faCodeBranch} className="h-6 w-6 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Résolus</p>
               <p className="text-2xl font-semibold text-gray-900">
@@ -75,7 +77,7 @@ export default function DriftsList() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <TrendingDown className="w-5 h-5 text-yellow-600" />
+                  <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600" />
                   <h3 className="text-lg font-semibold text-gray-900">{drift.title}</h3>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     drift.attributes.status === Status.DONE || drift.attributes.status === Status.CLOSE

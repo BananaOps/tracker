@@ -3,6 +3,10 @@ import { eventsApi } from '../lib/api'
 import { AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
 import { Status, Priority, EventType } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel } from '../lib/eventUtils'
+import { SourceIcon } from '../components/EventLinks'
+import IconTest from '../components/IconTest'
+import LinksTest from '../components/LinksTest'
+import { testEventsApi } from '../utils/testApi'
 
 export default function Dashboard() {
   const { data: todayEvents } = useQuery({
@@ -22,9 +26,22 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-        <p className="mt-1 text-sm text-gray-500">Vue d'ensemble des événements du jour</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+          <p className="mt-1 text-sm text-gray-500">Vue d'ensemble des événements du jour</p>
+        </div>
+        <button
+          onClick={() => testEventsApi()}
+          className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+        >
+          🔍 Tester l'API
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <IconTest />
+        <LinksTest />
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,6 +106,7 @@ export default function Dashboard() {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Événements récents</h3>
         <div className="space-y-3">
           {events.slice(0, 10).map((event) => {
+            console.log('Dashboard event:', event.title, 'type:', event.attributes.type, 'typeof:', typeof event.attributes.type)
             const typeColor = getEventTypeColor(event.attributes.type)
             return (
               <div key={event.metadata?.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -98,7 +116,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 truncate">{event.title}</p>
-                    <p className="text-sm text-gray-500">{event.attributes.service}</p>
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <span>{event.attributes.service}</span>
+                      <SourceIcon source={event.attributes.source} className="w-3 h-3" />
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2 flex-shrink-0">

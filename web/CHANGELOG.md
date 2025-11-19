@@ -1,5 +1,35 @@
 # Changelog - Tracker Web Frontend
 
+## [1.3.0] - 2024-11-19
+
+### ✨ Nouvelles fonctionnalités
+
+#### Icônes de liens externes
+- **Icône GitHub** : Affichage automatique pour les Pull Requests
+- **Icône Slack** : Affichage pour les messages/threads Slack
+- **Icône Jira** : Détection automatique des tickets Jira (format `PROJECT-123`)
+- **Icône de source** : Affichage d'icône à côté de la source (GitHub, Slack, Jira)
+
+#### Composant EventLinks
+- Nouveau composant pour afficher tous les liens d'un événement
+- Détection automatique du type de ticket (Jira vs générique)
+- Génération automatique des URLs Jira et Slack
+- Intégré dans Timeline, Dashboard et Calendrier
+
+#### Configuration
+- Variables d'environnement pour Jira et Slack
+- Fichier `.env.example` avec documentation
+- URLs personnalisables par organisation
+
+### 🎨 Améliorations UI/UX
+- Liens cliquables avec icônes de marque (Font Awesome Brands)
+- Transitions de couleur au survol
+- Ouverture dans un nouvel onglet
+- Icônes de source inline dans les détails
+
+### 📦 Dépendances
+- Ajout de `@fortawesome/free-brands-svg-icons` pour GitHub, Slack, Jira
+
 ## [1.2.0] - 2024-11-19
 
 ### ✨ Nouvelles fonctionnalités

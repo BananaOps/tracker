@@ -1,45 +1,69 @@
-import { Rocket, Wrench, TrendingDown, AlertTriangle } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faRocket, faWrench, faCodeBranch, faFire } from '@fortawesome/free-solid-svg-icons'
 import { EventType } from '../types/api'
 
-export const getEventTypeIcon = (type: EventType, className: string = 'w-5 h-5') => {
-  switch (type) {
-    case EventType.DEPLOYMENT:
-      return <Rocket className={`${className} text-blue-600`} />
-    case EventType.OPERATION:
-      return <Wrench className={`${className} text-purple-600`} />
-    case EventType.DRIFT:
-      return <TrendingDown className={`${className} text-yellow-600`} />
-    case EventType.INCIDENT:
-      return <AlertTriangle className={`${className} text-red-600`} />
+export const getEventTypeIcon = (type: EventType | string, className: string = 'w-5 h-5') => {
+  const sizeClass = className.includes('w-') ? '' : 'w-5 h-5'
+  const finalClass = `${sizeClass} ${className}`.trim()
+  
+  // Normaliser le type en string lowercase
+  const typeStr = String(type).toLowerCase()
+  
+  console.log('🔍 getEventTypeIcon:', type, '→', typeStr)
+  
+  switch (typeStr) {
+    case 'deployment':
+    case '1':
+      console.log('✅ → ROCKET (Déploiement)')
+      return <FontAwesomeIcon icon={faRocket} className={`${finalClass} text-blue-600`} />
+    
+    case 'operation':
+    case '2':
+      console.log('✅ → WRENCH (Opération)')
+      return <FontAwesomeIcon icon={faWrench} className={`${finalClass} text-purple-600`} />
+    
+    case 'drift':
+    case '3':
+      console.log('✅ → CODE_BRANCH (Drift)')
+      return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} text-yellow-600`} />
+    
+    case 'incident':
+    case '4':
+      console.log('✅ → FIRE (Incident)')
+      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-red-600`} />
+    
     default:
-      return <AlertTriangle className={`${className} text-gray-600`} />
+      console.warn('⚠️ Type inconnu:', type, typeStr)
+      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-gray-600`} />
   }
 }
 
 export const getEventTypeColor = (type: EventType) => {
-  switch (type) {
-    case EventType.DEPLOYMENT:
+  const typeNum = Number(type)
+  
+  switch (typeNum) {
+    case 1: // DEPLOYMENT
       return {
         bg: 'bg-blue-100',
         text: 'text-blue-800',
         border: 'border-blue-200',
         bgSolid: 'bg-blue-600',
       }
-    case EventType.OPERATION:
+    case 2: // OPERATION
       return {
         bg: 'bg-purple-100',
         text: 'text-purple-800',
         border: 'border-purple-200',
         bgSolid: 'bg-purple-600',
       }
-    case EventType.DRIFT:
+    case 3: // DRIFT
       return {
         bg: 'bg-yellow-100',
         text: 'text-yellow-800',
         border: 'border-yellow-200',
         bgSolid: 'bg-yellow-600',
       }
-    case EventType.INCIDENT:
+    case 4: // INCIDENT
       return {
         bg: 'bg-red-100',
         text: 'text-red-800',
@@ -57,11 +81,19 @@ export const getEventTypeColor = (type: EventType) => {
 }
 
 export const getEventTypeLabel = (type: EventType) => {
-  switch (type) {
-    case EventType.DEPLOYMENT: return 'Déploiement'
-    case EventType.OPERATION: return 'Opération'
-    case EventType.DRIFT: return 'Drift'
-    case EventType.INCIDENT: return 'Incident'
+  const typeNum = Number(type)
+  
+  switch (typeNum) {
+    case 1: return 'Déploiement'
+    case 2: return 'Opération'
+    case 3: return 'Drift'
+    case 4: return 'Incident'
     default: return 'Événement'
   }
+}
+
+export const getEventTypeLabelWithIcon = (type: EventType) => {
+  const icon = getEventTypeIcon(type, 'w-4 h-4')
+  const label = getEventTypeLabel(type)
+  return { icon, label }
 }
