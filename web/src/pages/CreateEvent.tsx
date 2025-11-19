@@ -8,6 +8,7 @@ import type { CreateEventRequest } from '../types/api'
 export default function CreateEvent() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -15,7 +16,7 @@ export default function CreateEvent() {
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  const catalogServices = catalogData?.catalogs.map(c => c.name).sort() || []
+  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
   // Calculer les dates par défaut
   const now = new Date()
@@ -27,13 +28,13 @@ export default function CreateEvent() {
     title: '',
     attributes: {
       message: '',
-      source: 'manual', // Source automatique
+      source: 'tracker',
       type: EventType.DEPLOYMENT,
       priority: Priority.P3,
       service: '',
       status: Status.START,
       environment: Environment.PRODUCTION,
-      owner: '', // Champ auteur
+      owner: '',
       startDate: defaultStartDate,
       endDate: defaultEndDate,
     },
@@ -44,12 +45,19 @@ export default function CreateEvent() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      navigate('/events/timeline')
+      setSuccessMessage('Event created successfully!')
+      setTimeout(() => {
+        navigate('/events/timeline')
+      }, 1500)
+    },
+    onError: (error: any) => {
+      console.error('Error creating event:', error)
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setSuccessMessage(null)
     
     // Convertir les dates en ISO complet
     let startDateISO = undefined
@@ -63,12 +71,12 @@ export default function CreateEvent() {
       endDateISO = new Date(formData.attributes.endDate).toISOString()
     }
     
-    // S'assurer que la source est toujours "manual"
+    // S'assurer que la source est toujours "tracker"
     const eventData = {
       ...formData,
       attributes: {
         ...formData.attributes,
-        source: 'manual',
+        source: 'tracker',
         startDate: startDateISO,
         endDate: endDateISO,
       },
@@ -83,9 +91,23 @@ export default function CreateEvent() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new event in the system</p>
       </div>
 
+      {successMessage && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {createMutation.isError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-200 font-medium">Error creating event. Please try again.</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Title <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             required
@@ -174,7 +196,8 @@ export default function CreateEvent() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Service {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400">(Loading...)</span>}
+              Service <span className="text-red-500">*</span>
+              {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
             </label>
             {catalogServices.length > 0 ? (
               <select
@@ -187,7 +210,7 @@ export default function CreateEvent() {
                 })}
               >
                 <option value="">Select a service</option>
-                {catalogServices.map(service => (
+                {catalogServices.map((service: string) => (
                   <option key={service} value={service}>{service}</option>
                 ))}
               </select>
@@ -212,7 +235,9 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Author</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Owner <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               required
@@ -222,13 +247,15 @@ export default function CreateEvent() {
                 ...formData,
                 attributes: { ...formData.attributes, owner: e.target.value }
               })}
-              placeholder="Ex: john.doe"
+              placeholder="Ex: john.doe, team-platform"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Message <span className="text-red-500">*</span>
+          </label>
           <textarea
             required
             rows={3}

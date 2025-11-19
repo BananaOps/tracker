@@ -10,6 +10,7 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 export default function CreateDrift() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -17,19 +18,20 @@ export default function CreateDrift() {
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  const catalogServices = catalogData?.catalogs.map(c => c.name).sort() || []
+  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
     attributes: {
       message: '',
-      source: 'drift_detection',
+      source: 'tracker',
       type: EventType.DRIFT,
       priority: Priority.P2,
       service: '',
       status: Status.OPEN,
       environment: Environment.PRODUCTION,
       impact: false,
+      owner: '',
     },
     links: {},
   })
@@ -38,12 +40,19 @@ export default function CreateDrift() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
-      navigate('/drifts')
+      setSuccessMessage('Drift created successfully!')
+      setTimeout(() => {
+        navigate('/drifts')
+      }, 1500)
+    },
+    onError: (error: any) => {
+      console.error('Error creating drift:', error)
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setSuccessMessage(null)
     createMutation.mutate(formData)
   }
 
@@ -57,8 +66,20 @@ export default function CreateDrift() {
         </div>
       </div>
 
+      {successMessage && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {createMutation.isError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <p className="text-red-800 dark:text-red-200 font-medium">Error creating drift. Please try again.</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="card space-y-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <div className="flex items-start">
             <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" />
             <div>
@@ -102,7 +123,7 @@ export default function CreateDrift() {
                 })}
               >
                 <option value="">Select a service</option>
-                {catalogServices.map(service => (
+                {catalogServices.map((service: string) => (
                   <option key={service} value={service}>{service}</option>
                 ))}
               </select>
@@ -133,7 +154,7 @@ export default function CreateDrift() {
               value={formData.attributes.environment}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, environment: Number(e.target.value) as Environment }
+                attributes: { ...formData.attributes, environment: Number(e.target.value) as unknown as Environment }
               })}
             >
               <option value={Environment.DEVELOPMENT}>Development</option>
@@ -154,7 +175,7 @@ export default function CreateDrift() {
               value={formData.attributes.priority}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, priority: Number(e.target.value) as Priority }
+                attributes: { ...formData.attributes, priority: Number(e.target.value) as unknown as Priority }
               })}
             >
               <option value={Priority.P1}>P1 - Critique (impact production)</option>
@@ -172,7 +193,7 @@ export default function CreateDrift() {
               value={formData.attributes.status}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
+                attributes: { ...formData.attributes, status: Number(e.target.value) as unknown as Status }
               })}
             >
               <option value={Status.OPEN}>Ouvert (détecté)</option>
@@ -183,25 +204,7 @@ export default function CreateDrift() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Source de détection <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.attributes.source}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { ...formData.attributes, source: e.target.value }
-            })}
-            placeholder="Ex: terraform_drift, cloudformation_drift, manual_detection"
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Outil ou méthode ayant détecté le drift (terraform, cloudformation, script custom, etc.)
-          </p>
-        </div>
+
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -241,9 +244,12 @@ export default function CreateDrift() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner / Responsable</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Owner / Responsable <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
+            required
             className="input"
             value={formData.attributes.owner || ''}
             onChange={(e) => setFormData({
