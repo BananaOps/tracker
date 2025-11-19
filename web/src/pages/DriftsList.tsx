@@ -1,14 +1,19 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { EventType, Status } from '../types/api'
+import type { Event } from '../types/api'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
+import EventDetailsModal from '../components/EventDetailsModal'
 
 export default function DriftsList() {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'drifts'],
     queryFn: () => eventsApi.search({ type: EventType.DRIFT }),
@@ -73,7 +78,11 @@ export default function DriftsList() {
 
       <div className="space-y-4">
         {drifts.map((drift) => (
-          <div key={drift.metadata?.id} className="card">
+          <div 
+            key={drift.metadata?.id} 
+            className="card cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setSelectedEvent(drift)}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-2 flex-wrap">
@@ -143,6 +152,14 @@ export default function DriftsList() {
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           No drifts detected
         </div>
+      )}
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal 
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
       )}
     </div>
   )

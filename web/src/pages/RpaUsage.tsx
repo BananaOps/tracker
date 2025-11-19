@@ -1,14 +1,19 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { EventType } from '../types/api'
+import type { Event } from '../types/api'
 import { TrendingUp, Clock, Plus } from 'lucide-react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWrench } from '@fortawesome/free-solid-svg-icons'
+import EventDetailsModal from '../components/EventDetailsModal'
 
 export default function RpaUsage() {
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'operations'],
     queryFn: () => eventsApi.search({ type: EventType.OPERATION }),
@@ -119,7 +124,11 @@ export default function RpaUsage() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Operations</h3>
         <div className="space-y-3">
           {rpaOperations.slice(0, 10).map((op) => (
-            <div key={op.metadata?.id} className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div 
+              key={op.metadata?.id} 
+              className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={() => setSelectedEvent(op)}
+            >
               <div className="flex-1">
                 <p className="font-medium text-gray-900 dark:text-gray-100">{op.title}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{op.attributes.message}</p>
@@ -144,6 +153,14 @@ export default function RpaUsage() {
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           No RPA operations recorded
         </div>
+      )}
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <EventDetailsModal 
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
       )}
     </div>
   )
