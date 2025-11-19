@@ -8,7 +8,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWrench } from '@fortawesome/free-solid-svg-icons'
+import { faRobot } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
 
 export default function RpaUsage() {
@@ -64,7 +64,7 @@ export default function RpaUsage() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="card">
           <div className="flex items-center">
-            <FontAwesomeIcon icon={faWrench} className="h-6 w-6 text-purple-600" />
+            <FontAwesomeIcon icon={faRobot} className="h-6 w-6 icon-gradient" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Total RPA Operations</p>
               <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{rpaOperations.length}</p>
@@ -113,29 +113,62 @@ export default function RpaUsage() {
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Operations</h3>
-        <div className="space-y-3">
-          {rpaOperations.slice(0, 10).map((op) => (
-            <div 
-              key={op.metadata?.id} 
-              className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              onClick={() => setSelectedEvent(op)}
-            >
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-gray-100">{op.title}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{op.attributes.message}</p>
-                <div className="flex items-center space-x-4 mt-2 text-xs">
-                  <div className="flex items-center space-x-2">
+      <div className="space-y-4">
+        {rpaOperations.slice(0, 10).map((op) => (
+          <div 
+            key={op.metadata?.id} 
+            className="card cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setSelectedEvent(op)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-2 flex-wrap">
+                  <FontAwesomeIcon icon={faRobot} className="w-5 h-5 icon-gradient flex-shrink-0" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words flex-1 min-w-0">{op.title}</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    op.attributes.status === 'success' || op.attributes.status === 'done'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      : op.attributes.status === 'failure' || op.attributes.status === 'error'
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                  }`}>
+                    {String(op.attributes.status).charAt(0).toUpperCase() + String(op.attributes.status).slice(1)}
+                  </span>
+                </div>
+
+                <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{op.attributes.message}</p>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="min-w-0 flex items-center space-x-2">
                     <span className="text-gray-500 dark:text-gray-400">Service:</span>
-                    <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono font-semibold">
+                    <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono text-xs font-semibold">
                       {op.attributes.service}
                     </span>
                   </div>
-                  <span className="text-gray-500 dark:text-gray-400">Source: <span className="font-medium text-gray-700 dark:text-gray-300">{op.attributes.source}</span></span>
+                  <div className="min-w-0">
+                    <span className="text-gray-500 dark:text-gray-400">Source:</span>
+                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100 break-words">{op.attributes.source}</span>
+                  </div>
+                  {op.attributes.environment && (
+                    <div className="min-w-0">
+                      <span className="text-gray-500 dark:text-gray-400">Environment:</span>
+                      <span className="ml-2 font-medium text-gray-900 dark:text-gray-100 break-words">
+                        {op.attributes.environment}
+                      </span>
+                    </div>
+                  )}
+                  {op.attributes.owner && (
+                    <div className="min-w-0">
+                      <span className="text-gray-500 dark:text-gray-400">Owner:</span>
+                      <span className="ml-2 font-medium text-gray-900 dark:text-gray-100 break-words">{op.attributes.owner}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4">
+
+              <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
                 {op.metadata?.createdAt && (
                   <time>
                     {format(new Date(op.metadata.createdAt), 'PPp', { locale: fr })}
@@ -143,8 +176,8 @@ export default function RpaUsage() {
                 )}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       {rpaOperations.length === 0 && (

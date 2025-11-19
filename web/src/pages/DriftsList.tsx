@@ -1,25 +1,105 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { eventsApi } from '../lib/api'
+import { eventsApi, catalogApi } from '../lib/api'
 import { EventType, Status } from '../types/api'
 import type { Event } from '../types/api'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertTriangle, Plus } from 'lucide-react'
+import { AlertTriangle, Plus, Filter, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
+import { getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 
 export default function DriftsList() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
+  
+  // États des filtres
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
+  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
   
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'drifts'],
     queryFn: () => eventsApi.search({ type: EventType.DRIFT as unknown as number }),
   })
 
-  const drifts = data?.events || []
+  // Charger le catalogue pour la liste des services
+  const { data: catalogData, isLoading: catalogLoading } = useQuery({
+    queryKey: ['catalogs', 'list'],
+    queryFn: () => catalogApi.list({ perPage: 1000 }),
+  })
+
+  const allDrifts = data?.events || []
+  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
+  
+  // Extraire les valeurs uniques pour les filtres
+  const uniqueEnvironments = useMemo(() => {
+    return Array.from(new Set(allDrifts.map(e => e.attributes.environment).filter(Boolean))).sort()
+  }, [allDrifts])
+
+  const uniquePriorities = useMemo(() => {
+    return Array.from(new Set(allDrifts.map(e => e.attributes.priority))).sort()
+  }, [allDrifts])
+
+  const uniqueStatuses = useMemo(() => {
+    return Array.from(new Set(allDrifts.map(e => e.attributes.status))).sort()
+  }, [allDrifts])
+
+  // Filtrer les drifts
+  const drifts = useMemo(() => {
+    return allDrifts.filter(drift => {
+      // Filtre par environnement
+      if (selectedEnvironments.length > 0) {
+        const driftEnv = String(drift.attributes.environment || '').toLowerCase()
+        const hasMatch = selectedEnvironments.some(env => env.toLowerCase() === driftEnv)
+        if (!hasMatch) return false
+      }
+
+      // Filtre par priorité
+      if (selectedPriorities.length > 0) {
+        const driftPriority = String(drift.attributes.priority || '').toLowerCase()
+        const hasMatch = selectedPriorities.some(priority => priority.toLowerCase() === driftPriority)
+        if (!hasMatch) return false
+      }
+
+      // Filtre par status
+      if (selectedStatuses.length > 0) {
+        const driftStatus = String(drift.attributes.status || '').toLowerCase()
+        const hasMatch = selectedStatuses.some(status => status.toLowerCase() === driftStatus)
+        if (!hasMatch) return false
+      }
+
+      // Filtre par service
+      if (selectedServices.length > 0) {
+        if (!selectedServices.includes(drift.attributes.service)) return false
+      }
+
+      return true
+    })
+  }, [allDrifts, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
+
+  // Fonctions pour gérer les filtres
+  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
+    if (selected.includes(value)) {
+      setter(selected.filter(v => v !== value))
+    } else {
+      setter([...selected, value])
+    }
+  }
+
+  const clearAllFilters = () => {
+    setSelectedEnvironments([])
+    setSelectedPriorities([])
+    setSelectedStatuses([])
+    setSelectedServices([])
+  }
+
+  const activeFiltersCount = selectedEnvironments.length + selectedPriorities.length + 
+    selectedStatuses.length + selectedServices.length
 
   if (isLoading) {
     return <div className="text-center py-12">Chargement...</div>
@@ -31,14 +111,135 @@ export default function DriftsList() {
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Configuration Drifts</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Configuration drift detection ({drifts.length} drifts detected)
+            Configuration drift detection ({drifts.length} drift{drifts.length > 1 ? 's' : ''} detected)
+            {activeFiltersCount > 0 && (
+              <span className="ml-2 text-primary-600 font-medium">
+                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
+              </span>
+            )}
           </p>
         </div>
-        <Link to="/drifts/create" className="btn-primary flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Create Drift</span>
-        </Link>
+        <div className="flex items-center space-x-3">
+          <Link to="/drifts/create" className="btn-primary flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Create Drift</span>
+          </Link>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+              showFilters || activeFiltersCount > 0
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
+
+      {showFilters && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
+              >
+                <X className="w-4 h-4" />
+                <span>Clear All Filters</span>
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Filtre Environment */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</h4>
+              <div className="space-y-2">
+                {uniqueEnvironments.map(env => (
+                  <label key={env} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedEnvironments.includes(String(env))}
+                      onChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEnvironmentLabel(env)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Filtre Priority */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
+              <div className="space-y-2">
+                {uniquePriorities.map(priority => (
+                  <label key={priority} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedPriorities.includes(String(priority))}
+                      onChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getPriorityLabel(priority)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Filtre Status */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
+              <div className="space-y-2">
+                {uniqueStatuses.map(status => (
+                  <label key={status} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedStatuses.includes(String(status))}
+                      onChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getStatusLabel(status)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Filtre Service (depuis le catalogue) */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Service (Catalog)
+                {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
+              </h4>
+              {catalogServices.length > 0 ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {catalogServices.map((service: string) => (
+                    <label key={service} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedServices.includes(service)}
+                        onChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
+                        className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={service}>{service}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services in catalog</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="card">
@@ -151,8 +352,18 @@ export default function DriftsList() {
       </div>
 
       {drifts.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          No drifts detected
+        <div className="card text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400 text-lg">
+            {activeFiltersCount > 0 ? 'No drifts found with selected filters' : 'No drifts detected'}
+          </p>
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={clearAllFilters}
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Clear All Filters
+            </button>
+          )}
         </div>
       )}
 
