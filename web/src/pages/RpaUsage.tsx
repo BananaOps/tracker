@@ -16,7 +16,7 @@ export default function RpaUsage() {
   
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'operations'],
-    queryFn: () => eventsApi.search({ type: EventType.OPERATION }),
+    queryFn: () => eventsApi.search({ type: EventType.OPERATION as unknown as number }),
   })
 
   const operations = data?.events || []

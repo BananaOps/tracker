@@ -9,7 +9,7 @@ interface EventLinksProps {
   className?: string
 }
 
-export default function EventLinks({ links, source, slackId, className = '' }: EventLinksProps) {
+export default function EventLinks({ links, className = '' }: EventLinksProps) {
   const hasLinks = links?.pullRequestLink || links?.ticket
   
   // Debug
@@ -104,10 +104,9 @@ function isJiraTicket(ticket: string): boolean {
 function getTicketUrl(ticket: string): string {
   console.log('getTicketUrl - ticket:', ticket)
   console.log('getTicketUrl - isJiraTicket:', isJiraTicket(ticket))
-  console.log('getTicketUrl - VITE_JIRA_URL:', import.meta.env.VITE_JIRA_URL)
   
   if (isJiraTicket(ticket)) {
-    const jiraBaseUrl = import.meta.env.VITE_JIRA_URL || 'https://jira.company.com'
+    const jiraBaseUrl = (import.meta as any).env?.VITE_JIRA_URL || 'https://jira.company.com'
     const url = `${jiraBaseUrl}/browse/${ticket}`
     console.log('getTicketUrl - Generated URL:', url)
     return url
@@ -115,13 +114,6 @@ function getTicketUrl(ticket: string): string {
   // Pour les autres types de tickets, retourner un lien de recherche
   console.log('getTicketUrl - Not a Jira ticket, using fallback')
   return `#ticket-${ticket}`
-}
-
-// Helper pour générer l'URL Slack
-function getSlackUrl(slackId: string): string {
-  // Format Slack: workspace/channel/message
-  const slackWorkspace = import.meta.env.VITE_SLACK_WORKSPACE || 'your-workspace'
-  return `https://${slackWorkspace}.slack.com/archives/${slackId}`
 }
 
 // Composant pour afficher l'icône de source

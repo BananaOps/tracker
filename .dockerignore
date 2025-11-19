@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+*.md
+docs/
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+
+# IDE
+.vscode/
+.idea/
+
+# Node modules (will be installed in Docker)
+web/node_modules/
+
+# Build artifacts
+web/dist/
+tracker
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Kubernetes
+helm/
+skaffold.yaml
+
+# Misc
+.env
+.env.local
+.env.production
+
+# Scripts
+scripts/
+
+# Docker
+docker-compose.yml

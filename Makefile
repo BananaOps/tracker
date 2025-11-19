@@ -45,3 +45,40 @@ lint: ## lint protobuf, go files
 .PHONY: run
 run: ## skaffold run to deploy app on k8s
 	skaffold run
+
+.PHONY: dev
+dev: ## skaffold dev for local development with hot-reload
+	skaffold dev -f skaffold.dev.yaml
+
+.PHONY: deploy
+deploy: ## Deploy to kubernetes with skaffold
+	skaffold deploy
+
+.PHONY: delete
+delete: ## Delete deployment from kubernetes
+	skaffold delete
+
+##@ Docker
+
+.PHONY: docker-build
+docker-build: ## Build Docker image with frontend and backend
+	docker build -t bananaops/tracker:latest .
+
+.PHONY: docker-run
+docker-run: ## Run Docker container locally
+	docker run -p 8080:8080 -p 8081:8081 -p 8765:8765 bananaops/tracker:latest
+
+.PHONY: docker-build-run
+docker-build-run: docker-build docker-run ## Build and run Docker container
+
+.PHONY: docker-compose-up
+docker-compose-up: ## Start application with docker-compose
+	docker-compose up -d
+
+.PHONY: docker-compose-down
+docker-compose-down: ## Stop application with docker-compose
+	docker-compose down
+
+.PHONY: docker-compose-logs
+docker-compose-logs: ## Show logs from docker-compose
+	docker-compose logs -f

@@ -1,0 +1,51 @@
+apiVersion: skaffold/v2beta28
+kind: Config
+build:
+  artifacts:
+    - image: bananaops/tracker
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          BUILDKIT_INLINE_CACHE: "1"
+      sync:
+        manual:
+          - src: 'web/dist/**/*'
+            dest: /root/web/dist
+  tagPolicy:
+    sha256: {}
+  local:
+    push: false
+    useBuildkit: true
+deploy:
+  helm:
+    releases:
+      - name: tracker-dev
+        chartPath: helm/tracker
+        namespace: tracker
+        createNamespace: true
+        artifactOverrides:
+          image: bananaops/tracker
+        imageStrategy:
+          helm: {}
+        setValues:
+          replicaCount: 1
+          resources.requests.cpu: "100m"
+          resources.requests.memory: "128Mi"
+          resources.limits.cpu: "500m"
+          resources.limits.memory: "512Mi"
+portForward:
+  - resourceType: service
+    resourceName: tracker-dev
+    namespace: tracker
+    port: 8080
+    localPort: 8080
+  - resourceType: service
+    resourceName: tracker-dev
+    namespace: tracker
+    port: 8081
+    localPort: 8081
+  - resourceType: service
+    resourceName: tracker-dev
+    namespace: tracker
+    port: 8765
+    localPort: 8765

@@ -2,9 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, subDays, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Status, Priority, EventType, Environment } from '../types/api'
 import type { Event } from '../types/api'
-import { Clock, AlertCircle, CheckCircle, XCircle, Filter, X } from 'lucide-react'
+import { Filter, X } from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
@@ -150,19 +149,7 @@ export default function EventsTimeline() {
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
 
-  const getStatusIcon = (status: Status) => {
-    switch (status) {
-      case Status.SUCCESS:
-        return <CheckCircle className="w-5 h-5 text-green-500" />
-      case Status.FAILURE:
-      case Status.ERROR:
-        return <XCircle className="w-5 h-5 text-red-500" />
-      case Status.START:
-        return <Clock className="w-5 h-5 text-yellow-500" />
-      default:
-        return <AlertCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-    }
-  }
+  // Removed unused getStatusIcon function
 
   if (isLoading || catalogLoading) {
     return <div className="text-center py-12">Chargement...</div>

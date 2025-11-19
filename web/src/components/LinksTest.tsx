@@ -19,7 +19,7 @@ export default function LinksTest() {
         <div className="text-xs text-gray-500 space-y-1">
           <p>PR Link: {testLinks.pullRequestLink}</p>
           <p>Ticket: {testLinks.ticket}</p>
-          <p>VITE_JIRA_URL: {import.meta.env.VITE_JIRA_URL || 'non défini'}</p>
+          <p>VITE_JIRA_URL: {(import.meta as any).env?.VITE_JIRA_URL || 'non défini'}</p>
         </div>
 
         <div className="border-t pt-4">

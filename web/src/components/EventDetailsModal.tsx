@@ -5,7 +5,7 @@ import { fr } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import type { Event } from '../types/api'
-import { EventType, Priority, Status, Environment } from '../types/api'
+import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from './EventLinks'
 

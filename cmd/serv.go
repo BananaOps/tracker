@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -91,10 +93,52 @@ var serv = &cobra.Command{
 		handler := slog.NewJSONHandler(os.Stdout, nil)
 		httplogger := slog.NewLogLogger(handler, slog.LevelError)
 
+		// Determine HTTP handler based on frontend availability
+		var httpHandler http.Handler
+		frontendDir := "web/dist"
+		if _, err := os.Stat(frontendDir); err == nil {
+			slog.Info("Serving frontend from", "path", frontendDir)
+
+			// Create a file server for static assets
+			fileServer := http.FileServer(http.Dir(frontendDir))
+
+			// Custom handler to serve index.html for SPA routes
+			httpHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Check if path starts with /api/ - if so, let the API handler deal with it
+				if strings.HasPrefix(r.URL.Path, "/api/") ||
+					strings.HasPrefix(r.URL.Path, "/swagger.json") ||
+					strings.HasPrefix(r.URL.Path, "/docs") {
+					mux.ServeHTTP(w, r)
+					return
+				}
+
+				// Get the absolute path to prevent directory traversal
+				path := filepath.Join(frontendDir, r.URL.Path)
+
+				// Check if file exists
+				_, err := os.Stat(path)
+				if os.IsNotExist(err) {
+					// File does not exist, serve index.html for SPA routing
+					http.ServeFile(w, r, filepath.Join(frontendDir, "index.html"))
+					return
+				} else if err != nil {
+					// Other error, return 500
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// File exists, serve it
+				fileServer.ServeHTTP(w, r)
+			})
+		} else {
+			slog.Warn("Frontend directory not found, serving API only", "path", frontendDir)
+			httpHandler = mux
+		}
+
 		httpServer := &http.Server{
 			Addr:              "0.0.0.0:8080",
 			ReadHeaderTimeout: 2 * time.Second, // Fix CWE-400 Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server
-			Handler:           mux,
+			Handler:           httpHandler,
 			ErrorLog:          httplogger,
 		}
 

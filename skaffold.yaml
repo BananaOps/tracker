@@ -3,7 +3,12 @@ kind: Config
 build:
   artifacts:
     - image: bananaops/tracker
-      ko: {}
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          BUILDKIT_INLINE_CACHE: "1"
+  tagPolicy:
+    gitCommit: {}
 deploy:
   helm:
     releases:

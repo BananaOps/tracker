@@ -16,7 +16,7 @@ export default function DriftsList() {
   
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'drifts'],
-    queryFn: () => eventsApi.search({ type: EventType.DRIFT }),
+    queryFn: () => eventsApi.search({ type: EventType.DRIFT as unknown as number }),
   })
 
   const drifts = data?.events || []
