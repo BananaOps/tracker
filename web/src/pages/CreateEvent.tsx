@@ -48,13 +48,13 @@ export default function CreateEvent() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Create Event</h2>
-        <p className="mt-1 text-sm text-gray-500">Register a new event in the system</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Event</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new event in the system</p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
           <input
             type="text"
             required
@@ -67,7 +67,7 @@ export default function CreateEvent() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
             <select
               className="select"
               value={formData.attributes.type}
@@ -84,7 +84,7 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -104,7 +104,7 @@ export default function CreateEvent() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -122,7 +122,7 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environment</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -142,7 +142,7 @@ export default function CreateEvent() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Service</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service</label>
             <input
               type="text"
               required
@@ -157,7 +157,7 @@ export default function CreateEvent() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Author</label>
             <input
               type="text"
               required
@@ -173,7 +173,7 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message</label>
           <textarea
             required
             rows={3}
@@ -188,7 +188,7 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pull Request (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pull Request (optional)</label>
           <input
             type="url"
             className="input"
@@ -202,7 +202,7 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket (optional)</label>
           <input
             type="text"
             className="input"

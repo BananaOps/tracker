@@ -36,13 +36,13 @@ export default function CreateCatalog() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900">Add to Catalog</h2>
-        <p className="mt-1 text-sm text-gray-500">Register a new module, library or project</p>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Add to Catalog</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new module, library or project</p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
           <input
             type="text"
             required
@@ -55,7 +55,7 @@ export default function CreateCatalog() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
             <select
               className="select"
               value={formData.type}
@@ -72,7 +72,7 @@ export default function CreateCatalog() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language</label>
             <select
               className="select"
               value={formData.languages}
@@ -97,7 +97,7 @@ export default function CreateCatalog() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Version</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Version</label>
             <input
               type="text"
               required
@@ -109,7 +109,7 @@ export default function CreateCatalog() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Owner</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner</label>
             <input
               type="text"
               required
@@ -122,7 +122,7 @@ export default function CreateCatalog() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
           <textarea
             rows={3}
             className="input"
@@ -133,7 +133,7 @@ export default function CreateCatalog() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Repository (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Repository (optional)</label>
           <input
             type="url"
             className="input"
@@ -144,7 +144,7 @@ export default function CreateCatalog() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Documentation (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Documentation (optional)</label>
           <input
             type="url"
             className="input"

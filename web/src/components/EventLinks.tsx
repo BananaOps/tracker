@@ -30,10 +30,10 @@ export default function EventLinks({ links, source, slackId, className = '' }: E
           href={links.pullRequestLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           title={`Voir la Pull Request: ${links.pullRequestLink}`}
         >
-          <FontAwesomeIcon icon={faGithub} className="w-4 h-4" />
+          <FontAwesomeIcon icon={faGithub} className="w-4 h-4 text-gray-800 dark:text-gray-300" />
           <span>PR #{extractPRNumber(links.pullRequestLink)}</span>
         </a>
       )}
@@ -48,10 +48,10 @@ export default function EventLinks({ links, source, slackId, className = '' }: E
             href={ticketUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             title={`Voir le ticket: ${ticketId}`}
           >
-            <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faJira} className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{ticketId}</span>
           </a>
         )
@@ -134,15 +134,15 @@ export function SourceIcon({ source, className = 'w-4 h-4' }: SourceIconProps) {
   const sourceLower = source.toLowerCase()
 
   if (sourceLower.includes('slack')) {
-    return <FontAwesomeIcon icon={faSlack} className={`${className} text-purple-600`} />
+    return <FontAwesomeIcon icon={faSlack} className={`${className} text-purple-600 dark:text-purple-400`} />
   }
 
   if (sourceLower.includes('github')) {
-    return <FontAwesomeIcon icon={faGithub} className={`${className} text-gray-800`} />
+    return <FontAwesomeIcon icon={faGithub} className={`${className} text-gray-800 dark:text-gray-300`} />
   }
 
   if (sourceLower.includes('jira')) {
-    return <FontAwesomeIcon icon={faJira} className={`${className} text-blue-600`} />
+    return <FontAwesomeIcon icon={faJira} className={`${className} text-blue-600 dark:text-blue-400`} />
   }
 
   return null

@@ -11,7 +11,7 @@ import { useState, useMemo } from 'react'
 type TimeFilter = 7 | 15 | 30 | 'all'
 
 export default function EventsTimeline() {
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>(30)
   const [showFilters, setShowFilters] = useState(false)
   
   // États des filtres
@@ -157,7 +157,7 @@ export default function EventsTimeline() {
       case Status.START:
         return <Clock className="w-5 h-5 text-yellow-500" />
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-500" />
+        return <AlertCircle className="w-5 h-5 text-gray-500 dark:text-gray-400" />
     }
   }
 
@@ -169,8 +169,8 @@ export default function EventsTimeline() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Events Timeline</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Events Timeline</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Chronological History ({events.length} event{events.length > 1 ? 's' : ''})
             {activeFiltersCount > 0 && (
               <span className="ml-2 text-primary-600 font-medium">
@@ -186,13 +186,13 @@ export default function EventsTimeline() {
             className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
               showFilters || activeFiltersCount > 0
                 ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
             }`}
           >
             <Filter className="w-4 h-4" />
             <span>Filters</span>
             {activeFiltersCount > 0 && (
-              <span className="px-2 py-0.5 text-xs bg-white text-primary-600 rounded-full font-medium">
+              <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
                 {activeFiltersCount}
               </span>
             )}
@@ -204,7 +204,7 @@ export default function EventsTimeline() {
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                 timeFilter === 7
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
               7 days
@@ -214,7 +214,7 @@ export default function EventsTimeline() {
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                 timeFilter === 15
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
               15 days
@@ -224,7 +224,7 @@ export default function EventsTimeline() {
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                 timeFilter === 30
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
               30 days
@@ -234,7 +234,7 @@ export default function EventsTimeline() {
               className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                 timeFilter === 'all'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
               }`}
             >
               All
@@ -246,7 +246,7 @@ export default function EventsTimeline() {
       {showFilters && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Advanced Filters</h3>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
@@ -261,7 +261,7 @@ export default function EventsTimeline() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Filtre Type */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Event Type</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Type</h4>
               <div className="space-y-2">
                 {uniqueTypes.map(type => (
                   <label key={type} className="flex items-center space-x-2 cursor-pointer">
@@ -269,9 +269,9 @@ export default function EventsTimeline() {
                       type="checkbox"
                       checked={selectedTypes.includes(String(type))}
                       onChange={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getEventTypeLabel(type)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEventTypeLabel(type)}</span>
                   </label>
                 ))}
               </div>
@@ -279,7 +279,7 @@ export default function EventsTimeline() {
 
             {/* Filtre Environnement */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Environment</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</h4>
               <div className="space-y-2">
                 {uniqueEnvironments.map(env => (
                   <label key={env} className="flex items-center space-x-2 cursor-pointer">
@@ -287,9 +287,9 @@ export default function EventsTimeline() {
                       type="checkbox"
                       checked={selectedEnvironments.includes(String(env))}
                       onChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getEnvironmentLabel(env)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEnvironmentLabel(env)}</span>
                   </label>
                 ))}
               </div>
@@ -297,7 +297,7 @@ export default function EventsTimeline() {
 
             {/* Filtre Priorité */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Priority</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
               <div className="space-y-2">
                 {uniquePriorities.map(priority => (
                   <label key={priority} className="flex items-center space-x-2 cursor-pointer">
@@ -305,9 +305,9 @@ export default function EventsTimeline() {
                       type="checkbox"
                       checked={selectedPriorities.includes(String(priority))}
                       onChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getPriorityLabel(priority)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getPriorityLabel(priority)}</span>
                   </label>
                 ))}
               </div>
@@ -315,7 +315,7 @@ export default function EventsTimeline() {
 
             {/* Filtre Status */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Status</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
               <div className="space-y-2">
                 {uniqueStatuses.map(status => (
                   <label key={status} className="flex items-center space-x-2 cursor-pointer">
@@ -323,9 +323,9 @@ export default function EventsTimeline() {
                       type="checkbox"
                       checked={selectedStatuses.includes(String(status))}
                       onChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getStatusLabel(status)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getStatusLabel(status)}</span>
                   </label>
                 ))}
               </div>
@@ -333,9 +333,9 @@ export default function EventsTimeline() {
 
             {/* Filtre Service (depuis le catalogue) */}
             <div className="md:col-span-2">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Service (Catalog)
-                {catalogLoading && <span className="ml-2 text-xs text-gray-500">Loading...</span>}
+                {catalogLoading && <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">Loading...</span>}
               </h4>
               {catalogServices.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
@@ -345,14 +345,14 @@ export default function EventsTimeline() {
                         type="checkbox"
                         checked={selectedServices.includes(service)}
                         onChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                       />
-                      <span className="text-sm text-gray-700 truncate" title={service}>{service}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={service}>{service}</span>
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">No services in catalog</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services in catalog</p>
               )}
             </div>
           </div>
@@ -362,7 +362,7 @@ export default function EventsTimeline() {
       <div className="relative">
         {events.length === 0 ? (
           <div className="card text-center py-12">
-            <p className="text-gray-500 text-lg">No events found with selected filters</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">No events found with selected filters</p>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
@@ -374,7 +374,7 @@ export default function EventsTimeline() {
           </div>
         ) : (
           <>
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
             
             <div className="space-y-6" key={`timeline-${events.length}-${activeFiltersCount}`}>
               {events.map((event, index) => {
@@ -384,7 +384,7 @@ export default function EventsTimeline() {
                 const typeColor = getEventTypeColor(event.attributes.type)
                 return (
               <div key={event.metadata?.id} className="relative flex items-start space-x-4">
-                <div className={`relative z-10 flex items-center justify-center w-16 h-16 bg-white border-2 ${typeColor.border} rounded-full`}>
+                <div className={`relative z-10 flex items-center justify-center w-16 h-16 bg-white dark:bg-gray-800 border-2 ${typeColor.border} rounded-full`}>
                   {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
                 </div>
                 
@@ -409,12 +409,12 @@ export default function EventsTimeline() {
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-gray-900 break-words">{event.title}</h3>
-                      <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-32 overflow-y-auto">
-                        <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{event.attributes.message}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">{event.title}</h3>
+                      <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
                       </div>
                       
-                      <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
                         <span>Service: <span className="font-medium">{event.attributes.service}</span></span>
                         <span className="flex items-center space-x-1">
                           <span>Source:</span>
@@ -434,7 +434,7 @@ export default function EventsTimeline() {
                       />
                     </div>
                     
-                    <div className="text-right text-sm text-gray-500">
+                    <div className="text-right text-sm text-gray-500 dark:text-gray-400">
                       {event.metadata?.createdAt && (
                         <time>
                           {format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}

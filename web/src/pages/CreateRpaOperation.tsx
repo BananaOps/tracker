@@ -43,8 +43,8 @@ export default function CreateRpaOperation() {
       <div className="flex items-center space-x-3">
         <FontAwesomeIcon icon={faWrench} className="w-8 h-8 text-purple-600" />
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Create RPA Operation</h2>
-          <p className="mt-1 text-sm text-gray-500">Register an RPA automation operation</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create RPA Operation</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register an RPA automation operation</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Operation Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -78,7 +78,7 @@ export default function CreateRpaOperation() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Service / RPA Robot <span className="text-red-500">*</span>
             </label>
             <input
@@ -98,7 +98,7 @@ export default function CreateRpaOperation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environment</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -119,7 +119,7 @@ export default function CreateRpaOperation() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Operation Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Operation Status</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -138,7 +138,7 @@ export default function CreateRpaOperation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -157,7 +157,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Source / RPA Platform <span className="text-red-500">*</span>
           </label>
           <input
@@ -177,7 +177,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Operation Description <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -195,7 +195,7 @@ export default function CreateRpaOperation() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
             <input
               type="datetime-local"
               className="input"
@@ -208,7 +208,7 @@ export default function CreateRpaOperation() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
             <input
               type="datetime-local"
               className="input"
@@ -222,7 +222,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Owner / Responsible</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner / Responsible</label>
           <input
             type="text"
             className="input"
@@ -236,7 +236,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Stakeholders (comma separated)
           </label>
           <input
@@ -255,7 +255,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket / Reference</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket / Reference</label>
           <input
             type="text"
             className="input"
@@ -269,7 +269,7 @@ export default function CreateRpaOperation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Link to logs / dashboard</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Link to logs / dashboard</label>
           <input
             type="url"
             className="input"

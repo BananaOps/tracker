@@ -44,8 +44,8 @@ export default function CreateDrift() {
       <div className="flex items-center space-x-3">
         <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 text-yellow-600" />
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Créer un Drift</h2>
-          <p className="mt-1 text-sm text-gray-500">Enregistrer une dérive de configuration détectée</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Créer un Drift</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Enregistrer une dérive de configuration détectée</p>
         </div>
       </div>
 
@@ -64,7 +64,7 @@ export default function CreateDrift() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Titre du drift <span className="text-red-500">*</span>
           </label>
           <input
@@ -79,7 +79,7 @@ export default function CreateDrift() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Service concerné <span className="text-red-500">*</span>
             </label>
             <input
@@ -96,7 +96,7 @@ export default function CreateDrift() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environnement</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environnement</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -117,7 +117,7 @@ export default function CreateDrift() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priorité</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -135,7 +135,7 @@ export default function CreateDrift() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Statut</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -153,7 +153,7 @@ export default function CreateDrift() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Source de détection <span className="text-red-500">*</span>
           </label>
           <input
@@ -167,13 +167,13 @@ export default function CreateDrift() {
             })}
             placeholder="Ex: terraform_drift, cloudformation_drift, manual_detection"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Outil ou méthode ayant détecté le drift (terraform, cloudformation, script custom, etc.)
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Description du drift <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -198,19 +198,19 @@ export default function CreateDrift() {
                 ...formData,
                 attributes: { ...formData.attributes, impact: e.target.checked }
               })}
-              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Ce drift a un impact sur le service
             </span>
           </label>
-          <p className="text-xs text-gray-500 mt-1 ml-6">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
             Cochez si le drift affecte le fonctionnement du service ou la sécurité
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Owner / Responsable</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Owner / Responsable</label>
           <input
             type="text"
             className="input"
@@ -224,7 +224,7 @@ export default function CreateDrift() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ticket associé</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket associé</label>
           <input
             type="text"
             className="input"

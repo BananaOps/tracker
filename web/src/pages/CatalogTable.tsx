@@ -91,7 +91,7 @@ export default function CatalogTable() {
       case 'groovy':
         return <FontAwesomeIcon icon={faCode} className="w-4 h-4 text-teal-600" />
       default:
-        return <FontAwesomeIcon icon={faCode} className="w-4 h-4 text-gray-600" />
+        return <FontAwesomeIcon icon={faCode} className="w-4 h-4 text-gray-600 dark:text-gray-400" />
     }
   }
 
@@ -103,8 +103,8 @@ export default function CatalogTable() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Catalogue</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Catalogue</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Inventory of modules, libraries and projects ({catalogs.length} items)
           </p>
         </div>
@@ -118,39 +118,39 @@ export default function CatalogTable() {
 
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Nom
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Langage
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Version
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Owner
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Liens
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {catalogs.map((catalog) => (
-                <tr key={catalog.name} className="hover:bg-gray-50">
+                <tr key={catalog.name} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <Package className="w-5 h-5 text-gray-400 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">{catalog.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{catalog.name}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -167,10 +167,10 @@ export default function CatalogTable() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {catalog.version}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {catalog.owner}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
                     {catalog.description || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -207,7 +207,7 @@ export default function CatalogTable() {
       </div>
 
       {catalogs.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           No items in catalog
         </div>
       )}

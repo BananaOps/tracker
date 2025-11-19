@@ -140,8 +140,8 @@ export default function EventsCalendar() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Events Calendar</h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Events Calendar</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Monthly View ({events.length} event{events.length > 1 ? 's' : ''})
             {activeFiltersCount > 0 && (
               <span className="ml-2 text-primary-600 font-medium">
@@ -156,13 +156,13 @@ export default function EventsCalendar() {
           className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
             showFilters || activeFiltersCount > 0
               ? 'bg-primary-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
           }`}
         >
           <Filter className="w-4 h-4" />
           <span>Filtres</span>
           {activeFiltersCount > 0 && (
-            <span className="px-2 py-0.5 text-xs bg-white text-primary-600 rounded-full font-medium">
+            <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
               {activeFiltersCount}
             </span>
           )}
@@ -172,7 +172,7 @@ export default function EventsCalendar() {
       {showFilters && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h3>
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearAllFilters}
@@ -187,7 +187,7 @@ export default function EventsCalendar() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {/* Filtre Type */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Type d'événement</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type d'événement</h4>
               <div className="space-y-2">
                 {uniqueTypes.map(type => (
                   <label key={type} className="flex items-center space-x-2 cursor-pointer">
@@ -195,9 +195,9 @@ export default function EventsCalendar() {
                       type="checkbox"
                       checked={selectedTypes.includes(String(type))}
                       onChange={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getEventTypeLabel(type)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEventTypeLabel(type)}</span>
                   </label>
                 ))}
               </div>
@@ -205,7 +205,7 @@ export default function EventsCalendar() {
 
             {/* Filtre Environnement */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Environnement</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environnement</h4>
               <div className="space-y-2">
                 {uniqueEnvironments.map(env => (
                   <label key={env} className="flex items-center space-x-2 cursor-pointer">
@@ -213,9 +213,9 @@ export default function EventsCalendar() {
                       type="checkbox"
                       checked={selectedEnvironments.includes(String(env))}
                       onChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getEnvironmentLabel(env)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEnvironmentLabel(env)}</span>
                   </label>
                 ))}
               </div>
@@ -223,7 +223,7 @@ export default function EventsCalendar() {
 
             {/* Filtre Priorité */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Priorité</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priorité</h4>
               <div className="space-y-2">
                 {uniquePriorities.map(priority => (
                   <label key={priority} className="flex items-center space-x-2 cursor-pointer">
@@ -231,9 +231,9 @@ export default function EventsCalendar() {
                       type="checkbox"
                       checked={selectedPriorities.includes(String(priority))}
                       onChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getPriorityLabel(priority)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getPriorityLabel(priority)}</span>
                   </label>
                 ))}
               </div>
@@ -241,7 +241,7 @@ export default function EventsCalendar() {
 
             {/* Filtre Status */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Status</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
               <div className="space-y-2">
                 {uniqueStatuses.map(status => (
                   <label key={status} className="flex items-center space-x-2 cursor-pointer">
@@ -249,9 +249,9 @@ export default function EventsCalendar() {
                       type="checkbox"
                       checked={selectedStatuses.includes(String(status))}
                       onChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-700">{getStatusLabel(status)}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{getStatusLabel(status)}</span>
                   </label>
                 ))}
               </div>
@@ -259,9 +259,9 @@ export default function EventsCalendar() {
 
             {/* Filtre Service (depuis le catalogue) */}
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Service (Catalogue)
-                {catalogLoading && <span className="ml-2 text-xs text-gray-500">Chargement...</span>}
+                {catalogLoading && <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">Chargement...</span>}
               </h4>
               {catalogServices.length > 0 ? (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -271,14 +271,14 @@ export default function EventsCalendar() {
                         type="checkbox"
                         checked={selectedServices.includes(service)}
                         onChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
                       />
-                      <span className="text-sm text-gray-700 truncate" title={service}>{service}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={service}>{service}</span>
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">Aucun service dans le catalogue</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">Aucun service dans le catalogue</p>
               )}
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function EventsCalendar() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {format(currentDate, 'MMMM yyyy', { locale: fr })}
             </h3>
             <div className="flex space-x-2">
@@ -303,7 +303,7 @@ export default function EventsCalendar() {
 
           <div className="grid grid-cols-7 gap-2">
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
                 {day}
               </div>
             ))}
@@ -319,11 +319,11 @@ export default function EventsCalendar() {
                   onClick={() => setSelectedDate(day)}
                   className={`
                     min-h-[80px] p-2 rounded-lg border transition-colors
-                    ${isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}
-                    ${isCurrentDay ? 'bg-blue-50' : 'bg-white'}
+                    ${isSelected ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
+                    ${isCurrentDay ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'}
                   `}
                 >
-                  <div className={`text-sm font-medium mb-1 ${isCurrentDay ? 'text-primary-600' : 'text-gray-900'}`}>
+                  <div className={`text-sm font-medium mb-1 ${isCurrentDay ? 'text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-gray-100'}`}>
                     {format(day, 'd')}
                   </div>
                   {dayEvents.length > 0 && (
@@ -341,7 +341,7 @@ export default function EventsCalendar() {
                         )
                       })}
                       {dayEvents.length > 3 && (
-                        <div className="text-xs text-gray-500">+{dayEvents.length - 3}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">+{dayEvents.length - 3}</div>
                       )}
                     </div>
                   )}
@@ -352,7 +352,7 @@ export default function EventsCalendar() {
         </div>
 
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
           </h3>
           
@@ -361,7 +361,7 @@ export default function EventsCalendar() {
               {selectedDayEvents.map(event => {
                 const typeColor = getEventTypeColor(event.attributes.type)
                 return (
-                  <div key={event.metadata?.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div key={event.metadata?.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center space-x-2 mb-2">
                       {getEventTypeIcon(event.attributes.type, 'w-4 h-4')}
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${typeColor.bg} ${typeColor.text}`}>
@@ -379,8 +379,8 @@ export default function EventsCalendar() {
                         {getStatusLabel(event.attributes.status)}
                       </span>
                     </div>
-                    <p className="font-medium text-gray-900 text-sm">{event.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">{event.attributes.service}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{event.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{event.attributes.service}</p>
                     {(() => {
                       console.log('Calendar event:', event.title, 'links:', event.links)
                       return (
@@ -397,7 +397,7 @@ export default function EventsCalendar() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No events for this date</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No events for this date</p>
           )}
         </div>
       </div>

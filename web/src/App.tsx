@@ -10,6 +10,7 @@ import DriftsList from './pages/DriftsList'
 import RpaUsage from './pages/RpaUsage'
 import CreateDrift from './pages/CreateDrift'
 import CreateRpaOperation from './pages/CreateRpaOperation'
+import ThemeTest from './pages/ThemeTest'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="drifts/create" element={<CreateDrift />} />
           <Route path="rpa" element={<RpaUsage />} />
           <Route path="rpa/create" element={<CreateRpaOperation />} />
+          <Route path="theme-test" element={<ThemeTest />} />
         </Route>
       </Routes>
     </BrowserRouter>
