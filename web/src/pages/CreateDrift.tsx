@@ -66,8 +66,8 @@ export default function CreateDrift() {
       <div className="flex items-center space-x-3">
         <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 text-yellow-600" />
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Créer un Drift</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Enregistrer une dérive de configuration détectée</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Drift</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a detected configuration drift</p>
         </div>
       </div>
 
@@ -89,10 +89,10 @@ export default function CreateDrift() {
           <div className="flex items-start">
             <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-yellow-800">Qu'est-ce qu'un drift ?</h3>
+              <h3 className="text-sm font-medium text-yellow-800">What is a drift?</h3>
               <p className="text-sm text-yellow-700 mt-1">
-                Un drift est une dérive de configuration détectée entre l'état attendu et l'état réel d'une ressource.
-                Cela peut être une modification manuelle, une mise à jour non planifiée, ou une divergence de configuration.
+                A drift is a configuration deviation detected between the expected state and the actual state of a resource.
+                This can be a manual modification, an unplanned update, or a configuration divergence.
               </p>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function CreateDrift() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Titre du drift <span className="text-red-500">*</span>
+            Drift Title <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -108,7 +108,7 @@ export default function CreateDrift() {
             className="input"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Ex: Drift détecté sur la configuration du load balancer"
+            placeholder="Ex: Drift detected on load balancer configuration"
           />
         </div>
 
@@ -154,7 +154,7 @@ export default function CreateDrift() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environnement</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</label>
             <select
               className="select"
               value={formData.attributes.environment}
@@ -175,7 +175,7 @@ export default function CreateDrift() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priorité</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
             <select
               className="select"
               value={formData.attributes.priority}
@@ -184,16 +184,16 @@ export default function CreateDrift() {
                 attributes: { ...formData.attributes, priority: e.target.value as Priority }
               })}
             >
-              <option value={Priority.P1}>P1 - Critique (impact production)</option>
-              <option value={Priority.P2}>P2 - Élevée (à corriger rapidement)</option>
-              <option value={Priority.P3}>P3 - Moyenne</option>
-              <option value={Priority.P4}>P4 - Faible</option>
-              <option value={Priority.P5}>P5 - Très faible</option>
+              <option value={Priority.P1}>P1 - Critical (production impact)</option>
+              <option value={Priority.P2}>P2 - High (fix quickly)</option>
+              <option value={Priority.P3}>P3 - Medium</option>
+              <option value={Priority.P4}>P4 - Low</option>
+              <option value={Priority.P5}>P5 - Very Low</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Statut</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
             <select
               className="select"
               value={formData.attributes.status}
@@ -202,10 +202,10 @@ export default function CreateDrift() {
                 attributes: { ...formData.attributes, status: e.target.value as Status }
               })}
             >
-              <option value={Status.OPEN}>Ouvert (détecté)</option>
-              <option value={Status.START}>En cours de correction</option>
-              <option value={Status.DONE}>Résolu</option>
-              <option value={Status.CLOSE}>Fermé</option>
+              <option value={Status.OPEN}>Open (detected)</option>
+              <option value={Status.START}>In Progress (fixing)</option>
+              <option value={Status.DONE}>Resolved</option>
+              <option value={Status.CLOSE}>Closed</option>
             </select>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function CreateDrift() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description du drift <span className="text-red-500">*</span>
+            Drift Description <span className="text-red-500">*</span>
           </label>
           <textarea
             required
@@ -225,7 +225,7 @@ export default function CreateDrift() {
               ...formData,
               attributes: { ...formData.attributes, message: e.target.value }
             })}
-            placeholder="Décrivez la dérive détectée : quelle configuration a changé, quelle est la différence entre l'état attendu et l'état réel..."
+            placeholder="Describe the detected drift: what configuration changed, what is the difference between expected and actual state..."
           />
         </div>
 
@@ -241,17 +241,17 @@ export default function CreateDrift() {
               className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Ce drift a un impact sur le service
+              This drift has an impact on the service
             </span>
           </label>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
-            Cochez si le drift affecte le fonctionnement du service ou la sécurité
+            Check if the drift affects service functionality or security
           </p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Owner / Responsable <span className="text-red-500">*</span>
+            Owner / Responsible <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -289,7 +289,7 @@ export default function CreateDrift() {
             onClick={() => navigate('/drifts')}
             className="btn-secondary"
           >
-            Annuler
+            Cancel
           </button>
           <button
             type="submit"
@@ -297,7 +297,7 @@ export default function CreateDrift() {
             className="btn-primary flex items-center space-x-2"
           >
             <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" />
-            <span>{createMutation.isPending ? 'Création...' : 'Créer le drift'}</span>
+            <span>{createMutation.isPending ? 'Creating...' : 'Create Drift'}</span>
           </button>
         </div>
       </form>

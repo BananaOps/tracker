@@ -4,7 +4,7 @@ import { format, subDays, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import type { Event } from '../types/api'
-import { Filter, X, Plus } from 'lucide-react'
+import { Filter, X, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
@@ -16,6 +16,7 @@ export default function EventsTimeline() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>(30)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   
   // États des filtres
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
@@ -122,8 +123,15 @@ export default function EventsTimeline() {
       console.log('✅ Résultat:', filtered.length, '/', allEvents.length, 'événements')
     }
     
-    return filtered
-  }, [allEvents, timeFilter, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices])
+    // Trier les événements par date
+    const sorted = [...filtered].sort((a, b) => {
+      const dateA = a.metadata?.createdAt ? new Date(a.metadata.createdAt).getTime() : 0
+      const dateB = b.metadata?.createdAt ? new Date(b.metadata.createdAt).getTime() : 0
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB
+    })
+    
+    return sorted
+  }, [allEvents, timeFilter, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
 
   // Fonctions pour gérer les filtres
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
@@ -178,6 +186,19 @@ export default function EventsTimeline() {
           </Link>
           
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              title={sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+            >
+              {sortOrder === 'desc' ? (
+                <ArrowDown className="w-4 h-4" />
+              ) : (
+                <ArrowUp className="w-4 h-4" />
+              )}
+              <span className="text-sm">{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
+            </button>
+            
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${

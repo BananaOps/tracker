@@ -1,6 +1,7 @@
 import type { EventLinks as EventLinksType } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGithub, faSlack, faJira } from '@fortawesome/free-brands-svg-icons'
+import { faRocket } from '@fortawesome/free-solid-svg-icons'
 
 interface EventLinksProps {
   links?: EventLinksType
@@ -124,6 +125,10 @@ interface SourceIconProps {
 
 export function SourceIcon({ source, className = 'w-4 h-4' }: SourceIconProps) {
   const sourceLower = source.toLowerCase()
+
+  if (sourceLower.includes('tracker')) {
+    return <FontAwesomeIcon icon={faRocket} className={`${className} icon-gradient`} />
+  }
 
   if (sourceLower.includes('slack')) {
     return <FontAwesomeIcon icon={faSlack} className={`${className} text-purple-600 dark:text-purple-400`} />

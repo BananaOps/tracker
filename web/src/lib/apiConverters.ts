@@ -68,22 +68,37 @@ export function convertEventForAPI(event: CreateEventRequest): any {
  * Utilisé quand l'API renvoie des nombres au lieu de strings
  */
 export function convertEventFromAPI(event: any): any {
-  const priority = typeof event.attributes.priority === 'number' 
-    ? NumberToPriority[event.attributes.priority] 
-    : event.attributes.priority
+  // Convertir la priorité (nombre ou string)
+  let priority = event.attributes.priority
+  if (typeof priority === 'number') {
+    priority = NumberToPriority[priority]
+  } else if (typeof priority === 'string') {
+    // Normaliser en minuscules si c'est une string
+    priority = priority.toLowerCase()
+  }
 
-  const status = typeof event.attributes.status === 'number'
-    ? NumberToStatus[event.attributes.status]
-    : event.attributes.status
+  // Convertir le status (nombre ou string)
+  let status = event.attributes.status
+  if (typeof status === 'number') {
+    status = NumberToStatus[status]
+  } else if (typeof status === 'string') {
+    status = status.toLowerCase()
+  }
 
-  const environment = event.attributes.environment && typeof event.attributes.environment === 'number'
-    ? NumberToEnvironment[event.attributes.environment]
-    : event.attributes.environment
+  // Convertir l'environnement (nombre ou string)
+  let environment = event.attributes.environment
+  if (environment && typeof environment === 'number') {
+    environment = NumberToEnvironment[environment]
+  } else if (environment && typeof environment === 'string') {
+    environment = environment.toLowerCase()
+  }
 
   console.log('🔧 convertEventFromAPI:', {
     priority_in: event.attributes.priority,
+    priority_type: typeof event.attributes.priority,
     priority_out: priority,
     status_in: event.attributes.status,
+    status_type: typeof event.attributes.status,
     status_out: status,
   })
 
