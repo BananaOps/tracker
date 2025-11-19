@@ -34,16 +34,80 @@ export default function CreateRpaOperation() {
   })
 
   const createMutation = useMutation({
-    mutationFn: eventsApi.create,
-    onSuccess: () => {
+    mutationFn: (data: CreateEventRequest) => {
+      console.log('📡 API call starting with data:', data)
+      return eventsApi.create(data)
+    },
+    onSuccess: (data) => {
+      console.log('✅ RPA Operation created successfully!')
+      console.log('Response data:', data)
       queryClient.invalidateQueries({ queryKey: ['events'] })
+      alert('RPA Operation created successfully!')
       navigate('/rpa')
+    },
+    onError: (error: any) => {
+      console.error('❌ Error creating RPA Operation')
+      console.error('Error object:', error)
+      console.error('Error message:', error?.message)
+      console.error('Error response:', error?.response)
+      console.error('Error response data:', error?.response?.data)
+      
+      const errorMsg = error?.response?.data?.message || error?.message || 'Unknown error'
+      alert(`Error creating RPA operation:\n${errorMsg}\n\nCheck browser console (F12) for details.`)
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    createMutation.mutate(formData)
+    
+    console.log('=== RPA OPERATION FORM SUBMIT ===')
+    console.log('Form data:', formData)
+    
+    // Convertir startDate et calculer endDate
+    let startDateISO = undefined
+    let endDateISO = undefined
+    
+    if (formData.attributes.startDate) {
+      // Convertir le format datetime-local en ISO
+      const startDateTime = new Date(formData.attributes.startDate)
+      startDateISO = startDateTime.toISOString()
+      
+      // Calculer endDate (1 heure après startDate)
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000)
+      endDateISO = endDateTime.toISOString()
+      
+      console.log('Start date (input):', formData.attributes.startDate)
+      console.log('Start date (ISO):', startDateISO)
+      console.log('End date (ISO, +1h):', endDateISO)
+    }
+    
+    // Préparer les données avec les valeurs automatiques
+    const submitData: CreateEventRequest = {
+      title: formData.title,
+      attributes: {
+        message: formData.attributes.message,
+        type: EventType.OPERATION,
+        priority: Priority.P1, // Toujours P1
+        source: 'web', // Toujours 'web'
+        service: formData.attributes.service,
+        status: formData.attributes.status,
+        environment: formData.attributes.environment,
+        owner: formData.attributes.owner,
+        startDate: startDateISO,
+        endDate: endDateISO,
+      },
+      links: {},
+    }
+    
+    console.log('🚀 Submitting RPA Operation to API:')
+    console.log(JSON.stringify(submitData, null, 2))
+    
+    try {
+      createMutation.mutate(submitData)
+    } catch (err) {
+      console.error('💥 Exception during mutation:', err)
+      alert('Exception: ' + (err as Error).message)
+    }
   }
 
   return (
@@ -145,63 +209,23 @@ export default function CreateRpaOperation() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Operation Status</label>
-            <select
-              className="select"
-              value={formData.attributes.status}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
-              })}
-            >
-              <option value={Status.START}>Started</option>
-              <option value={Status.SUCCESS}>Success</option>
-              <option value={Status.FAILURE}>Failure</option>
-              <option value={Status.WARNING}>Warning</option>
-              <option value={Status.ERROR}>Error</option>
-              <option value={Status.DONE}>Done</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
-            <select
-              className="select"
-              value={formData.attributes.priority}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, priority: Number(e.target.value) as Priority }
-              })}
-            >
-              <option value={Priority.P1}>P1 - Critical</option>
-              <option value={Priority.P2}>P2 - High</option>
-              <option value={Priority.P3}>P3 - Medium</option>
-              <option value={Priority.P4}>P4 - Low</option>
-              <option value={Priority.P5}>P5 - Very Low</option>
-            </select>
-          </div>
-        </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Source / RPA Platform <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.attributes.source}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Operation Status</label>
+          <select
+            className="select"
+            value={formData.attributes.status}
             onChange={(e) => setFormData({
               ...formData,
-              attributes: { ...formData.attributes, source: e.target.value }
+              attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
             })}
-            placeholder="Ex: uipath, automation_anywhere, blue_prism, custom_script"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Platform or tool used for automation
-          </p>
+          >
+            <option value={Status.START}>Started</option>
+            <option value={Status.SUCCESS}>Success</option>
+            <option value={Status.FAILURE}>Failure</option>
+            <option value={Status.WARNING}>Warning</option>
+            <option value={Status.ERROR}>Error</option>
+            <option value={Status.DONE}>Done</option>
+          </select>
         </div>
 
         <div>
@@ -221,32 +245,20 @@ export default function CreateRpaOperation() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
-            <input
-              type="datetime-local"
-              className="input"
-              value={formData.attributes.startDate || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, startDate: e.target.value }
-              })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
-            <input
-              type="datetime-local"
-              className="input"
-              value={formData.attributes.endDate || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, endDate: e.target.value }
-              })}
-            />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+          <input
+            type="datetime-local"
+            className="input"
+            value={formData.attributes.startDate || ''}
+            onChange={(e) => setFormData({
+              ...formData,
+              attributes: { ...formData.attributes, startDate: e.target.value }
+            })}
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            End date will be automatically set to 1 hour after start date
+          </p>
         </div>
 
         <div>
@@ -263,54 +275,24 @@ export default function CreateRpaOperation() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Stakeholders (comma separated)
-          </label>
-          <input
-            type="text"
-            className="input"
-            value={formData.attributes.stakeHolders?.join(', ') || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { 
-                ...formData.attributes, 
-                stakeHolders: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
-              }
-            })}
-            placeholder="Ex: finance-team, operations-team"
-          />
+
+
+        {/* Debug info */}
+        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-xs">
+          <p className="font-semibold mb-2">Debug Info:</p>
+          <p>Title: {formData.title || '(empty)'}</p>
+          <p>Service: {formData.attributes.service || '(empty)'}</p>
+          <p>Message: {formData.attributes.message ? `${formData.attributes.message.substring(0, 50)}...` : '(empty)'}</p>
+          <p>Status: {formData.attributes.status}</p>
+          <p>Environment: {formData.attributes.environment}</p>
+          <p>Start Date: {formData.attributes.startDate || '(not set)'}</p>
+          <p>Owner: {formData.attributes.owner || '(not set)'}</p>
+          <p className="mt-2 text-red-600 dark:text-red-400">
+            {createMutation.isError && 'Error occurred - check console!'}
+          </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket / Reference</label>
-          <input
-            type="text"
-            className="input"
-            value={formData.links?.ticket || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              links: { ...formData.links, ticket: e.target.value }
-            })}
-            placeholder="Ex: RPA-1234, AUTO-567"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Link to logs / dashboard</label>
-          <input
-            type="url"
-            className="input"
-            value={formData.links?.pullRequestLink || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              links: { ...formData.links, pullRequestLink: e.target.value }
-            })}
-            placeholder="https://dashboard.rpa.example.com/execution/12345"
-          />
-        </div>
-
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
             onClick={() => navigate('/rpa')}

@@ -81,7 +81,7 @@ export default function CreateEvent() {
               value={formData.attributes.type}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, type: Number(e.target.value) as EventType }
+                attributes: { ...formData.attributes, type: e.target.value as EventType }
               })}
             >
               <option value={EventType.DEPLOYMENT}>Deployment</option>
@@ -98,7 +98,7 @@ export default function CreateEvent() {
               value={formData.attributes.priority}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, priority: Number(e.target.value) as Priority }
+                attributes: { ...formData.attributes, priority: e.target.value as Priority }
               })}
             >
               <option value={Priority.P1}>P1 - Critical</option>
@@ -118,7 +118,7 @@ export default function CreateEvent() {
               value={formData.attributes.status}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, status: Number(e.target.value) as Status }
+                attributes: { ...formData.attributes, status: e.target.value as Status }
               })}
             >
               <option value={Status.START}>Started</option>
@@ -136,7 +136,7 @@ export default function CreateEvent() {
               value={formData.attributes.environment}
               onChange={(e) => setFormData({
                 ...formData,
-                attributes: { ...formData.attributes, environment: Number(e.target.value) as Environment }
+                attributes: { ...formData.attributes, environment: e.target.value as Environment }
               })}
             >
               <option value={Environment.DEVELOPMENT}>Development</option>

@@ -15,26 +15,26 @@ export const getEventTypeIcon = (type: EventType | string, className: string = '
     case 'deployment':
     case '1':
       console.log('✅ → ROCKET (Déploiement)')
-      return <FontAwesomeIcon icon={faRocket} className={`${finalClass} text-blue-600`} />
+      return <FontAwesomeIcon icon={faRocket} className={`${finalClass} text-blue-600 dark:text-blue-400`} />
     
     case 'operation':
     case '2':
       console.log('✅ → WRENCH (Opération)')
-      return <FontAwesomeIcon icon={faWrench} className={`${finalClass} text-purple-600`} />
+      return <FontAwesomeIcon icon={faWrench} className={`${finalClass} text-purple-600 dark:text-purple-400`} />
     
     case 'drift':
     case '3':
       console.log('✅ → CODE_BRANCH (Drift)')
-      return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} text-yellow-600`} />
+      return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} text-yellow-600 dark:text-yellow-400`} />
     
     case 'incident':
     case '4':
       console.log('✅ → FIRE (Incident)')
-      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-red-600`} />
+      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-red-600 dark:text-red-400`} />
     
     default:
       console.warn('⚠️ Type inconnu:', type, typeStr)
-      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-gray-600`} />
+      return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-gray-600 dark:text-gray-400`} />
   }
 }
 
