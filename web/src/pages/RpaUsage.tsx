@@ -104,7 +104,7 @@ export default function RpaUsage() {
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className="bg-primary-600 h-2 rounded-full"
+                  className="bg-gradient-to-r from-purple-500 to-blue-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${(ops.length / rpaOperations.length) * 100}%` }}
                 />
               </div>
@@ -125,9 +125,14 @@ export default function RpaUsage() {
               <div className="flex-1">
                 <p className="font-medium text-gray-900 dark:text-gray-100">{op.title}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{op.attributes.message}</p>
-                <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span>Service: <span className="font-medium">{op.attributes.service}</span></span>
-                  <span>Source: <span className="font-medium">{op.attributes.source}</span></span>
+                <div className="flex items-center space-x-4 mt-2 text-xs">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-500 dark:text-gray-400">Service:</span>
+                    <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono font-semibold">
+                      {op.attributes.service}
+                    </span>
+                  </div>
+                  <span className="text-gray-500 dark:text-gray-400">Source: <span className="font-medium text-gray-700 dark:text-gray-300">{op.attributes.source}</span></span>
                 </div>
               </div>
               <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4">

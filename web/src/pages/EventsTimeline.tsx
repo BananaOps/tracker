@@ -436,15 +436,20 @@ export default function EventsTimeline() {
                         <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
                       </div>
                       
-                      <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
-                        <span>Service: <span className="font-medium">{event.attributes.service}</span></span>
-                        <span className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-4 mt-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-500 dark:text-gray-400">Service:</span>
+                          <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono text-xs font-semibold">
+                            {event.attributes.service}
+                          </span>
+                        </div>
+                        <span className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
                           <span>Source:</span>
                           <SourceIcon source={event.attributes.source} />
                           <span className="font-medium">{event.attributes.source}</span>
                         </span>
                         {event.attributes.owner && (
-                          <span>Owner: <span className="font-medium">{event.attributes.owner}</span></span>
+                          <span className="text-gray-500 dark:text-gray-400">Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{event.attributes.owner}</span></span>
                         )}
                       </div>
 

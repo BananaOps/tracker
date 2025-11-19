@@ -319,8 +319,10 @@ export default function Dashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{event.title}</p>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                      <span>{event.attributes.service}</span>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono text-xs font-semibold">
+                        {event.attributes.service}
+                      </span>
                       <SourceIcon source={event.attributes.source} className="w-3 h-3" />
                     </div>
                   </div>

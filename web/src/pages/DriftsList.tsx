@@ -104,12 +104,14 @@ export default function DriftsList() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="min-w-0">
-                    <span className="text-gray-500">Service:</span>
-                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100 break-words">{drift.attributes.service}</span>
+                  <div className="min-w-0 flex items-center space-x-2">
+                    <span className="text-gray-500 dark:text-gray-400">Service:</span>
+                    <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono text-xs font-semibold">
+                      {drift.attributes.service}
+                    </span>
                   </div>
                   <div className="min-w-0">
-                    <span className="text-gray-500">Source:</span>
+                    <span className="text-gray-500 dark:text-gray-400">Source:</span>
                     <span className="ml-2 font-medium text-gray-900 dark:text-gray-100 break-words">{drift.attributes.source}</span>
                   </div>
                   {drift.attributes.environment && (
