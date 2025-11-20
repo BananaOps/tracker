@@ -70,11 +70,22 @@ message EventLinks {
   string ticket = 2;
 }
 
+message ChangelogEntry {
+  google.protobuf.Timestamp timestamp = 1;
+  string user = 2;
+  ChangeType change_type = 3;
+  string field = 4;
+  string old_value = 5;
+  string new_value = 6;
+  string comment = 7;
+}
+
 message Event {
   string title = 1;
   EventAttributes attributes = 2;
   EventLinks links = 3;
   EventMetadata metadata = 4;
+  repeated ChangelogEntry changelog = 5;
 }
 
 message CreateEventRequest {
@@ -199,4 +210,15 @@ enum Environment {
   preproduction = 6;
   production = 7;
   mco = 8;
+}
+
+enum ChangeType {
+  CHANGE_TYPE_UNSPECIFIED = 0;
+  created = 1;
+  updated = 2;
+  status_changed = 3;
+  approved = 4;
+  rejected = 5;
+  commented = 6;
+  linked = 7;
 }

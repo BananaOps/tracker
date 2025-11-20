@@ -97,13 +97,24 @@ var serv = &cobra.Command{
 			}
 			jiraProjectKey := os.Getenv("JIRA_PROJECT_KEY")
 
+			slackWorkspace := os.Getenv("SLACK_WORKSPACE")
+			if slackWorkspace == "" {
+				slackWorkspace = "your-workspace"
+			}
+
+			slackEventsChannel := os.Getenv("SLACK_EVENTS_CHANNEL")
+
 			w.Header().Set("Content-Type", "application/javascript")
 			fmt.Fprintf(w, `window.TRACKER_CONFIG = {
   jira: {
     domain: "%s",
     projectKey: "%s"
+  },
+  slack: {
+    workspace: "%s",
+    eventsChannel: "%s"
   }
-};`, jiraDomain, jiraProjectKey)
+};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel)
 		})
 
 		//define logger for http server error

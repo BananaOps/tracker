@@ -2,6 +2,7 @@ import type { EventLinks as EventLinksType } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGithub, faSlack, faJira } from '@fortawesome/free-brands-svg-icons'
 import { faRocket } from '@fortawesome/free-solid-svg-icons'
+import { getJiraTicketUrl, getSlackMessageUrl, parseSlackId } from '../config'
 
 interface EventLinksProps {
   links?: EventLinksType
@@ -10,8 +11,8 @@ interface EventLinksProps {
   className?: string
 }
 
-export default function EventLinks({ links, className = '' }: EventLinksProps) {
-  const hasLinks = links?.pullRequestLink || links?.ticket
+export default function EventLinks({ links, slackId, className = '' }: EventLinksProps) {
+  const hasLinks = links?.pullRequestLink || links?.ticket || slackId
   
   // Debug
   console.log('EventLinks - links:', links)
@@ -39,23 +40,43 @@ export default function EventLinks({ links, className = '' }: EventLinksProps) {
         </a>
       )}
 
-      {/* Ticket Link (Jira) - même style que GitHub */}
+      {/* Ticket Link (Jira) */}
       {links?.ticket && (() => {
         const ticketId = extractTicketId(links.ticket)
-        const ticketUrl = getTicketUrl(ticketId)
-        console.log('Rendering Jira ticket:', links.ticket, '→ ID:', ticketId, 'URL:', ticketUrl)
+        const ticketUrl = getJiraTicketUrl(links.ticket)
         return (
           <a
             href={ticketUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-            title={`Voir le ticket: ${ticketId}`}
+            title={`View ticket: ${ticketId}`}
           >
             <FontAwesomeIcon icon={faJira} className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{ticketId}</span>
           </a>
         )
+      })()}
+
+      {/* Slack Link */}
+      {slackId && (() => {
+        const parsed = parseSlackId(slackId)
+        if (parsed) {
+          const slackUrl = getSlackMessageUrl(parsed.channelId, parsed.messageTs)
+          return (
+            <a
+              href={slackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+              title="View in Slack"
+            >
+              <FontAwesomeIcon icon={faSlack} className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <span>Slack</span>
+            </a>
+          )
+        }
+        return null
       })()}
     </div>
   )
@@ -101,21 +122,7 @@ function isJiraTicket(ticket: string): boolean {
   return /^[A-Z]+-\d+$/.test(ticket)
 }
 
-// Helper pour générer l'URL du ticket
-function getTicketUrl(ticket: string): string {
-  console.log('getTicketUrl - ticket:', ticket)
-  console.log('getTicketUrl - isJiraTicket:', isJiraTicket(ticket))
-  
-  if (isJiraTicket(ticket)) {
-    const jiraBaseUrl = (import.meta as any).env?.VITE_JIRA_URL || 'https://jira.company.com'
-    const url = `${jiraBaseUrl}/browse/${ticket}`
-    console.log('getTicketUrl - Generated URL:', url)
-    return url
-  }
-  // Pour les autres types de tickets, retourner un lien de recherche
-  console.log('getTicketUrl - Not a Jira ticket, using fallback')
-  return `#ticket-${ticket}`
-}
+
 
 // Composant pour afficher l'icône de source
 interface SourceIconProps {

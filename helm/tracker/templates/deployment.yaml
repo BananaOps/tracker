@@ -67,6 +67,14 @@ spec:
             - name: JIRA_PROJECT_KEY
               value: {{ .Values.env.jira.projectKey | quote }}
             {{- end }}
+            {{- if .Values.env.slack.workspace }}
+            - name: SLACK_WORKSPACE
+              value: {{ .Values.env.slack.workspace | quote }}
+            {{- end }}
+            {{- if .Values.env.slack.eventsChannel }}
+            - name: SLACK_EVENTS_CHANNEL
+              value: {{ .Values.env.slack.eventsChannel | quote }}
+            {{- end }}
           command:
             - ./tracker
             - serv

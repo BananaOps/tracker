@@ -720,6 +720,47 @@
         }
       }
     },
+    "v1alpha1ChangeType": {
+      "type": "string",
+      "enum": [
+        "CHANGE_TYPE_UNSPECIFIED",
+        "created",
+        "updated",
+        "status_changed",
+        "approved",
+        "rejected",
+        "commented",
+        "linked"
+      ],
+      "default": "CHANGE_TYPE_UNSPECIFIED"
+    },
+    "v1alpha1ChangelogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user": {
+          "type": "string"
+        },
+        "change_type": {
+          "$ref": "#/definitions/v1alpha1ChangeType"
+        },
+        "field": {
+          "type": "string"
+        },
+        "old_value": {
+          "type": "string"
+        },
+        "new_value": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    },
     "v1alpha1CreateEventRequest": {
       "type": "object",
       "properties": {
@@ -860,6 +901,13 @@
         },
         "metadata": {
           "$ref": "#/definitions/v1alpha1EventMetadata"
+        },
+        "changelog": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ChangelogEntry"
+          }
         }
       }
     },

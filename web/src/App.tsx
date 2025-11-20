@@ -6,6 +6,7 @@ import EventsStreamline from './pages/EventsStreamline'
 import EventsCalendar from './pages/EventsCalendar'
 import EventsOverlaps from './pages/EventsOverlaps'
 import CreateEvent from './pages/CreateEvent'
+import Documentation from './pages/Documentation'
 import CatalogTable from './pages/CatalogTable'
 import CreateCatalog from './pages/CreateCatalog'
 import DriftsList from './pages/DriftsList'
@@ -26,6 +27,7 @@ function App() {
           <Route path="events/calendar" element={<EventsCalendar />} />
           <Route path="events/overlaps" element={<EventsOverlaps />} />
           <Route path="events/create" element={<CreateEvent />} />
+          <Route path="docs" element={<Documentation />} />
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />
           <Route path="drifts" element={<DriftsList />} />

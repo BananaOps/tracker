@@ -16,10 +16,15 @@ env:
     host: tracker-mongodb
     port: 27017
   jira:
-    # Jira domain for ticket creation (e.g., your-company.atlassian.net)
-    domain: ""
+    # Jira domain for ticket creation (e.g., your-company.atlassian.net or jira.company.com)
+    domain: "jira.company.com"
     # Optional: Jira project key for quick ticket creation
     projectKey: ""
+  slack:
+    # Slack workspace name (e.g., your-company)
+    workspace: "your-workspace"
+    # Slack channel ID for deployment events (e.g., C01234ABCDE)
+    eventsChannel: ""
 
 image:
   repository: bananaops/tracker
@@ -61,7 +66,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: tracker.local
+    - host: tracker.dev.energy-pool.eu
       paths:
         - path: /
           pathType: ImplementationSpecific

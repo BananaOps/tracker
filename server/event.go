@@ -13,6 +13,7 @@ import (
 	"github.com/bananaops/tracker/internal/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -46,6 +47,25 @@ func NewEvent() *Event {
 		store:                           store.NewStoreEvent(config.ConfigDatabase.EventCollection),
 		logger:                          slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
+}
+
+// addChangelogEntry adds a new entry to the event's changelog
+func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, user, field, oldValue, newValue, comment string) {
+	if event.Changelog == nil {
+		event.Changelog = []*v1alpha1.ChangelogEntry{}
+	}
+
+	entry := &v1alpha1.ChangelogEntry{
+		Timestamp:  timestamppb.Now(),
+		User:       user,
+		ChangeType: changeType,
+		Field:      field,
+		OldValue:   oldValue,
+		NewValue:   newValue,
+		Comment:    comment,
+	}
+
+	event.Changelog = append(event.Changelog, entry)
 }
 
 func (e *Event) CreateEvent(
@@ -96,6 +116,13 @@ func (e *Event) CreateEvent(
 	}
 
 	eventCounter.With(prometheus.Labels{"status": i.Attributes.Status.String(), "service": i.Attributes.Service, "environment": i.Attributes.Environment.String()}).Inc()
+
+	// Add initial changelog entry
+	user := "system"
+	if i.Attributes.Owner != "" {
+		user = i.Attributes.Owner
+	}
+	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
 
 	var eventResult = &v1alpha1.CreateEventResponse{}
 	var err error
@@ -273,6 +300,80 @@ func (e *Event) UpdateEvent(
 		if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
 			recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
 		}
+	}
+
+	// Preserve existing changelog
+	event.Changelog = eventDatabase.Event.Changelog
+
+	// Track changes and add changelog entries
+	user := "system"
+	if i.Attributes.Owner != "" {
+		user = i.Attributes.Owner
+	}
+
+	// Check for status change
+	if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
+		addChangelogEntry(
+			event,
+			v1alpha1.ChangeType_status_changed,
+			user,
+			"status",
+			eventDatabase.Event.Attributes.Status.String(),
+			event.Attributes.Status.String(),
+			"Status updated",
+		)
+	}
+
+	// Check for ticket link change
+	if eventDatabase.Event.Links.Ticket != event.Links.Ticket && event.Links.Ticket != "" {
+		addChangelogEntry(
+			event,
+			v1alpha1.ChangeType_linked,
+			user,
+			"ticket",
+			eventDatabase.Event.Links.Ticket,
+			event.Links.Ticket,
+			"Jira ticket linked",
+		)
+	}
+
+	// Check for priority change
+	if eventDatabase.Event.Attributes.Priority != event.Attributes.Priority {
+		addChangelogEntry(
+			event,
+			v1alpha1.ChangeType_updated,
+			user,
+			"priority",
+			eventDatabase.Event.Attributes.Priority.String(),
+			event.Attributes.Priority.String(),
+			"Priority updated",
+		)
+	}
+
+	// Check for title change
+	if eventDatabase.Event.Title != event.Title {
+		addChangelogEntry(
+			event,
+			v1alpha1.ChangeType_updated,
+			user,
+			"title",
+			eventDatabase.Event.Title,
+			event.Title,
+			"Title updated",
+		)
+	}
+
+	// Add general update entry if no specific changes were tracked
+	if len(event.Changelog) == len(eventDatabase.Event.Changelog) {
+		addChangelogEntry(
+			event,
+			v1alpha1.ChangeType_updated,
+			user,
+			"",
+			"",
+			"",
+			"Event updated",
+		)
 	}
 
 	// Use the appropriate filter based on whether SlackId or Id is provided

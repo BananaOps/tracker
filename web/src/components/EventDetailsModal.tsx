@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { X, Edit2, Save } from 'lucide-react'
+import { X, Edit2, Save, History } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -10,6 +10,7 @@ import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentL
 import EventLinks, { SourceIcon } from './EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
 import Toast from './Toast'
+import EventChangelog from './EventChangelog'
 
 interface EventDetailsModalProps {
   event: Event
@@ -19,6 +20,9 @@ interface EventDetailsModalProps {
 export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
+  const [editOwner, setEditOwner] = useState('')
+  const [ownerError, setOwnerError] = useState(false)
   
   // Convertir les nombres en strings enum si nécessaire
   const normalizedEvent = useMemo(() => {
@@ -70,12 +74,37 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       console.error('Cannot update event: missing ID')
       return
     }
+    
+    // Validate owner is provided
+    if (!editOwner || editOwner.trim() === '') {
+      setOwnerError(true)
+      return
+    }
+    
+    // Update the event with the editor's name
+    const updatedEvent = {
+      ...editedEvent,
+      attributes: {
+        ...editedEvent.attributes,
+        owner: editOwner.trim(),
+      },
+    }
+    setEditedEvent(updatedEvent)
+    
     updateMutation.mutate()
   }
 
   const handleCancel = () => {
     setEditedEvent(normalizedEvent)
     setIsEditing(false)
+    setEditOwner('')
+    setOwnerError(false)
+  }
+  
+  const handleStartEdit = () => {
+    setIsEditing(true)
+    setEditOwner('')
+    setOwnerError(false)
   }
 
   return (
@@ -100,7 +129,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             <div className="flex items-center space-x-2">
               {!isEditing && (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={handleStartEdit}
                   className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
                   title="Edit event"
                 >
@@ -116,17 +145,78 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             </div>
           </div>
 
+          {/* Tabs */}
+          <div className="border-b border-gray-200 dark:border-gray-700 px-6">
+            <div className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('details')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'details'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Details
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
+                  activeTab === 'history'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>History</span>
+                {event.changelog && event.changelog.length > 0 && (
+                  <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded-full">
+                    {event.changelog.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
           {/* Content */}
           <div className="px-6 py-4 space-y-6">
+            {activeTab === 'details' ? (
+              <>
             {/* Title */}
             <div>
               {isEditing ? (
-                <input
-                  type="text"
-                  className="input text-2xl font-bold mb-3"
-                  value={editedEvent.title}
-                  onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
-                />
+                <>
+                  <input
+                    type="text"
+                    className="input text-2xl font-bold mb-3"
+                    value={editedEvent.title}
+                    onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })}
+                  />
+                  
+                  {/* Owner field - Required for editing */}
+                  <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      Your Name / Email <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., john.doe@company.com or John Doe"
+                      className={`input ${ownerError ? 'border-red-500 focus:ring-red-500' : ''}`}
+                      value={editOwner}
+                      onChange={(e) => {
+                        setEditOwner(e.target.value)
+                        setOwnerError(false)
+                      }}
+                    />
+                    {ownerError && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        Please enter your name or email to track who made this change
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                      Required to track who made this modification in the change history
+                    </p>
+                  </div>
+                </>
               ) : (
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                   {editedEvent.title}
@@ -368,6 +458,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                   source={editedEvent.attributes.source}
                   slackId={editedEvent.metadata?.slackId}
                 />
+              </div>
+            )}
+              </>
+            ) : (
+              /* History Tab */
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Change History</h3>
+                <EventChangelog changelog={event.changelog} />
               </div>
             )}
           </div>

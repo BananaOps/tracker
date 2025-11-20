@@ -1,9 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare } from 'lucide-react'
 import { useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import Footer from './Footer'
+import { getSlackEventsChannelUrl } from '../config'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Catalog', href: '/catalog', icon: Table },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
+  { name: 'Docs', href: '/docs', icon: BookOpen },
 ]
 
 export default function Layout() {
@@ -129,7 +131,20 @@ export default function Layout() {
             </div>
 
             {/* Actions à droite */}
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              {/* Slack Events Channel Link */}
+              {getSlackEventsChannelUrl() && (
+                <a
+                  href={getSlackEventsChannelUrl()!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  title="Open Events Channel in Slack"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden md:inline">Events Channel</span>
+                </a>
+              )}
               <ThemeToggle />
             </div>
           </div>

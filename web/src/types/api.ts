@@ -88,6 +88,27 @@ export const EnvironmentToNumber: Record<Environment, number> = {
   [Environment.MCO]: 8,
 }
 
+// Changelog types
+export enum ChangeType {
+  CREATED = 'created',
+  UPDATED = 'updated',
+  STATUS_CHANGED = 'status_changed',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  COMMENTED = 'commented',
+  LINKED = 'linked',
+}
+
+export interface ChangelogEntry {
+  timestamp: string
+  user: string
+  changeType: ChangeType | string
+  field?: string
+  oldValue?: string
+  newValue?: string
+  comment?: string
+}
+
 // L'API retourne des strings pour CatalogType
 export enum CatalogType {
   MODULE = 'module',
@@ -152,6 +173,7 @@ export interface Event {
   attributes: EventAttributes
   links?: EventLinks
   metadata?: EventMetadata
+  changelog?: ChangelogEntry[]
 }
 
 export interface CreateEventRequest {
