@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   tracker:
   - apiVersion: v2
+    appVersion: 0.9.1
+    created: "2025-11-20T16:42:08.335639524Z"
+    dependencies:
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 14.x.x
+    description: A Helm chart dedicated to deploy tracker api en open source solution
+    digest: 7c92058fe3a2cbf9bebe7338497f855ad0a395d91e6f55a45d9f4ac6b34bfc21
+    name: tracker
+    type: application
+    urls:
+    - https://github.com/BananaOps/tracker/releases/download/tracker-0.9.1/tracker-0.9.1.tgz
+    version: 0.9.1
+  - apiVersion: v2
     appVersion: 0.8.0
     created: "2025-07-08T11:14:19.089222405Z"
     dependencies:
@@ -136,4 +151,4 @@ entries:
     urls:
     - https://github.com/BananaOps/tracker/releases/download/tracker-0.2.4/tracker-0.2.4.tgz
     version: 0.2.4
-generated: "2025-07-08T11:14:19.089254294Z"
+generated: "2025-11-20T16:42:08.335681552Z"
