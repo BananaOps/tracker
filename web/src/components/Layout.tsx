@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Plus, Table, GitBranch, Bot, LayoutDashboard, Rocket } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import Footer from './Footer'
@@ -7,6 +7,7 @@ import Footer from './Footer'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Timeline', href: '/events/timeline', icon: Clock },
+  { name: 'Streamline', href: '/events/streamline', icon: Package },
   { name: 'Calendar', href: '/events/calendar', icon: Calendar },
   { name: 'Catalog', href: '/catalog', icon: Table },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useState, useMemo } from 'react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Filter, X, Plus } from 'lucide-react'
@@ -105,8 +105,16 @@ export default function EventsCalendar() {
 
   const getEventsForDay = (day: Date) => {
     return events.filter(event => {
-      if (!event.metadata?.createdAt) return false
-      return isSameDay(new Date(event.metadata.createdAt), day)
+      // Utiliser startDate si disponible, sinon createdAt
+      const startDateStr = event.attributes.startDate || event.metadata?.createdAt
+      if (!startDateStr) return false
+      
+      const startDate = new Date(startDateStr)
+      const endDateStr = event.attributes.endDate
+      const endDate = endDateStr ? new Date(endDateStr) : startDate
+      
+      // Vérifier si le jour est dans la période de l'événement
+      return isWithinInterval(day, { start: startOfDay(startDate), end: endOfDay(endDate) })
     })
   }
 
