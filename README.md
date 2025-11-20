@@ -172,6 +172,10 @@ npm run dev
 - [🎨 Catalog UI Improvements](./docs/CATALOG_UI_IMPROVEMENTS.md)
 - [📝 Changes Summary](./docs/CHANGES_SUMMARY.md)
 
+### Database
+- [🗄️ Database Indexes](./docs/DATABASE_INDEXES.md) - Index documentation and performance
+- [⚙️ Indexes Setup](./docs/INDEXES_SETUP.md) - Automatic index configuration
+
 ### Integration
 - [🔗 Integration Summary](./docs/INTEGRATION_SUMMARY.md)
 - [🌐 Open Source Banner](./docs/OPEN_SOURCE_BANNER.md)
@@ -268,7 +272,7 @@ Maintain an inventory of your services:
 ### Backend
 - **Language**: Go 1.23+
 - **API**: gRPC + REST (grpc-gateway)
-- **Database**: MongoDB / FeretDB
+- **Database**: MongoDB / FeretDB (with automatic index optimization)
 - **Metrics**: Prometheus
 - **Logging**: Structured JSON logs
 

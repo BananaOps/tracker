@@ -57,6 +57,14 @@ var serv = &cobra.Command{
 		//health.RegisterHealthServer(grpcServer, healthCheckService)
 
 		ctx := context.TODO()
+
+		// Initialiser les index MongoDB après la première connexion
+		db := server.GetDatabaseConnection()
+		if db != nil {
+			if err := server.EnsureIndexes(ctx, db); err != nil {
+				slog.Warn("Failed to ensure database indexes", "error", err)
+			}
+		}
 		mux := runtime.NewServeMux()
 
 		// Register generated routes to mux
