@@ -21,7 +21,6 @@ type MongoClient struct {
 
 var caCertPool *x509.CertPool
 var cert tls.Certificate
-var mongoClient *mongo.Client
 var mongoDatabase *mongo.Database
 
 func NewClient(collection string) (c *mongo.Collection) {
@@ -46,8 +45,7 @@ func NewClient(collection string) (c *mongo.Collection) {
 		}
 	}
 
-	// Stocker le client et la database pour l'initialisation des index
-	mongoClient = m
+	// Stocker la database pour l'initialisation des index
 	mongoDatabase = m.Database(config.Name)
 
 	// init client collection
