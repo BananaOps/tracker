@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/BananaOps/tracker/compare/v0.8.0...v0.9.0) (2025-11-20)
+
+
+### Features
+
+* add front tracker ([#96](https://github.com/BananaOps/tracker/issues/96)) ([e3b0dbd](https://github.com/BananaOps/tracker/commit/e3b0dbd7ad6c5579503a1e035adc7dd9f815cbda))
+
+
+### Bug Fixes
+
+* add id in update event ([#92](https://github.com/BananaOps/tracker/issues/92)) ([0e4d82c](https://github.com/BananaOps/tracker/commit/0e4d82cc0d1a8186b8276c3b009a643952889b9d))
+
 ## [0.8.0](https://github.com/BananaOps/tracker/compare/v0.7.4...v0.8.0) (2025-07-08)
 
 
