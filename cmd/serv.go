@@ -89,6 +89,23 @@ var serv = &cobra.Command{
 			sh.ServeHTTP(w, r)
 		})
 
+		// Serve frontend configuration
+		mux.HandlePath("GET", "/config.js", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			jiraDomain := os.Getenv("JIRA_DOMAIN")
+			if jiraDomain == "" {
+				jiraDomain = "your-domain.atlassian.net"
+			}
+			jiraProjectKey := os.Getenv("JIRA_PROJECT_KEY")
+
+			w.Header().Set("Content-Type", "application/javascript")
+			fmt.Fprintf(w, `window.TRACKER_CONFIG = {
+  jira: {
+    domain: "%s",
+    projectKey: "%s"
+  }
+};`, jiraDomain, jiraProjectKey)
+		})
+
 		//define logger for http server error
 		handler := slog.NewJSONHandler(os.Stdout, nil)
 		httplogger := slog.NewLogLogger(handler, slog.LevelError)
@@ -104,10 +121,11 @@ var serv = &cobra.Command{
 
 			// Custom handler to serve index.html for SPA routes
 			httpHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// Check if path starts with /api/ - if so, let the API handler deal with it
+				// Check if path starts with /api/ or is a special route - if so, let the API handler deal with it
 				if strings.HasPrefix(r.URL.Path, "/api/") ||
 					strings.HasPrefix(r.URL.Path, "/swagger.json") ||
-					strings.HasPrefix(r.URL.Path, "/docs") {
+					strings.HasPrefix(r.URL.Path, "/docs") ||
+					r.URL.Path == "/config.js" {
 					mux.ServeHTTP(w, r)
 					return
 				}

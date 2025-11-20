@@ -12,6 +12,7 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 import { convertEventToRequest } from '../lib/apiConverters'
+import { getJiraCreateUrl, config } from '../config'
 
 export default function DriftsList() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
@@ -501,7 +502,7 @@ export default function DriftsList() {
                     Create a new ticket in Jira, then paste the URL above.
                   </p>
                   <a
-                    href={`https://your-domain.atlassian.net/secure/CreateIssue.jspa?summary=${encodeURIComponent(selectedDrift.title)}&description=${encodeURIComponent(selectedDrift.attributes.message || '')}`}
+                    href={getJiraCreateUrl(selectedDrift.title, selectedDrift.attributes.message)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
@@ -509,9 +510,12 @@ export default function DriftsList() {
                     <ExternalLink className="w-4 h-4" />
                     <span>Open Jira (New Tab)</span>
                   </a>
-                  <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
-                    Note: Update "your-domain" in the URL with your actual Jira domain
-                  </p>
+                  {config.jira.domain === 'your-domain.atlassian.net' && (
+                    <p className="mt-2 text-xs text-orange-700 dark:text-orange-300 flex items-center space-x-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Configure your Jira domain in the deployment values.yaml</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Actions */}

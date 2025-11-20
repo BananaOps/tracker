@@ -59,6 +59,14 @@ spec:
               value: {{ .Values.service.http.port | quote }}
             - name: GRPC_PORT
               value: {{ .Values.service.grpc.port | quote }}
+            {{- if .Values.env.jira.domain }}
+            - name: JIRA_DOMAIN
+              value: {{ .Values.env.jira.domain | quote }}
+            {{- end }}
+            {{- if .Values.env.jira.projectKey }}
+            - name: JIRA_PROJECT_KEY
+              value: {{ .Values.env.jira.projectKey | quote }}
+            {{- end }}
           command:
             - ./tracker
             - serv
