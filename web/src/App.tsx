@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import EventsTimeline from './pages/EventsTimeline'
 import EventsStreamline from './pages/EventsStreamline'
 import EventsCalendar from './pages/EventsCalendar'
+import EventsOverlaps from './pages/EventsOverlaps'
 import CreateEvent from './pages/CreateEvent'
 import CatalogTable from './pages/CatalogTable'
 import CreateCatalog from './pages/CreateCatalog'
@@ -23,6 +24,7 @@ function App() {
           <Route path="events/timeline" element={<EventsTimeline />} />
           <Route path="events/streamline" element={<EventsStreamline />} />
           <Route path="events/calendar" element={<EventsCalendar />} />
+          <Route path="events/overlaps" element={<EventsOverlaps />} />
           <Route path="events/create" element={<CreateEvent />} />
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />

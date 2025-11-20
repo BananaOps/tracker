@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
-import { AlertCircle, CheckCircle, Clock, TrendingUp, Plus } from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock, TrendingUp, Plus, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Status, Priority } from '../types/api'
 import type { Event } from '../types/api'
@@ -19,12 +19,40 @@ export default function Dashboard() {
 
   const events = todayEvents?.events || []
 
+  // Détecter les chevauchements d'événements
+  const overlappingEvents = useMemo(() => {
+    const overlaps: Array<{ event1: Event; event2: Event }> = []
+    
+    for (let i = 0; i < events.length; i++) {
+      for (let j = i + 1; j < events.length; j++) {
+        const event1 = events[i]
+        const event2 = events[j]
+        
+        const start1Str = event1.attributes.startDate || event1.metadata?.createdAt
+        const start2Str = event2.attributes.startDate || event2.metadata?.createdAt
+        if (!start1Str || !start2Str) continue
+        
+        const start1 = new Date(start1Str)
+        const end1 = event1.attributes.endDate ? new Date(event1.attributes.endDate) : start1
+        const start2 = new Date(start2Str)
+        const end2 = event2.attributes.endDate ? new Date(event2.attributes.endDate) : start2
+        
+        // Vérifier si les périodes se chevauchent
+        if (start1 <= end2 && start2 <= end1) {
+          overlaps.push({ event1, event2 })
+        }
+      }
+    }
+    return overlaps
+  }, [events])
+
   const stats = {
     total: events.length,
     success: events.filter(e => e.attributes.status === Status.SUCCESS).length,
     failure: events.filter(e => e.attributes.status === Status.FAILURE || e.attributes.status === Status.ERROR).length,
     inProgress: events.filter(e => e.attributes.status === Status.START).length,
     critical: events.filter(e => e.attributes.priority === Priority.P1).length,
+    overlaps: overlappingEvents.length,
   }
 
   // Statistiques par type
@@ -64,7 +92,7 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <div className="card">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -120,7 +148,73 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        <div className={`card ${stats.overlaps > 0 ? 'border-2 border-orange-500' : ''}`}>
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <AlertTriangle className={`h-6 w-6 ${stats.overlaps > 0 ? 'text-orange-600 animate-pulse' : 'text-gray-400'}`} />
+                {stats.overlaps > 0 && (
+                  <div className="absolute inset-0 animate-ping">
+                    <AlertTriangle className="h-6 w-6 text-orange-600 opacity-75" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="ml-5 w-0 flex-1">
+              <dl>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Overlaps</dt>
+                <dd className={`text-3xl font-semibold ${stats.overlaps > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                  {stats.overlaps}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Alerte de chevauchements */}
+      {stats.overlaps > 0 && (
+        <div className="card border-2 border-orange-500 bg-orange-50 dark:bg-orange-900/20">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <AlertTriangle className="h-6 w-6 text-orange-600 animate-pulse" />
+                <div className="absolute inset-0 animate-ping">
+                  <AlertTriangle className="h-6 w-6 text-orange-600 opacity-75" />
+                </div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
+                Overlapping Events Detected
+              </h3>
+              <p className="text-sm text-orange-800 dark:text-orange-200 mb-3">
+                {stats.overlaps} event overlap{stats.overlaps > 1 ? 's' : ''} detected today. Multiple events are running simultaneously.
+              </p>
+              <div className="space-y-2">
+                {overlappingEvents.slice(0, 5).map((overlap, idx) => (
+                  <div key={idx} className="text-sm bg-white dark:bg-gray-800 rounded p-2 border border-orange-200 dark:border-orange-700">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-orange-900 dark:text-orange-100">⚠️</span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        <span className="font-medium">{overlap.event1.title}</span>
+                        <span className="text-gray-500 dark:text-gray-400 mx-1">overlaps with</span>
+                        <span className="font-medium">{overlap.event2.title}</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {overlappingEvents.length > 5 && (
+                  <p className="text-xs text-orange-700 dark:text-orange-300 italic">
+                    ... and {overlappingEvents.length - 5} more overlap{overlappingEvents.length - 5 > 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Diagrammes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -112,3 +112,25 @@ export function convertEventFromAPI(event: any): any {
     },
   }
 }
+
+/**
+ * Convertit un Event complet en CreateEventRequest pour les mises à jour
+ */
+export function convertEventToRequest(event: any): CreateEventRequest {
+  return {
+    title: event.title,
+    attributes: {
+      type: event.attributes.type,
+      priority: event.attributes.priority,
+      status: event.attributes.status,
+      service: event.attributes.service,
+      source: event.attributes.source,
+      message: event.attributes.message,
+      environment: event.attributes.environment,
+      owner: event.attributes.owner,
+      startDate: event.attributes.startDate,
+      endDate: event.attributes.endDate,
+    },
+    links: event.links || {},
+  }
+}

@@ -1,19 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
-import { format, subDays, isAfter } from 'date-fns'
+import { format, subDays, isAfter, addDays, startOfDay, endOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import type { Event } from '../types/api'
-import { Filter, X, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Filter, X, Plus, ArrowUp, ArrowDown, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { useState, useMemo } from 'react'
 
-type TimeFilter = 7 | 15 | 30 | 'all'
-
 export default function EventsTimeline() {
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>(30)
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [selectedDays, setSelectedDays] = useState<number>(7)
   const [showFilters, setShowFilters] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -59,6 +58,25 @@ export default function EventsTimeline() {
     return Array.from(new Set(allEvents.map(e => e.attributes.status))).sort()
   }, [allEvents])
 
+  // Calculer la période d'analyse
+  const startDate = startOfDay(subDays(currentDate, selectedDays - 1))
+  const endDate = endOfDay(currentDate)
+
+  // Navigation temporelle
+  const goToPreviousPeriod = () => {
+    setCurrentDate(subDays(currentDate, selectedDays))
+  }
+
+  const goToNextPeriod = () => {
+    setCurrentDate(addDays(currentDate, selectedDays))
+  }
+
+  const goToToday = () => {
+    setCurrentDate(new Date())
+  }
+
+  const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+
   // Filtrer les événements
   const events = useMemo(() => {
     const hasActiveFilters = selectedEnvironments.length > 0 || selectedTypes.length > 0 || 
@@ -76,12 +94,9 @@ export default function EventsTimeline() {
 
     const filtered = allEvents.filter(event => {
       // Filtre par période
-      if (timeFilter !== 'all') {
-        if (!event.metadata?.createdAt) return false
-        const eventDate = new Date(event.metadata.createdAt)
-        const filterDate = subDays(new Date(), timeFilter)
-        if (!isAfter(eventDate, filterDate)) return false
-      }
+      if (!event.metadata?.createdAt) return false
+      const eventDate = new Date(event.metadata.createdAt)
+      if (eventDate < startDate || eventDate > endDate) return false
 
       // Filtre par environnement
       if (selectedEnvironments.length > 0) {
@@ -131,7 +146,7 @@ export default function EventsTimeline() {
     })
     
     return sorted
-  }, [allEvents, timeFilter, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
+  }, [allEvents, startDate, endDate, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
 
   // Fonctions pour gérer les filtres
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
@@ -185,79 +200,92 @@ export default function EventsTimeline() {
             <span>Create Event</span>
           </Link>
           
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-              title={sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+          <button
+            onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+            title={sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+          >
+            {sortOrder === 'desc' ? (
+              <ArrowDown className="w-4 h-4" />
+            ) : (
+              <ArrowUp className="w-4 h-4" />
+            )}
+            <span className="text-sm">{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
+          </button>
+          
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+              showFilters || activeFiltersCount > 0
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Contrôles de navigation temporelle */}
+      <div className="card">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={goToPreviousPeriod} 
+              className="btn-secondary p-2"
+              title="Previous period"
             >
-              {sortOrder === 'desc' ? (
-                <ArrowDown className="w-4 h-4" />
-              ) : (
-                <ArrowUp className="w-4 h-4" />
-              )}
-              <span className="text-sm">{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                showFilters || activeFiltersCount > 0
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+              onClick={goToToday}
+              disabled={isToday}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isToday
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'btn-secondary'
               }`}
+              title="Go to today"
             >
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-              {activeFiltersCount > 0 && (
-                <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
-                  {activeFiltersCount}
-                </span>
-              )}
+              Today
             </button>
-            
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setTimeFilter(7)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  timeFilter === 7
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-                }`}
-              >
-                7 days
-              </button>
-              <button
-                onClick={() => setTimeFilter(15)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  timeFilter === 15
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-                }`}
-              >
-                15 days
-              </button>
-              <button
-                onClick={() => setTimeFilter(30)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  timeFilter === 30
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-                }`}
-              >
-                30 days
-              </button>
-              <button
-                onClick={() => setTimeFilter('all')}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  timeFilter === 'all'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-                }`}
-              >
-                All
-              </button>
-            </div>
+            <button 
+              onClick={goToNextPeriod} 
+              className="btn-secondary p-2"
+              title="Next period"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {format(startDate, 'dd MMM yyyy', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Period:</label>
+            <select
+              value={selectedDays}
+              onChange={(e) => setSelectedDays(Number(e.target.value))}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
+            >
+              <option value={1}>1 day</option>
+              <option value={3}>3 days</option>
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+              <option value={30}>30 days</option>
+              <option value={60}>60 days</option>
+              <option value={90}>90 days</option>
+            </select>
           </div>
         </div>
       </div>

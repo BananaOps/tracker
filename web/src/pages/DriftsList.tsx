@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { EventType, Status } from '../types/api'
 import type { Event } from '../types/api'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertTriangle, Plus, Filter, X } from 'lucide-react'
+import { AlertTriangle, Plus, Filter, X, ExternalLink, Ticket } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
+import { convertEventToRequest } from '../lib/apiConverters'
 
 export default function DriftsList() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [showJiraModal, setShowJiraModal] = useState(false)
+  const [selectedDrift, setSelectedDrift] = useState<Event | null>(null)
+  const [jiraTicketUrl, setJiraTicketUrl] = useState('')
+  const queryClient = useQueryClient()
   
   // États des filtres
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
@@ -35,6 +40,38 @@ export default function DriftsList() {
 
   const allDrifts = data?.events || []
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
+
+  // Mutation pour mettre à jour un drift avec le lien Jira
+  const updateDriftMutation = useMutation({
+    mutationFn: async ({ drift, ticketUrl }: { drift: Event; ticketUrl: string }) => {
+      const eventRequest = convertEventToRequest(drift)
+      return eventsApi.update(drift.metadata!.id!, {
+        ...eventRequest,
+        links: {
+          ...eventRequest.links,
+          ticket: ticketUrl,
+        },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events', 'drifts'] })
+      setShowJiraModal(false)
+      setJiraTicketUrl('')
+      setSelectedDrift(null)
+    },
+  })
+
+  const handleCreateJiraTicket = (drift: Event) => {
+    setSelectedDrift(drift)
+    setJiraTicketUrl(drift.links?.ticket || '')
+    setShowJiraModal(true)
+  }
+
+  const handleSaveJiraTicket = () => {
+    if (selectedDrift && jiraTicketUrl) {
+      updateDriftMutation.mutate({ drift: selectedDrift, ticketUrl: jiraTicketUrl })
+    }
+  }
   
   // Extraire les valeurs uniques pour les filtres
   const uniqueEnvironments = useMemo(() => {
@@ -331,12 +368,35 @@ export default function DriftsList() {
                   )}
                 </div>
 
-                {drift.links?.ticket && (
-                  <div className="mt-3">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Ticket: </span>
-                    <span className="text-sm font-medium text-primary-600 break-words">{drift.links.ticket}</span>
-                  </div>
-                )}
+                <div className="mt-3 flex items-center justify-between">
+                  {drift.links?.ticket ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Ticket:</span>
+                      <a
+                        href={drift.links.ticket}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="break-all">{drift.links.ticket}</span>
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400 italic">No ticket linked</span>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCreateJiraTicket(drift)
+                    }}
+                    className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    <Ticket className="w-4 h-4" />
+                    <span>{drift.links?.ticket ? 'Update Ticket' : 'Add Ticket'}</span>
+                  </button>
+                </div>
               </div>
 
               <div className="text-right text-sm text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0">
@@ -373,6 +433,121 @@ export default function DriftsList() {
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
         />
+      )}
+
+      {/* Jira Ticket Modal */}
+      {showJiraModal && selectedDrift && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Ticket className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      {selectedDrift.links?.ticket ? 'Update Jira Ticket' : 'Add Jira Ticket'}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Link a Jira ticket to this drift
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowJiraModal(false)
+                    setJiraTicketUrl('')
+                    setSelectedDrift(null)
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Drift Info */}
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Drift Information</h4>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">{selectedDrift.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Service: {selectedDrift.attributes.service}</p>
+                </div>
+
+                {/* Jira Ticket URL Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Jira Ticket URL
+                  </label>
+                  <input
+                    type="url"
+                    value={jiraTicketUrl}
+                    onChange={(e) => setJiraTicketUrl(e.target.value)}
+                    placeholder="https://your-domain.atlassian.net/browse/PROJ-123"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter the full URL of the Jira ticket (e.g., https://your-domain.atlassian.net/browse/PROJ-123)
+                  </p>
+                </div>
+
+                {/* Quick Create Button */}
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center space-x-2">
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Quick Create in Jira</span>
+                  </h4>
+                  <p className="text-xs text-blue-800 dark:text-blue-200 mb-3">
+                    Create a new ticket in Jira, then paste the URL above.
+                  </p>
+                  <a
+                    href={`https://your-domain.atlassian.net/secure/CreateIssue.jspa?summary=${encodeURIComponent(selectedDrift.title)}&description=${encodeURIComponent(selectedDrift.attributes.message || '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Open Jira (New Tab)</span>
+                  </a>
+                  <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
+                    Note: Update "your-domain" in the URL with your actual Jira domain
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => {
+                      setShowJiraModal(false)
+                      setJiraTicketUrl('')
+                      setSelectedDrift(null)
+                    }}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveJiraTicket}
+                    disabled={!jiraTicketUrl || updateDriftMutation.isPending}
+                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {updateDriftMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Ticket className="w-4 h-4" />
+                        <span>Save Ticket Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

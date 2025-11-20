@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
-import { Package, BookOpen } from 'lucide-react'
+import { Package, BookOpen, Search, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -20,12 +21,69 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export default function CatalogTable() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+
   const { data, isLoading } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 100 }),
   })
 
-  const catalogs = data?.catalogs || []
+  const allCatalogs = data?.catalogs || []
+
+  // Extraire les valeurs uniques pour les filtres
+  const uniqueTypes = useMemo(() => {
+    return Array.from(new Set(allCatalogs.map(c => String(c.type).toLowerCase()))).sort()
+  }, [allCatalogs])
+
+  const uniqueLanguages = useMemo(() => {
+    return Array.from(new Set(allCatalogs.map(c => String(c.languages).toLowerCase()))).sort()
+  }, [allCatalogs])
+
+  // Filtrer les catalogues
+  const catalogs = useMemo(() => {
+    return allCatalogs.filter(catalog => {
+      // Filtre par recherche
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesName = catalog.name.toLowerCase().includes(query)
+        const matchesDescription = catalog.description?.toLowerCase().includes(query)
+        const matchesOwner = catalog.owner?.toLowerCase().includes(query)
+        if (!matchesName && !matchesDescription && !matchesOwner) return false
+      }
+
+      // Filtre par type
+      if (selectedTypes.length > 0) {
+        const catalogType = String(catalog.type).toLowerCase()
+        if (!selectedTypes.includes(catalogType)) return false
+      }
+
+      // Filtre par langage
+      if (selectedLanguages.length > 0) {
+        const catalogLang = String(catalog.languages).toLowerCase()
+        if (!selectedLanguages.includes(catalogLang)) return false
+      }
+
+      return true
+    })
+  }, [allCatalogs, searchQuery, selectedTypes, selectedLanguages])
+
+  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
+    if (selected.includes(value)) {
+      setter(selected.filter(v => v !== value))
+    } else {
+      setter([...selected, value])
+    }
+  }
+
+  const clearAllFilters = () => {
+    setSearchQuery('')
+    setSelectedTypes([])
+    setSelectedLanguages([])
+  }
+
+  const activeFiltersCount = selectedTypes.length + selectedLanguages.length + (searchQuery ? 1 : 0)
 
   const getCatalogTypeLabel = (type: CatalogType | string) => {
     const typeStr = String(type).toLowerCase()
@@ -106,7 +164,12 @@ export default function CatalogTable() {
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Catalog</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Inventory of modules, libraries and projects ({catalogs.length} items)
+            Inventory of modules, libraries and projects ({catalogs.length} of {allCatalogs.length} items)
+            {activeFiltersCount > 0 && (
+              <span className="ml-2 text-primary-600 font-medium">
+                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
+              </span>
+            )}
           </p>
         </div>
         <a
@@ -115,6 +178,88 @@ export default function CatalogTable() {
         >
           Add to Catalog
         </a>
+      </div>
+
+      {/* Filtres rapides */}
+      <div className="card">
+        <div className="space-y-4">
+          {/* Barre de recherche */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, description, or owner..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Filtres par type et langage */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-4 flex-wrap gap-2">
+              {/* Filtres Type */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueTypes.map(type => (
+                    <button
+                      key={type}
+                      onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        selectedTypes.includes(type)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+                      }`}
+                    >
+                      {getCatalogTypeLabel(type)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filtres Langage */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Language:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueLanguages.map(lang => (
+                    <button
+                      key={lang}
+                      onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
+                        selectedLanguages.includes(lang)
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50'
+                      }`}
+                    >
+                      {getLanguageIcon(lang)}
+                      <span>{getLanguageLabel(lang)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bouton Clear All */}
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearAllFilters}
+                className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center space-x-1 font-medium"
+              >
+                <X className="w-4 h-4" />
+                <span>Clear All</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="card overflow-hidden p-0">
