@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background square with gradient -->
+  <rect width="100" height="100" rx="15" fill="url(#bgGradient)"/>
+  
+  <!-- White rocket - Flat/Material Design -->
+  <!-- Rocket body (main cylinder) -->
+  <rect x="38" y="35" width="24" height="40" rx="2" fill="#ffffff"/>
+  
+  <!-- Rocket nose cone (rounded top) -->
+  <path d="M38 35 Q50 15 62 35 Z" fill="#ffffff"/>
+  
+  <!-- Left fin -->
+  <path d="M38 55 L25 75 L38 70 Z" fill="#ffffff"/>
+  
+  <!-- Right fin -->
+  <path d="M62 55 L75 75 L62 70 Z" fill="#ffffff"/>
+  
+  <!-- Rocket window (simple circle) -->
+  <circle cx="50" cy="45" r="6" fill="#a855f7" opacity="0.25"/>
+  
+  <!-- Bottom boosters -->
+  <rect x="40" y="72" width="8" height="3" rx="1" fill="#ffffff"/>
+  <rect x="52" y="72" width="8" height="3" rx="1" fill="#ffffff"/>
+  
+  <!-- Flame (simplified) -->
+  <ellipse cx="44" cy="80" rx="4" ry="8" fill="#fbbf24" opacity="0.9"/>
+  <ellipse cx="56" cy="80" rx="4" ry="8" fill="#fbbf24" opacity="0.9"/>
+  <ellipse cx="50" cy="82" rx="3" ry="6" fill="#fef3c7" opacity="0.8"/>
+</svg>
