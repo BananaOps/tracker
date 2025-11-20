@@ -37,9 +37,8 @@ jobs:
           commit_message: "ci: bump charts to ${{steps.version_tag.outputs.tag}}"
           branch: main
   
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -47,12 +46,17 @@ jobs:
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{ secrets.DOCKER_AUTH_TOKEN }}
 
-      - uses: imjasonh/setup-ko@v0.8
-
-      - name: Build and Push on Docker Hub  
-        env:
-          KO_DOCKER_REPO: bananaops/tracker
-        run: ko publish . --bare --tags latest,${{steps.version_tag.outputs.tag}}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            bananaops/tracker:latest
+            bananaops/tracker:${{steps.version_tag.outputs.tag}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
   release-helm: 
     needs: [release]
