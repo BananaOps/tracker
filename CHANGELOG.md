@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/BananaOps/tracker/compare/v0.9.0...v0.9.1) (2025-11-20)
+
+
+### Bug Fixes
+
+* remove unsused var ([#97](https://github.com/BananaOps/tracker/issues/97)) ([8cca112](https://github.com/BananaOps/tracker/commit/8cca1121d64d6fa9dcead238e12f8757153766cd))
+
 ## [0.9.0](https://github.com/BananaOps/tracker/compare/v0.8.0...v0.9.0) (2025-11-20)
 
 
