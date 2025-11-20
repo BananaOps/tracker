@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -55,6 +57,14 @@ var serv = &cobra.Command{
 		//health.RegisterHealthServer(grpcServer, healthCheckService)
 
 		ctx := context.TODO()
+
+		// Initialiser les index MongoDB après la première connexion
+		db := server.GetDatabaseConnection()
+		if db != nil {
+			if err := server.EnsureIndexes(ctx, db); err != nil {
+				slog.Warn("Failed to ensure database indexes", "error", err)
+			}
+		}
 		mux := runtime.NewServeMux()
 
 		// Register generated routes to mux
@@ -87,14 +97,85 @@ var serv = &cobra.Command{
 			sh.ServeHTTP(w, r)
 		})
 
+		// Serve frontend configuration
+		mux.HandlePath("GET", "/config.js", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			jiraDomain := os.Getenv("JIRA_DOMAIN")
+			if jiraDomain == "" {
+				jiraDomain = "your-domain.atlassian.net"
+			}
+			jiraProjectKey := os.Getenv("JIRA_PROJECT_KEY")
+
+			slackWorkspace := os.Getenv("SLACK_WORKSPACE")
+			if slackWorkspace == "" {
+				slackWorkspace = "your-workspace"
+			}
+
+			slackEventsChannel := os.Getenv("SLACK_EVENTS_CHANNEL")
+
+			w.Header().Set("Content-Type", "application/javascript")
+			fmt.Fprintf(w, `window.TRACKER_CONFIG = {
+  jira: {
+    domain: "%s",
+    projectKey: "%s"
+  },
+  slack: {
+    workspace: "%s",
+    eventsChannel: "%s"
+  }
+};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel)
+		})
+
 		//define logger for http server error
 		handler := slog.NewJSONHandler(os.Stdout, nil)
 		httplogger := slog.NewLogLogger(handler, slog.LevelError)
 
+		// Determine HTTP handler based on frontend availability
+		var httpHandler http.Handler
+		frontendDir := "web/dist"
+		if _, err := os.Stat(frontendDir); err == nil {
+			slog.Info("Serving frontend from", "path", frontendDir)
+
+			// Create a file server for static assets
+			fileServer := http.FileServer(http.Dir(frontendDir))
+
+			// Custom handler to serve index.html for SPA routes
+			httpHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Check if path starts with /api/ or is a special route - if so, let the API handler deal with it
+				if strings.HasPrefix(r.URL.Path, "/api/") ||
+					strings.HasPrefix(r.URL.Path, "/swagger.json") ||
+					strings.HasPrefix(r.URL.Path, "/docs") ||
+					r.URL.Path == "/config.js" {
+					mux.ServeHTTP(w, r)
+					return
+				}
+
+				// Get the absolute path to prevent directory traversal
+				path := filepath.Join(frontendDir, r.URL.Path)
+
+				// Check if file exists
+				_, err := os.Stat(path)
+				if os.IsNotExist(err) {
+					// File does not exist, serve index.html for SPA routing
+					http.ServeFile(w, r, filepath.Join(frontendDir, "index.html"))
+					return
+				} else if err != nil {
+					// Other error, return 500
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				// File exists, serve it
+				fileServer.ServeHTTP(w, r)
+			})
+		} else {
+			slog.Warn("Frontend directory not found, serving API only", "path", frontendDir)
+			httpHandler = mux
+		}
+
 		httpServer := &http.Server{
 			Addr:              "0.0.0.0:8080",
 			ReadHeaderTimeout: 2 * time.Second, // Fix CWE-400 Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server
-			Handler:           mux,
+			Handler:           httpHandler,
 			ErrorLog:          httplogger,
 		}
 

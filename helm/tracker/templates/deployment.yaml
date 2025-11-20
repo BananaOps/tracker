@@ -59,8 +59,24 @@ spec:
               value: {{ .Values.service.http.port | quote }}
             - name: GRPC_PORT
               value: {{ .Values.service.grpc.port | quote }}
+            {{- if .Values.env.jira.domain }}
+            - name: JIRA_DOMAIN
+              value: {{ .Values.env.jira.domain | quote }}
+            {{- end }}
+            {{- if .Values.env.jira.projectKey }}
+            - name: JIRA_PROJECT_KEY
+              value: {{ .Values.env.jira.projectKey | quote }}
+            {{- end }}
+            {{- if .Values.env.slack.workspace }}
+            - name: SLACK_WORKSPACE
+              value: {{ .Values.env.slack.workspace | quote }}
+            {{- end }}
+            {{- if .Values.env.slack.eventsChannel }}
+            - name: SLACK_EVENTS_CHANNEL
+              value: {{ .Values.env.slack.eventsChannel | quote }}
+            {{- end }}
           command:
-            - /ko-app/tracker
+            - ./tracker
             - serv
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

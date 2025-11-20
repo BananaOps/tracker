@@ -21,6 +21,8 @@ type MongoClient struct {
 
 var caCertPool *x509.CertPool
 var cert tls.Certificate
+var mongoClient *mongo.Client
+var mongoDatabase *mongo.Database
 
 func NewClient(collection string) (c *mongo.Collection) {
 
@@ -44,14 +46,24 @@ func NewClient(collection string) (c *mongo.Collection) {
 		}
 	}
 
+	// Stocker le client et la database pour l'initialisation des index
+	mongoClient = m
+	mongoDatabase = m.Database(config.Name)
+
 	// init client collection
-	db := m.Database(config.Name)
-	err = db.CreateCollection(ctx, collection)
+	err = mongoDatabase.CreateCollection(ctx, collection)
 	if err != nil {
-		log.Fatalf("error create collection %s", err)
+		// Ignorer l'erreur si la collection existe déjà
+		log.Printf("collection %s may already exist: %v", collection, err)
 	}
 
-	return db.Collection(collection)
+	return mongoDatabase.Collection(collection)
+}
+
+// GetDatabase retourne l'instance de la base de données MongoDB
+// Utilisé pour l'initialisation des index
+func GetDatabase() *mongo.Database {
+	return mongoDatabase
 }
 
 func loadTlsCerts(config config.Database) (tlsConfig *tls.Config) {

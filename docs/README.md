@@ -1,103 +1,282 @@
-# Tracker API Documentation
+# 📚 Tracker Documentation
 
-Tracker est une API de gestion d'événements, de catalogues et de verrous (locks) construite avec gRPC et exposée via REST grâce à grpc-gateway.
+Welcome to the Tracker documentation! This guide will help you get started, deploy, and contribute to the project.
 
-## Architecture
+---
 
-- **gRPC Server**: Port 8765
-- **HTTP/REST Server**: Port 8080  
-- **Metrics Server**: Port 8081
+## 🚀 Getting Started
+
+### Quick Start Guides
+- [**Deployment Guide**](./DEPLOYMENT.md) - All deployment methods (Docker, Kubernetes, local)
+- [**Docker Build Guide**](./DOCKER_BUILD.md) - Build and run with Docker
+- [**Skaffold Guide**](./SKAFFOLD.md) - Deploy to Kubernetes with Skaffold
+
+### First Steps
+1. Choose your deployment method (Docker recommended)
+2. Start the application
+3. Access the web UI at http://localhost:8080
+4. Explore the Swagger UI at http://localhost:8080/docs
+
+---
+
+## 📖 User Guides
+
+### Core Features
+- **Events Management** - Track deployments, incidents, operations, and drifts
+- **Service Catalog** - Maintain inventory of services and components
+- **Timeline View** - Visualize events chronologically
+- **Calendar View** - See events in calendar format
+- **Dashboard** - Overview and statistics
+
+### Event Types
+- **Deployments** 🚀 - Track service deployments
+- **Operations** 🔧 - Monitor operational tasks
+- **Drifts** 🔀 - Detect configuration drifts
+- **Incidents** 🔥 - Manage incidents
+- **RPA Usage** 🤖 - Track automation executions
+
+---
+
+## 🔧 Development
+
+### Setup & Build
+- [**Build Fixes**](./BUILD_FIXES.md) - Solutions to common build issues
+- [**Integration Summary**](./INTEGRATION_SUMMARY.md) - Frontend/Backend integration details
+- [**Changes Summary**](./CHANGES_SUMMARY.md) - Complete list of modifications
+
+### Technical Guides
+- [**API Enum Conversion**](./API_ENUM_CONVERSION.md) - How enums are converted between frontend and backend
+- [**Catalog UI Improvements**](./CATALOG_UI_IMPROVEMENTS.md) - UI enhancements documentation
+
+### Frontend
+- [**Web Frontend README**](../web/README.md) - React/TypeScript frontend documentation
+- [**Open Source Banner**](./OPEN_SOURCE_BANNER.md) - Banner component documentation
+
+---
+
+## 🐳 Deployment
+
+### Docker
+- [**Docker Build Guide**](./DOCKER_BUILD.md)
+  - Multi-stage build process
+  - Frontend + Backend integration
+  - Troubleshooting
+
+### Kubernetes
+- [**Skaffold Guide**](./SKAFFOLD.md)
+  - Production deployment
+  - Development with hot-reload
+  - CI/CD integration
+
+### Deployment Options
+- [**Deployment Guide**](./DEPLOYMENT.md)
+  - Docker
+  - Docker Compose
+  - Kubernetes (Skaffold)
+  - Kubernetes (Helm)
+  - Local development
+
+---
+
+## 🏗️ Architecture
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Tracker Application                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │   React UI   │  │   REST API   │  │  Swagger UI  │      │
+│  │  (Port 8080) │  │  (Port 8080) │  │  (Port 8080) │      │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
+│         │                 │                 │               │
+│         └─────────────────┼─────────────────┘               │
+│                           │                                 │
+│                  ┌────────▼────────┐                        │
+│                  │  grpc-gateway   │                        │
+│                  │  (REST → gRPC)  │                        │
+│                  └────────┬────────┘                        │
+│                           │                                 │
+│         ┌─────────────────┼─────────────────┐              │
+│         │                 │                 │              │
+│    ┌────▼────┐      ┌────▼────┐      ┌────▼────┐         │
+│    │ Event   │      │Catalog  │      │  Lock   │         │
+│    │ Service │      │Service  │      │ Service │         │
+│    └────┬────┘      └────┬────┘      └────┬────┘         │
+│         │                │                 │              │
+│         └────────────────┼─────────────────┘              │
+│                          │                                │
+│                   ┌──────▼──────┐                         │
+│                   │   MongoDB   │                         │
+│                   │  / FeretDB  │                         │
+│                   └─────────────┘                         │
+│                                                            │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │         Prometheus Metrics (Port 8081)           │    │
+│  └──────────────────────────────────────────────────┘    │
+│                                                            │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │         gRPC API (Port 8765)                     │    │
+│  └──────────────────────────────────────────────────┘    │
+│                                                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Components
+
+#### Backend (Go)
+- **gRPC Server** - Native high-performance API
+- **REST Gateway** - HTTP/JSON endpoints
+- **Event Service** - Event management
+- **Catalog Service** - Service inventory
+- **Lock Service** - Distributed locking
+
+#### Frontend (React)
+- **Dashboard** - Overview and statistics
+- **Timeline** - Chronological event view
+- **Calendar** - Monthly calendar view
+- **Forms** - Create events, drifts, RPA operations
+- **Catalog** - Service inventory table
+
+#### Storage
+- **MongoDB** - Primary data store
+- **FeretDB** - PostgreSQL-compatible alternative
+
+---
+
+## 📊 API Reference
+
+### Endpoints
+
+#### Events API
+- `POST /api/v1alpha1/event` - Create event
+- `PUT /api/v1alpha1/event` - Update event
+- `GET /api/v1alpha1/event/{id}` - Get event
+- `DELETE /api/v1alpha1/event/{id}` - Delete event
+- `GET /api/v1alpha1/events/list` - List events
+- `GET /api/v1alpha1/events/search` - Search events
+- `GET /api/v1alpha1/events/today` - Today's events
+
+#### Catalog API
+- `PUT /api/v1alpha1/catalog` - Create/Update catalog entry
+- `GET /api/v1alpha1/catalog` - Get catalog entry
+- `DELETE /api/v1alpha1/catalog` - Delete catalog entry
+- `GET /api/v1alpha1/catalogs/list` - List catalog entries
+
+#### Lock API
+- `POST /api/v1alpha1/lock` - Acquire lock
+- `DELETE /api/v1alpha1/lock` - Release lock
+- `GET /api/v1alpha1/locks` - List locks
+
+### Interactive Documentation
 - **Swagger UI**: http://localhost:8080/docs
 - **OpenAPI Spec**: http://localhost:8080/swagger.json
 
-## Services Disponibles
+---
 
-### 1. EventService
-Gestion des événements (déploiements, opérations, incidents, etc.)
+## 🔍 Troubleshooting
 
-**Endpoints principaux:**
-- `POST /api/v1alpha1/event` - Créer un événement
-- `PUT /api/v1alpha1/event` - Mettre à jour un événement  
-- `GET /api/v1alpha1/event/{id}` - Récupérer un événement
-- `DELETE /api/v1alpha1/event/{id}` - Supprimer un événement
-- `GET /api/v1alpha1/events/list` - Lister les événements
-- `GET /api/v1alpha1/events/search` - Rechercher des événements
-- `GET /api/v1alpha1/events/today` - Événements du jour
+### Common Issues
 
-### 2. CatalogService  
-Gestion du catalogue de modules, bibliothèques, projets, etc.
+#### Build Errors
+See [Build Fixes](./BUILD_FIXES.md) for solutions to:
+- TypeScript errors
+- Go module issues
+- Docker build failures
+- npm build errors
 
-**Endpoints principaux:**
-- `PUT /api/v1alpha1/catalog` - Créer/Mettre à jour un élément du catalogue
-- `GET /api/v1alpha1/catalog` - Récupérer un élément du catalogue
-- `DELETE /api/v1alpha1/catalog` - Supprimer un élément du catalogue
-- `GET /api/v1alpha1/catalogs/list` - Lister les éléments du catalogue
+#### Deployment Issues
+See [Deployment Guide](./DEPLOYMENT.md) for:
+- Docker container issues
+- Kubernetes pod failures
+- Port conflicts
+- Database connection errors
 
-### 3. LockService
-Gestion des verrous pour la synchronisation de services
+#### Frontend Issues
+- Clear browser cache
+- Check console for errors
+- Verify API connectivity
+- Check dark mode compatibility
 
-**Endpoints principaux:**
-- `POST /api/v1alpha1/lock` - Créer un verrou
-- `GET /api/v1alpha1/lock/{id}` - Récupérer un verrou
-- `GET /api/v1alpha1/unlock/{id}` - Libérer un verrou
-- `GET /api/v1alpha1/locks/list` - Lister les verrous
+---
 
-## Types et Énumérations
+## 🤝 Contributing
 
-### Event Types
-- `deployment` - Déploiement
-- `operation` - Opération
-- `drift` - Dérive de configuration
-- `incident` - Incident
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Write tests
+5. Submit a pull request
 
-### Event Priority
-- `P1` - Critique
-- `P2` - Élevée
-- `P3` - Moyenne
-- `P4` - Faible
-- `P5` - Très faible
+### Development Setup
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/tracker.git
+cd tracker
 
-### Event Status
-- `start` - Démarré
-- `success` - Succès
-- `failure` - Échec
-- `warning` - Avertissement
-- `error` - Erreur
-- `open` - Ouvert
-- `close` - Fermé
-- `done` - Terminé
+# Backend
+go run main.go serv
 
-### Catalog Types
-- `module` - Module
-- `library` - Bibliothèque
-- `workflow` - Workflow
-- `project` - Projet
-- `chart` - Chart Helm
-- `package` - Package
-- `container` - Conteneur
+# Frontend (in another terminal)
+cd web
+npm install
+npm run dev
+```
 
-### Languages
-- `golang`, `java`, `kotlin`, `python`, `javascript`, `typescript`
-- `terraform`, `helm`, `yaml`, `docker`
-- `php`, `rust`, `groovy`
+### Code Style
+- **Go**: Follow standard Go conventions
+- **TypeScript**: Use ESLint configuration
+- **Commits**: Use conventional commits
 
-## Documentation Détaillée
+---
 
-- [Events API](./events.md) - Documentation complète de l'API Events
-- [Catalog API](./catalog.md) - Documentation complète de l'API Catalog  
-- [Locks API](./locks.md) - Documentation complète de l'API Locks
+## 📝 Documentation Index
 
-## Swagger UI
+### Getting Started
+- [Deployment Guide](./DEPLOYMENT.md)
+- [Docker Build Guide](./DOCKER_BUILD.md)
+- [Skaffold Guide](./SKAFFOLD.md)
 
-L'interface Swagger UI est disponible à l'adresse http://localhost:8080/docs pour explorer et tester l'API de manière interactive.
+### Development
+- [Build Fixes](./BUILD_FIXES.md)
+- [API Enum Conversion](./API_ENUM_CONVERSION.md)
+- [Integration Summary](./INTEGRATION_SUMMARY.md)
+- [Changes Summary](./CHANGES_SUMMARY.md)
 
-## Protobuf
+### UI/UX
+- [Catalog UI Improvements](./CATALOG_UI_IMPROVEMENTS.md)
+- [Open Source Banner](./OPEN_SOURCE_BANNER.md)
 
-Les définitions protobuf sont disponibles dans le dossier `proto/` :
-- `proto/event/v1alpha1/event.proto`
-- `proto/catalog/v1alpha1/catalog.proto`  
-- `proto/lock/v1alpha1/lock.proto`
+### Frontend
+- [Web Frontend README](../web/README.md)
 
-## Génération de Code
+---
 
-Le code est généré automatiquement à partir des fichiers protobuf via `buf generate`.
+## 📞 Support
+
+### Get Help
+- **GitHub Issues**: [Report bugs](https://github.com/BananaOps/tracker/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/BananaOps/tracker/discussions)
+- **Documentation**: You're reading it! 📖
+
+### Useful Links
+- [Main README](../README.md)
+- [Contributing Guidelines](../CONTRIBUTING.md)
+- [License](../LICENSE)
+
+---
+
+<p align="center">
+  <strong>Happy Tracking! 🚀</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/BananaOps/tracker">⭐ Star us on GitHub</a>
+  •
+  <a href="https://github.com/BananaOps/tracker/issues">🐛 Report Issues</a>
+  •
+  <a href="https://github.com/BananaOps/tracker/discussions">💬 Discussions</a>
+</p>
