@@ -104,6 +104,12 @@ func (m *Lock) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Environment
+
+	// no validation rules for Resource
+
+	// no validation rules for EventId
+
 	if len(errors) > 0 {
 		return LockMultiError(errors)
 	}
@@ -214,6 +220,12 @@ func (m *CreateLockRequest) validate(all bool) error {
 	// no validation rules for Service
 
 	// no validation rules for Who
+
+	// no validation rules for Environment
+
+	// no validation rules for Resource
+
+	// no validation rules for EventId
 
 	if len(errors) > 0 {
 		return CreateLockRequestMultiError(errors)

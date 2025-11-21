@@ -32,11 +32,17 @@ message Lock {
   string service = 2;
   string who = 3;
   google.protobuf.Timestamp created_at = 4;
+  string environment = 5;  // Environment where the lock applies
+  string resource = 6;     // Resource type (deployment, operation)
+  string event_id = 7;     // Associated event ID
 }
 
 message CreateLockRequest {
   string service = 2;
   string who = 3;
+  string environment = 4;
+  string resource = 5;
+  string event_id = 6;
 }
 
 message CreateLockResponse {

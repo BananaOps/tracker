@@ -730,7 +730,9 @@
         "approved",
         "rejected",
         "commented",
-        "linked"
+        "linked",
+        "locked",
+        "unlocked"
       ],
       "default": "CHANGE_TYPE_UNSPECIFIED"
     },
@@ -793,6 +795,15 @@
           "type": "string"
         },
         "who": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "event_id": {
           "type": "string"
         }
       }
@@ -1106,6 +1117,18 @@
         "created_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "environment": {
+          "type": "string",
+          "title": "Environment where the lock applies"
+        },
+        "resource": {
+          "type": "string",
+          "title": "Resource type (deployment, operation)"
+        },
+        "event_id": {
+          "type": "string",
+          "title": "Associated event ID"
         }
       }
     },

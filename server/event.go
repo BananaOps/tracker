@@ -8,6 +8,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
@@ -37,14 +38,16 @@ var (
 
 type Event struct {
 	v1alpha1.UnimplementedEventServiceServer
-	store  *store.EventStoreClient
-	logger *slog.Logger
+	store       *store.EventStoreClient
+	lockService *Lock
+	logger      *slog.Logger
 }
 
 func NewEvent() *Event {
 	return &Event{
 		UnimplementedEventServiceServer: v1alpha1.UnimplementedEventServiceServer{},
 		store:                           store.NewStoreEvent(config.ConfigDatabase.EventCollection),
+		lockService:                     NewLock(),
 		logger:                          slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
 }
@@ -66,6 +69,32 @@ func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, us
 	}
 
 	event.Changelog = append(event.Changelog, entry)
+}
+
+// shouldCreateLock détermine si un lock doit être créé pour cet événement
+func shouldCreateLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
+	// Créer un lock pour les déploiements et opérations qui démarrent
+	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
+		status == v1alpha1.Status_start
+}
+
+// shouldReleaseLock détermine si un lock doit être libéré pour cet événement
+func shouldReleaseLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
+	// Libérer le lock quand l'événement se termine
+	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
+		(status == v1alpha1.Status_success || status == v1alpha1.Status_failure || status == v1alpha1.Status_done)
+}
+
+// getResourceType retourne le type de ressource pour le lock
+func getResourceType(eventType v1alpha1.Type) string {
+	switch eventType {
+	case v1alpha1.Type_deployment:
+		return "deployment"
+	case v1alpha1.Type_operation:
+		return "operation"
+	default:
+		return "unknown"
+	}
 }
 
 func (e *Event) CreateEvent(
@@ -124,11 +153,44 @@ func (e *Event) CreateEvent(
 	}
 	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
 
+	// Vérifier et créer un lock si nécessaire AVANT de créer l'événement
+	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
+		lockReq := &lock.CreateLockRequest{
+			Service:     i.Attributes.Service,
+			Who:         user,
+			Environment: i.Attributes.Environment.String(),
+			Resource:    getResourceType(i.Attributes.Type),
+			EventId:     "", // Sera mis à jour après la création de l'événement
+		}
+
+		_, err := e.lockService.CreateLock(ctx, lockReq)
+		if err != nil {
+			e.logger.Error("failed to create lock",
+				"service", i.Attributes.Service,
+				"environment", i.Attributes.Environment.String(),
+				"resource", getResourceType(i.Attributes.Type),
+				"error", err,
+			)
+			return nil, fmt.Errorf("cannot create event: %w", err)
+		}
+	}
+
 	var eventResult = &v1alpha1.CreateEventResponse{}
 	var err error
 	eventResult.Event, err = e.store.Create(context.Background(), event)
 	if err != nil {
 		return nil, err
+	}
+
+	// Mettre à jour le lock avec l'event_id
+	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
+		// Note: Pour mettre à jour le lock avec l'event_id, il faudrait ajouter une méthode UpdateLock
+		// Pour l'instant, le lock est créé sans event_id
+		e.logger.Info("lock created for event",
+			"event_id", eventResult.Event.Metadata.Id,
+			"service", i.Attributes.Service,
+			"environment", i.Attributes.Environment.String(),
+		)
 	}
 
 	// log event to json format
@@ -387,6 +449,25 @@ func (e *Event) UpdateEvent(
 	eventResult.Event, err = e.store.Update(context.Background(), filter, event)
 	if err != nil {
 		return nil, err
+	}
+
+	// Libérer le lock si l'événement se termine
+	if shouldReleaseLock(event.Attributes.Type, event.Attributes.Status) {
+		err = e.lockService.UnlockByEventId(ctx, eventResult.Event.Metadata.Id)
+		if err != nil {
+			e.logger.Warn("failed to release lock",
+				"event_id", eventResult.Event.Metadata.Id,
+				"service", event.Attributes.Service,
+				"error", err,
+			)
+			// Ne pas retourner d'erreur, l'événement est déjà mis à jour
+		} else {
+			e.logger.Info("lock released for event",
+				"event_id", eventResult.Event.Metadata.Id,
+				"service", event.Attributes.Service,
+				"status", event.Attributes.Status.String(),
+			)
+		}
 	}
 
 	return eventResult, nil

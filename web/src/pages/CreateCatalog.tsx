@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { CatalogType, Language } from '../types/api'
 import type { Catalog } from '../types/api'
 import Toast from '../components/Toast'
+import { Plus } from 'lucide-react'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
@@ -170,9 +171,16 @@ export default function CreateCatalog() {
           <button
             type="submit"
             disabled={createMutation.isPending}
-            className="btn-primary"
+            className="btn-primary flex items-center justify-center gap-2"
           >
-            {createMutation.isPending ? 'Creating...' : 'Add to Catalog'}
+            {createMutation.isPending ? (
+              'Creating...'
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Add to Catalog
+              </>
+            )}
           </button>
         </div>
       </form>

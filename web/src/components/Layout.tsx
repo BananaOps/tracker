@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock } from 'lucide-react'
 import { useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
@@ -21,6 +21,7 @@ const navigation = [
   { name: 'Catalog', href: '/catalog', icon: Table },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
+  { name: 'Locks', href: '/locks', icon: Lock },
   { name: 'Docs', href: '/docs', icon: BookOpen },
 ]
 

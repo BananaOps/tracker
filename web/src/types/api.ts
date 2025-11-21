@@ -97,6 +97,8 @@ export enum ChangeType {
   REJECTED = 'rejected',
   COMMENTED = 'commented',
   LINKED = 'linked',
+  LOCKED = 'locked',
+  UNLOCKED = 'unlocked',
 }
 
 export interface ChangelogEntry {
