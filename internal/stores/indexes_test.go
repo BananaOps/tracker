@@ -31,9 +31,14 @@ func TestEnsureIndexes(t *testing.T) {
 	uri := createMongoUri(cfg)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		t.Fatalf("Failed to connect to MongoDB: %v", err)
+		t.Skipf("MongoDB not available: %v", err)
 	}
 	defer client.Disconnect(ctx)
+
+	// Ping MongoDB pour vérifier la connexion
+	if err := client.Ping(ctx, nil); err != nil {
+		t.Skipf("Cannot ping MongoDB: %v", err)
+	}
 
 	// Utiliser une base de données de test
 	testDB := client.Database(cfg.Name + "_test")
@@ -191,9 +196,14 @@ func TestIndexIdempotency(t *testing.T) {
 	uri := createMongoUri(cfg)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		t.Fatalf("Failed to connect to MongoDB: %v", err)
+		t.Skipf("MongoDB not available: %v", err)
 	}
 	defer client.Disconnect(ctx)
+
+	// Ping MongoDB pour vérifier la connexion
+	if err := client.Ping(ctx, nil); err != nil {
+		t.Skipf("Cannot ping MongoDB: %v", err)
+	}
 
 	testDB := client.Database(cfg.Name + "_test_idempotency")
 	defer testDB.Drop(ctx)
