@@ -2,6 +2,8 @@ module github.com/bananaops/tracker
 
 go 1.25.4
 
+toolchain go1.25.3
+
 require (
 	github.com/go-openapi/runtime v0.29.2
 	google.golang.org/grpc v1.77.0
