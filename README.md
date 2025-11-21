@@ -270,7 +270,7 @@ Maintain an inventory of your services:
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Language**: Go 1.23+
+- **Language**: Go 1.25.4+
 - **API**: gRPC + REST (grpc-gateway)
 - **Database**: MongoDB / FeretDB (with automatic index optimization)
 - **Metrics**: Prometheus
