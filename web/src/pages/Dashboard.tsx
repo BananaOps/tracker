@@ -5,7 +5,7 @@ import { AlertCircle, CheckCircle, Clock, TrendingUp, Plus, AlertTriangle } from
 import { Link } from 'react-router-dom'
 import { Status, Priority } from '../types/api'
 import type { Event } from '../types/api'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor, isEventApproved } from '../lib/eventUtils'
 import { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
 
@@ -436,6 +436,12 @@ export default function Dashboard() {
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
                     {getStatusLabel(event.attributes.status)}
                   </span>
+                  {isEventApproved(event) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                      <CheckCircle className="w-3 h-3" />
+                      Approved
+                    </span>
+                  )}
                 </div>
               </div>
             )

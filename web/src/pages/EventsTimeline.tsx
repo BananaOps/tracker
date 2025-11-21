@@ -4,8 +4,8 @@ import { format, subDays, isAfter, addDays, startOfDay, endOfDay } from 'date-fn
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import type { Event } from '../types/api'
-import { Filter, X, Plus, ArrowUp, ArrowDown, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
+import { Filter, X, Plus, ArrowUp, ArrowDown, Calendar, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor, isEventApproved } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { useState, useMemo } from 'react'
@@ -457,6 +457,12 @@ export default function EventsTimeline() {
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
                           {getStatusLabel(event.attributes.status)}
                         </span>
+                        {isEventApproved(event) && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <CheckCircle className="w-3 h-3" />
+                            Approved
+                          </span>
+                        )}
                       </div>
                       
                       <div className="flex items-center space-x-2">

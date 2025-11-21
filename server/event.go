@@ -373,6 +373,12 @@ func (e *Event) UpdateEvent(
 		user = i.Attributes.Owner
 	}
 
+	// Detect if this is an approval (only owner changed, nothing else)
+	isApproval := eventDatabase.Event.Attributes.Owner != event.Attributes.Owner &&
+		eventDatabase.Event.Attributes.Status == event.Attributes.Status &&
+		eventDatabase.Event.Attributes.Priority == event.Attributes.Priority &&
+		eventDatabase.Event.Title == event.Title
+
 	// Check for status change
 	if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
 		addChangelogEntry(
@@ -427,15 +433,27 @@ func (e *Event) UpdateEvent(
 
 	// Add general update entry if no specific changes were tracked
 	if len(event.Changelog) == len(eventDatabase.Event.Changelog) {
-		addChangelogEntry(
-			event,
-			v1alpha1.ChangeType_updated,
-			user,
-			"",
-			"",
-			"",
-			"Event updated",
-		)
+		if isApproval {
+			addChangelogEntry(
+				event,
+				v1alpha1.ChangeType_approved,
+				user,
+				"",
+				"",
+				"",
+				fmt.Sprintf("Event approved by %s", user),
+			)
+		} else {
+			addChangelogEntry(
+				event,
+				v1alpha1.ChangeType_updated,
+				user,
+				"",
+				"",
+				"",
+				"Event updated",
+			)
+		}
 	}
 
 	// Use the appropriate filter based on whether SlackId or Id is provided
