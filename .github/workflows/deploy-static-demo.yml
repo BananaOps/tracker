@@ -1,0 +1,89 @@
+name: Deploy Static Demo to GitHub Pages
+
+on:
+  # Exécution manuelle
+  workflow_dispatch:
+  
+  # Exécution automatique chaque lundi à 2h du matin
+  schedule:
+    - cron: '0 2 * * 1'
+  
+  # Optionnel : exécution sur push vers main (à commenter si non souhaité)
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'web/**'
+
+# Permissions nécessaires pour déployer sur GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Éviter les déploiements concurrents
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Generate demo data
+        run: |
+          echo "🎲 Generating demo data..."
+          node scripts/generate-demo-data.js
+          
+          echo "✅ Data generated successfully"
+          echo "📊 Events: $(jq '.totalCount' web/public/static-data/events.json)"
+          echo "📚 Catalogs: $(jq '.totalCount' web/public/static-data/catalogs.json)"
+          echo "🔒 Locks: $(jq '.totalCount' web/public/static-data/locks.json)"
+          ls -lh web/public/static-data/
+
+      - name: Build frontend with static data
+        working-directory: web
+        run: npm run build:static
+
+      - name: Add demo banner to index.html
+        run: |
+          # Ajouter un bandeau indiquant qu'il s'agit d'une démo statique
+          sed -i 's/<body>/<body><div style="background:#fbbf24;color:#000;padding:8px;text-align:center;font-weight:bold;">📊 Static Demo - Data updated weekly - Last update: '"$(date -u +%Y-%m-%d)"'<\/div>/' web/dist/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'web/dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ Deployed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://${{ github.repository_owner }}.github.io/tracker/" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date**: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Events**: $(jq -r '.totalCount // 0' web/public/static-data/events.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Catalogs**: $(jq -r '.totalCount // 0' web/public/static-data/catalogs.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Locks**: $(jq -r '.totalCount // 0' web/public/static-data/locks.json)" >> $GITHUB_STEP_SUMMARY

@@ -3,6 +3,7 @@ import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Packag
 import { useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
+import StaticModeBanner from './StaticModeBanner'
 import Footer from './Footer'
 import { getSlackEventsChannelUrl } from '../config'
 
@@ -42,6 +43,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <OpenSourceBanner />
+      <StaticModeBanner />
       <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14">

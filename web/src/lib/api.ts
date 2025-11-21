@@ -1,21 +1,25 @@
 import axios from 'axios'
 import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ListCatalogsResponse } from '../types/api'
+import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
 
-const api = axios.create({
+// Détecter si on est en mode statique (GitHub Pages)
+const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
+
+const axiosInstance = axios.create({
   baseURL: '/api/v1alpha1',
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-export const eventsApi = {
+const realEventsApi = {
   list: async (params?: { perPage?: number; page?: number }) => {
-    const { data } = await api.get<ListEventsResponse>('/events/list', { params })
+    const { data } = await axiosInstance.get<ListEventsResponse>('/events/list', { params })
     return data
   },
 
   today: async (params?: { perPage?: number; page?: number }) => {
-    const { data } = await api.get<ListEventsResponse>('/events/today', { params })
+    const { data } = await axiosInstance.get<ListEventsResponse>('/events/today', { params })
     return data
   },
 
@@ -29,48 +33,48 @@ export const eventsApi = {
     endDate?: string
     environment?: number
   }) => {
-    const { data } = await api.get<ListEventsResponse>('/events/search', { params })
+    const { data } = await axiosInstance.get<ListEventsResponse>('/events/search', { params })
     return data
   },
 
   get: async (id: string) => {
-    const { data } = await api.get<{ event: Event }>(`/event/${id}`)
+    const { data } = await axiosInstance.get<{ event: Event }>(`/event/${id}`)
     return data.event
   },
 
   create: async (event: CreateEventRequest) => {
-    const { data } = await api.post<{ event: Event }>('/event', event)
+    const { data } = await axiosInstance.post<{ event: Event }>('/event', event)
     return data.event
   },
 
   update: async (id: string, event: CreateEventRequest) => {
-    const { data } = await api.put<{ event: Event }>('/event', { ...event, id })
+    const { data } = await axiosInstance.put<{ event: Event }>('/event', { ...event, id })
     return data.event
   },
 
   delete: async (id: string) => {
-    await api.delete(`/event/${id}`)
+    await axiosInstance.delete(`/event/${id}`)
   },
 }
 
-export const catalogApi = {
+const realCatalogApi = {
   list: async (params?: { perPage?: number; page?: number }) => {
-    const { data } = await api.get<ListCatalogsResponse>('/catalogs/list', { params })
+    const { data } = await axiosInstance.get<ListCatalogsResponse>('/catalogs/list', { params })
     return data
   },
 
   get: async (name: string) => {
-    const { data } = await api.get<{ catalog: Catalog }>('/catalog', { params: { name } })
+    const { data } = await axiosInstance.get<{ catalog: Catalog }>('/catalog', { params: { name } })
     return data.catalog
   },
 
   createOrUpdate: async (catalog: Catalog) => {
-    const { data } = await api.put<{ catalog: Catalog }>('/catalog', catalog)
+    const { data } = await axiosInstance.put<{ catalog: Catalog }>('/catalog', catalog)
     return data.catalog
   },
 
   delete: async (name: string) => {
-    await api.delete('/catalog', { params: { name } })
+    await axiosInstance.delete('/catalog', { params: { name } })
   },
 }
 
@@ -91,21 +95,26 @@ export interface ListLocksResponse {
   total_count: number
 }
 
-export const locksApi = {
+const realLocksApi = {
   list: async () => {
-    const { data } = await api.get<ListLocksResponse>('/locks/list')
+    const { data } = await axiosInstance.get<ListLocksResponse>('/locks/list')
     return data
   },
 
   create: async (lock: { service: string; who: string; environment: string; resource: string; event_id?: string }) => {
-    const { data } = await api.post<{ lock: Lock }>('/lock', lock)
+    const { data } = await axiosInstance.post<{ lock: Lock }>('/lock', lock)
     return data.lock
   },
 
   unlock: async (id: string) => {
-    const { data } = await api.get(`/unlock/${id}`)
+    const { data } = await axiosInstance.get(`/unlock/${id}`)
     return data
   },
 }
 
-export default api
+// Exporter les APIs appropriées selon le mode
+export const eventsApi = isStaticMode ? staticEventsApi : realEventsApi
+export const catalogApi = isStaticMode ? staticCatalogApi : realCatalogApi
+export const locksApi = isStaticMode ? staticLocksApi : realLocksApi
+
+export default axiosInstance
