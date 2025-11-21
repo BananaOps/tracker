@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
-import { Package, BookOpen, Search, X } from 'lucide-react'
+import { Package, BookOpen, Search, X, Plus } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -174,8 +174,9 @@ export default function CatalogTable() {
         </div>
         <a
           href="/catalog/create"
-          className="btn-primary"
+          className="btn-primary flex items-center gap-2"
         >
+          <Plus className="w-4 h-4" />
           Add to Catalog
         </a>
       </div>

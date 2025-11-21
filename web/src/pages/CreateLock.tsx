@@ -102,11 +102,16 @@ export default function CreateLock() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Lock</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Lock a service to prevent concurrent deployments
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg shadow-lg">
+            <Lock className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Lock</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Lock a service to prevent concurrent deployments
+            </p>
+          </div>
         </div>
       </div>
 
