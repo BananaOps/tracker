@@ -378,3 +378,10 @@ export const getStatusColor = (status?: Status | string) => {
       }
   }
 }
+
+// Vérifier si un événement a été approuvé
+export const isEventApproved = (event: any): boolean => {
+  return event.changelog?.some((entry: any) => 
+    String(entry.changeType).toLowerCase() === 'approved'
+  ) || false
+}

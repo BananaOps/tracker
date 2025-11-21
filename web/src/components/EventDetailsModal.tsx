@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { X, Edit2, Save, History, Lock, Unlock } from 'lucide-react'
+import { X, Edit2, Save, History, Lock, Unlock, CheckCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -31,6 +31,10 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   const [lockUserError, setLockUserError] = useState(false)
   const [existingLock, setExistingLock] = useState<any>(null)
   const [checkingLock, setCheckingLock] = useState(false)
+  const [showApprovalPrompt, setShowApprovalPrompt] = useState(false)
+  const [approvalUser, setApprovalUser] = useState('')
+  const [approvalUserError, setApprovalUserError] = useState(false)
+  const [approvingEvent, setApprovingEvent] = useState(false)
   
   // Convertir les nombres en strings enum si nécessaire
   const normalizedEvent = useMemo(() => {
@@ -45,6 +49,13 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   }, [event])
   const [editedEvent, setEditedEvent] = useState(normalizedEvent)
   const queryClient = useQueryClient()
+  
+  // Vérifier si l'événement a été approuvé
+  const isApproved = useMemo(() => {
+    return editedEvent.changelog?.some(entry => 
+      String(entry.changeType).toLowerCase() === 'approved'
+    ) || false
+  }, [editedEvent.changelog])
   
   // Mettre à jour editedEvent quand normalizedEvent change
   useEffect(() => {
@@ -187,6 +198,65 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     }
   }
 
+  const handleApprove = () => {
+    setShowApprovalPrompt(true)
+    setApprovalUser('')
+    setApprovalUserError(false)
+  }
+
+  const handleApprovalConfirm = async () => {
+    if (!approvalUser.trim()) {
+      setApprovalUserError(true)
+      return
+    }
+
+    if (!editedEvent.metadata?.id) {
+      console.error('Cannot approve event: missing ID')
+      return
+    }
+
+    try {
+      setApprovingEvent(true)
+      setShowApprovalPrompt(false)
+
+      // Mettre à jour l'événement avec le nom de l'approbateur
+      // Le backend détectera automatiquement qu'il s'agit d'une approbation
+      const updatedEvent = {
+        ...editedEvent,
+        attributes: {
+          ...editedEvent.attributes,
+          owner: approvalUser.trim(),
+        },
+      }
+
+      const updateData = {
+        title: updatedEvent.title,
+        attributes: updatedEvent.attributes,
+        links: updatedEvent.links,
+      }
+
+      const convertedData = convertEventForAPI(updateData)
+      const result = await eventsApi.update(editedEvent.metadata.id, convertedData)
+
+      // Mettre à jour l'état local
+      const normalized = convertEventFromAPI(result)
+      setEditedEvent(normalized)
+
+      // Invalider le cache
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+
+      setToastMessage('Event approved successfully')
+      setShowToast(true)
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Error approving event'
+      setToastMessage(errorMessage)
+      setShowToast(true)
+      console.error('Error approving event:', err)
+    } finally {
+      setApprovingEvent(false)
+    }
+  }
+
   const handleLockConfirm = async () => {
     if (!lockUser.trim()) {
       setLockUserError(true)
@@ -269,9 +339,17 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
           <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {getEventTypeIcon(editedEvent.attributes.type, 'w-6 h-6')}
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                {isEditing ? 'Edit Event' : 'Event Details'}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {isEditing ? 'Edit Event' : 'Event Details'}
+                </h2>
+                {isApproved && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                    <CheckCircle className="w-3 h-3" />
+                    Approved
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               {!isEditing && (
@@ -303,6 +381,18 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       )}
                     </button>
                   )}
+                  <button
+                    onClick={handleApprove}
+                    disabled={approvingEvent}
+                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Approve event"
+                  >
+                    {approvingEvent ? (
+                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5" />
+                    )}
+                  </button>
                   <button
                     onClick={handleStartEdit}
                     className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
@@ -747,6 +837,79 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                     <>
                       {existingLock ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                       {existingLock ? 'Unlock' : 'Lock'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approval User Prompt */}
+      {showApprovalPrompt && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={() => setShowApprovalPrompt(false)}
+          />
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Approve Event
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Enter your name to approve <span className="font-semibold">{editedEvent.title}</span>
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={approvalUser}
+                  onChange={(e) => {
+                    setApprovalUser(e.target.value)
+                    setApprovalUserError(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleApprovalConfirm()
+                    }
+                  }}
+                  placeholder="e.g., john.doe"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                    approvalUserError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  autoFocus
+                />
+                {approvalUserError && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    Name is required
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowApprovalPrompt(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApprovalConfirm}
+                  disabled={approvingEvent}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {approvingEvent ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Approve
                     </>
                   )}
                 </button>
