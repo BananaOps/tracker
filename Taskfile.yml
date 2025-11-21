@@ -17,7 +17,7 @@ tasks:
   generate:
     desc: Generate protobuf files
     cmds:
-      - buf mod update
+      - buf dep update
       - buf generate
     sources:
       - proto/**/*.proto
@@ -62,14 +62,14 @@ tasks:
   build:
     desc: Build the Go application
     cmds:
-      - go build -o bin/{{.APP_NAME}} ./cmd/tracker
+      - go build -o bin/{{.APP_NAME}} .
     sources:
       - '**/*.go'
     generates:
       - bin/{{.APP_NAME}}
 
   build:frontend:
-    desc: Buile frontend
+    desc: Build frontend
     dir: web
     cmds:
       - npm install
@@ -93,10 +93,33 @@ tasks:
     cmds:
       - ./bin/{{.APP_NAME}} serv
 
-  run:dev:
-    desc: Run with hot-reload (requires air)
+  dev:backend:
+    desc: Run backend with hot-reload (requires air)
     cmds:
       - air
+
+  dev:frontend:
+    desc: Run frontend dev server
+    dir: web
+    cmds:
+      - npm run dev
+
+  dev:all:
+    desc: Run backend and frontend in development mode
+    cmds:
+      - echo "🚀 Démarrage de l'application en mode développement..."
+      - echo "📦 Backend (Go) sur http://localhost:8080"
+      - echo "🎨 Frontend (Vite) sur http://localhost:5173"
+      - echo "📊 Metrics sur http://localhost:8081/metrics"
+      - echo "🔧 gRPC sur localhost:8765"
+      - echo ""
+      - echo "⚠️  Assurez-vous que MongoDB est en cours d'exécution"
+      - echo ""
+      - |
+        trap 'kill 0' EXIT
+        go run . serv &
+        cd web && npm run dev &
+        wait
 
   # Docker tasks
   docker:build:

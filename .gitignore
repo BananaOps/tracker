@@ -28,3 +28,35 @@ go.work
 #binary files
 bin/
 *.tgz
+
+# IDE and editor directories
+.vscode/
+.idea/
+.kiro/
+*.swp
+*.swo
+*~
+
+# Task runner
+.task/
+
+# Frontend build artifacts
+web/dist/
+web/node_modules/
+web/.env
+web/.env.local
+
+# Coverage reports
+coverage.out
+*.coverprofile
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Skaffold cache
+.skaffold/

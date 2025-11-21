@@ -8,6 +8,7 @@ import (
 	"time"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
@@ -71,25 +72,25 @@ func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, us
 }
 
 // shouldCreateLock détermine si un lock doit être créé pour cet événement
-func shouldCreateLock(eventType v1alpha1.EventType, status v1alpha1.Status) bool {
+func shouldCreateLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
 	// Créer un lock pour les déploiements et opérations qui démarrent
-	return (eventType == v1alpha1.EventType_deployment || eventType == v1alpha1.EventType_operation) &&
+	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
 		status == v1alpha1.Status_start
 }
 
 // shouldReleaseLock détermine si un lock doit être libéré pour cet événement
-func shouldReleaseLock(eventType v1alpha1.EventType, status v1alpha1.Status) bool {
+func shouldReleaseLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
 	// Libérer le lock quand l'événement se termine
-	return (eventType == v1alpha1.EventType_deployment || eventType == v1alpha1.EventType_operation) &&
+	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
 		(status == v1alpha1.Status_success || status == v1alpha1.Status_failure || status == v1alpha1.Status_done)
 }
 
 // getResourceType retourne le type de ressource pour le lock
-func getResourceType(eventType v1alpha1.EventType) string {
+func getResourceType(eventType v1alpha1.Type) string {
 	switch eventType {
-	case v1alpha1.EventType_deployment:
+	case v1alpha1.Type_deployment:
 		return "deployment"
-	case v1alpha1.EventType_operation:
+	case v1alpha1.Type_operation:
 		return "operation"
 	default:
 		return "unknown"
@@ -154,7 +155,7 @@ func (e *Event) CreateEvent(
 
 	// Vérifier et créer un lock si nécessaire AVANT de créer l'événement
 	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
-		lockReq := &v1alpha1.CreateLockRequest{
+		lockReq := &lock.CreateLockRequest{
 			Service:     i.Attributes.Service,
 			Who:         user,
 			Environment: i.Attributes.Environment.String(),
