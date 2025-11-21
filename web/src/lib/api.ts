@@ -74,4 +74,36 @@ export const catalogApi = {
   },
 }
 
+export interface Lock {
+  id: string
+  service: string
+  who: string
+  environment: string
+  resource: string
+  event_id: string
+  created_at: string
+}
+
+export interface ListLocksResponse {
+  locks: Lock[]
+  total_count: number
+}
+
+export const locksApi = {
+  list: async () => {
+    const { data } = await api.get<ListLocksResponse>('/locks/list')
+    return data
+  },
+
+  create: async (lock: { service: string; who: string; environment: string; resource: string; event_id?: string }) => {
+    const { data } = await api.post<{ lock: Lock }>('/lock', lock)
+    return data.lock
+  },
+
+  unlock: async (id: string) => {
+    const { data } = await api.get(`/unlock/${id}`)
+    return data
+  },
+}
+
 export default api

@@ -13,6 +13,8 @@ import DriftsList from './pages/DriftsList'
 import RpaUsage from './pages/RpaUsage'
 import CreateDrift from './pages/CreateDrift'
 import CreateRpaOperation from './pages/CreateRpaOperation'
+import Locks from './pages/Locks'
+import CreateLock from './pages/CreateLock'
 import ThemeTest from './pages/ThemeTest'
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
           <Route path="drifts/create" element={<CreateDrift />} />
           <Route path="rpa" element={<RpaUsage />} />
           <Route path="rpa/create" element={<CreateRpaOperation />} />
+          <Route path="locks" element={<Locks />} />
+          <Route path="locks/create" element={<CreateLock />} />
           <Route path="theme-test" element={<ThemeTest />} />
         </Route>
       </Routes>

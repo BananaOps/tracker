@@ -256,6 +256,79 @@ Statistics:
 Each RPA operation displays type, title, service, environment, status badges, and timestamp.`,
   },
   {
+    id: 'locks',
+    title: 'Locks Management',
+    content: 'Prevent concurrent deployments and operations with service locks.',
+    subsections: [
+      {
+        id: 'locks-overview',
+        title: 'Overview',
+        content: `Locks allow you to temporarily prevent deployments or operations on specific services and environments. This is useful to:
+• Avoid conflicts during maintenance windows
+• Coordinate deployments across teams
+• Freeze environments during critical periods
+• Prevent accidental deployments`,
+      },
+      {
+        id: 'locks-create',
+        title: 'Creating a Lock',
+        content: `1. Navigate to the Locks page
+2. Click "Create Lock" button
+3. Fill in the required fields:
+   • Service - Name of the service to lock
+   • Who - Person or team creating the lock
+   • Environment - Target environment (production, staging, etc.)
+   • Resource (optional) - Type of resource (deployment, operation)
+   • Event ID (optional) - Associated event identifier
+4. Click "Create Lock"
+
+The lock is immediately active and will prevent new operations.`,
+      },
+      {
+        id: 'locks-list',
+        title: 'Viewing Active Locks',
+        content: `The Locks page displays:
+• Total number of active locks
+• Number of unique services locked
+• Number of environments affected
+
+Each lock shows:
+• Service name with lock icon
+• Environment badge
+• Resource type
+• Who created the lock
+• Creation date and time
+• Duration since creation
+• Quick unlock button`,
+      },
+      {
+        id: 'locks-unlock',
+        title: 'Unlocking a Service',
+        content: `To remove a lock:
+1. Find the lock in the list
+2. Click the "Unlock" button
+3. Confirm the action
+
+The service is immediately available for new operations.
+
+You can also unlock from:
+• Event details modal (if lock is associated with an event)
+• Lock indicator components throughout the UI`,
+      },
+      {
+        id: 'locks-indicators',
+        title: 'Lock Indicators',
+        content: `When a service is locked, you'll see indicators:
+• Red "Locked" badge on events
+• Lock icon next to service names
+• Warning messages when trying to deploy
+• Quick access to unlock or view all locks
+
+These indicators help prevent accidental operations on locked services.`,
+      },
+    ],
+  },
+  {
     id: 'advanced',
     title: 'Advanced Features',
     content: '',

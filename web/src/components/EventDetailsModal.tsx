@@ -11,6 +11,7 @@ import EventLinks, { SourceIcon } from './EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
 import Toast from './Toast'
 import EventChangelog from './EventChangelog'
+import LockIndicator from './LockIndicator'
 
 interface EventDetailsModalProps {
   event: Event
@@ -218,9 +219,12 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                   </div>
                 </>
               ) : (
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-                  {editedEvent.title}
-                </h3>
+                <div className="flex items-center space-x-3 mb-3">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {editedEvent.title}
+                  </h3>
+                  <LockIndicator event={editedEvent} />
+                </div>
               )}
               
               {/* Badges / Selects */}

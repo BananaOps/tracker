@@ -1,0 +1,214 @@
+version: '3'
+
+vars:
+  APP_NAME: tracker
+  DOCKER_IMAGE: bananaops/tracker
+  DOCKER_TAG: latest
+  GO_FILES:
+    sh: find . -name '*.go' -not -path "./vendor/*" -not -path "./web/*"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  # Development tasks
+  generate:
+    desc: Generate protobuf files
+    cmds:
+      - buf mod update
+      - buf generate
+    sources:
+      - proto/**/*.proto
+      - buf.gen.yaml
+    generates:
+      - generated/**/*.go
+
+  fmt:
+    desc: Format protobuf and go files
+    cmds:
+      - buf format -w
+      - go fmt ./...
+
+  lint:
+    desc: Lint protobuf and go files
+    cmds:
+      - buf lint
+      - golangci-lint run ./...
+
+  lint:proto:
+    desc: Lint protobuf files only
+    cmds:
+      - buf lint
+
+  lint:go:
+    desc: Lint go files only
+    cmds:
+      - golangci-lint run ./...
+
+  test:
+    desc: Run Go tests
+    cmds:
+      - go test -v -race -coverprofile=coverage.out ./...
+
+  test:coverage:
+    desc: Run tests and show coverage
+    cmds:
+      - task: test
+      - go tool cover -html=coverage.out
+
+  # Build tasks
+  build:
+    desc: Build the Go application
+    cmds:
+      - go build -o bin/{{.APP_NAME}} ./cmd/tracker
+    sources:
+      - '**/*.go'
+    generates:
+      - bin/{{.APP_NAME}}
+
+  build:frontend:
+    desc: Buile frontend
+    dir: web
+    cmds:
+      - npm install
+      - npm run build
+    sources:
+      - web/src/**/*
+      - web/package.json
+    generates:
+      - web/dist/**/*
+
+  build:all:
+    desc: Build frontend and backend
+    cmds:
+      - task: build:frontend
+      - task: build
+
+  # Run tasks
+  run:
+    desc: Run the application locally
+    deps: [build]
+    cmds:
+      - ./bin/{{.APP_NAME}} serv
+
+  run:dev:
+    desc: Run with hot-reload (requires air)
+    cmds:
+      - air
+
+  # Docker tasks
+  docker:build:
+    desc: Build Docker image with frontend and backend
+    cmds:
+      - docker build -t {{.DOCKER_IMAGE}}:{{.DOCKER_TAG}} .
+
+  docker:run:
+    desc: Run Docker container locally
+    cmds:
+      - docker run -p 8080:8080 -p 8081:8081 -p 8765:8765 {{.DOCKER_IMAGE}}:{{.DOCKER_TAG}}
+
+  docker:build-run:
+    desc: Build and run Docker container
+    cmds:
+      - task: docker:build
+      - task: docker:run
+
+  docker:push:
+    desc: Push Docker image to registry
+    cmds:
+      - docker push {{.DOCKER_IMAGE}}:{{.DOCKER_TAG}}
+
+  # Kubernetes tasks
+  k8s:run:
+    desc: Deploy app on k8s with skaffold
+    cmds:
+      - skaffold run
+
+  k8s:dev:
+    desc: Run skaffold dev for local development with hot-reload
+    cmds:
+      - skaffold dev -f skaffold.dev.yaml
+
+  k8s:deploy:
+    desc: Deploy to kubernetes with skaffold
+    cmds:
+      - skaffold deploy
+
+  k8s:delete:
+    desc: Delete deployment from kubernetes
+    cmds:
+      - skaffold delete
+
+  k6:generate:
+    desc: Generate test data with k6
+    cmds:
+      - k6 run tests/k6/generate-test-data.js
+
+  k6:test-locks:
+    desc: Test locks API with k6
+    cmds:
+      - k6 run tests/k6/test-locks.js
+
+  test:locks:
+    desc: Test locks API with curl
+    cmds:
+      - ./scripts/test-locks.sh
+
+  # Clean tasks
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/
+      - rm -rf web/dist/
+      - rm -f coverage.out
+
+  clean:all:
+    desc: Clean all generated files
+    cmds:
+      - task: clean
+      - rm -rf generated/
+      - rm -rf web/node_modules/
+
+  # Install tasks
+  install:tools:
+    desc: Install development tools
+    cmds:
+      - go install github.com/bufbuild/buf/cmd/buf@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install github.com/cosmtrek/air@latest
+
+  install:frontend:
+    desc: Install frontend dependencies
+    dir: web
+    cmds:
+      - npm install
+
+  install:all:
+    desc: Install all dependencies
+    cmds:
+      - task: install:tools
+      - task: install:frontend
+
+  # CI/CD tasks
+  ci:
+    desc: Run CI checks (lint, test, build)
+    cmds:
+      - task: lint
+      - task: test
+      - task: build:all
+
+
+  deps:
+    desc: Download Go dependencies
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  deps:update:
+    desc: Update Go dependencies
+    cmds:
+      - go get -u ./...
+      - go mod tidy
+

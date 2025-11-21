@@ -459,7 +459,9 @@ export default function EventsTimeline() {
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">{event.title}</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">{event.title}</h3>
+                      </div>
                       <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
                         <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
                       </div>
