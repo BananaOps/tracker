@@ -6,21 +6,25 @@ import (
 	"log/slog"
 	"os"
 
+	eventv1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Lock struct {
 	v1alpha1.UnimplementedLockServiceServer
-	store  store.LockStoreClient
-	logger *slog.Logger
+	store      store.LockStoreClient
+	eventStore *store.EventStoreClient
+	logger     *slog.Logger
 }
 
 func NewLock() *Lock {
 	return &Lock{
 		UnimplementedLockServiceServer: v1alpha1.UnimplementedLockServiceServer{},
 		store:                          *store.NewStoreLock(config.ConfigDatabase.LockCollection),
+		eventStore:                     store.NewStoreEvent(config.ConfigDatabase.EventCollection),
 		logger:                         slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 	}
 }
@@ -71,6 +75,31 @@ func (e *Lock) CreateLock(
 		return nil, err
 	}
 
+	// Si un event_id est fourni, ajouter une entrée dans le changelog de l'événement
+	if lockResult.Lock.EventId != "" {
+		event, err := e.eventStore.Get(context.Background(), map[string]interface{}{"metadata.id": lockResult.Lock.EventId})
+		if err == nil {
+			// Ajouter l'entrée "locked" dans le changelog
+			entry := &eventv1alpha1.ChangelogEntry{
+				Timestamp:  timestamppb.Now(),
+				User:       lockResult.Lock.Who,
+				ChangeType: eventv1alpha1.ChangeType_locked,
+				Comment:    fmt.Sprintf("Service locked in %s", lockResult.Lock.Environment),
+			}
+
+			if event.Changelog == nil {
+				event.Changelog = []*eventv1alpha1.ChangelogEntry{}
+			}
+			event.Changelog = append(event.Changelog, entry)
+
+			// Mettre à jour l'événement
+			_, err = e.eventStore.Update(context.Background(), map[string]interface{}{"metadata.id": lockResult.Lock.EventId}, event)
+			if err != nil {
+				e.logger.Warn("failed to update event changelog for lock", "error", err, "event_id", lockResult.Lock.EventId)
+			}
+		}
+	}
+
 	// log lock created to json format
 	e.logger.Info("lock created",
 		"service", lockResult.Lock.Service,
@@ -111,6 +140,31 @@ func (e *Lock) UnLock(
 	lockResult.Lock, err = e.store.Get(context.Background(), map[string]interface{}{"id": i.Id})
 	if err != nil {
 		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
+	}
+
+	// Si un event_id est fourni, ajouter une entrée dans le changelog de l'événement
+	if lockResult.Lock.EventId != "" {
+		event, err := e.eventStore.Get(context.Background(), map[string]interface{}{"metadata.id": lockResult.Lock.EventId})
+		if err == nil {
+			// Ajouter l'entrée "unlocked" dans le changelog
+			entry := &eventv1alpha1.ChangelogEntry{
+				Timestamp:  timestamppb.Now(),
+				User:       lockResult.Lock.Who,
+				ChangeType: eventv1alpha1.ChangeType_unlocked,
+				Comment:    fmt.Sprintf("Service unlocked in %s", lockResult.Lock.Environment),
+			}
+
+			if event.Changelog == nil {
+				event.Changelog = []*eventv1alpha1.ChangelogEntry{}
+			}
+			event.Changelog = append(event.Changelog, entry)
+
+			// Mettre à jour l'événement
+			_, err = e.eventStore.Update(context.Background(), map[string]interface{}{"metadata.id": lockResult.Lock.EventId}, event)
+			if err != nil {
+				e.logger.Warn("failed to update event changelog for unlock", "error", err, "event_id", lockResult.Lock.EventId)
+			}
+		}
 	}
 
 	var countUnLock int64

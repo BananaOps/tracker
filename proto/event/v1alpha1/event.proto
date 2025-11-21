@@ -221,4 +221,6 @@ enum ChangeType {
   rejected = 5;
   commented = 6;
   linked = 7;
+  locked = 8;
+  unlocked = 9;
 }

@@ -8,7 +8,9 @@ import {
   MessageSquare, 
   Link as LinkIcon,
   Plus,
-  GitBranch
+  GitBranch,
+  Lock,
+  Unlock
 } from 'lucide-react'
 import type { ChangelogEntry, ChangeType } from '../types/api'
 
@@ -33,6 +35,10 @@ const getChangeIcon = (changeType: ChangeType | string) => {
       return <MessageSquare className="w-4 h-4 text-gray-600" />
     case 'linked':
       return <LinkIcon className="w-4 h-4 text-blue-600" />
+    case 'locked':
+      return <Lock className="w-4 h-4 text-red-600" />
+    case 'unlocked':
+      return <Unlock className="w-4 h-4 text-green-600" />
     default:
       return <Clock className="w-4 h-4 text-gray-600" />
   }
@@ -48,6 +54,8 @@ const getChangeLabel = (changeType: ChangeType | string) => {
     rejected: 'Rejected',
     commented: 'Commented',
     linked: 'Linked',
+    locked: 'Locked',
+    unlocked: 'Unlocked',
   }
   return labels[type] || type
 }
@@ -69,6 +77,10 @@ const getChangeBadgeColor = (changeType: ChangeType | string) => {
       return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
     case 'linked':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+    case 'locked':
+      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+    case 'unlocked':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
   }

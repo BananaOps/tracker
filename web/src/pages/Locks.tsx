@@ -10,6 +10,10 @@ export default function Locks() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [unlocking, setUnlocking] = useState<string | null>(null)
+  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false)
+  const [selectedLock, setSelectedLock] = useState<Lock | null>(null)
+  const [unlockUser, setUnlockUser] = useState('')
+  const [unlockUserError, setUnlockUserError] = useState(false)
 
   const loadLocks = async () => {
     try {
@@ -30,14 +34,25 @@ export default function Locks() {
     loadLocks()
   }, [])
 
-  const handleUnlock = async (id: string) => {
-    if (!confirm('Are you sure you want to unlock this service?')) {
+  const handleUnlock = (lock: Lock) => {
+    setSelectedLock(lock)
+    setShowUnlockPrompt(true)
+    setUnlockUser('')
+    setUnlockUserError(false)
+  }
+
+  const handleUnlockConfirm = async () => {
+    if (!unlockUser.trim()) {
+      setUnlockUserError(true)
       return
     }
 
+    if (!selectedLock) return
+
     try {
-      setUnlocking(id)
-      await locksApi.unlock(id)
+      setUnlocking(selectedLock.id)
+      setShowUnlockPrompt(false)
+      await locksApi.unlock(selectedLock.id)
       await loadLocks()
     } catch (err) {
       alert('Error unlocking service')
@@ -283,7 +298,7 @@ export default function Locks() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleUnlock(lock.id)}
+                          onClick={() => handleUnlock(lock)}
                           disabled={unlocking === lock.id}
                           className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Unlock"
@@ -301,6 +316,79 @@ export default function Locks() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Unlock User Prompt */}
+      {showUnlockPrompt && selectedLock && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={() => setShowUnlockPrompt(false)}
+          />
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Unlock Service
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Enter your name to unlock <span className="font-semibold">{selectedLock.service}</span> in <span className="font-semibold">{getEnvironmentLabel(selectedLock.environment)}</span>
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={unlockUser}
+                  onChange={(e) => {
+                    setUnlockUser(e.target.value)
+                    setUnlockUserError(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleUnlockConfirm()
+                    }
+                  }}
+                  placeholder="e.g., john.doe"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                    unlockUserError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  autoFocus
+                />
+                {unlockUserError && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    Name is required
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUnlockPrompt(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUnlockConfirm}
+                  disabled={unlocking === selectedLock.id}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {unlocking === selectedLock.id ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Unlocking...
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="w-4 h-4" />
+                      Unlock
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

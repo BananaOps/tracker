@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import { X, Edit2, Save, History } from 'lucide-react'
+import { X, Edit2, Save, History, Lock, Unlock } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { eventsApi } from '../lib/api'
+import { eventsApi, locksApi } from '../lib/api'
 import type { Event } from '../types/api'
 import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
@@ -21,9 +21,16 @@ interface EventDetailsModalProps {
 export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
   const [editOwner, setEditOwner] = useState('')
   const [ownerError, setOwnerError] = useState(false)
+  const [lockingService, setLockingService] = useState(false)
+  const [showLockPrompt, setShowLockPrompt] = useState(false)
+  const [lockUser, setLockUser] = useState('')
+  const [lockUserError, setLockUserError] = useState(false)
+  const [existingLock, setExistingLock] = useState<any>(null)
+  const [checkingLock, setCheckingLock] = useState(false)
   
   // Convertir les nombres en strings enum si nécessaire
   const normalizedEvent = useMemo(() => {
@@ -63,6 +70,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       const normalized = convertEventFromAPI(updatedEvent)
       setEditedEvent(normalized)
       setIsEditing(false)
+      setToastMessage('Event updated successfully!')
       setShowToast(true)
     },
     onError: (error: any) => {
@@ -108,6 +116,144 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     setOwnerError(false)
   }
 
+  // Vérifier si un lock existe pour ce service/environnement
+  useEffect(() => {
+    const checkLock = async () => {
+      if (!editedEvent.attributes.service || !editedEvent.attributes.environment) {
+        return
+      }
+      
+      try {
+        setCheckingLock(true)
+        const locks = await locksApi.list()
+        const lock = locks.locks.find(
+          (l) => l.service === editedEvent.attributes.service && 
+                 l.environment === editedEvent.attributes.environment
+        )
+        setExistingLock(lock || null)
+      } catch (err) {
+        console.error('Error checking lock:', err)
+      } finally {
+        setCheckingLock(false)
+      }
+    }
+    
+    checkLock()
+  }, [editedEvent.attributes.service, editedEvent.attributes.environment])
+
+  const handleLock = () => {
+    if (!editedEvent.attributes.service || !editedEvent.attributes.environment) {
+      setToastMessage('Cannot create lock: service or environment is missing')
+      setShowToast(true)
+      return
+    }
+    
+    // Afficher le prompt pour demander le nom de l'utilisateur
+    setShowLockPrompt(true)
+    setLockUser('')
+    setLockUserError(false)
+  }
+
+  const handleUnlock = () => {
+    if (!existingLock) return
+    
+    // Afficher le prompt pour demander le nom de l'utilisateur
+    setShowLockPrompt(true)
+    setLockUser('')
+    setLockUserError(false)
+  }
+
+  const handleUnlockConfirm = async () => {
+    if (!lockUser.trim()) {
+      setLockUserError(true)
+      return
+    }
+
+    try {
+      setLockingService(true)
+      setShowLockPrompt(false)
+      
+      await locksApi.unlock(existingLock.id)
+      setExistingLock(null)
+      setToastMessage(`${editedEvent.attributes.service} is unlocked`)
+      setShowToast(true)
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Error unlocking service'
+      setToastMessage(errorMessage)
+      setShowToast(true)
+      console.error('Error unlocking:', err)
+    } finally {
+      setLockingService(false)
+    }
+  }
+
+  const handleLockConfirm = async () => {
+    if (!lockUser.trim()) {
+      setLockUserError(true)
+      return
+    }
+
+    try {
+      setLockingService(true)
+      setShowLockPrompt(false)
+      
+      const lockData: any = {
+        service: editedEvent.attributes.service,
+        who: lockUser.trim(),
+        environment: editedEvent.attributes.environment,
+      }
+      
+      // Ajouter le type d'événement comme resource si c'est deployment ou operation
+      const eventType = String(editedEvent.attributes.type).toLowerCase()
+      if (eventType === 'deployment' || eventType === 'operation') {
+        lockData.resource = eventType
+      }
+      
+      // Ajouter l'event_id
+      if (editedEvent.metadata?.id) {
+        lockData.event_id = editedEvent.metadata.id
+      }
+      
+      // Essayer de créer le lock
+      try {
+        const createdLock = await locksApi.create(lockData)
+        setExistingLock(createdLock)
+      } catch (createErr: any) {
+        // Si le lock existe déjà, essayer de le déverrouiller puis le recréer
+        if (createErr.response?.data?.message?.includes('already locked')) {
+          // Chercher le lock existant
+          const locks = await locksApi.list()
+          const foundLock = locks.locks.find(
+            (l) => l.service === editedEvent.attributes.service && 
+                   l.environment === editedEvent.attributes.environment
+          )
+          
+          if (foundLock) {
+            // Déverrouiller l'ancien lock
+            await locksApi.unlock(foundLock.id)
+            // Créer le nouveau lock
+            const createdLock = await locksApi.create(lockData)
+            setExistingLock(createdLock)
+          } else {
+            throw createErr
+          }
+        } else {
+          throw createErr
+        }
+      }
+      
+      setToastMessage(`${editedEvent.attributes.service} is locked`)
+      setShowToast(true)
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Error creating lock'
+      setToastMessage(errorMessage)
+      setShowToast(true)
+      console.error('Error creating lock:', err)
+    } finally {
+      setLockingService(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
@@ -129,13 +275,42 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             </div>
             <div className="flex items-center space-x-2">
               {!isEditing && (
-                <button
-                  onClick={handleStartEdit}
-                  className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
-                  title="Edit event"
-                >
-                  <Edit2 className="w-5 h-5" />
-                </button>
+                <>
+                  {existingLock ? (
+                    <button
+                      onClick={handleUnlock}
+                      disabled={lockingService}
+                      className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Unlock service"
+                    >
+                      {lockingService ? (
+                        <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Unlock className="w-5 h-5" />
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleLock}
+                      disabled={lockingService || checkingLock}
+                      className="text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Lock service"
+                    >
+                      {lockingService || checkingLock ? (
+                        <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Lock className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleStartEdit}
+                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                    title="Edit event"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                </>
               )}
               <button
                 onClick={onClose}
@@ -506,10 +681,85 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
         </div>
       </div>
       
+      {/* Lock/Unlock User Prompt */}
+      {showLockPrompt && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={() => setShowLockPrompt(false)}
+          />
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {existingLock ? 'Unlock Service' : 'Lock Service'}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Enter your name to {existingLock ? 'unlock' : 'lock'} <span className="font-semibold">{editedEvent.attributes.service}</span>
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={lockUser}
+                  onChange={(e) => {
+                    setLockUser(e.target.value)
+                    setLockUserError(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      existingLock ? handleUnlockConfirm() : handleLockConfirm()
+                    }
+                  }}
+                  placeholder="e.g., john.doe"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                    lockUserError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  autoFocus
+                />
+                {lockUserError && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    Name is required
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLockPrompt(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={existingLock ? handleUnlockConfirm : handleLockConfirm}
+                  disabled={lockingService}
+                  className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                    existingLock ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'
+                  }`}
+                >
+                  {lockingService ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      {existingLock ? 'Unlocking...' : 'Locking...'}
+                    </>
+                  ) : (
+                    <>
+                      {existingLock ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                      {existingLock ? 'Unlock' : 'Lock'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast notification */}
       {showToast && (
         <Toast 
-          message="Event updated successfully!"
+          message={toastMessage}
           onClose={() => setShowToast(false)}
         />
       )}

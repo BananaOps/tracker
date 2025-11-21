@@ -730,7 +730,9 @@
         "approved",
         "rejected",
         "commented",
-        "linked"
+        "linked",
+        "locked",
+        "unlocked"
       ],
       "default": "CHANGE_TYPE_UNSPECIFIED"
     },
