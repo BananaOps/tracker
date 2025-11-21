@@ -80,8 +80,10 @@ export interface Lock {
   who: string
   environment: string
   resource: string
-  event_id: string
-  created_at: string
+  event_id?: string
+  eventId?: string
+  created_at?: string | { seconds: number; nanos?: number }
+  createdAt?: string | { seconds: number; nanos?: number }
 }
 
 export interface ListLocksResponse {

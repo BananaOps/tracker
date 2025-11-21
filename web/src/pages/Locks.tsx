@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
 import { Lock as LockIcon, Unlock, Trash2, Plus, RefreshCw, AlertCircle } from 'lucide-react'
+import { getEnvironmentColor, getEnvironmentLabel } from '../lib/eventUtils'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -15,6 +16,7 @@ export default function Locks() {
       setLoading(true)
       setError(null)
       const data = await locksApi.list()
+      console.log('Locks data:', data)
       setLocks(data.locks || [])
     } catch (err) {
       setError('Erreur lors du chargement des locks')
@@ -29,7 +31,7 @@ export default function Locks() {
   }, [])
 
   const handleUnlock = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir déverrouiller ce service ?')) {
+    if (!confirm('Are you sure you want to unlock this service?')) {
       return
     }
 
@@ -38,32 +40,66 @@ export default function Locks() {
       await locksApi.unlock(id)
       await loadLocks()
     } catch (err) {
-      alert('Erreur lors du déverrouillage')
+      alert('Error unlocking service')
       console.error(err)
     } finally {
       setUnlocking(null)
     }
   }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return new Intl.DateTimeFormat('fr-FR', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date)
+  // Convertit un timestamp protobuf ou une string en Date
+  const parseTimestamp = (timestamp: any): Date | null => {
+    if (!timestamp) return null
+    
+    // Si c'est déjà une string ISO
+    if (typeof timestamp === 'string') {
+      const date = new Date(timestamp)
+      return isNaN(date.getTime()) ? null : date
+    }
+    
+    // Si c'est un objet protobuf {seconds, nanos}
+    if (timestamp.seconds !== undefined) {
+      const milliseconds = Number(timestamp.seconds) * 1000 + (timestamp.nanos || 0) / 1000000
+      return new Date(milliseconds)
+    }
+    
+    return null
   }
 
-  const getTimeSince = (dateStr: string) => {
-    const now = new Date()
-    const created = new Date(dateStr)
-    const diffMs = now.getTime() - created.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
+  const formatDate = (timestamp: any) => {
+    const date = parseTimestamp(timestamp)
+    if (!date) return '-'
     
-    if (diffMins < 60) return `${diffMins}m`
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24) return `${diffHours}h`
-    const diffDays = Math.floor(diffHours / 24)
-    return `${diffDays}j`
+    try {
+      return new Intl.DateTimeFormat('fr-FR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }).format(date)
+    } catch (err) {
+      console.error('Error formatting date:', timestamp, err)
+      return '-'
+    }
+  }
+
+  const getTimeSince = (timestamp: any) => {
+    const created = parseTimestamp(timestamp)
+    if (!created) return '-'
+    
+    try {
+      const now = new Date()
+      const diffMs = now.getTime() - created.getTime()
+      const diffMins = Math.floor(diffMs / 60000)
+      
+      if (diffMins < 1) return '< 1m'
+      if (diffMins < 60) return `${diffMins}m`
+      const diffHours = Math.floor(diffMins / 60)
+      if (diffHours < 24) return `${diffHours}h`
+      const diffDays = Math.floor(diffHours / 24)
+      return `${diffDays}j`
+    } catch (err) {
+      console.error('Error calculating time since:', timestamp, err)
+      return '-'
+    }
   }
 
   if (loading) {
@@ -80,7 +116,7 @@ export default function Locks() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Locks</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Gestion des verrous de déploiement et d'opérations
+            Manage deployment and operation locks
           </p>
         </div>
         <div className="flex gap-3">
@@ -89,14 +125,14 @@ export default function Locks() {
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             <RefreshCw className="w-4 h-4" />
-            Actualiser
+            Refresh
           </button>
           <button
             onClick={() => navigate('/locks/create')}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
-            Créer un lock
+            Create Lock
           </button>
         </div>
       </div>
@@ -127,7 +163,7 @@ export default function Locks() {
               <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Services Uniques</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Unique Services</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {new Set(locks.map(l => l.service)).size}
               </p>
@@ -141,7 +177,7 @@ export default function Locks() {
               <Unlock className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Environnements</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Environments</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {new Set(locks.map(l => l.environment)).size}
               </p>
@@ -154,17 +190,17 @@ export default function Locks() {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <Unlock className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Aucun lock actif
+            No active locks
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Tous les services sont actuellement déverrouillés
+            All services are currently unlocked
           </p>
           <button
             onClick={() => navigate('/locks/create')}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
-            Créer un lock
+            Create Lock
           </button>
         </div>
       ) : (
@@ -183,13 +219,13 @@ export default function Locks() {
                     Resource
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Verrouillé par
+                    Locked By
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Créé
+                    Created At
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Durée
+                    Locked For
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
@@ -208,8 +244,8 @@ export default function Locks() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                        {lock.environment}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEnvironmentColor(lock.environment).bg} ${getEnvironmentColor(lock.environment).text}`}>
+                        {getEnvironmentLabel(lock.environment)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -224,12 +260,12 @@ export default function Locks() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDate(lock.created_at)}
+                        {formatDate((lock as any).createdAt || lock.created_at)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                        {getTimeSince(lock.created_at)}
+                        {getTimeSince((lock as any).createdAt || lock.created_at)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -238,7 +274,7 @@ export default function Locks() {
                           <button
                             onClick={() => navigate(`/events/timeline?event=${lock.event_id}`)}
                             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                            title="Voir l'événement"
+                            title="View event"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -250,7 +286,7 @@ export default function Locks() {
                           onClick={() => handleUnlock(lock.id)}
                           disabled={unlocking === lock.id}
                           className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Déverrouiller"
+                          title="Unlock"
                         >
                           {unlocking === lock.id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
