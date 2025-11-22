@@ -112,7 +112,19 @@ var serv = &cobra.Command{
 
 			slackEventsChannel := os.Getenv("SLACK_EVENTS_CHANNEL")
 
+			// Demo mode configuration
+			demoMode := os.Getenv("DEMO_MODE")
+			if demoMode == "" {
+				demoMode = "false"
+			}
+
+			buyMeCoffeeURL := os.Getenv("BUY_ME_COFFEE_URL")
+			if buyMeCoffeeURL == "" {
+				buyMeCoffeeURL = "https://buymeacoffee.com/jplanckeel"
+			}
+
 			w.Header().Set("Content-Type", "application/javascript")
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			fmt.Fprintf(w, `window.TRACKER_CONFIG = {
   jira: {
     domain: "%s",
@@ -121,8 +133,10 @@ var serv = &cobra.Command{
   slack: {
     workspace: "%s",
     eventsChannel: "%s"
-  }
-};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel)
+  },
+  demoMode: %s,
+  buyMeCoffeeUrl: "%s"
+};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL)
 		})
 
 		//define logger for http server error

@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # MongoDB pour le stockage des données (sans authentification)
+  mongodb:
+    image: mongo:8
+    container_name: tracker-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - tracker-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s 
+
+  # Application Tracker
+  tracker:
+    image: bananaops/tracker:latest
+    container_name: tracker-app
+    restart: unless-stopped
+    pull_policy: always
+    environment:
+      # MongoDB Configuration (sans authentification)
+      DB_HOST: mongodb
+      DB_PORT: 27017
+      DB_NAME: tracker
+      
+      # Server Configuration
+      HTTP_PORT: 8080
+      GRPC_PORT: 8765
+      
+      # Demo Mode Configuration
+      DEMO_MODE: ${DEMO_MODE:-true}
+      BUY_ME_COFFEE_URL: ${BUY_ME_COFFEE_URL:-https://www.buymeacoffee.com/bananaops}
+      
+      # Optional: Slack Integration
+      SLACK_EVENTS_CHANNEL_URL: ${SLACK_EVENTS_CHANNEL_URL:-}
+    ports:
+      - "8080:8080"  # HTTP/REST API + Web UI
+      - "8081:8081"  # Metrics (Prometheus)
+      - "8765:8765"  # gRPC API
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - tracker-network
+      - dokploy-network
+    labels:
+      # Traefik Configuration
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      
+      # HTTP Router
+      - "traefik.http.routers.tracker.rule=Host(`tracker-demo.bananaops.cloud`)"
+      - "traefik.http.routers.tracker.entrypoints=websecure"
+      - "traefik.http.routers.tracker.tls=true"
+      - "traefik.http.routers.tracker.tls.certresolver=letsencrypt"
+      
+      # Service
+      - "traefik.http.services.tracker.loadbalancer.server.port=8080"
+      
+      # Middleware (optional)
+      - "traefik.http.routers.tracker.middlewares=tracker-headers"
+      - "traefik.http.middlewares.tracker-headers.headers.customresponseheaders.X-Robots-Tag=noindex,nofollow"
+      - "traefik.http.middlewares.tracker-headers.headers.customresponseheaders.X-Frame-Options=SAMEORIGIN"
+      
+      # HTTP to HTTPS Redirect
+      - "traefik.http.routers.tracker-http.rule=Host(`tracker-demo.bananaops.cloud`)"
+      - "traefik.http.routers.tracker-http.entrypoints=web"
+      - "traefik.http.routers.tracker-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  tracker-network:
+    driver: bridge
+  dokploy-network:
+    external: true
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
