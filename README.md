@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BananaOps/tracker/actions/workflows/ci.yml">
+  <a href="https://github.com/BananaOps/tracker/actions/workflows/release.yml">
     <img src="https://github.com/BananaOps/tracker/workflows/CI/badge.svg" alt="CI Status">
   </a>
   <a href="https://github.com/BananaOps/tracker/releases">
@@ -29,8 +29,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
-  <img src="https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/React-23+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
   <img src="https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/gRPC-1.71+-4285F4?style=flat&logo=grpc&logoColor=white" alt="gRPC">
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker">
@@ -113,6 +113,7 @@
 docker build -t bananaops/tracker:latest .
 
 # Run the container
+docker run -d -p 27017:27017 --name tracker-mongo mongo:7
 docker run -p 8080:8080 -p 8081:8081 -p 8765:8765 bananaops/tracker:latest
 ```
 
@@ -162,23 +163,20 @@ npm run dev
 ## 📖 Documentation
 
 ### Getting Started
-- [🚀 Quick Start Guide](./docs/DEPLOYMENT.md)
-- [🐳 Docker Build Guide](./docs/DOCKER_BUILD.md)
-- [☸️ Kubernetes Deployment](./docs/SKAFFOLD.md)
+- [🚀 Installation Guide](./docs/INSTALLATION.md) - Complete installation instructions
+- [⚙️ Configuration Guide](./docs/CONFIGURATION.md) - Environment variables and settings
+- [🔧 Development Guide](./docs/DEVELOPMENT.md) - Set up development environment
 
-### Development
-- [🔧 Build Fixes](./docs/BUILD_FIXES.md)
-- [🔄 API Enum Conversion](./docs/API_ENUM_CONVERSION.md)
-- [🎨 Catalog UI Improvements](./docs/CATALOG_UI_IMPROVEMENTS.md)
-- [📝 Changes Summary](./docs/CHANGES_SUMMARY.md)
+### User Guides
+- [📖 User Guide](./docs/USER_GUIDE.md) - How to use Tracker
+- [📊 Events Guide](./docs/EVENTS.md) - Working with events
+- [📦 Catalog Guide](./docs/CATALOG.md) - Managing service catalog
+- [🔒 Locks Guide](./docs/LOCKS.md) - Distributed locking
 
-### Database
-- [🗄️ Database Indexes](./docs/DATABASE_INDEXES.md) - Index documentation and performance
-- [⚙️ Indexes Setup](./docs/INDEXES_SETUP.md) - Automatic index configuration
+### API Documentation
+- [🔌 API Specification](./docs/api-specification.md) - API reference
+- [📚 Swagger UI](http://localhost:8080/docs) - Interactive API docs (when running)
 
-### Integration
-- [🔗 Integration Summary](./docs/INTEGRATION_SUMMARY.md)
-- [🌐 Open Source Banner](./docs/OPEN_SOURCE_BANNER.md)
 
 ---
 
@@ -223,6 +221,8 @@ npm run dev
 
 ### 1. Track Deployments
 
+Create a deployment event via REST API:
+
 ```bash
 curl -X POST http://localhost:8080/api/v1alpha1/event \
   -H "Content-Type: application/json" \
@@ -244,26 +244,123 @@ curl -X POST http://localhost:8080/api/v1alpha1/event \
   }'
 ```
 
-### 2. Monitor Configuration Drifts
+**Response:**
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "title": "Deploy service-api v2.1.0 to production",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### 2. List Recent Events
+
+```bash
+# Get last 10 events
+curl http://localhost:8080/api/v1alpha1/events?limit=10
+
+# Filter by service
+curl http://localhost:8080/api/v1alpha1/events?service=service-api
+
+# Filter by environment
+curl http://localhost:8080/api/v1alpha1/events?environment=7
+```
+
+### 3. Manage Service Catalog
+
+Add a service to the catalog:
+
+```bash
+curl -X POST http://localhost:8080/api/v1alpha1/catalog \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "user-service",
+    "type": 3,
+    "language": 1,
+    "version": "1.2.3",
+    "repositoryUrl": "https://github.com/org/user-service",
+    "description": "User management microservice"
+  }'
+```
+
+### 4. Configuration Drift Detection
 
 Track when infrastructure configuration deviates from expected state:
-- Detect manual changes
-- Monitor Terraform drifts
-- Track Kubernetes config changes
 
-### 3. RPA Usage Tracking
+```bash
+curl -X POST http://localhost:8080/api/v1alpha1/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Terraform drift detected in production",
+    "attributes": {
+      "message": "Manual changes detected in AWS security group",
+      "type": 3,
+      "priority": 3,
+      "service": "infrastructure",
+      "environment": 7
+    }
+  }'
+```
+
+### 5. Distributed Locking
+
+Acquire a lock before deployment:
+
+```bash
+# Acquire lock
+curl -X POST http://localhost:8080/api/v1alpha1/lock \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "production-deployment",
+    "owner": "ci-pipeline-123",
+    "ttl": 3600
+  }'
+
+# Release lock
+curl -X DELETE http://localhost:8080/api/v1alpha1/lock/production-deployment
+```
+
+### 6. RPA Usage Tracking
 
 Monitor robotic process automation executions:
-- Track automation runs
-- Monitor success/failure rates
-- Analyze execution patterns
 
-### 4. Service Catalog
+```bash
+curl -X POST http://localhost:8080/api/v1alpha1/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "RPA: Invoice Processing Completed",
+    "attributes": {
+      "message": "Processed 150 invoices successfully",
+      "type": 5,
+      "priority": 1,
+      "service": "invoice-automation",
+      "status": 3
+    }
+  }'
+```
 
-Maintain an inventory of your services:
-- Track versions across environments
-- Link to repositories and documentation
-- Monitor technology stack
+### 7. Incident Tracking
+
+```bash
+curl -X POST http://localhost:8080/api/v1alpha1/event \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Production API Outage",
+    "attributes": {
+      "message": "API returning 500 errors",
+      "type": 4,
+      "priority": 4,
+      "service": "api-gateway",
+      "status": 1,
+      "environment": 7,
+      "impact": 3
+    },
+    "links": {
+      "ticket": "INC-789",
+      "slackThread": "https://workspace.slack.com/archives/C123/p456"
+    }
+  }'
+```
 
 ---
 
@@ -277,7 +374,7 @@ Maintain an inventory of your services:
 - **Logging**: Structured JSON logs
 
 ### Frontend
-- **Framework**: React 18
+- **Framework**: React 23
 - **Language**: TypeScript 5
 - **Build**: Vite
 - **Styling**: Tailwind CSS
@@ -314,9 +411,9 @@ Looking for a place to start? Check out issues labeled [`good first issue`](http
 - ✅ **Web UI**: Production ready
 - ✅ **Docker**: Production ready
 - ✅ **Kubernetes**: Production ready
-- 🚧 **CLI Tool**: In development
+- ✅ **Slack App**: Production ready (project github tracker-slack)
+- 🚧 **Github Action**: In development
 - 🚧 **Webhooks**: Planned
-- 🚧 **Notifications**: Planned
 
 ---
 
@@ -331,6 +428,16 @@ This project is licensed under the **Apache 2.0 License** - see the [LICENSE](LI
 If you find Tracker useful, please consider giving it a star! ⭐
 
 [![Star History Chart](https://api.star-history.com/svg?repos=BananaOps/tracker&type=Date)](https://star-history.com/#BananaOps/tracker&Date)
+
+---
+
+<!-- CONTRIBUTORS_START -->
+## 👥 Contributors
+
+This project exists thanks to all the people who contribute. The contributors list is automatically updated.
+
+Want to contribute? Check out our [Contributing Guide](./CONTRIBUTING.md)!
+<!-- CONTRIBUTORS_END -->
 
 ---
 

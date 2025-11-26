@@ -1,0 +1,167 @@
+name: Update Contributors
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -g all-contributors-cli
+
+      - name: Get all contributors
+        id: get-contributors
+        run: |
+          # Get all contributors from git history
+          git log --format='%aN|%aE' | sort -u > contributors.txt
+          
+          # Count contributors
+          CONTRIBUTOR_COUNT=$(wc -l < contributors.txt)
+          echo "count=$CONTRIBUTOR_COUNT" >> $GITHUB_OUTPUT
+          
+          echo "Found $CONTRIBUTOR_COUNT contributors"
+
+      - name: Generate contributors list
+        run: |
+          # Create contributors section for CONTRIBUTING.md
+          cat > contributors_section.md << 'EOF'
+          ## Contributors
+
+          Thanks to these wonderful people who have contributed to Tracker:
+
+          EOF
+          
+          # Add contributors from git history
+          echo "" >> contributors_section.md
+          while IFS='|' read -r name email; do
+            # Try to get GitHub username from email
+            gh_user=$(gh api "/search/users?q=$email+in:email" --jq '.items[0].login' 2>/dev/null || echo "")
+            
+            if [ -n "$gh_user" ]; then
+              echo "- [@$gh_user](https://github.com/$gh_user)" >> contributors_section.md
+            else
+              echo "- $name" >> contributors_section.md
+            fi
+          done < contributors.txt
+          
+          echo "" >> contributors_section.md
+          echo "This list is automatically updated. Thank you for your contributions! 🙏" >> contributors_section.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update CONTRIBUTING.md
+        run: |
+          # Update CONTRIBUTING.md with contributors
+          if grep -q "<!-- CONTRIBUTORS_START -->" CONTRIBUTING.md; then
+            # Replace existing contributors section
+            sed -i '/<!-- CONTRIBUTORS_START -->/,/<!-- CONTRIBUTORS_END -->/c\<!-- CONTRIBUTORS_START -->\n'"$(cat contributors_section.md)"'\n<!-- CONTRIBUTORS_END -->' CONTRIBUTING.md
+          else
+            # Append contributors section
+            echo "" >> CONTRIBUTING.md
+            echo "<!-- CONTRIBUTORS_START -->" >> CONTRIBUTING.md
+            cat contributors_section.md >> CONTRIBUTING.md
+            echo "<!-- CONTRIBUTORS_END -->" >> CONTRIBUTING.md
+          fi
+
+      - name: Generate contributors for README
+        run: |
+          # Create a compact contributors section for README
+          cat > readme_contributors.md << 'EOF'
+          ## 👥 Contributors
+
+          This project exists thanks to all the people who contribute:
+
+          EOF
+          
+          # Add GitHub avatars
+          echo '<p align="center">' >> readme_contributors.md
+          
+          while IFS='|' read -r name email; do
+            gh_user=$(gh api "/search/users?q=$email+in:email" --jq '.items[0].login' 2>/dev/null || echo "")
+            
+            if [ -n "$gh_user" ]; then
+              echo "  <a href=\"https://github.com/$gh_user\">" >> readme_contributors.md
+              echo "    <img src=\"https://github.com/$gh_user.png?size=50\" width=\"50\" height=\"50\" alt=\"$gh_user\" style=\"border-radius: 50%; margin: 5px;\" />" >> readme_contributors.md
+              echo "  </a>" >> readme_contributors.md
+            fi
+          done < contributors.txt
+          
+          echo '</p>' >> readme_contributors.md
+          echo "" >> readme_contributors.md
+          echo "Want to contribute? Check out our [Contributing Guide](./CONTRIBUTING.md)!" >> readme_contributors.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README.md
+        run: |
+          # Check if contributors section exists in README
+          if grep -q "<!-- CONTRIBUTORS_START -->" README.md; then
+            # Replace existing section
+            sed -i '/<!-- CONTRIBUTORS_START -->/,/<!-- CONTRIBUTORS_END -->/c\<!-- CONTRIBUTORS_START -->\n'"$(cat readme_contributors.md)"'\n<!-- CONTRIBUTORS_END -->' README.md
+          else
+            # Insert before the "Community & Support" section
+            if grep -q "## 💬 Community & Support" README.md; then
+              sed -i '/## 💬 Community & Support/i\<!-- CONTRIBUTORS_START -->\n'"$(cat readme_contributors.md)"'\n<!-- CONTRIBUTORS_END -->\n\n---\n' README.md
+            else
+              # Append at the end
+              echo "" >> README.md
+              echo "---" >> README.md
+              echo "" >> README.md
+              echo "<!-- CONTRIBUTORS_START -->" >> README.md
+              cat readme_contributors.md >> README.md
+              echo "<!-- CONTRIBUTORS_END -->" >> README.md
+            fi
+          fi
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.check-changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add CONTRIBUTING.md README.md
+          git commit -m "docs: update contributors list [skip ci]"
+          git push
+
+      - name: Create summary
+        run: |
+          echo "## Contributors Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Total contributors: ${{ steps.get-contributors.outputs.count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Changes detected: ${{ steps.check-changes.outputs.changed }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-changes.outputs.changed }}" == "true" ]; then
+            echo "- Status: ✅ Contributors list updated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Status: ℹ️ No changes needed" >> $GITHUB_STEP_SUMMARY
+          fi
