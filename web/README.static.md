@@ -13,7 +13,7 @@ Ce guide explique comment tester le mode statique localement avant le déploieme
 
 ```bash
 # Depuis la racine du projet
-node scripts/generate-demo-data.js
+sh scripts/generate-test-data.sh
 ```
 
 Cela créera les fichiers dans `web/public/static-data/` :
@@ -75,11 +75,11 @@ Vous devriez voir un bandeau jaune en haut de la page indiquant :
 
 ## 🔧 Développement
 
-### Mode développement avec données statiques
+### Mode développement avec données
 
 ```bash
 # 1. Générer les données
-node scripts/generate-demo-data.js
+sh scripts/generate-test-data.sh
 
 # 2. Créer un fichier .env.local
 echo "VITE_STATIC_MODE=true" > .env.local
@@ -96,7 +96,7 @@ Ouvrez http://localhost:5173/
 Pour obtenir de nouvelles données aléatoires :
 
 ```bash
-node scripts/generate-demo-data.js
+sh scripts/generate-test-data.sh
 ```
 
 Puis rechargez la page dans le navigateur.
