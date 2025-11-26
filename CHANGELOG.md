@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/BananaOps/tracker/compare/v0.9.1...v0.10.0) (2025-11-26)
+
+
+### Features
+
+* add approbation ([#103](https://github.com/BananaOps/tracker/issues/103)) ([7abd129](https://github.com/BananaOps/tracker/commit/7abd129137ff305e76867f0fea0676ffe5c8a18b))
+* add demo banner  ([#105](https://github.com/BananaOps/tracker/issues/105)) ([7e2ec9e](https://github.com/BananaOps/tracker/commit/7e2ec9e55692e51807c00fec263326482ccffb33))
+* add démo option ([1448653](https://github.com/BananaOps/tracker/commit/1448653373e021bdae06fe9d9fd836732755b6f6))
+* update lock function ([#100](https://github.com/BananaOps/tracker/issues/100)) ([b9def2a](https://github.com/BananaOps/tracker/commit/b9def2a2d29a411b9f1b0637b323115e976229f5))
+
+
+### Bug Fixes
+
+* npm ci ([18b1718](https://github.com/BananaOps/tracker/commit/18b171852d0d6a52bd23929764b7c32aa32500d1))
+
 ## [0.9.1](https://github.com/BananaOps/tracker/compare/v0.9.0...v0.9.1) (2025-11-20)
 
 
