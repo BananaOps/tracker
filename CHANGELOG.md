@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/BananaOps/tracker/compare/v0.10.0...v0.10.1) (2025-11-30)
+
+
+### Bug Fixes
+
+* remove arm build for the moment ([#107](https://github.com/BananaOps/tracker/issues/107)) ([086e351](https://github.com/BananaOps/tracker/commit/086e35116a6e227961f7e89e574c95d7bd295ac4))
+
 ## [0.10.0](https://github.com/BananaOps/tracker/compare/v0.9.1...v0.10.0) (2025-11-26)
 
 
