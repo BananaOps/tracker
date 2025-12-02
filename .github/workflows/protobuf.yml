@@ -10,7 +10,7 @@ jobs:
     name: Buf lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     # Install the `buf` CLI
     - uses: bufbuild/buf-setup-action@v1
     # Lint your Protobuf sources
