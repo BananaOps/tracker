@@ -2,8 +2,6 @@ module github.com/bananaops/tracker
 
 go 1.25.4
 
-toolchain go1.25.3
-
 require (
 	github.com/go-openapi/runtime v0.29.2
 	google.golang.org/grpc v1.77.0
@@ -55,7 +53,7 @@ require (
 )
 
 require (
-	github.com/envoyproxy/protoc-gen-validate v1.2.1
+	github.com/envoyproxy/protoc-gen-validate v1.3.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/prometheus/client_golang v1.23.2
