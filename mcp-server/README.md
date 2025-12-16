@@ -22,23 +22,31 @@ Le serveur expose 8 outils MCP pour interagir avec Tracker :
 
 ## 📦 Installation
 
+> 🚀 **Démarrage rapide** : Voir [QUICK_START.md](./QUICK_START.md) pour une installation en 2 minutes
+
 ### Prérequis
 
 - Python 3.10+
-- `uv` (recommandé) ou `pip`
+- `uv` (gestionnaire de paquets Python moderne)
 
-### Installation avec uv
+### Installation de uv
 
 ```bash
-cd mcp-server
-uv pip install -e .
+# Installation via curl (recommandé)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Ou via Homebrew (macOS)
+brew install uv
+
+# Redémarrer le terminal
+source ~/.bashrc  # ou ~/.zshrc
 ```
 
-### Installation avec pip
+### Installation du serveur MCP
 
 ```bash
 cd mcp-server
-pip install -e .
+uv sync
 ```
 
 ## 🚀 Utilisation
@@ -115,8 +123,8 @@ mcp-server/
 # Définir l'URL de Tracker
 export TRACKER_URL=http://localhost:8080
 
-# Lancer le serveur
-python tracker_mcp_server.py
+# Lancer le serveur avec uv
+uv run python tracker_mcp_server.py
 ```
 
 Le serveur communique via stdio (stdin/stdout) selon le protocole MCP.
@@ -176,7 +184,7 @@ curl http://localhost:8080/api/v1alpha1/events/list?perPage=1
 - Vérifier l'URL dans `TRACKER_URL`
 
 **"Module not found"**
-- Réinstaller les dépendances : `uv pip install -e .`
+- Réinstaller les dépendances : `uv sync`
 
 **"Tool not found"**
 - Redémarrer le serveur MCP depuis la vue Kiro

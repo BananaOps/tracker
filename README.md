@@ -100,6 +100,7 @@
 - **REST API**: HTTP/JSON endpoints via grpc-gateway
 - **Swagger UI**: Interactive API documentation
 - **OpenAPI Spec**: Standard API specification
+- **MCP Server**: Model Context Protocol for AI agents (Kiro, Claude, etc.)
 - **Prometheus**: Built-in metrics endpoint
 
 ---
@@ -176,6 +177,7 @@ npm run dev
 ### API Documentation
 - [🔌 API Specification](./docs/api-specification.md) - API reference
 - [📚 Swagger UI](http://localhost:8080/docs) - Interactive API docs (when running)
+- [🤖 MCP Server](./docs/MCP_SERVER.md) - Model Context Protocol server for AI agents
 
 
 ---
