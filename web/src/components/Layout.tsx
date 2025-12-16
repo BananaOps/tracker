@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -30,6 +30,7 @@ const navigation = [
 export default function Layout() {
   const location = useLocation()
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
   const isActiveRoute = (href?: string, submenu?: any[]) => {
     if (href) {
@@ -40,6 +41,30 @@ export default function Layout() {
     }
     return false
   }
+
+  const handleMouseEnter = (itemName: string) => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+    setOpenSubmenu(itemName)
+  }
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setOpenSubmenu(null)
+    }, 300) // Délai de 300ms avant fermeture
+    setHoverTimeout(timeout)
+  }
+
+  // Nettoyage du timeout au démontage du composant
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+      }
+    }
+  }, [hoverTimeout])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -75,8 +100,8 @@ export default function Layout() {
                       <div 
                         key={item.name}
                         className="relative"
-                        onMouseEnter={() => setOpenSubmenu(item.name)}
-                        onMouseLeave={() => setOpenSubmenu(null)}
+                        onMouseEnter={() => handleMouseEnter(item.name)}
+                        onMouseLeave={handleMouseLeave}
                       >
                         <button
                           className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -92,7 +117,11 @@ export default function Layout() {
 
                         {/* Dropdown menu */}
                         {openSubmenu === item.name && (
-                          <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                          <div 
+                            className="absolute left-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+                            onMouseEnter={() => handleMouseEnter(item.name)}
+                            onMouseLeave={handleMouseLeave}
+                          >
                             {item.submenu?.map((subItem) => {
                               const SubIcon = subItem.icon
                               const isSubActive = location.pathname === subItem.href
