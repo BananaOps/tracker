@@ -3,6 +3,7 @@ import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
 import { Package, BookOpen, Search, X, Plus } from 'lucide-react'
 import { useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -21,6 +22,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export default function CatalogTable() {
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
@@ -172,13 +174,16 @@ export default function CatalogTable() {
             )}
           </p>
         </div>
-        <a
-          href="/catalog/create"
+        <button
+          onClick={() => {
+            console.log('Add to Catalog clicked - navigating...')
+            navigate('/catalog/create')
+          }}
           className="btn-primary flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Add to Catalog
-        </a>
+        </button>
       </div>
 
       {/* Filtres rapides */}
