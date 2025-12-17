@@ -79,24 +79,39 @@ export default function CatalogDetail() {
     const catalogMap = new Map(allCatalogs.catalogs.map(c => [c.name, c]))
 
     // Center node (current service)
+    const currentPlatformColor = service.platform ? getPlatformColor(service.platform) : '#667eea'
+    const currentPlatformIcon = service.platform ? getPlatformIcon(service.platform) : '📦'
+    
     nodes.push({
       id: service.name,
       data: { 
-        label: service.name,
+        label: (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', marginBottom: '4px' }}>{currentPlatformIcon}</div>
+            <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{service.name}</div>
+            {service.platform && (
+              <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
+                {getPlatformLabel(service.platform)}
+              </div>
+            )}
+          </div>
+        ),
         sla: service.sla?.level,
         isCurrent: true
       },
       position: { x: 400, y: 300 },
       type: 'default',
       style: {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: `linear-gradient(135deg, ${currentPlatformColor} 0%, ${currentPlatformColor}dd 100%)`,
         color: 'white',
         border: '3px solid #fff',
         borderRadius: '12px',
         padding: '16px',
         fontSize: '14px',
         fontWeight: 'bold',
-        boxShadow: '0 0 30px rgba(102, 126, 234, 0.6), 0 0 60px rgba(118, 75, 162, 0.4)',
+        boxShadow: `0 0 30px ${currentPlatformColor}60, 0 0 60px ${currentPlatformColor}40`,
+        minWidth: '120px',
+        minHeight: '80px',
       },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
@@ -106,24 +121,38 @@ export default function CatalogDetail() {
     service.dependenciesIn?.forEach((depName, index) => {
       const dep = catalogMap.get(depName)
       const slaColor = dep?.sla ? getSLABorderColor(dep.sla.level) : '#94a3b8'
+      const platformColor = dep?.platform ? getPlatformColor(dep.platform) : '#3b82f6'
+      const platformIcon = dep?.platform ? getPlatformIcon(dep.platform) : '📦'
       
       nodes.push({
         id: depName,
         data: { 
-          label: depName,
+          label: (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '16px', marginBottom: '2px' }}>{platformIcon}</div>
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{depName}</div>
+              {dep?.platform && (
+                <div style={{ fontSize: '8px', opacity: 0.8, marginTop: '1px' }}>
+                  {getPlatformLabel(dep.platform)}
+                </div>
+              )}
+            </div>
+          ),
           sla: dep?.sla?.level,
-          type: 'uam'
+          type: 'upstream'
         },
         position: { x: 50, y: 100 + index * 120 },
         type: 'default',
         style: {
-          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+          background: `linear-gradient(135deg, ${platformColor} 0%, ${platformColor}dd 100%)`,
           color: 'white',
           border: `2px solid ${slaColor}`,
           borderRadius: '8px',
           padding: '12px',
           fontSize: '12px',
-          boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)',
+          boxShadow: `0 0 20px ${platformColor}40`,
+          minWidth: '100px',
+          minHeight: '70px',
         },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
@@ -147,24 +176,38 @@ export default function CatalogDetail() {
     service.dependenciesOut?.forEach((depName, index) => {
       const dep = catalogMap.get(depName)
       const slaColor = dep?.sla ? getSLABorderColor(dep.sla.level) : '#94a3b8'
+      const platformColor = dep?.platform ? getPlatformColor(dep.platform) : '#10b981'
+      const platformIcon = dep?.platform ? getPlatformIcon(dep.platform) : '📦'
       
       nodes.push({
         id: depName,
         data: { 
-          label: depName,
+          label: (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '16px', marginBottom: '2px' }}>{platformIcon}</div>
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{depName}</div>
+              {dep?.platform && (
+                <div style={{ fontSize: '8px', opacity: 0.8, marginTop: '1px' }}>
+                  {getPlatformLabel(dep.platform)}
+                </div>
+              )}
+            </div>
+          ),
           sla: dep?.sla?.level,
           type: 'downstream'
         },
         position: { x: 750, y: 100 + index * 120 },
         type: 'default',
         style: {
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          background: `linear-gradient(135deg, ${platformColor} 0%, ${platformColor}dd 100%)`,
           color: 'white',
           border: `2px solid ${slaColor}`,
           borderRadius: '8px',
           padding: '12px',
           fontSize: '12px',
-          boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+          boxShadow: `0 0 20px ${platformColor}40`,
+          minWidth: '100px',
+          minHeight: '70px',
         },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
@@ -332,12 +375,24 @@ export default function CatalogDetail() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Dependency Graph
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>
-            Upstream (we depend on)
-            <span className="inline-block w-3 h-3 bg-green-500 rounded ml-4 mr-2"></span>
-            Downstream (depends on us)
-          </p>
+          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center">
+              <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>
+              Upstream (we depend on)
+            </div>
+            <div className="flex items-center">
+              <span className="inline-block w-3 h-3 bg-green-500 rounded mr-2"></span>
+              Downstream (depends on us)
+            </div>
+            <div className="flex items-center">
+              <span className="text-base mr-1">🖥️⚡☸️</span>
+              Platform icons show deployment type
+            </div>
+            <div className="flex items-center">
+              <span className="inline-block w-3 h-3 border-2 border-red-500 rounded mr-2"></span>
+              Border color indicates SLA level
+            </div>
+          </div>
         </div>
         <ReactFlow
           nodes={nodes}
@@ -844,4 +899,92 @@ function calculateDowntime(uptimePercentage: number): string {
     return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`
   }
 }
+
+function getPlatformColor(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return '#f97316' // orange
+    case Platform.LAMBDA:
+      return '#eab308' // yellow
+    case Platform.KUBERNETES:
+      return '#3b82f6' // blue
+    case Platform.ECS:
+      return '#6366f1' // indigo
+    case Platform.FARGATE:
+      return '#a855f7' // purple
+    case Platform.CLOUD_RUN:
+      return '#10b981' // green
+    case Platform.APP_SERVICE:
+      return '#06b6d4' // cyan
+    case Platform.STEP_FUNCTIONS:
+      return '#f59e0b' // amber
+    case Platform.EVENT_BRIDGE:
+      return '#ec4899' // pink
+    case Platform.RDS:
+      return '#059669' // emerald
+    case Platform.DYNAMODB:
+      return '#0d9488' // teal
+    case Platform.S3:
+      return '#dc2626' // red
+    case Platform.CLOUDFRONT:
+      return '#7c3aed' // violet
+    case Platform.API_GATEWAY:
+      return '#65a30d' // lime
+    case Platform.CLOUDWATCH:
+      return '#0ea5e9' // sky
+    case Platform.ON_PREMISE:
+      return '#6b7280' // gray
+    case Platform.HYBRID:
+      return '#64748b' // slate
+    case Platform.MULTI_CLOUD:
+      return '#f43f5e' // rose
+    default:
+      return '#94a3b8' // gray-400
+  }
+}
+
+function getPlatformIcon(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return '🖥️'
+    case Platform.LAMBDA:
+      return '⚡'
+    case Platform.KUBERNETES:
+      return '☸️'
+    case Platform.ECS:
+      return '📦'
+    case Platform.FARGATE:
+      return '☁️'
+    case Platform.CLOUD_RUN:
+      return '🏃'
+    case Platform.APP_SERVICE:
+      return '🌐'
+    case Platform.STEP_FUNCTIONS:
+      return '🔄'
+    case Platform.EVENT_BRIDGE:
+      return '🌉'
+    case Platform.RDS:
+      return '🗃️'
+    case Platform.DYNAMODB:
+      return '📊'
+    case Platform.S3:
+      return '🪣'
+    case Platform.CLOUDFRONT:
+      return '🚀'
+    case Platform.API_GATEWAY:
+      return '🚪'
+    case Platform.CLOUDWATCH:
+      return '👁️'
+    case Platform.ON_PREMISE:
+      return '🏢'
+    case Platform.HYBRID:
+      return '🔗'
+    case Platform.MULTI_CLOUD:
+      return '☁️'
+    default:
+      return '❓'
+  }
+}
+
+
 
