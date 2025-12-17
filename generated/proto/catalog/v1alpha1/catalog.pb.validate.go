@@ -130,6 +130,35 @@ func (m *Catalog) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetSla()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CatalogValidationError{
+					field:  "Sla",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CatalogValidationError{
+					field:  "Sla",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSla()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CatalogValidationError{
+				field:  "Sla",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return CatalogMultiError(errors)
 	}
@@ -297,6 +326,35 @@ func (m *CreateUpdateCatalogRequest) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return CreateUpdateCatalogRequestValidationError{
 				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSla()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "Sla",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "Sla",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSla()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateUpdateCatalogRequestValidationError{
+				field:  "Sla",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -1257,3 +1315,163 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListCatalogsResponseValidationError{}
+
+// Validate checks the field values on SLA with the rules defined in the proto
+// definition for this message. If any rules are violated, the first error
+// encountered is returned, or nil if there are no violations.
+func (m *SLA) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SLA with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in SLAMultiError, or nil if none found.
+func (m *SLA) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SLA) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Level
+
+	if all {
+		switch v := interface{}(m.GetUptimePercentage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SLAValidationError{
+					field:  "UptimePercentage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SLAValidationError{
+					field:  "UptimePercentage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUptimePercentage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SLAValidationError{
+				field:  "UptimePercentage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetResponseTimeMs()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SLAValidationError{
+					field:  "ResponseTimeMs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SLAValidationError{
+					field:  "ResponseTimeMs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResponseTimeMs()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SLAValidationError{
+				field:  "ResponseTimeMs",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Description
+
+	if len(errors) > 0 {
+		return SLAMultiError(errors)
+	}
+
+	return nil
+}
+
+// SLAMultiError is an error wrapping multiple validation errors returned by
+// SLA.ValidateAll() if the designated constraints aren't met.
+type SLAMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SLAMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SLAMultiError) AllErrors() []error { return m }
+
+// SLAValidationError is the validation error returned by SLA.Validate if the
+// designated constraints aren't met.
+type SLAValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SLAValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SLAValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SLAValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SLAValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SLAValidationError) ErrorName() string { return "SLAValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SLAValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSLA.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SLAValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SLAValidationError{}

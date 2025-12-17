@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language } from '../types/api'
-import { Package, BookOpen, Search, X, Plus, Edit, Trash2 } from 'lucide-react'
+import { CatalogType, Language, SLALevel, type Catalog } from '../types/api'
+import { Package, BookOpen, Search, X, Plus, Edit, Trash2, GitBranch } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -45,17 +45,17 @@ export default function CatalogTable() {
   const allCatalogs = data?.catalogs || []
 
   // Extraire les valeurs uniques pour les filtres
-  const uniqueTypes = useMemo(() => {
-    return Array.from(new Set(allCatalogs.map(c => String(c.type).toLowerCase()))).sort()
+  const uniqueTypes = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.map((c: Catalog) => String(c.type).toLowerCase()))).sort() as string[]
   }, [allCatalogs])
 
-  const uniqueLanguages = useMemo(() => {
-    return Array.from(new Set(allCatalogs.map(c => String(c.languages).toLowerCase()))).sort()
+  const uniqueLanguages = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.map((c: Catalog) => String(c.languages).toLowerCase()))).sort() as string[]
   }, [allCatalogs])
 
   // Filtrer les catalogues
   const catalogs = useMemo(() => {
-    return allCatalogs.filter(catalog => {
+    return allCatalogs.filter((catalog: Catalog) => {
       // Filtre par recherche
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
@@ -242,7 +242,7 @@ export default function CatalogTable() {
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
                 <div className="flex flex-wrap gap-2">
-                  {uniqueTypes.map(type => (
+                  {uniqueTypes.map((type: string) => (
                     <button
                       key={type}
                       onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
@@ -262,7 +262,7 @@ export default function CatalogTable() {
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Language:</span>
                 <div className="flex flex-wrap gap-2">
-                  {uniqueLanguages.map(lang => (
+                  {uniqueLanguages.map((lang: string) => (
                     <button
                       key={lang}
                       onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
@@ -300,13 +300,19 @@ export default function CatalogTable() {
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Nom
+                  Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Langage
+                  Language
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  SLA
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Dependencies
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Version
@@ -318,7 +324,7 @@ export default function CatalogTable() {
                   Description
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Liens
+                  Links
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Actions
@@ -326,13 +332,13 @@ export default function CatalogTable() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {catalogs.map((catalog) => (
+              {catalogs.map((catalog: Catalog) => (
                 <tr key={catalog.name} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+                    <Link to={`/catalog/${catalog.name}`} className="flex items-center hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                       <Package className="w-5 h-5 text-gray-400 mr-2" />
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{catalog.name}</span>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
@@ -344,6 +350,39 @@ export default function CatalogTable() {
                       {getLanguageIcon(catalog.languages)}
                       <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {catalog.sla ? (
+                      <span 
+                        className="px-2 py-1 text-xs font-medium rounded-full"
+                        style={{
+                          backgroundColor: `${getSLAColor(catalog.sla.level)}20`,
+                          color: getSLAColor(catalog.sla.level)
+                        }}
+                      >
+                        {getSLALabel(catalog.sla.level)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2 text-xs">
+                      {((catalog.dependenciesIn?.length || 0) + (catalog.dependenciesOut?.length || 0)) > 0 ? (
+                        <>
+                          <GitBranch className="w-4 h-4 text-gray-400" />
+                          <span className="text-blue-600 dark:text-blue-400">
+                            {catalog.dependenciesIn?.length || 0} in
+                          </span>
+                          <span className="text-gray-400">/</span>
+                          <span className="text-green-600 dark:text-green-400">
+                            {catalog.dependenciesOut?.length || 0} out
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {catalog.version}
@@ -430,4 +469,35 @@ export default function CatalogTable() {
       )}
     </div>
   )
+}
+
+// Helper functions for SLA
+function getSLAColor(level?: SLALevel): string {
+  switch (level) {
+    case SLALevel.CRITICAL:
+      return '#ef4444'
+    case SLALevel.HIGH:
+      return '#f97316'
+    case SLALevel.MEDIUM:
+      return '#eab308'
+    case SLALevel.LOW:
+      return '#22c55e'
+    default:
+      return '#94a3b8'
+  }
+}
+
+function getSLALabel(level?: SLALevel): string {
+  switch (level) {
+    case SLALevel.CRITICAL:
+      return 'Critical'
+    case SLALevel.HIGH:
+      return 'High'
+    case SLALevel.MEDIUM:
+      return 'Medium'
+    case SLALevel.LOW:
+      return 'Low'
+    default:
+      return 'Not Set'
+  }
 }

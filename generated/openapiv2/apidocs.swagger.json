@@ -717,6 +717,21 @@
         "updated_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "dependencies_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies_out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sla": {
+          "$ref": "#/definitions/v1alpha1SLA"
         }
       }
     },
@@ -850,6 +865,21 @@
         "updated_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "dependencies_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies_out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sla": {
+          "$ref": "#/definitions/v1alpha1SLA"
         }
       }
     },
@@ -1143,6 +1173,36 @@
         "P5"
       ],
       "default": "PRIORITY_UNSPECIFIED"
+    },
+    "v1alpha1SLA": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "$ref": "#/definitions/v1alpha1SLALevel"
+        },
+        "uptime_percentage": {
+          "type": "number",
+          "format": "double"
+        },
+        "response_time_ms": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1SLALevel": {
+      "type": "string",
+      "enum": [
+        "SLA_LEVEL_UNSPECIFIED",
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "SLA_LEVEL_UNSPECIFIED"
     },
     "v1alpha1SearchEventsResponse": {
       "type": "object",

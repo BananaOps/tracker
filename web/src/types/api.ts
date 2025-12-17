@@ -185,6 +185,21 @@ export interface CreateEventRequest {
   slackId?: string
 }
 
+export enum SLALevel {
+  UNSPECIFIED = 'unspecified',
+  CRITICAL = 'critical',
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low',
+}
+
+export interface SLA {
+  level: SLALevel
+  uptimePercentage?: number
+  responseTimeMs?: number
+  description?: string
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -196,6 +211,9 @@ export interface Catalog {
   repository?: string
   createdAt?: string
   updatedAt?: string
+  dependenciesIn?: string[]
+  dependenciesOut?: string[]
+  sla?: SLA
 }
 
 export interface ListEventsResponse {

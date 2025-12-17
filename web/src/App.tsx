@@ -9,6 +9,8 @@ import CreateEvent from './pages/CreateEvent'
 import Documentation from './pages/Documentation'
 import CatalogTable from './pages/CatalogTable'
 import CreateCatalog from './pages/CreateCatalog'
+import CatalogDetail from './pages/CatalogDetail'
+import CatalogDependencies from './pages/CatalogDependencies'
 import DriftsList from './pages/DriftsList'
 import RpaUsage from './pages/RpaUsage'
 import CreateDrift from './pages/CreateDrift'
@@ -34,6 +36,8 @@ function App() {
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />
           <Route path="catalog/edit/:name" element={<CreateCatalog />} />
+          <Route path="catalog/dependencies" element={<CatalogDependencies />} />
+          <Route path="catalog/:serviceName" element={<CatalogDetail />} />
           <Route path="drifts" element={<DriftsList />} />
           <Route path="drifts/create" element={<CreateDrift />} />
           <Route path="rpa" element={<RpaUsage />} />

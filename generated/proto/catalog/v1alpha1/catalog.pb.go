@@ -173,20 +173,78 @@ func (Languages) EnumDescriptor() ([]byte, []int) {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{1}
 }
 
+type SLALevel int32
+
+const (
+	SLALevel_SLA_LEVEL_UNSPECIFIED SLALevel = 0
+	SLALevel_critical              SLALevel = 1
+	SLALevel_high                  SLALevel = 2
+	SLALevel_medium                SLALevel = 3
+	SLALevel_low                   SLALevel = 4
+)
+
+// Enum value maps for SLALevel.
+var (
+	SLALevel_name = map[int32]string{
+		0: "SLA_LEVEL_UNSPECIFIED",
+		1: "critical",
+		2: "high",
+		3: "medium",
+		4: "low",
+	}
+	SLALevel_value = map[string]int32{
+		"SLA_LEVEL_UNSPECIFIED": 0,
+		"critical":              1,
+		"high":                  2,
+		"medium":                3,
+		"low":                   4,
+	}
+)
+
+func (x SLALevel) Enum() *SLALevel {
+	p := new(SLALevel)
+	*p = x
+	return p
+}
+
+func (x SLALevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SLALevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[2].Descriptor()
+}
+
+func (SLALevel) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[2]
+}
+
+func (x SLALevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SLALevel.Descriptor instead.
+func (SLALevel) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{2}
+}
+
 type Catalog struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
-	Languages     Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
-	Owner         string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
-	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	Link          string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
-	Description   string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	Repository    string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type            Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	Languages       Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
+	Owner           string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
+	Version         string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Link            string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
+	Description     string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Repository      string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
+	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
+	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Catalog) Reset() {
@@ -289,20 +347,44 @@ func (x *Catalog) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Catalog) GetDependenciesIn() []string {
+	if x != nil {
+		return x.DependenciesIn
+	}
+	return nil
+}
+
+func (x *Catalog) GetDependenciesOut() []string {
+	if x != nil {
+		return x.DependenciesOut
+	}
+	return nil
+}
+
+func (x *Catalog) GetSla() *SLA {
+	if x != nil {
+		return x.Sla
+	}
+	return nil
+}
+
 type CreateUpdateCatalogRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
-	Languages     Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
-	Owner         string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
-	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	Link          string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
-	Description   string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	Repository    string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type            Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	Languages       Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
+	Owner           string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
+	Version         string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Link            string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
+	Description     string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Repository      string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
+	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
+	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *CreateUpdateCatalogRequest) Reset() {
@@ -401,6 +483,27 @@ func (x *CreateUpdateCatalogRequest) GetCreatedAt() *timestamppb.Timestamp {
 func (x *CreateUpdateCatalogRequest) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetDependenciesIn() []string {
+	if x != nil {
+		return x.DependenciesIn
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetDependenciesOut() []string {
+	if x != nil {
+		return x.DependenciesOut
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetSla() *SLA {
+	if x != nil {
+		return x.Sla
 	}
 	return nil
 }
@@ -737,11 +840,79 @@ func (x *ListCatalogsResponse) GetTotalCount() uint32 {
 	return 0
 }
 
+type SLA struct {
+	state            protoimpl.MessageState  `protogen:"open.v1"`
+	Level            SLALevel                `protobuf:"varint,1,opt,name=level,proto3,enum=tracker.catalog.v1alpha1.SLALevel" json:"level,omitempty"`
+	UptimePercentage *wrapperspb.DoubleValue `protobuf:"bytes,2,opt,name=uptime_percentage,json=uptimePercentage,proto3" json:"uptime_percentage,omitempty"`
+	ResponseTimeMs   *wrapperspb.UInt32Value `protobuf:"bytes,3,opt,name=response_time_ms,json=responseTimeMs,proto3" json:"response_time_ms,omitempty"`
+	Description      string                  `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SLA) Reset() {
+	*x = SLA{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SLA) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SLA) ProtoMessage() {}
+
+func (x *SLA) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SLA.ProtoReflect.Descriptor instead.
+func (*SLA) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SLA) GetLevel() SLALevel {
+	if x != nil {
+		return x.Level
+	}
+	return SLALevel_SLA_LEVEL_UNSPECIFIED
+}
+
+func (x *SLA) GetUptimePercentage() *wrapperspb.DoubleValue {
+	if x != nil {
+		return x.UptimePercentage
+	}
+	return nil
+}
+
+func (x *SLA) GetResponseTimeMs() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.ResponseTimeMs
+	}
+	return nil
+}
+
+func (x *SLA) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 var File_proto_catalog_v1alpha1_catalog_proto protoreflect.FileDescriptor
 
 const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x90\x03\n" +
+	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x95\x04\n" +
 	"\aCatalog\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -757,7 +928,10 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa3\x03\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
+	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
+	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\"\xa8\x04\n" +
 	"\x1aCreateUpdateCatalogRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -773,7 +947,10 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"Z\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
+	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
+	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\"Z\n" +
 	"\x1bCreateUpdateCatalogResponse\x12;\n" +
 	"\acatalog\x18\x01 \x01(\v2!.tracker.catalog.v1alpha1.CatalogR\acatalog\"'\n" +
 	"\x11GetCatalogRequest\x12\x12\n" +
@@ -791,7 +968,12 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x14ListCatalogsResponse\x12=\n" +
 	"\bcatalogs\x18\x01 \x03(\v2!.tracker.catalog.v1alpha1.CatalogR\bcatalogs\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\rR\n" +
-	"totalCount*w\n" +
+	"totalCount\"\xf4\x01\n" +
+	"\x03SLA\x128\n" +
+	"\x05level\x18\x01 \x01(\x0e2\".tracker.catalog.v1alpha1.SLALevelR\x05level\x12I\n" +
+	"\x11uptime_percentage\x18\x02 \x01(\v2\x1c.google.protobuf.DoubleValueR\x10uptimePercentage\x12F\n" +
+	"\x10response_time_ms\x18\x03 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x0eresponseTimeMs\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription*w\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
@@ -826,7 +1008,14 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
 	"javascrypt\x10\r\x12\n" +
 	"\n" +
-	"\x06groovy\x10\x0f2\xe7\x04\n" +
+	"\x06groovy\x10\x0f*R\n" +
+	"\bSLALevel\x12\x19\n" +
+	"\x15SLA_LEVEL_UNSPECIFIED\x10\x00\x12\f\n" +
+	"\bcritical\x10\x01\x12\b\n" +
+	"\x04high\x10\x02\x12\n" +
+	"\n" +
+	"\x06medium\x10\x03\x12\a\n" +
+	"\x03low\x10\x042\xe7\x04\n" +
 	"\x0eCatalogService\x12\xa4\x01\n" +
 	"\x13CreateUpdateCatalog\x124.tracker.catalog.v1alpha1.CreateUpdateCatalogRequest\x1a5.tracker.catalog.v1alpha1.CreateUpdateCatalogResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1alpha1/catalog\x12\x86\x01\n" +
 	"\n" +
@@ -846,51 +1035,59 @@ func file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP() []byte {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescData
 }
 
-var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
 	(Type)(0),                           // 0: tracker.catalog.v1alpha1.Type
 	(Languages)(0),                      // 1: tracker.catalog.v1alpha1.Languages
-	(*Catalog)(nil),                     // 2: tracker.catalog.v1alpha1.Catalog
-	(*CreateUpdateCatalogRequest)(nil),  // 3: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	(*CreateUpdateCatalogResponse)(nil), // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	(*GetCatalogRequest)(nil),           // 5: tracker.catalog.v1alpha1.GetCatalogRequest
-	(*GetCatalogResponse)(nil),          // 6: tracker.catalog.v1alpha1.GetCatalogResponse
-	(*DeleteCatalogRequest)(nil),        // 7: tracker.catalog.v1alpha1.DeleteCatalogRequest
-	(*DeleteCatalogResponse)(nil),       // 8: tracker.catalog.v1alpha1.DeleteCatalogResponse
-	(*ListCatalogsRequest)(nil),         // 9: tracker.catalog.v1alpha1.ListCatalogsRequest
-	(*ListCatalogsResponse)(nil),        // 10: tracker.catalog.v1alpha1.ListCatalogsResponse
-	(*timestamppb.Timestamp)(nil),       // 11: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil),      // 12: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),       // 13: google.protobuf.Int32Value
+	(SLALevel)(0),                       // 2: tracker.catalog.v1alpha1.SLALevel
+	(*Catalog)(nil),                     // 3: tracker.catalog.v1alpha1.Catalog
+	(*CreateUpdateCatalogRequest)(nil),  // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	(*CreateUpdateCatalogResponse)(nil), // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	(*GetCatalogRequest)(nil),           // 6: tracker.catalog.v1alpha1.GetCatalogRequest
+	(*GetCatalogResponse)(nil),          // 7: tracker.catalog.v1alpha1.GetCatalogResponse
+	(*DeleteCatalogRequest)(nil),        // 8: tracker.catalog.v1alpha1.DeleteCatalogRequest
+	(*DeleteCatalogResponse)(nil),       // 9: tracker.catalog.v1alpha1.DeleteCatalogResponse
+	(*ListCatalogsRequest)(nil),         // 10: tracker.catalog.v1alpha1.ListCatalogsRequest
+	(*ListCatalogsResponse)(nil),        // 11: tracker.catalog.v1alpha1.ListCatalogsResponse
+	(*SLA)(nil),                         // 12: tracker.catalog.v1alpha1.SLA
+	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil),      // 14: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),       // 15: google.protobuf.Int32Value
+	(*wrapperspb.DoubleValue)(nil),      // 16: google.protobuf.DoubleValue
 }
 var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	0,  // 0: tracker.catalog.v1alpha1.Catalog.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 1: tracker.catalog.v1alpha1.Catalog.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	11, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
-	11, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
-	1,  // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	11, // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
-	11, // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	2,  // 9: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	12, // 10: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	13, // 11: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
-	2,  // 12: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
-	3,  // 13: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	5,  // 14: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
-	7,  // 15: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
-	9,  // 16: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
-	4,  // 17: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	6,  // 18: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
-	8,  // 19: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
-	10, // 20: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	13, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
+	13, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	0,  // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
+	1,  // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
+	13, // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
+	13, // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 9: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	3,  // 11: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	14, // 12: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	15, // 13: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
+	3,  // 14: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
+	2,  // 15: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
+	16, // 16: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
+	14, // 17: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
+	4,  // 18: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	6,  // 19: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
+	8,  // 20: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
+	10, // 21: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
+	5,  // 22: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	7,  // 23: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
+	9,  // 24: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
+	11, // 25: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
+	22, // [22:26] is the sub-list for method output_type
+	18, // [18:22] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_proto_catalog_v1alpha1_catalog_proto_init() }
@@ -903,8 +1100,8 @@ func file_proto_catalog_v1alpha1_catalog_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_v1alpha1_catalog_proto_rawDesc), len(file_proto_catalog_v1alpha1_catalog_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   9,
+			NumEnums:      3,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

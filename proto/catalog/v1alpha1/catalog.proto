@@ -37,6 +37,9 @@ message Catalog {
   string repository = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+  repeated string dependencies_in = 11;
+  repeated string dependencies_out = 12;
+  SLA sla = 13;
 }
 
 message CreateUpdateCatalogRequest {
@@ -50,6 +53,9 @@ message CreateUpdateCatalogRequest {
   string repository = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+  repeated string dependencies_in = 11;
+  repeated string dependencies_out = 12;
+  SLA sla = 13;
 }
 
 message CreateUpdateCatalogResponse {
@@ -110,4 +116,19 @@ enum Languages {
   typescript = 12;
   javascrypt = 13;
   groovy = 15;
+}
+
+enum SLALevel {
+  SLA_LEVEL_UNSPECIFIED = 0;
+  critical = 1;
+  high = 2;
+  medium = 3;
+  low = 4;
+}
+
+message SLA {
+  SLALevel level = 1;
+  google.protobuf.DoubleValue uptime_percentage = 2;
+  google.protobuf.UInt32Value response_time_ms = 3;
+  string description = 4;
 }
