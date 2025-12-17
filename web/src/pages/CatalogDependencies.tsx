@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { SLALevel } from '../types/api'
+import { SLALevel, CatalogType, Platform, type Catalog } from '../types/api'
 import { ArrowLeft, GitBranch, Search, X } from 'lucide-react'
 import ReactFlow, { 
   Node, 
@@ -19,6 +19,8 @@ export default function CatalogDependencies() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedSLA, setSelectedSLA] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
 
   const { data: allCatalogs, isLoading } = useQuery({
     queryKey: ['catalog', 'list'],
@@ -45,6 +47,19 @@ export default function CatalogDependencies() {
       if (selectedSLA.length > 0) {
         const slaLevel = catalog.sla?.level || SLALevel.UNSPECIFIED
         if (!selectedSLA.includes(slaLevel)) return false
+      }
+
+      // Type filter
+      if (selectedTypes.length > 0) {
+        const catalogType = String(catalog.type).toLowerCase()
+        if (!selectedTypes.includes(catalogType)) return false
+      }
+
+      // Platform filter
+      if (selectedPlatforms.length > 0) {
+        if (!catalog.platform) return false
+        const catalogPlatform = String(catalog.platform).toLowerCase()
+        if (!selectedPlatforms.includes(catalogPlatform)) return false
       }
 
       return true
@@ -108,19 +123,36 @@ export default function CatalogDependencies() {
     })
 
     return { nodes, edges }
-  }, [allCatalogs, searchQuery, selectedSLA])
+  }, [allCatalogs, searchQuery, selectedSLA, selectedTypes, selectedPlatforms])
+
+  // Extract unique values for filters
+  const uniqueTypes = useMemo(() => {
+    if (!allCatalogs) return []
+    return Array.from(new Set(allCatalogs.catalogs.map((c: Catalog) => String(c.type).toLowerCase()))).sort()
+  }, [allCatalogs])
+
+  const uniquePlatforms = useMemo(() => {
+    if (!allCatalogs) return []
+    return Array.from(new Set(allCatalogs.catalogs.filter((c: Catalog) => c.platform).map((c: Catalog) => String(c.platform).toLowerCase()))).sort()
+  }, [allCatalogs])
+
+  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
+    if (selected.includes(value)) {
+      setter(selected.filter(v => v !== value))
+    } else {
+      setter([...selected, value])
+    }
+  }
 
   const toggleSLAFilter = (level: string) => {
-    if (selectedSLA.includes(level)) {
-      setSelectedSLA(selectedSLA.filter(l => l !== level))
-    } else {
-      setSelectedSLA([...selectedSLA, level])
-    }
+    toggleFilter(level, selectedSLA, setSelectedSLA)
   }
 
   const clearFilters = () => {
     setSearchQuery('')
     setSelectedSLA([])
+    setSelectedTypes([])
+    setSelectedPlatforms([])
   }
 
   const stats = useMemo(() => {
@@ -236,36 +268,85 @@ export default function CatalogDependencies() {
             )}
           </div>
 
-          {/* SLA Filters */}
+          {/* Filters */}
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-2 flex-wrap gap-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">SLA Level:</span>
-              {[SLALevel.CRITICAL, SLALevel.HIGH, SLALevel.MEDIUM, SLALevel.LOW].map(level => (
-                <button
-                  key={level}
-                  onClick={() => toggleSLAFilter(level)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                    selectedSLA.includes(level)
-                      ? 'text-white'
-                      : 'hover:opacity-80'
-                  }`}
-                  style={{
-                    backgroundColor: selectedSLA.includes(level) ? getSLAColor(level) : `${getSLAColor(level)}30`,
-                    color: selectedSLA.includes(level) ? 'white' : getSLAColor(level),
-                  }}
-                >
-                  {getSLALabel(level)}
-                </button>
-              ))}
+            <div className="flex items-center space-x-4 flex-wrap gap-2">
+              {/* Type Filters */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueTypes.map((type: string) => (
+                    <button
+                      key={type}
+                      onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        selectedTypes.includes(type)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+                      }`}
+                    >
+                      {getCatalogTypeLabel(type)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Platform Filters */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Platform:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniquePlatforms.map((platform: string) => {
+                    const platformColors = getPlatformColor(platform as Platform)
+                    return (
+                      <button
+                        key={platform}
+                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
+                          selectedPlatforms.includes(platform)
+                            ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
+                            : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} hover:opacity-80`
+                        }`}
+                      >
+                        <span>{getPlatformIcon(platform as Platform)}</span>
+                        <span>{getPlatformLabel(platform as Platform)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* SLA Filters */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">SLA:</span>
+                <div className="flex flex-wrap gap-2">
+                  {[SLALevel.CRITICAL, SLALevel.HIGH, SLALevel.MEDIUM, SLALevel.LOW].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => toggleSLAFilter(level)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        selectedSLA.includes(level)
+                          ? 'text-white'
+                          : 'hover:opacity-80'
+                      }`}
+                      style={{
+                        backgroundColor: selectedSLA.includes(level) ? getSLAColor(level) : `${getSLAColor(level)}30`,
+                        color: selectedSLA.includes(level) ? 'white' : getSLAColor(level),
+                      }}
+                    >
+                      {getSLALabel(level)}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {(searchQuery || selectedSLA.length > 0) && (
+            {(searchQuery || selectedSLA.length > 0 || selectedTypes.length > 0 || selectedPlatforms.length > 0) && (
               <button
                 onClick={clearFilters}
                 className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center space-x-1 font-medium"
               >
                 <X className="w-4 h-4" />
-                <span>Clear Filters</span>
+                <span>Clear All</span>
               </button>
             )}
           </div>
@@ -353,6 +434,149 @@ function getSLALabel(level?: SLALevel): string {
       return 'Low'
     default:
       return 'Not Set'
+  }
+}
+
+function getCatalogTypeLabel(type: CatalogType | string) {
+  const typeStr = String(type).toLowerCase()
+  const labels: Record<string, string> = {
+    'module': 'Module',
+    'library': 'Library',
+    'workflow': 'Workflow',
+    'project': 'Project',
+    'chart': 'Chart',
+    'package': 'Package',
+    'container': 'Container',
+  }
+  return labels[typeStr] || 'Unknown'
+}
+
+function getPlatformColor(platform?: Platform): { bg: string; text: string; darkBg: string; darkText: string } {
+  switch (platform) {
+    case Platform.EC2:
+      return { bg: 'bg-orange-100', text: 'text-orange-800', darkBg: 'dark:bg-orange-900/30', darkText: 'dark:text-orange-300' }
+    case Platform.LAMBDA:
+      return { bg: 'bg-yellow-100', text: 'text-yellow-800', darkBg: 'dark:bg-yellow-900/30', darkText: 'dark:text-yellow-300' }
+    case Platform.KUBERNETES:
+      return { bg: 'bg-blue-100', text: 'text-blue-800', darkBg: 'dark:bg-blue-900/30', darkText: 'dark:text-blue-300' }
+    case Platform.ECS:
+      return { bg: 'bg-indigo-100', text: 'text-indigo-800', darkBg: 'dark:bg-indigo-900/30', darkText: 'dark:text-indigo-300' }
+    case Platform.FARGATE:
+      return { bg: 'bg-purple-100', text: 'text-purple-800', darkBg: 'dark:bg-purple-900/30', darkText: 'dark:text-purple-300' }
+    case Platform.CLOUD_RUN:
+      return { bg: 'bg-green-100', text: 'text-green-800', darkBg: 'dark:bg-green-900/30', darkText: 'dark:text-green-300' }
+    case Platform.APP_SERVICE:
+      return { bg: 'bg-cyan-100', text: 'text-cyan-800', darkBg: 'dark:bg-cyan-900/30', darkText: 'dark:text-cyan-300' }
+    case Platform.STEP_FUNCTIONS:
+      return { bg: 'bg-amber-100', text: 'text-amber-800', darkBg: 'dark:bg-amber-900/30', darkText: 'dark:text-amber-300' }
+    case Platform.EVENT_BRIDGE:
+      return { bg: 'bg-pink-100', text: 'text-pink-800', darkBg: 'dark:bg-pink-900/30', darkText: 'dark:text-pink-300' }
+    case Platform.RDS:
+      return { bg: 'bg-emerald-100', text: 'text-emerald-800', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' }
+    case Platform.DYNAMODB:
+      return { bg: 'bg-teal-100', text: 'text-teal-800', darkBg: 'dark:bg-teal-900/30', darkText: 'dark:text-teal-300' }
+    case Platform.S3:
+      return { bg: 'bg-red-100', text: 'text-red-800', darkBg: 'dark:bg-red-900/30', darkText: 'dark:text-red-300' }
+    case Platform.CLOUDFRONT:
+      return { bg: 'bg-violet-100', text: 'text-violet-800', darkBg: 'dark:bg-violet-900/30', darkText: 'dark:text-violet-300' }
+    case Platform.API_GATEWAY:
+      return { bg: 'bg-lime-100', text: 'text-lime-800', darkBg: 'dark:bg-lime-900/30', darkText: 'dark:text-lime-300' }
+    case Platform.CLOUDWATCH:
+      return { bg: 'bg-sky-100', text: 'text-sky-800', darkBg: 'dark:bg-sky-900/30', darkText: 'dark:text-sky-300' }
+    case Platform.ON_PREMISE:
+      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
+    case Platform.HYBRID:
+      return { bg: 'bg-slate-100', text: 'text-slate-800', darkBg: 'dark:bg-slate-900/30', darkText: 'dark:text-slate-300' }
+    case Platform.MULTI_CLOUD:
+      return { bg: 'bg-rose-100', text: 'text-rose-800', darkBg: 'dark:bg-rose-900/30', darkText: 'dark:text-rose-300' }
+    default:
+      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
+  }
+}
+
+function getPlatformIcon(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return '⬛'
+    case Platform.LAMBDA:
+      return '⚡'
+    case Platform.KUBERNETES:
+      return '⚙️'
+    case Platform.ECS:
+      return '📋'
+    case Platform.FARGATE:
+      return '▫️'
+    case Platform.CLOUD_RUN:
+      return '▶️'
+    case Platform.APP_SERVICE:
+      return '🔲'
+    case Platform.STEP_FUNCTIONS:
+      return '🔄'
+    case Platform.EVENT_BRIDGE:
+      return '⚡'
+    case Platform.RDS:
+      return '💾'
+    case Platform.DYNAMODB:
+      return '🔶'
+    case Platform.S3:
+      return '📁'
+    case Platform.CLOUDFRONT:
+      return '🌐'
+    case Platform.API_GATEWAY:
+      return '🔌'
+    case Platform.CLOUDWATCH:
+      return '📊'
+    case Platform.ON_PREMISE:
+      return '🏭'
+    case Platform.HYBRID:
+      return '🔗'
+    case Platform.MULTI_CLOUD:
+      return '☁️'
+    default:
+      return '⚫'
+  }
+}
+
+function getPlatformLabel(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return 'EC2/VM'
+    case Platform.LAMBDA:
+      return 'Lambda'
+    case Platform.KUBERNETES:
+      return 'Kubernetes'
+    case Platform.ECS:
+      return 'ECS'
+    case Platform.FARGATE:
+      return 'Fargate'
+    case Platform.CLOUD_RUN:
+      return 'Cloud Run'
+    case Platform.APP_SERVICE:
+      return 'App Service'
+    case Platform.STEP_FUNCTIONS:
+      return 'Step Functions'
+    case Platform.EVENT_BRIDGE:
+      return 'Event Bridge'
+    case Platform.RDS:
+      return 'RDS'
+    case Platform.DYNAMODB:
+      return 'DynamoDB'
+    case Platform.S3:
+      return 'S3'
+    case Platform.CLOUDFRONT:
+      return 'CloudFront'
+    case Platform.API_GATEWAY:
+      return 'API Gateway'
+    case Platform.CLOUDWATCH:
+      return 'CloudWatch'
+    case Platform.ON_PREMISE:
+      return 'On-Premise'
+    case Platform.HYBRID:
+      return 'Hybrid'
+    case Platform.MULTI_CLOUD:
+      return 'Multi-Cloud'
+    default:
+      return 'Unknown'
   }
 }
 

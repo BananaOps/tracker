@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA } from '../types/api'
+import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable } from '../types/api'
 import { ArrowLeft, Save, Package, X } from 'lucide-react'
 import DependencySelector from '../components/DependencySelector'
+import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
@@ -31,6 +32,7 @@ export default function CreateCatalog() {
     dependenciesOut: [],
     sla: undefined,
     platform: Platform.KUBERNETES,
+    usedDeliverables: [],
   })
 
   const [newDepIn, setNewDepIn] = useState('')
@@ -79,6 +81,10 @@ export default function CreateCatalog() {
 
   const handleChange = (field: keyof Catalog, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleUpdateUsedDeliverables = (usedDeliverables: UsedDeliverable[]) => {
+    setFormData(prev => ({ ...prev, usedDeliverables }))
   }
 
   const handleSLAChange = (field: keyof SLA, value: any) => {
@@ -459,6 +465,34 @@ export default function CreateCatalog() {
               </div>
             </div>
           </div>
+
+          {/* Used Deliverables Section - Only for Projects */}
+          {formData.type === CatalogType.PROJECT && (
+            <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Used Deliverables
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Track which packages, charts, containers, modules, and libraries are used in this project
+                </p>
+                <UsedDeliverablesManager
+                  usedDeliverables={formData.usedDeliverables || []}
+                  onUpdate={handleUpdateUsedDeliverables}
+                  availableDeliverables={allCatalogs?.catalogs
+                    .filter(c => [CatalogType.PACKAGE, CatalogType.CHART, CatalogType.CONTAINER, CatalogType.MODULE, CatalogType.LIBRARY].includes(c.type))
+                    .map(c => ({ 
+                      name: c.name, 
+                      type: c.type, 
+                      availableVersions: c.availableVersions || [],
+                      latestVersion: c.latestVersion,
+                      referenceVersion: c.referenceVersion
+                    })) || []
+                  }
+                />
+              </div>
+            </div>
+          )}
 
           {/* SLA Configuration */}
           <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">

@@ -75,6 +75,15 @@ const realCatalogApi = {
     // Convert all catalogs from protobuf wrapper format
     const frontendCatalogs: Catalog[] = data.catalogs.map(catalog => ({
       ...catalog,
+      availableVersions: catalog.available_versions || catalog.availableVersions,
+      latestVersion: catalog.latest_version || catalog.latestVersion,
+      referenceVersion: catalog.reference_version || catalog.referenceVersion,
+      usedDeliverables: catalog.used_deliverables?.map((ud: any) => ({
+        name: ud.name,
+        type: ud.type,
+        versionUsed: ud.version_used || ud.versionUsed,
+        description: ud.description
+      })) || catalog.usedDeliverables,
       sla: catalog.sla ? {
         level: catalog.sla.level,
         uptimePercentage: catalog.sla.uptimePercentage?.value,
@@ -95,6 +104,15 @@ const realCatalogApi = {
     // Convert response from protobuf wrapper format
     const frontendCatalog: Catalog = {
       ...data.catalog,
+      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
+      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
+      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
+      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
+        name: ud.name,
+        type: ud.type,
+        versionUsed: ud.version_used || ud.versionUsed,
+        description: ud.description
+      })) || data.catalog.usedDeliverables,
       sla: data.catalog.sla ? {
         level: data.catalog.sla.level,
         uptimePercentage: data.catalog.sla.uptimePercentage?.value,
@@ -110,24 +128,39 @@ const realCatalogApi = {
     console.log('🌐 API: Sending catalog to backend:', JSON.stringify(catalog, null, 2))
     
     // Convert to backend format (snake_case for dependencies, simple SLA)
+    // IMPORTANT: Exclude version fields - they are managed separately via updateVersions endpoint
     const backendCatalog = {
-      ...catalog,
+      name: catalog.name,
+      type: catalog.type,
+      languages: catalog.languages,
+      owner: catalog.owner,
+      version: catalog.version,
+      link: catalog.link,
+      description: catalog.description,
+      repository: catalog.repository,
       // Convert dependencies to snake_case
       dependencies_in: catalog.dependenciesIn,
       dependencies_out: catalog.dependenciesOut,
-      // Remove camelCase versions
-      dependenciesIn: undefined,
-      dependenciesOut: undefined,
       // Convert SLA to simple format (no wrappers for now)
       sla: catalog.sla ? {
         level: catalog.sla.level,
         uptime_percentage: catalog.sla.uptimePercentage,
         response_time_ms: catalog.sla.responseTimeMs,
         description: catalog.sla.description
-      } : undefined
+      } : undefined,
+      platform: catalog.platform,
+      // Convert used deliverables to snake_case
+      used_deliverables: catalog.usedDeliverables?.map(ud => ({
+        name: ud.name,
+        type: ud.type,
+        version_used: ud.versionUsed,
+        description: ud.description
+      }))
+      // Note: availableVersions, latestVersion, referenceVersion are NOT sent here
+      // They are managed via separate updateVersions endpoint
     }
     
-    console.log('🔄 API: Converted for backend:', JSON.stringify(backendCatalog, null, 2))
+    console.log('🔄 API: Converted for backend (no version fields):', JSON.stringify(backendCatalog, null, 2))
     
     const { data } = await axiosInstance.put<{ catalog: any }>('/catalog', backendCatalog)
     console.log('✅ API: Received response:', JSON.stringify(data, null, 2))
@@ -137,6 +170,15 @@ const realCatalogApi = {
       ...data.catalog,
       dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
       dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
+      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
+      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
+      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
+      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
+        name: ud.name,
+        type: ud.type,
+        versionUsed: ud.version_used || ud.versionUsed,
+        description: ud.description
+      })) || data.catalog.usedDeliverables,
       sla: data.catalog.sla ? {
         level: data.catalog.sla.level,
         uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
@@ -151,6 +193,51 @@ const realCatalogApi = {
   delete: async (name: string) => {
     const { data } = await axiosInstance.delete<{ message: string; name: string }>('/catalog', { params: { name } })
     return data
+  },
+
+  getVersionCompliance: async () => {
+    const { data } = await axiosInstance.get<import('../types/api').GetVersionComplianceResponse>('/catalog/version-compliance')
+    return data
+  },
+
+  updateVersions: async (name: string, versions: string[], latestVersion?: string, referenceVersion?: string) => {
+    console.log('🔧 API: Updating versions for service:', name, { versions, latestVersion, referenceVersion })
+    
+    const requestData = {
+      name,
+      available_versions: versions,
+      latest_version: latestVersion,
+      reference_version: referenceVersion
+    }
+    
+    console.log('📤 API: Sending version update:', JSON.stringify(requestData, null, 2))
+    
+    const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/versions`, requestData)
+    console.log('✅ API: Version update response:', JSON.stringify(data, null, 2))
+    
+    // Convert response back to frontend format
+    const frontendCatalog: Catalog = {
+      ...data.catalog,
+      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
+      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
+      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
+      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
+      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
+      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
+        name: ud.name,
+        type: ud.type,
+        versionUsed: ud.version_used || ud.versionUsed,
+        description: ud.description
+      })) || data.catalog.usedDeliverables,
+      sla: data.catalog.sla ? {
+        level: data.catalog.sla.level,
+        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
+        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
+        description: data.catalog.sla.description
+      } : undefined
+    }
+    
+    return frontendCatalog
   },
 }
 

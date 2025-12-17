@@ -27,6 +27,7 @@ const navigation = [
     submenu: [
       { name: 'Services', href: '/catalog', icon: Table },
       { name: 'Dependencies', href: '/catalog/dependencies', icon: GitBranch },
+      { name: 'Version Compliance', href: '/catalog/version-compliance', icon: AlertTriangle },
     ]
   },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },

@@ -24,6 +24,19 @@ service CatalogService {
   rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};
   }
+  
+  // Version compliance check
+  rpc GetVersionCompliance(GetVersionComplianceRequest) returns (GetVersionComplianceResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/catalog/version-compliance"};
+  }
+  
+  // Version management for deliverables
+  rpc UpdateVersions(UpdateVersionsRequest) returns (UpdateVersionsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/catalog/{name}/versions"
+      body: "*"
+    };
+  }
 }
 
 message Catalog {
@@ -31,7 +44,7 @@ message Catalog {
   Type type = 2;
   Languages languages = 3;
   string owner = 4;
-  string version = 5;
+  string version = 5;  // Current version used by this project
   string link = 6;
   string description = 7;
   string repository = 8;
@@ -41,6 +54,12 @@ message Catalog {
   repeated string dependencies_out = 12;
   SLA sla = 13;
   Platform platform = 14;
+  // For deliverables (packages, charts, containers, modules)
+  repeated string available_versions = 15;  // List of available versions
+  string latest_version = 16;               // Latest available version
+  string reference_version = 17;            // Recommended/reference version to use
+  // For projects: track which deliverables and versions are used
+  repeated UsedDeliverable used_deliverables = 18;
 }
 
 message CreateUpdateCatalogRequest {
@@ -48,7 +67,7 @@ message CreateUpdateCatalogRequest {
   Type type = 2;
   Languages languages = 3;
   string owner = 4;
-  string version = 5;
+  string version = 5;  // Current version used by this project
   string link = 6;
   string description = 7;
   string repository = 8;
@@ -58,6 +77,10 @@ message CreateUpdateCatalogRequest {
   repeated string dependencies_out = 12;
   SLA sla = 13;
   Platform platform = 14;
+  // For projects: track which deliverables and versions are used
+  repeated UsedDeliverable used_deliverables = 15;
+  // Note: Version management (available_versions, latest_version, reference_version) 
+  // is handled separately via UpdateVersions endpoint
 }
 
 message CreateUpdateCatalogResponse {
@@ -89,6 +112,52 @@ message ListCatalogsRequest {
 message ListCatalogsResponse {
   repeated Catalog catalogs = 1;
   uint32 total_count = 2;
+}
+
+// Version compliance messages
+message GetVersionComplianceRequest {
+  // Optional filters
+  repeated Type types = 1;  // Filter by deliverable types (package, chart, container, module)
+}
+
+message GetVersionComplianceResponse {
+  repeated ProjectCompliance projects = 1;
+  ComplianceSummary summary = 2;
+}
+
+message ProjectCompliance {
+  string project_name = 1;
+  repeated DeliverableUsage deliverables = 2;
+  int32 outdated_count = 3;
+  int32 total_count = 4;
+  float compliance_percentage = 5;
+}
+
+message DeliverableUsage {
+  string name = 1;
+  Type type = 2;
+  string current_version = 3;      // Version used by the project
+  string latest_version = 4;       // Latest available version
+  string reference_version = 5;    // Recommended version
+  bool is_outdated = 6;           // true if current_version != reference_version
+  bool is_latest = 7;             // true if current_version == latest_version
+}
+
+message ComplianceSummary {
+  int32 total_projects = 1;
+  int32 compliant_projects = 2;
+  int32 non_compliant_projects = 3;
+  float overall_compliance_percentage = 4;
+  repeated DeliverableComplianceStats deliverable_stats = 5;
+}
+
+message DeliverableComplianceStats {
+  string name = 1;
+  Type type = 2;
+  int32 projects_using = 3;
+  int32 projects_outdated = 4;
+  string latest_version = 5;
+  string reference_version = 6;
 }
 
 enum Type {
@@ -164,4 +233,24 @@ message SLA {
   google.protobuf.DoubleValue uptime_percentage = 2;
   google.protobuf.UInt32Value response_time_ms = 3;
   string description = 4;
+}
+
+// Version management messages
+message UpdateVersionsRequest {
+  string name = 1;                          // Service name
+  repeated string available_versions = 2;   // List of available versions
+  string latest_version = 3;                // Latest available version
+  string reference_version = 4;             // Recommended/reference version to use
+}
+
+message UpdateVersionsResponse {
+  Catalog catalog = 1;                      // Updated catalog with new versions
+}
+
+// Used deliverable in a project
+message UsedDeliverable {
+  string name = 1;                          // Name of the deliverable (package, chart, container, module)
+  Type type = 2;                            // Type of deliverable (package, chart, container, module)
+  string version_used = 3;                  // Version currently used in this project
+  string description = 4;                   // Optional description or usage context
 }

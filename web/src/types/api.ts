@@ -239,6 +239,13 @@ export interface BackendSLA {
   description?: string
 }
 
+export interface UsedDeliverable {
+  name: string
+  type: CatalogType
+  versionUsed: string
+  description?: string
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -254,6 +261,10 @@ export interface Catalog {
   dependenciesOut?: string[]
   sla?: SLA
   platform?: Platform
+  availableVersions?: string[]
+  latestVersion?: string
+  referenceVersion?: string
+  usedDeliverables?: UsedDeliverable[]
 }
 
 export interface ListEventsResponse {
@@ -264,4 +275,44 @@ export interface ListEventsResponse {
 export interface ListCatalogsResponse {
   catalogs: Catalog[]
   totalCount: number
+}
+
+export interface DeliverableUsage {
+  name: string
+  type: CatalogType
+  currentVersion?: string
+  latestVersion?: string
+  referenceVersion?: string
+  isOutdated: boolean
+  isLatest: boolean
+}
+
+export interface ProjectCompliance {
+  projectName: string
+  deliverables: DeliverableUsage[]
+  outdatedCount: number
+  totalCount: number
+  compliancePercentage: number
+}
+
+export interface DeliverableComplianceStats {
+  name: string
+  type: CatalogType
+  projectsUsing: number
+  projectsOutdated: number
+  latestVersion?: string
+  referenceVersion?: string
+}
+
+export interface ComplianceSummary {
+  totalProjects: number
+  compliantProjects: number
+  nonCompliantProjects: number
+  overallCompliancePercentage: number
+  deliverableStats: DeliverableComplianceStats[]
+}
+
+export interface GetVersionComplianceResponse {
+  projects: ProjectCompliance[]
+  summary: ComplianceSummary
 }

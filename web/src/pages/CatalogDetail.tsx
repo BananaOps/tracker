@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, type Catalog } from '../types/api'
+import { SLALevel, CatalogType, Language, Platform, type Catalog, type UsedDeliverable } from '../types/api'
 import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -29,6 +29,8 @@ import ReactFlow, {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useMemo, useState } from 'react'
+import DeliverableVersions from '../components/VersionManager'
+import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 
 export default function CatalogDetail() {
   const { serviceName } = useParams<{ serviceName: string }>()
@@ -46,6 +48,25 @@ export default function CatalogDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['catalog'] })
       navigate('/catalog')
+    },
+  })
+
+  const updateVersionsMutation = useMutation({
+    mutationFn: ({ name, versions, latest, reference }: { 
+      name: string, 
+      versions: string[], 
+      latest?: string, 
+      reference?: string 
+    }) => catalogApi.updateVersions(name, versions, latest, reference),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+    },
+  })
+
+  const updateServiceMutation = useMutation({
+    mutationFn: (updatedService: Catalog) => catalogApi.createOrUpdate(updatedService),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
     },
   })
 
@@ -68,6 +89,32 @@ export default function CatalogDetail() {
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false)
+  }
+
+  const handleUpdateVersions = (versions: string[], latest?: string, reference?: string) => {
+    if (!service) return
+    
+    console.log('🔧 Updating versions:', { versions, latest, reference })
+    
+    updateVersionsMutation.mutate({
+      name: service.name,
+      versions,
+      latest,
+      reference
+    })
+  }
+
+  const handleUpdateUsedDeliverables = (usedDeliverables: UsedDeliverable[]) => {
+    if (!service) return
+    
+    console.log('🔧 Updating used deliverables:', usedDeliverables)
+    
+    const updatedService = {
+      ...service,
+      usedDeliverables
+    }
+    
+    updateServiceMutation.mutate(updatedService)
   }
 
   // Build dependency graph
@@ -586,6 +633,43 @@ export default function CatalogDetail() {
         )}
       </div>
 
+      {/* Version Management for Deliverables */}
+      {(service.type === CatalogType.PACKAGE || 
+        service.type === CatalogType.CHART || 
+        service.type === CatalogType.CONTAINER || 
+        service.type === CatalogType.MODULE) && (
+        <div className="grid grid-cols-1 gap-6">
+          <DeliverableVersions
+            serviceName={service.name}
+            serviceType={service.type as 'package' | 'chart' | 'container' | 'module'}
+            availableVersions={service.availableVersions || []}
+            latestVersion={service.latestVersion}
+            referenceVersion={service.referenceVersion}
+            onUpdateVersions={handleUpdateVersions}
+          />
+        </div>
+      )}
+
+      {/* Used Deliverables Management for Projects */}
+      {service.type === CatalogType.PROJECT && (
+        <div className="grid grid-cols-1 gap-6">
+          <UsedDeliverablesManager
+            usedDeliverables={service.usedDeliverables || []}
+            onUpdate={handleUpdateUsedDeliverables}
+            availableDeliverables={allCatalogs?.catalogs
+              .filter(c => [CatalogType.PACKAGE, CatalogType.CHART, CatalogType.CONTAINER, CatalogType.MODULE, CatalogType.LIBRARY].includes(c.type))
+              .map(c => ({ 
+                name: c.name, 
+                type: c.type, 
+                availableVersions: c.availableVersions || [],
+                latestVersion: c.latestVersion,
+                referenceVersion: c.referenceVersion
+              }))
+            }
+          />
+        </div>
+      )}
+
       {/* Dependencies Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Upstream Dependencies */}
@@ -946,43 +1030,43 @@ function getPlatformColor(platform?: Platform): string {
 function getPlatformIcon(platform?: Platform): string {
   switch (platform) {
     case Platform.EC2:
-      return '🖥️'
+      return '⬛' // Serveur/VM
     case Platform.LAMBDA:
-      return '⚡'
+      return '⚡' // Fonction (garde l'éclair, très tech)
     case Platform.KUBERNETES:
-      return '☸️'
+      return '⚙️' // Orchestration/Engine
     case Platform.ECS:
-      return '📦'
+      return '📋' // Container orchestration
     case Platform.FARGATE:
-      return '☁️'
+      return '▫️' // Serverless container
     case Platform.CLOUD_RUN:
-      return '🏃'
+      return '▶️' // Run/Execute
     case Platform.APP_SERVICE:
-      return '🌐'
+      return '🔲' // Application platform
     case Platform.STEP_FUNCTIONS:
-      return '🔄'
+      return '🔄' // Workflow (garde la rotation)
     case Platform.EVENT_BRIDGE:
-      return '🌉'
+      return '⚡' // Event processing
     case Platform.RDS:
-      return '🗃️'
+      return '💾' // Database storage
     case Platform.DYNAMODB:
-      return '📊'
+      return '🔶' // NoSQL/Document DB
     case Platform.S3:
-      return '🪣'
+      return '📁' // File storage
     case Platform.CLOUDFRONT:
-      return '🚀'
+      return '🌐' // CDN/Global network
     case Platform.API_GATEWAY:
-      return '🚪'
+      return '🔌' // API endpoint
     case Platform.CLOUDWATCH:
-      return '👁️'
+      return '📊' // Monitoring/Metrics
     case Platform.ON_PREMISE:
-      return '🏢'
+      return '🏭' // Data center/Infrastructure
     case Platform.HYBRID:
-      return '🔗'
+      return '🔗' // Connection/Link (garde le lien)
     case Platform.MULTI_CLOUD:
-      return '☁️'
+      return '☁️' // Cloud (garde le nuage)
     default:
-      return '❓'
+      return '⚫' // Unknown/Default
   }
 }
 

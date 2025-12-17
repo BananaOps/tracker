@@ -11,6 +11,7 @@ import CatalogTable from './pages/CatalogTable'
 import CreateCatalog from './pages/CreateCatalog'
 import CatalogDetail from './pages/CatalogDetail'
 import CatalogDependencies from './pages/CatalogDependencies'
+import VersionCompliance from './pages/VersionCompliance'
 import DriftsList from './pages/DriftsList'
 import RpaUsage from './pages/RpaUsage'
 import CreateDrift from './pages/CreateDrift'
@@ -37,6 +38,7 @@ function App() {
           <Route path="catalog/create" element={<CreateCatalog />} />
           <Route path="catalog/edit/:name" element={<CreateCatalog />} />
           <Route path="catalog/dependencies" element={<CatalogDependencies />} />
+          <Route path="catalog/version-compliance" element={<VersionCompliance />} />
           <Route path="catalog/:serviceName" element={<CatalogDetail />} />
           <Route path="drifts" element={<DriftsList />} />
           <Route path="drifts/create" element={<CreateDrift />} />
