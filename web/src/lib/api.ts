@@ -5,10 +5,21 @@ import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 
+// Configuration de l'URL de base de l'API
+const getApiBaseUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1alpha1'
+  console.log('🔗 API Base URL:', apiUrl) // Debug temporaire
+  return apiUrl
+}
+
 const axiosInstance = axios.create({
-  baseURL: '/api/v1alpha1',
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
+    // Ajouter un token d'authentification si nécessaire
+    ...(import.meta.env.VITE_API_TOKEN && {
+      'Authorization': `Bearer ${import.meta.env.VITE_API_TOKEN}`
+    }),
   },
 })
 

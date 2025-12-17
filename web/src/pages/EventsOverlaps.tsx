@@ -196,46 +196,96 @@ export default function EventsOverlaps() {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <AlertTriangle className={`w-8 h-8 ${overlaps.length > 0 ? 'text-orange-600 animate-pulse' : 'text-gray-400'}`} />
-              {overlaps.length > 0 && (
-                <div className="absolute inset-0 animate-ping">
-                  <AlertTriangle className="w-8 h-8 text-orange-600 opacity-75" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Total Overlaps Card */}
+        <div className="relative group h-full">
+          <div className={`absolute inset-0 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300 ${
+            overlaps.length > 0 
+              ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 animate-pulse' 
+              : 'bg-gradient-to-r from-gray-500/20 to-slate-500/20'
+          }`}></div>
+          <div className={`relative card border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full ${
+            overlaps.length > 0
+              ? 'bg-gradient-to-br from-white to-orange-50/50 dark:from-slate-800 dark:to-orange-900/10'
+              : 'bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-800 dark:to-gray-900/10'
+          }`}>
+            <div className={`absolute top-0 left-0 w-full h-1 ${
+              overlaps.length > 0
+                ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                : 'bg-gradient-to-r from-gray-500 to-slate-500'
+            }`}></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    overlaps.length > 0 ? 'bg-orange-500 animate-pulse' : 'bg-gray-500'
+                  }`}></div>
+                  <p className={`text-sm font-semibold uppercase tracking-wide ${
+                    overlaps.length > 0 
+                      ? 'text-orange-700 dark:text-orange-400' 
+                      : 'text-gray-700 dark:text-gray-400'
+                  }`}>Total Overlaps</p>
                 </div>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Overlaps</p>
-              <p className={`text-2xl font-bold ${overlaps.length > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                {overlaps.length}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center space-x-3">
-            <Calendar className="w-8 h-8 text-blue-600" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Days with Overlaps</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {overlapsByDay.size}
-              </p>
+                <p className={`text-4xl font-black ${
+                  overlaps.length > 0 
+                    ? 'text-orange-600 dark:text-orange-400' 
+                    : 'text-slate-900 dark:text-slate-100'
+                }`}>{overlaps.length}</p>
+              </div>
+              <div className="relative">
+                <div className={`absolute inset-0 rounded-full blur-lg ${
+                  overlaps.length > 0 ? 'bg-orange-500/20' : 'bg-gray-500/20'
+                }`}></div>
+                <AlertTriangle className={`relative w-12 h-12 ${
+                  overlaps.length > 0 
+                    ? 'text-orange-600 dark:text-orange-400' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`} />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center space-x-3">
-            <Users className="w-8 h-8 text-purple-600" />
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Services Involved</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {new Set(overlaps.flatMap(o => [o.event1.attributes.service, o.event2.attributes.service])).size}
-              </p>
+        {/* Days with Overlaps Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Days with Overlaps</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{overlapsByDay.size}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
+                <Calendar className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Services Involved Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-purple-50/50 dark:from-slate-800 dark:to-purple-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide">Services Involved</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                  {new Set(overlaps.flatMap(o => [o.event1.attributes.service, o.event2.attributes.service])).size}
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-lg"></div>
+                <Users className="relative w-12 h-12 text-purple-600 dark:text-purple-400" />
+              </div>
             </div>
           </div>
         </div>

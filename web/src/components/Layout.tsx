@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
@@ -20,6 +20,7 @@ const navigation = [
       { name: 'Overlaps', href: '/events/overlaps', icon: AlertTriangle },
     ]
   },
+  { name: 'Insights', href: '/insights', icon: BarChart3 },
   { name: 'Catalog', href: '/catalog', icon: Table },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },

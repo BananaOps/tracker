@@ -34,6 +34,16 @@ export const staticEventsApi = {
       filtered = filtered.filter((e: any) => e.attributes?.status === params.status)
     }
     
+    // Filtrage par date pour les insights
+    if (params.startDate || params.endDate) {
+      filtered = filtered.filter((e: any) => {
+        const eventDate = new Date(e.metadata?.createdAt)
+        const start = params.startDate ? new Date(params.startDate) : new Date(0)
+        const end = params.endDate ? new Date(params.endDate) : new Date()
+        return eventDate >= start && eventDate <= end
+      })
+    }
+    
     return { events: filtered, totalCount: filtered.length }
   },
 

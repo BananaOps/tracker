@@ -77,7 +77,7 @@ export default function EventsTimeline() {
 
   const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
 
-  // Filtrer les événements
+  // Filter events
   const events = useMemo(() => {
     const hasActiveFilters = selectedEnvironments.length > 0 || selectedTypes.length > 0 || 
       selectedPriorities.length > 0 || selectedStatuses.length > 0 || selectedServices.length > 0
@@ -98,7 +98,7 @@ export default function EventsTimeline() {
       const eventDate = new Date(event.metadata.createdAt)
       if (eventDate < startDate || eventDate > endDate) return false
 
-      // Filtre par environnement
+      // Filter by environment
       if (selectedEnvironments.length > 0) {
         const eventEnv = String(event.attributes.environment || '').toLowerCase()
         const hasMatch = selectedEnvironments.some(env => env.toLowerCase() === eventEnv)
@@ -112,7 +112,7 @@ export default function EventsTimeline() {
         if (!hasMatch) return false
       }
 
-      // Filtre par priorité
+      // Filter by priority
       if (selectedPriorities.length > 0) {
         const eventPriority = String(event.attributes.priority || '').toLowerCase()
         const hasMatch = selectedPriorities.some(priority => priority.toLowerCase() === eventPriority)
@@ -135,10 +135,10 @@ export default function EventsTimeline() {
     })
 
     if (hasActiveFilters) {
-      console.log('✅ Résultat:', filtered.length, '/', allEvents.length, 'événements')
+      console.log('✅ Result:', filtered.length, '/', allEvents.length, 'events')
     }
     
-    // Trier les événements par date
+    // Sort events by date
     const sorted = [...filtered].sort((a, b) => {
       const dateA = a.metadata?.createdAt ? new Date(a.metadata.createdAt).getTime() : 0
       const dateB = b.metadata?.createdAt ? new Date(b.metadata.createdAt).getTime() : 0
@@ -426,7 +426,7 @@ export default function EventsTimeline() {
             <div className="space-y-6" key={`timeline-${events.length}-${activeFiltersCount}`}>
               {events.map((event, index) => {
                 if (index === 0) {
-                  console.log('🎨 Rendu de', events.length, 'événements dans la timeline')
+                  console.log('🎨 Rendering', events.length, 'events in timeline')
                 }
                 const typeColor = getEventTypeColor(event.attributes.type)
                 return (

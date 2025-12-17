@@ -92,82 +92,136 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="card">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Events</dt>
-                <dd className="text-3xl font-semibold text-gray-900 dark:text-gray-100">{stats.total}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Success</dt>
-                <dd className="text-3xl font-semibold text-gray-900 dark:text-gray-100">{stats.success}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Failures</dt>
-                <dd className="text-3xl font-semibold text-gray-900 dark:text-gray-100">{stats.failure}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Clock className="h-6 w-6 text-yellow-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">En cours</dt>
-                <dd className="text-3xl font-semibold text-gray-900 dark:text-gray-100">{stats.inProgress}</dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-
-        <div className={`card ${stats.overlaps > 0 ? 'border-2 border-orange-500' : ''}`}>
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        {/* Total Events Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[140px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Total Events</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.total}</p>
+              </div>
               <div className="relative">
-                <AlertTriangle className={`h-6 w-6 ${stats.overlaps > 0 ? 'text-orange-600 animate-pulse' : 'text-gray-400'}`} />
-                {stats.overlaps > 0 && (
-                  <div className="absolute inset-0 animate-ping">
-                    <AlertTriangle className="h-6 w-6 text-orange-600 opacity-75" />
-                  </div>
-                )}
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
+                <TrendingUp className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Overlaps</dt>
-                <dd className={`text-3xl font-semibold ${stats.overlaps > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                  {stats.overlaps}
-                </dd>
-              </dl>
+          </div>
+        </div>
+
+        {/* Success Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[140px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Success</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.success}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
+                <CheckCircle className="relative w-12 h-12 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Failures Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-red-50/50 dark:from-slate-800 dark:to-red-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[140px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Failures</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.failure}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-lg"></div>
+                <AlertCircle className="relative w-12 h-12 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* In Progress Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-yellow-50/50 dark:from-slate-800 dark:to-yellow-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[140px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">In Progress</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{stats.inProgress}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-lg"></div>
+                <Clock className="relative w-12 h-12 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Overlaps Card */}
+        <div className="relative group h-full">
+          <div className={`absolute inset-0 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300 ${
+            stats.overlaps > 0 
+              ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 animate-pulse' 
+              : 'bg-gradient-to-r from-gray-500/20 to-slate-500/20'
+          }`}></div>
+          <div className={`relative card border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full ${
+            stats.overlaps > 0
+              ? 'bg-gradient-to-br from-white to-orange-50/50 dark:from-slate-800 dark:to-orange-900/10'
+              : 'bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-800 dark:to-gray-900/10'
+          }`}>
+            <div className={`absolute top-0 left-0 w-full h-1 ${
+              stats.overlaps > 0
+                ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                : 'bg-gradient-to-r from-gray-500 to-slate-500'
+            }`}></div>
+            <div className="flex items-center justify-between p-6 min-h-[140px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    stats.overlaps > 0 ? 'bg-orange-500 animate-pulse' : 'bg-gray-500'
+                  }`}></div>
+                  <p className={`text-sm font-semibold uppercase tracking-wide ${
+                    stats.overlaps > 0 
+                      ? 'text-orange-700 dark:text-orange-400' 
+                      : 'text-gray-700 dark:text-gray-400'
+                  }`}>Overlaps</p>
+                </div>
+                <p className={`text-4xl font-black ${
+                  stats.overlaps > 0 
+                    ? 'text-orange-600 dark:text-orange-400' 
+                    : 'text-slate-900 dark:text-slate-100'
+                }`}>{stats.overlaps}</p>
+              </div>
+              <div className="relative">
+                <div className={`absolute inset-0 rounded-full blur-lg ${
+                  stats.overlaps > 0 ? 'bg-orange-500/20' : 'bg-gray-500/20'
+                }`}></div>
+                <AlertTriangle className={`relative w-12 h-12 ${
+                  stats.overlaps > 0 
+                    ? 'text-orange-600 dark:text-orange-400' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`} />
+              </div>
             </div>
           </div>
         </div>
@@ -175,43 +229,45 @@ export default function Dashboard() {
 
       {/* Alerte de chevauchements */}
       {stats.overlaps > 0 && (
-        <div className="card border-2 border-orange-500 bg-orange-50 dark:bg-orange-900/20">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <AlertTriangle className="h-6 w-6 text-orange-600 animate-pulse" />
-                <div className="absolute inset-0 animate-ping">
-                  <AlertTriangle className="h-6 w-6 text-orange-600 opacity-75" />
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/30 to-red-500/30 rounded-xl blur-xl animate-pulse"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-orange-50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/10 shadow-xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500 animate-pulse"></div>
+            <div className="flex items-start space-x-3 p-6">
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-orange-500/30 rounded-full blur-lg animate-pulse"></div>
+                  <AlertTriangle className="relative h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
               </div>
-            </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-                Overlapping Events Detected
+              <h3 className="text-xl font-bold bg-gradient-to-r from-orange-900 to-red-900 dark:from-orange-100 dark:to-red-100 bg-clip-text text-transparent mb-2">
+                ⚠️ Overlapping Events Detected
               </h3>
-              <p className="text-sm text-orange-800 dark:text-orange-200 mb-3">
+              <p className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-3">
                 {stats.overlaps} event overlap{stats.overlaps > 1 ? 's' : ''} detected today. Multiple events are running simultaneously.
               </p>
               <div className="space-y-2">
                 {overlappingEvents.slice(0, 5).map((overlap, idx) => (
-                  <div key={idx} className="text-sm bg-white dark:bg-gray-800 rounded p-2 border border-orange-200 dark:border-orange-700">
+                  <div key={idx} className="text-sm bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-200 dark:border-orange-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-orange-900 dark:text-orange-100">⚠️</span>
+                      <span className="text-lg">⚠️</span>
                       <span className="text-gray-900 dark:text-gray-100">
-                        <span className="font-medium">{overlap.event1.title}</span>
+                        <span className="font-semibold">{overlap.event1.title}</span>
                         <span className="text-gray-500 dark:text-gray-400 mx-1">overlaps with</span>
-                        <span className="font-medium">{overlap.event2.title}</span>
+                        <span className="font-semibold">{overlap.event2.title}</span>
                       </span>
                     </div>
                   </div>
                 ))}
                 {overlappingEvents.length > 5 && (
-                  <p className="text-xs text-orange-700 dark:text-orange-300 italic">
+                  <p className="text-xs text-orange-700 dark:text-orange-300 italic font-medium">
                     ... and {overlappingEvents.length - 5} more overlap{overlappingEvents.length - 5 > 1 ? 's' : ''}
                   </p>
                 )}
               </div>
             </div>
+          </div>
           </div>
         </div>
       )}
@@ -219,8 +275,9 @@ export default function Dashboard() {
       {/* Diagrammes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Diagramme par Type */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Events by Type</h3>
+        <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+          <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">Events by Type</h3>
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -289,8 +346,9 @@ export default function Dashboard() {
         </div>
 
         {/* Diagramme par Statut */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Events by Status</h3>
+        <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"></div>
+          <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">Events by Status</h3>
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -343,8 +401,9 @@ export default function Dashboard() {
         </div>
 
         {/* Diagramme par Priorité */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Events by Priority</h3>
+        <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500"></div>
+          <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">Events by Priority</h3>
           <div className="space-y-3">
             {Object.entries(eventsByPriority).map(([priority, count]) => (
               <div key={priority}>
@@ -369,8 +428,9 @@ export default function Dashboard() {
         </div>
 
         {/* Diagramme par Environnement */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Events by Environment</h3>
+        <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500"></div>
+          <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">Events by Environment</h3>
           <div className="space-y-3">
             {Object.entries(eventsByEnv).sort((a, b) => b[1] - a[1]).map(([env, count]) => (
               <div key={env}>
@@ -395,8 +455,15 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Recent Events</h3>
+      <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">Recent Events</h3>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">LIVE</span>
+          </div>
+        </div>
         <div className="space-y-3">
           {events.slice(0, 10).map((event) => {
             console.log('Dashboard event:', event.title, 'type:', event.attributes.type, 'typeof:', typeof event.attributes.type)
