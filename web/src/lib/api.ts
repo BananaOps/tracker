@@ -74,7 +74,8 @@ const realCatalogApi = {
   },
 
   delete: async (name: string) => {
-    await axiosInstance.delete('/catalog', { params: { name } })
+    const { data } = await axiosInstance.delete<{ message: string; name: string }>('/catalog', { params: { name } })
+    return data
   },
 }
 

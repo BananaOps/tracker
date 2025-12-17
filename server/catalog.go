@@ -31,6 +31,17 @@ func (e *Catalog) CreateUpdateCatalog(
 	i *v1alpha1.CreateUpdateCatalogRequest,
 ) (*v1alpha1.CreateUpdateCatalogResponse, error) {
 
+	// Validation des champs requis
+	if i.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+	if i.Owner == "" {
+		return nil, fmt.Errorf("owner is required")
+	}
+	if i.Version == "" {
+		return nil, fmt.Errorf("version is required")
+	}
+
 	var catalog = &v1alpha1.Catalog{
 		Name:        i.Name,
 		Type:        i.Type,
@@ -49,15 +60,17 @@ func (e *Catalog) CreateUpdateCatalog(
 	var logMessage = "catalog updated"
 
 	// check entry exist in catalog colection
-	_, err = e.store.Get(context.Background(), map[string]interface{}{"name": &i.Name})
+	_, err = e.store.Get(ctx, map[string]interface{}{"name": i.Name})
 	if err != nil {
 		catalog.CreatedAt = timestamppb.Now()
 		logMessage = "catalog created"
+		e.logger.Info("catalog not found, creating new one", "name", i.Name)
 	}
 
-	catalogResult.Catalog, err = e.store.Update(context.Background(), map[string]interface{}{"name": i.Name}, catalog)
+	catalogResult.Catalog, err = e.store.Update(ctx, map[string]interface{}{"name": i.Name}, catalog)
 	if err != nil {
-		return nil, err
+		e.logger.Error("failed to update catalog", "error", err, "name", i.Name)
+		return nil, fmt.Errorf("failed to update catalog %s: %w", i.Name, err)
 	}
 
 	// log catalog to json format

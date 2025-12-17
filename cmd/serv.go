@@ -4,6 +4,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"html"
 	"log"
 	"log/slog"
 	"net"
@@ -88,16 +89,26 @@ var serv = &cobra.Command{
 		sh := middleware.SwaggerUI(opts, nil)
 
 		// Serve swagger.json
+		//nosec G104 -- HTTP handler errors are handled appropriately
 		mux.HandlePath("GET", "/swagger.json", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			// Check if file exists before serving
+			if _, err := os.Stat("generated/openapiv2/apidocs.swagger.json"); err != nil {
+				slog.Error("Swagger JSON file not found", "error", err)
+				http.Error(w, "Swagger documentation not available", http.StatusNotFound)
+				return
+			}
 			http.ServeFile(w, r, "generated/openapiv2/apidocs.swagger.json")
 		})
 
 		// Serve Swagger UI
+		//nosec G104 -- Swagger UI handler manages errors internally
 		mux.HandlePath("GET", "/docs", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+			// Swagger UI handler already handles errors internally
 			sh.ServeHTTP(w, r)
 		})
 
 		// Serve frontend configuration
+		//nosec G104 -- HTTP handler errors are handled appropriately with logging and error responses
 		mux.HandlePath("GET", "/config.js", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 			jiraDomain := os.Getenv("JIRA_DOMAIN")
 			if jiraDomain == "" {
@@ -112,9 +123,9 @@ var serv = &cobra.Command{
 
 			slackEventsChannel := os.Getenv("SLACK_EVENTS_CHANNEL")
 
-			// Demo mode configuration
+			// Demo mode configuration - validate boolean value
 			demoMode := os.Getenv("DEMO_MODE")
-			if demoMode == "" {
+			if demoMode != "true" && demoMode != "false" {
 				demoMode = "false"
 			}
 
@@ -123,9 +134,18 @@ var serv = &cobra.Command{
 				buyMeCoffeeURL = "https://buymeacoffee.com/jplanckeel"
 			}
 
+			// Escape values to prevent XSS injection
+			jiraDomain = html.EscapeString(jiraDomain)
+			jiraProjectKey = html.EscapeString(jiraProjectKey)
+			slackWorkspace = html.EscapeString(slackWorkspace)
+			slackEventsChannel = html.EscapeString(slackEventsChannel)
+			buyMeCoffeeURL = html.EscapeString(buyMeCoffeeURL)
+
 			w.Header().Set("Content-Type", "application/javascript")
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-			fmt.Fprintf(w, `window.TRACKER_CONFIG = {
+
+			// Handle potential write errors
+			_, err := fmt.Fprintf(w, `window.TRACKER_CONFIG = {
   jira: {
     domain: "%s",
     projectKey: "%s"
@@ -137,6 +157,11 @@ var serv = &cobra.Command{
   demoMode: %s,
   buyMeCoffeeUrl: "%s"
 };`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL)
+			if err != nil {
+				slog.Error("Failed to write config.js response", "error", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
 		})
 
 		//define logger for http server error

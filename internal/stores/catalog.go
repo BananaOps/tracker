@@ -44,9 +44,9 @@ func (c *CatalogStoreClient) Get(ctx context.Context, filter map[string]interfac
 func (c *CatalogStoreClient) Update(ctx context.Context, filter map[string]interface{}, catalogUpdate *v1alpha1.Catalog) (result *v1alpha1.Catalog, err error) {
 	result = &v1alpha1.Catalog{}
 	updateFilter := bson.D{{Key: "$set", Value: catalogUpdate}}
-	// Options to enable upsert
-	opts := options.FindOneAndUpdate().SetUpsert(true)
-	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter, opts).Decode(&result)
+	// Options to enable upsert and return the document after update
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	err = c.collection.FindOneAndUpdate(ctx, filter, updateFilter, opts).Decode(&result)
 	return
 }
 
