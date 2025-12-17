@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "tracker": {
+      "command": "uvx",
+      "args": ["--from", "/absolute/path/to/tracker/mcp-server", "tracker-mcp-server"],
+      "env": {
+        "TRACKER_URL": "http://localhost:8080"
+      },
+      "disabled": false,
+      "autoApprove": ["list_events", "today_events", "search_events", "list_catalog", "list_locks"]
+    }
+  }
+}
