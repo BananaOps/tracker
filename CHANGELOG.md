@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.0](https://github.com/BananaOps/tracker/compare/v0.10.1...v0.11.0) (2025-12-17)
+
+
+### Features
+
+* create mcp server ([#114](https://github.com/BananaOps/tracker/issues/114)) ([4cb5ddd](https://github.com/BananaOps/tracker/commit/4cb5dddbd61c4ef5d4fd0090cbf277e5594245c0))
+* insight page and neon tech ui style ([#118](https://github.com/BananaOps/tracker/issues/118)) ([50cebaf](https://github.com/BananaOps/tracker/commit/50cebafed4c123eeec9cfbb0d243c6197a84b576))
+
+
+### Bug Fixes
+
+* first add to catalog failed ([#116](https://github.com/BananaOps/tracker/issues/116)) ([60634fa](https://github.com/BananaOps/tracker/commit/60634fa9ea031dbd6021bba55c47409ec1cc3260))
+* no imediat close event on sidebar ([#115](https://github.com/BananaOps/tracker/issues/115)) ([bfc94bb](https://github.com/BananaOps/tracker/commit/bfc94bbaa8408a61cb9969bffea502bb5acd1912))
+* run npm install to update lock ([16cde42](https://github.com/BananaOps/tracker/commit/16cde42c54809ab6e1ccf3eab3ceadb226cbe52b))
+
 ## [0.10.1](https://github.com/BananaOps/tracker/compare/v0.10.0...v0.10.1) (2025-11-30)
 
 
