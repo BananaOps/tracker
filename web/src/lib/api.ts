@@ -70,18 +70,82 @@ const realEventsApi = {
 
 const realCatalogApi = {
   list: async (params?: { perPage?: number; page?: number }) => {
-    const { data } = await axiosInstance.get<ListCatalogsResponse>('/catalogs/list', { params })
-    return data
+    const { data } = await axiosInstance.get<{ catalogs: any[]; totalCount: number }>('/catalogs/list', { params })
+    
+    // Convert all catalogs from protobuf wrapper format
+    const frontendCatalogs: Catalog[] = data.catalogs.map(catalog => ({
+      ...catalog,
+      sla: catalog.sla ? {
+        level: catalog.sla.level,
+        uptimePercentage: catalog.sla.uptimePercentage?.value,
+        responseTimeMs: catalog.sla.responseTimeMs?.value,
+        description: catalog.sla.description
+      } : undefined
+    }))
+    
+    return {
+      catalogs: frontendCatalogs,
+      totalCount: data.totalCount
+    }
   },
 
   get: async (name: string) => {
-    const { data } = await axiosInstance.get<{ catalog: Catalog }>('/catalog', { params: { name } })
-    return data.catalog
+    const { data } = await axiosInstance.get<{ catalog: any }>('/catalog', { params: { name } })
+    
+    // Convert response from protobuf wrapper format
+    const frontendCatalog: Catalog = {
+      ...data.catalog,
+      sla: data.catalog.sla ? {
+        level: data.catalog.sla.level,
+        uptimePercentage: data.catalog.sla.uptimePercentage?.value,
+        responseTimeMs: data.catalog.sla.responseTimeMs?.value,
+        description: data.catalog.sla.description
+      } : undefined
+    }
+    
+    return frontendCatalog
   },
 
   createOrUpdate: async (catalog: Catalog) => {
-    const { data } = await axiosInstance.put<{ catalog: Catalog }>('/catalog', catalog)
-    return data.catalog
+    console.log('🌐 API: Sending catalog to backend:', JSON.stringify(catalog, null, 2))
+    
+    // Convert to backend format (snake_case for dependencies, simple SLA)
+    const backendCatalog = {
+      ...catalog,
+      // Convert dependencies to snake_case
+      dependencies_in: catalog.dependenciesIn,
+      dependencies_out: catalog.dependenciesOut,
+      // Remove camelCase versions
+      dependenciesIn: undefined,
+      dependenciesOut: undefined,
+      // Convert SLA to simple format (no wrappers for now)
+      sla: catalog.sla ? {
+        level: catalog.sla.level,
+        uptime_percentage: catalog.sla.uptimePercentage,
+        response_time_ms: catalog.sla.responseTimeMs,
+        description: catalog.sla.description
+      } : undefined
+    }
+    
+    console.log('🔄 API: Converted for backend:', JSON.stringify(backendCatalog, null, 2))
+    
+    const { data } = await axiosInstance.put<{ catalog: any }>('/catalog', backendCatalog)
+    console.log('✅ API: Received response:', JSON.stringify(data, null, 2))
+    
+    // Convert response back to frontend format
+    const frontendCatalog: Catalog = {
+      ...data.catalog,
+      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
+      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
+      sla: data.catalog.sla ? {
+        level: data.catalog.sla.level,
+        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
+        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
+        description: data.catalog.sla.description
+      } : undefined
+    }
+    
+    return frontendCatalog
   },
 
   delete: async (name: string) => {

@@ -43,14 +43,18 @@ func (e *Catalog) CreateUpdateCatalog(
 	}
 
 	var catalog = &v1alpha1.Catalog{
-		Name:        i.Name,
-		Type:        i.Type,
-		Languages:   i.Languages,
-		Owner:       i.Owner,
-		Version:     i.Version,
-		Link:        i.Link,
-		Description: i.Description,
-		Repository:  i.Repository,
+		Name:            i.Name,
+		Type:            i.Type,
+		Languages:       i.Languages,
+		Owner:           i.Owner,
+		Version:         i.Version,
+		Link:            i.Link,
+		Description:     i.Description,
+		Repository:      i.Repository,
+		DependenciesIn:  i.DependenciesIn,
+		DependenciesOut: i.DependenciesOut,
+		Sla:             i.Sla,
+		Platform:        i.Platform,
 	}
 
 	catalog.UpdatedAt = timestamppb.Now()
@@ -83,6 +87,10 @@ func (e *Catalog) CreateUpdateCatalog(
 		"link", catalogResult.Catalog.Link,
 		"description", catalogResult.Catalog.Description,
 		"repository", catalogResult.Catalog.Repository,
+		"dependencies_in", catalogResult.Catalog.DependenciesIn,
+		"dependencies_out", catalogResult.Catalog.DependenciesOut,
+		"sla", catalogResult.Catalog.Sla,
+		"platform", catalogResult.Catalog.Platform.String(),
 		"created_at", catalogResult.Catalog.CreatedAt.AsTime(),
 		"updated_at", catalogResult.Catalog.UpdatedAt.AsTime(),
 	)

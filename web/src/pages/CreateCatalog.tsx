@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, type Catalog, type SLA } from '../types/api'
-import { ArrowLeft, Save, Package, X, Plus } from 'lucide-react'
+import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA } from '../types/api'
+import { ArrowLeft, Save, Package, X } from 'lucide-react'
+import DependencySelector from '../components/DependencySelector'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
@@ -29,11 +30,27 @@ export default function CreateCatalog() {
     dependenciesIn: [],
     dependenciesOut: [],
     sla: undefined,
+    platform: Platform.KUBERNETES,
   })
 
   const [newDepIn, setNewDepIn] = useState('')
   const [newDepOut, setNewDepOut] = useState('')
   const [slaEnabled, setSlaEnabled] = useState(false)
+
+  // Fetch all catalogs for dependency selection
+  const { data: allCatalogs } = useQuery({
+    queryKey: ['catalog', 'list'],
+    queryFn: () => catalogApi.list({ perPage: 1000 }),
+  })
+
+  // Get list of available service names (excluding current service)
+  const availableServices = useMemo(() => {
+    if (!allCatalogs) return []
+    return allCatalogs.catalogs
+      .map(c => c.name)
+      .filter(n => n !== formData.name)
+      .sort()
+  }, [allCatalogs, formData.name])
 
   useEffect(() => {
     if (existingCatalog) {
@@ -53,6 +70,10 @@ export default function CreateCatalog() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name || !formData.owner) return
+    
+    // Debug: Log the data being sent
+    console.log('📤 Sending catalog data:', JSON.stringify(formData, null, 2))
+    
     createUpdateMutation.mutate(formData as Catalog)
   }
 
@@ -230,6 +251,58 @@ export default function CreateCatalog() {
                 </select>
               </div>
 
+              {/* Platform - Only for Projects */}
+              {formData.type === CatalogType.PROJECT && (
+                <div>
+                  <label htmlFor="platform" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Deployment Platform *
+                  </label>
+                  <select
+                    id="platform"
+                    required
+                    value={formData.platform}
+                    onChange={(e) => handleChange('platform', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <optgroup label="Compute Platforms">
+                      <option value={Platform.EC2}>EC2 / VM / Compute Engine / Instance</option>
+                      <option value={Platform.LAMBDA}>Lambda / Functions / Cloud Functions</option>
+                      <option value={Platform.KUBERNETES}>Kubernetes / EKS / AKS / GKE / Kapsule</option>
+                      <option value={Platform.ECS}>ECS / Container Instances / Cloud Run</option>
+                    </optgroup>
+                    <optgroup label="Container Platforms">
+                      <option value={Platform.FARGATE}>Fargate / Container Instances</option>
+                      <option value={Platform.CLOUD_RUN}>Cloud Run</option>
+                      <option value={Platform.APP_SERVICE}>App Service</option>
+                    </optgroup>
+                    <optgroup label="Serverless Platforms">
+                      <option value={Platform.STEP_FUNCTIONS}>Step Functions / Logic Apps / Workflows</option>
+                      <option value={Platform.EVENT_BRIDGE}>EventBridge / Event Grid / Eventarc</option>
+                    </optgroup>
+                    <optgroup label="Database Platforms">
+                      <option value={Platform.RDS}>RDS / SQL Database / Cloud SQL</option>
+                      <option value={Platform.DYNAMODB}>DynamoDB / Cosmos DB / Firestore</option>
+                    </optgroup>
+                    <optgroup label="Storage & CDN">
+                      <option value={Platform.S3}>S3 / Blob Storage / Cloud Storage</option>
+                      <option value={Platform.CLOUDFRONT}>CloudFront / CDN / Cloud CDN</option>
+                    </optgroup>
+                    <optgroup label="API & Monitoring">
+                      <option value={Platform.API_GATEWAY}>API Gateway / API Management</option>
+                      <option value={Platform.CLOUDWATCH}>CloudWatch / Monitor / Cloud Monitoring</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                      <option value={Platform.ON_PREMISE}>On-Premise</option>
+                      <option value={Platform.HYBRID}>Hybrid Cloud</option>
+                      <option value={Platform.MULTI_CLOUD}>Multi-Cloud</option>
+                    </optgroup>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Select the primary deployment platform (AWS/Azure/GCP/Scaleway equivalents)
+                  </p>
+                </div>
+              )}
+
               {/* Owner */}
               <div>
                 <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -319,29 +392,17 @@ export default function CreateCatalog() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Upstream Dependencies (In) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Upstream Dependencies
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <DependencySelector
+                  label="Upstream Dependencies"
+                  availableServices={availableServices}
+                  value={newDepIn}
+                  onChange={setNewDepIn}
+                  onAdd={addDependencyIn}
+                  placeholder="Select or type service name..."
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-3">
                   Services that this service depends on
                 </p>
-                <div className="flex space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={newDepIn}
-                    onChange={(e) => setNewDepIn(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDependencyIn())}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., database, redis"
-                  />
-                  <button
-                    type="button"
-                    onClick={addDependencyIn}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
                 <div className="space-y-1">
                   {(formData.dependenciesIn || []).map(dep => (
                     <div key={dep} className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
@@ -355,34 +416,27 @@ export default function CreateCatalog() {
                       </button>
                     </div>
                   ))}
+                  {(formData.dependenciesIn || []).length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 italic py-2">
+                      No upstream dependencies added yet
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Downstream Dependencies (Out) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Downstream Dependencies
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <DependencySelector
+                  label="Downstream Dependencies"
+                  availableServices={availableServices}
+                  value={newDepOut}
+                  onChange={setNewDepOut}
+                  onAdd={addDependencyOut}
+                  placeholder="Select or type service name..."
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-3">
                   Services that depend on this service
                 </p>
-                <div className="flex space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={newDepOut}
-                    onChange={(e) => setNewDepOut(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDependencyOut())}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., api-gateway, web-app"
-                  />
-                  <button
-                    type="button"
-                    onClick={addDependencyOut}
-                    className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
                 <div className="space-y-1">
                   {(formData.dependenciesOut || []).map(dep => (
                     <div key={dep} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded">
@@ -396,6 +450,11 @@ export default function CreateCatalog() {
                       </button>
                     </div>
                   ))}
+                  {(formData.dependenciesOut || []).length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 italic py-2">
+                      No downstream dependencies added yet
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

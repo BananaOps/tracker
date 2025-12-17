@@ -159,6 +159,8 @@ func (m *Catalog) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Platform
+
 	if len(errors) > 0 {
 		return CatalogMultiError(errors)
 	}
@@ -360,6 +362,8 @@ func (m *CreateUpdateCatalogRequest) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for Platform
 
 	if len(errors) > 0 {
 		return CreateUpdateCatalogRequestMultiError(errors)

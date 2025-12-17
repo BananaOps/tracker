@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, type Catalog } from '../types/api'
+import { CatalogType, Language, SLALevel, Platform, type Catalog } from '../types/api'
 import { Package, BookOpen, Search, X, Plus, Edit, Trash2, GitBranch } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -309,6 +309,9 @@ export default function CatalogTable() {
                   Language
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Platform
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   SLA
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -350,6 +353,15 @@ export default function CatalogTable() {
                       {getLanguageIcon(catalog.languages)}
                       <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {catalog.platform ? (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+                        {getPlatformLabel(catalog.platform)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {catalog.sla ? (
@@ -497,6 +509,49 @@ function getSLALabel(level?: SLALevel): string {
       return 'Medium'
     case SLALevel.LOW:
       return 'Low'
+    default:
+      return 'Not Set'
+  }
+}
+
+function getPlatformLabel(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return 'EC2/VM'
+    case Platform.LAMBDA:
+      return 'Lambda/Functions'
+    case Platform.KUBERNETES:
+      return 'Kubernetes'
+    case Platform.ECS:
+      return 'ECS/Containers'
+    case Platform.FARGATE:
+      return 'Fargate'
+    case Platform.CLOUD_RUN:
+      return 'Cloud Run'
+    case Platform.APP_SERVICE:
+      return 'App Service'
+    case Platform.STEP_FUNCTIONS:
+      return 'Step Functions'
+    case Platform.EVENT_BRIDGE:
+      return 'Event Bridge'
+    case Platform.RDS:
+      return 'RDS/Database'
+    case Platform.DYNAMODB:
+      return 'DynamoDB/NoSQL'
+    case Platform.S3:
+      return 'S3/Storage'
+    case Platform.CLOUDFRONT:
+      return 'CloudFront/CDN'
+    case Platform.API_GATEWAY:
+      return 'API Gateway'
+    case Platform.CLOUDWATCH:
+      return 'CloudWatch'
+    case Platform.ON_PREMISE:
+      return 'On-Premise'
+    case Platform.HYBRID:
+      return 'Hybrid Cloud'
+    case Platform.MULTI_CLOUD:
+      return 'Multi-Cloud'
     default:
       return 'Not Set'
   }

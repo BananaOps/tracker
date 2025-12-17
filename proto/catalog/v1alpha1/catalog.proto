@@ -40,6 +40,7 @@ message Catalog {
   repeated string dependencies_in = 11;
   repeated string dependencies_out = 12;
   SLA sla = 13;
+  Platform platform = 14;
 }
 
 message CreateUpdateCatalogRequest {
@@ -56,6 +57,7 @@ message CreateUpdateCatalogRequest {
   repeated string dependencies_in = 11;
   repeated string dependencies_out = 12;
   SLA sla = 13;
+  Platform platform = 14;
 }
 
 message CreateUpdateCatalogResponse {
@@ -124,6 +126,37 @@ enum SLALevel {
   high = 2;
   medium = 3;
   low = 4;
+}
+
+enum Platform {
+  PLATFORM_UNSPECIFIED = 0;
+  // Compute platforms
+  ec2 = 1;                    // AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance
+  lambda = 2;                 // AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions
+  kubernetes = 3;             // AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule
+  ecs = 4;                    // AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry
+  // Container platforms
+  fargate = 5;                // AWS Fargate / Azure Container Instances
+  cloud_run = 6;              // GCP Cloud Run
+  app_service = 7;            // Azure App Service
+  // Serverless platforms
+  step_functions = 8;         // AWS Step Functions / Azure Logic Apps / GCP Workflows
+  event_bridge = 9;           // AWS EventBridge / Azure Event Grid / GCP Eventarc
+  // Database platforms
+  rds = 10;                   // AWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database
+  dynamodb = 11;              // AWS DynamoDB / Azure Cosmos DB / GCP Firestore
+  // Storage platforms
+  s3 = 12;                    // AWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage
+  // CDN platforms
+  cloudfront = 13;            // AWS CloudFront / Azure CDN / GCP Cloud CDN
+  // API platforms
+  api_gateway = 14;           // AWS API Gateway / Azure API Management / GCP API Gateway
+  // Monitoring platforms
+  cloudwatch = 15;            // AWS CloudWatch / Azure Monitor / GCP Cloud Monitoring
+  // Other
+  on_premise = 16;            // On-premise infrastructure
+  hybrid = 17;                // Hybrid cloud
+  multi_cloud = 18;           // Multi-cloud deployment
 }
 
 message SLA {

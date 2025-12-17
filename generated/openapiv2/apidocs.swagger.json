@@ -732,6 +732,9 @@
         },
         "sla": {
           "$ref": "#/definitions/v1alpha1SLA"
+        },
+        "platform": {
+          "$ref": "#/definitions/v1alpha1Platform"
         }
       }
     },
@@ -880,6 +883,9 @@
         },
         "sla": {
           "$ref": "#/definitions/v1alpha1SLA"
+        },
+        "platform": {
+          "$ref": "#/definitions/v1alpha1Platform"
         }
       }
     },
@@ -1161,6 +1167,33 @@
           "title": "Associated event ID"
         }
       }
+    },
+    "v1alpha1Platform": {
+      "type": "string",
+      "enum": [
+        "PLATFORM_UNSPECIFIED",
+        "ec2",
+        "lambda",
+        "kubernetes",
+        "ecs",
+        "fargate",
+        "cloud_run",
+        "app_service",
+        "step_functions",
+        "event_bridge",
+        "rds",
+        "dynamodb",
+        "s3",
+        "cloudfront",
+        "api_gateway",
+        "cloudwatch",
+        "on_premise",
+        "hybrid",
+        "multi_cloud"
+      ],
+      "default": "PLATFORM_UNSPECIFIED",
+      "description": "AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance\n - lambda: AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions\n - kubernetes: AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule\n - ecs: AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry\n - fargate: Container platforms\n\nAWS Fargate / Azure Container Instances\n - cloud_run: GCP Cloud Run\n - app_service: Azure App Service\n - step_functions: Serverless platforms\n\nAWS Step Functions / Azure Logic Apps / GCP Workflows\n - event_bridge: AWS EventBridge / Azure Event Grid / GCP Eventarc\n - rds: Database platforms\n\nAWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database\n - dynamodb: AWS DynamoDB / Azure Cosmos DB / GCP Firestore\n - s3: Storage platforms\n\nAWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage\n - cloudfront: CDN platforms\n\nAWS CloudFront / Azure CDN / GCP Cloud CDN\n - api_gateway: API platforms\n\nAWS API Gateway / Azure API Management / GCP API Gateway\n - cloudwatch: Monitoring platforms\n\nAWS CloudWatch / Azure Monitor / GCP Cloud Monitoring\n - on_premise: Other\n\nOn-premise infrastructure\n - hybrid: Hybrid cloud\n - multi_cloud: Multi-cloud deployment",
+      "title": "- ec2: Compute platforms"
     },
     "v1alpha1Priority": {
       "type": "string",

@@ -228,6 +228,112 @@ func (SLALevel) EnumDescriptor() ([]byte, []int) {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{2}
 }
 
+type Platform int32
+
+const (
+	Platform_PLATFORM_UNSPECIFIED Platform = 0
+	// Compute platforms
+	Platform_ec2        Platform = 1 // AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance
+	Platform_lambda     Platform = 2 // AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions
+	Platform_kubernetes Platform = 3 // AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule
+	Platform_ecs        Platform = 4 // AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry
+	// Container platforms
+	Platform_fargate     Platform = 5 // AWS Fargate / Azure Container Instances
+	Platform_cloud_run   Platform = 6 // GCP Cloud Run
+	Platform_app_service Platform = 7 // Azure App Service
+	// Serverless platforms
+	Platform_step_functions Platform = 8 // AWS Step Functions / Azure Logic Apps / GCP Workflows
+	Platform_event_bridge   Platform = 9 // AWS EventBridge / Azure Event Grid / GCP Eventarc
+	// Database platforms
+	Platform_rds      Platform = 10 // AWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database
+	Platform_dynamodb Platform = 11 // AWS DynamoDB / Azure Cosmos DB / GCP Firestore
+	// Storage platforms
+	Platform_s3 Platform = 12 // AWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage
+	// CDN platforms
+	Platform_cloudfront Platform = 13 // AWS CloudFront / Azure CDN / GCP Cloud CDN
+	// API platforms
+	Platform_api_gateway Platform = 14 // AWS API Gateway / Azure API Management / GCP API Gateway
+	// Monitoring platforms
+	Platform_cloudwatch Platform = 15 // AWS CloudWatch / Azure Monitor / GCP Cloud Monitoring
+	// Other
+	Platform_on_premise  Platform = 16 // On-premise infrastructure
+	Platform_hybrid      Platform = 17 // Hybrid cloud
+	Platform_multi_cloud Platform = 18 // Multi-cloud deployment
+)
+
+// Enum value maps for Platform.
+var (
+	Platform_name = map[int32]string{
+		0:  "PLATFORM_UNSPECIFIED",
+		1:  "ec2",
+		2:  "lambda",
+		3:  "kubernetes",
+		4:  "ecs",
+		5:  "fargate",
+		6:  "cloud_run",
+		7:  "app_service",
+		8:  "step_functions",
+		9:  "event_bridge",
+		10: "rds",
+		11: "dynamodb",
+		12: "s3",
+		13: "cloudfront",
+		14: "api_gateway",
+		15: "cloudwatch",
+		16: "on_premise",
+		17: "hybrid",
+		18: "multi_cloud",
+	}
+	Platform_value = map[string]int32{
+		"PLATFORM_UNSPECIFIED": 0,
+		"ec2":                  1,
+		"lambda":               2,
+		"kubernetes":           3,
+		"ecs":                  4,
+		"fargate":              5,
+		"cloud_run":            6,
+		"app_service":          7,
+		"step_functions":       8,
+		"event_bridge":         9,
+		"rds":                  10,
+		"dynamodb":             11,
+		"s3":                   12,
+		"cloudfront":           13,
+		"api_gateway":          14,
+		"cloudwatch":           15,
+		"on_premise":           16,
+		"hybrid":               17,
+		"multi_cloud":          18,
+	}
+)
+
+func (x Platform) Enum() *Platform {
+	p := new(Platform)
+	*p = x
+	return p
+}
+
+func (x Platform) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Platform) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[3].Descriptor()
+}
+
+func (Platform) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[3]
+}
+
+func (x Platform) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Platform.Descriptor instead.
+func (Platform) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{3}
+}
+
 type Catalog struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -243,6 +349,7 @@ type Catalog struct {
 	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
 	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
 	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	Platform        Platform               `protobuf:"varint,14,opt,name=platform,proto3,enum=tracker.catalog.v1alpha1.Platform" json:"platform,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -368,6 +475,13 @@ func (x *Catalog) GetSla() *SLA {
 	return nil
 }
 
+func (x *Catalog) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_PLATFORM_UNSPECIFIED
+}
+
 type CreateUpdateCatalogRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -383,6 +497,7 @@ type CreateUpdateCatalogRequest struct {
 	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
 	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
 	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	Platform        Platform               `protobuf:"varint,14,opt,name=platform,proto3,enum=tracker.catalog.v1alpha1.Platform" json:"platform,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -506,6 +621,13 @@ func (x *CreateUpdateCatalogRequest) GetSla() *SLA {
 		return x.Sla
 	}
 	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_PLATFORM_UNSPECIFIED
 }
 
 type CreateUpdateCatalogResponse struct {
@@ -912,7 +1034,7 @@ var File_proto_catalog_v1alpha1_catalog_proto protoreflect.FileDescriptor
 
 const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x95\x04\n" +
+	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xd5\x04\n" +
 	"\aCatalog\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -931,7 +1053,8 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
 	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
 	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
-	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\"\xa8\x04\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\x12>\n" +
+	"\bplatform\x18\x0e \x01(\x0e2\".tracker.catalog.v1alpha1.PlatformR\bplatform\"\xe8\x04\n" +
 	"\x1aCreateUpdateCatalogRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -950,7 +1073,8 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
 	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
 	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
-	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\"Z\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\x12>\n" +
+	"\bplatform\x18\x0e \x01(\x0e2\".tracker.catalog.v1alpha1.PlatformR\bplatform\"Z\n" +
 	"\x1bCreateUpdateCatalogResponse\x12;\n" +
 	"\acatalog\x18\x01 \x01(\v2!.tracker.catalog.v1alpha1.CatalogR\acatalog\"'\n" +
 	"\x11GetCatalogRequest\x12\x12\n" +
@@ -1015,7 +1139,34 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x04high\x10\x02\x12\n" +
 	"\n" +
 	"\x06medium\x10\x03\x12\a\n" +
-	"\x03low\x10\x042\xe7\x04\n" +
+	"\x03low\x10\x04*\xa2\x02\n" +
+	"\bPlatform\x12\x18\n" +
+	"\x14PLATFORM_UNSPECIFIED\x10\x00\x12\a\n" +
+	"\x03ec2\x10\x01\x12\n" +
+	"\n" +
+	"\x06lambda\x10\x02\x12\x0e\n" +
+	"\n" +
+	"kubernetes\x10\x03\x12\a\n" +
+	"\x03ecs\x10\x04\x12\v\n" +
+	"\afargate\x10\x05\x12\r\n" +
+	"\tcloud_run\x10\x06\x12\x0f\n" +
+	"\vapp_service\x10\a\x12\x12\n" +
+	"\x0estep_functions\x10\b\x12\x10\n" +
+	"\fevent_bridge\x10\t\x12\a\n" +
+	"\x03rds\x10\n" +
+	"\x12\f\n" +
+	"\bdynamodb\x10\v\x12\x06\n" +
+	"\x02s3\x10\f\x12\x0e\n" +
+	"\n" +
+	"cloudfront\x10\r\x12\x0f\n" +
+	"\vapi_gateway\x10\x0e\x12\x0e\n" +
+	"\n" +
+	"cloudwatch\x10\x0f\x12\x0e\n" +
+	"\n" +
+	"on_premise\x10\x10\x12\n" +
+	"\n" +
+	"\x06hybrid\x10\x11\x12\x0f\n" +
+	"\vmulti_cloud\x10\x122\xe7\x04\n" +
 	"\x0eCatalogService\x12\xa4\x01\n" +
 	"\x13CreateUpdateCatalog\x124.tracker.catalog.v1alpha1.CreateUpdateCatalogRequest\x1a5.tracker.catalog.v1alpha1.CreateUpdateCatalogResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1alpha1/catalog\x12\x86\x01\n" +
 	"\n" +
@@ -1035,59 +1186,62 @@ func file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP() []byte {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescData
 }
 
-var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
 	(Type)(0),                           // 0: tracker.catalog.v1alpha1.Type
 	(Languages)(0),                      // 1: tracker.catalog.v1alpha1.Languages
 	(SLALevel)(0),                       // 2: tracker.catalog.v1alpha1.SLALevel
-	(*Catalog)(nil),                     // 3: tracker.catalog.v1alpha1.Catalog
-	(*CreateUpdateCatalogRequest)(nil),  // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	(*CreateUpdateCatalogResponse)(nil), // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	(*GetCatalogRequest)(nil),           // 6: tracker.catalog.v1alpha1.GetCatalogRequest
-	(*GetCatalogResponse)(nil),          // 7: tracker.catalog.v1alpha1.GetCatalogResponse
-	(*DeleteCatalogRequest)(nil),        // 8: tracker.catalog.v1alpha1.DeleteCatalogRequest
-	(*DeleteCatalogResponse)(nil),       // 9: tracker.catalog.v1alpha1.DeleteCatalogResponse
-	(*ListCatalogsRequest)(nil),         // 10: tracker.catalog.v1alpha1.ListCatalogsRequest
-	(*ListCatalogsResponse)(nil),        // 11: tracker.catalog.v1alpha1.ListCatalogsResponse
-	(*SLA)(nil),                         // 12: tracker.catalog.v1alpha1.SLA
-	(*timestamppb.Timestamp)(nil),       // 13: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil),      // 14: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),       // 15: google.protobuf.Int32Value
-	(*wrapperspb.DoubleValue)(nil),      // 16: google.protobuf.DoubleValue
+	(Platform)(0),                       // 3: tracker.catalog.v1alpha1.Platform
+	(*Catalog)(nil),                     // 4: tracker.catalog.v1alpha1.Catalog
+	(*CreateUpdateCatalogRequest)(nil),  // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	(*CreateUpdateCatalogResponse)(nil), // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	(*GetCatalogRequest)(nil),           // 7: tracker.catalog.v1alpha1.GetCatalogRequest
+	(*GetCatalogResponse)(nil),          // 8: tracker.catalog.v1alpha1.GetCatalogResponse
+	(*DeleteCatalogRequest)(nil),        // 9: tracker.catalog.v1alpha1.DeleteCatalogRequest
+	(*DeleteCatalogResponse)(nil),       // 10: tracker.catalog.v1alpha1.DeleteCatalogResponse
+	(*ListCatalogsRequest)(nil),         // 11: tracker.catalog.v1alpha1.ListCatalogsRequest
+	(*ListCatalogsResponse)(nil),        // 12: tracker.catalog.v1alpha1.ListCatalogsResponse
+	(*SLA)(nil),                         // 13: tracker.catalog.v1alpha1.SLA
+	(*timestamppb.Timestamp)(nil),       // 14: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil),      // 15: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),       // 16: google.protobuf.Int32Value
+	(*wrapperspb.DoubleValue)(nil),      // 17: google.protobuf.DoubleValue
 }
 var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	0,  // 0: tracker.catalog.v1alpha1.Catalog.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 1: tracker.catalog.v1alpha1.Catalog.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	13, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
-	13, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
-	12, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
-	0,  // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
-	1,  // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	13, // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
-	13, // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
-	12, // 9: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
-	3,  // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	3,  // 11: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	14, // 12: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	15, // 13: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
-	3,  // 14: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
-	2,  // 15: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
-	16, // 16: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
-	14, // 17: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
-	4,  // 18: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	6,  // 19: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
-	8,  // 20: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
-	10, // 21: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
-	5,  // 22: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	7,  // 23: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
-	9,  // 24: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
-	11, // 25: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
-	22, // [22:26] is the sub-list for method output_type
-	18, // [18:22] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	14, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
+	14, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 5: tracker.catalog.v1alpha1.Catalog.platform:type_name -> tracker.catalog.v1alpha1.Platform
+	0,  // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
+	1,  // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
+	14, // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
+	14, // 9: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 11: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.platform:type_name -> tracker.catalog.v1alpha1.Platform
+	4,  // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	4,  // 13: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	15, // 14: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	16, // 15: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
+	4,  // 16: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
+	2,  // 17: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
+	17, // 18: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
+	15, // 19: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
+	5,  // 20: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	7,  // 21: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
+	9,  // 22: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
+	11, // 23: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
+	6,  // 24: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	8,  // 25: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
+	10, // 26: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
+	12, // 27: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
+	24, // [24:28] is the sub-list for method output_type
+	20, // [20:24] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_proto_catalog_v1alpha1_catalog_proto_init() }
@@ -1100,7 +1254,7 @@ func file_proto_catalog_v1alpha1_catalog_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_v1alpha1_catalog_proto_rawDesc), len(file_proto_catalog_v1alpha1_catalog_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
