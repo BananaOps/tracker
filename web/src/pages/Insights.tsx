@@ -72,8 +72,10 @@ export default function Insights() {
     type: null
   })
 
-  // Calculate start date (30 days back)
-  const startDate = useMemo(() => format(subDays(new Date(), 30), 'yyyy-MM-dd'), [])
+  const [selectedDays, setSelectedDays] = useState<number>(30)
+
+  // Calculate start date based on selected days
+  const startDate = useMemo(() => format(subDays(new Date(), selectedDays), 'yyyy-MM-dd'), [selectedDays])
   const endDate = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   // Fetch events from the last 30 days
@@ -101,7 +103,7 @@ export default function Insights() {
   // Prepare data for timeline chart
   const chartData = useMemo(() => {
     const dateRange = eachDayOfInterval({
-      start: subDays(new Date(), 29),
+      start: subDays(new Date(), selectedDays - 1),
       end: new Date()
     })
 
@@ -120,7 +122,7 @@ export default function Insights() {
         drifts: dayEvents.filter(e => e.attributes.type === EventType.DRIFT).length,
       }
     })
-  }, [filteredEvents])
+  }, [filteredEvents, selectedDays])
 
   // Calculate global metrics
   const metrics = useMemo(() => {
@@ -315,13 +317,50 @@ export default function Insights() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Insights</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
             <Calendar className="w-4 h-4 mr-1" />
-            Data from the last 30 days ({format(subDays(new Date(), 29), 'dd/MM')} - {format(new Date(), 'dd/MM')})
+            Data from the last {selectedDays} days ({format(subDays(new Date(), selectedDays - 1), 'dd/MM')} - {format(new Date(), 'dd/MM')})
           </p>
+        </div>
+        
+        {/* Period Selection Buttons */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Period:</span>
+          <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-1">
+            <button
+              onClick={() => setSelectedDays(30)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                selectedDays === 30
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              30 days
+            </button>
+            <button
+              onClick={() => setSelectedDays(60)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                selectedDays === 60
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              60 days
+            </button>
+            <button
+              onClick={() => setSelectedDays(90)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                selectedDays === 90
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              90 days
+            </button>
+          </div>
         </div>
       </div>
 
