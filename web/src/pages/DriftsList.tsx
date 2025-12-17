@@ -279,37 +279,70 @@ export default function DriftsList() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="card">
-          <div className="flex items-center">
-            <FontAwesomeIcon icon={faCodeBranch} className="h-6 w-6 text-yellow-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Drifts</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{drifts.length}</p>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {/* Total Drifts Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-yellow-50/50 dark:from-slate-800 dark:to-yellow-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Total Drifts</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{drifts.length}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-lg"></div>
+                <FontAwesomeIcon icon={faCodeBranch} className="relative h-12 w-12 text-yellow-600 dark:text-yellow-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <AlertTriangle className="h-6 w-6 text-red-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Unresolved</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                {drifts.filter(d => d.attributes.status !== Status.DONE && d.attributes.status !== Status.CLOSE).length}
-              </p>
+        {/* Unresolved Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-red-50/50 dark:from-slate-800 dark:to-red-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Unresolved</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                  {drifts.filter((d: Event) => d.attributes.status !== Status.DONE && d.attributes.status !== Status.CLOSE).length}
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-lg"></div>
+                <AlertTriangle className="relative h-12 w-12 text-red-600 dark:text-red-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <FontAwesomeIcon icon={faCodeBranch} className="h-6 w-6 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Resolved</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                {drifts.filter(d => d.attributes.status === Status.DONE || d.attributes.status === Status.CLOSE).length}
-              </p>
+        {/* Resolved Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Resolved</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                  {drifts.filter((d: Event) => d.attributes.status === Status.DONE || d.attributes.status === Status.CLOSE).length}
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
+                <FontAwesomeIcon icon={faCodeBranch} className="relative h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
             </div>
           </div>
         </div>

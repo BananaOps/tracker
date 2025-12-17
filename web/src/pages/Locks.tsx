@@ -159,43 +159,70 @@ export default function Locks() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <LockIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Locks</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{locks.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Unique Services</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {new Set(locks.map(l => l.service)).size}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Total Locks Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/10">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Total Locks</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{locks.length}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
+                <LockIcon className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <Unlock className="w-6 h-6 text-green-600 dark:text-green-400" />
+        {/* Unique Services Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-orange-50/50 dark:from-slate-800 dark:to-orange-900/10">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Unique Services</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                  {new Set(locks.map(l => l.service)).size}
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-lg"></div>
+                <AlertCircle className="relative w-12 h-12 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Environments</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {new Set(locks.map(l => l.environment)).size}
-              </p>
+          </div>
+        </div>
+
+        {/* Environments Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Environments</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
+                  {new Set(locks.map(l => l.environment)).size}
+                </p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
+                <Unlock className="relative w-12 h-12 text-green-600 dark:text-green-400" />
+              </div>
             </div>
           </div>
         </div>

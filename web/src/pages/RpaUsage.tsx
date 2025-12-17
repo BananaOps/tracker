@@ -61,40 +61,74 @@ export default function RpaUsage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="card">
-          <div className="flex items-center">
-            <FontAwesomeIcon icon={faRobot} className="h-6 w-6 icon-gradient" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total RPA Operations</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{rpaOperations.length}</p>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {/* Total RPA Operations Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-purple-50/50 dark:from-slate-800 dark:to-purple-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wide">Total RPA Operations</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{rpaOperations.length}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-purple-500/20 rounded-full blur-lg"></div>
+                <FontAwesomeIcon icon={faRobot} className="relative h-12 w-12 text-purple-600 dark:text-purple-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">This Month</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{thisMonthOps.length}</p>
+        {/* This Month Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">This Month</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{thisMonthOps.length}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
+                <TrendingUp className="relative h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="flex items-center">
-            <Clock className="h-6 w-6 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">RPA Services</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{Object.keys(byService).length}</p>
+        {/* RPA Services Card */}
+        <div className="relative group h-full">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-indigo-50/50 dark:from-slate-800 dark:to-indigo-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+            <div className="flex items-center justify-between p-6 min-h-[120px]">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide">RPA Services</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{Object.keys(byService).length}</p>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-lg"></div>
+                <Clock className="relative h-12 w-12 text-indigo-600 dark:text-indigo-400" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Usage by Service</h3>
+      <div className="card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500"></div>
+        <h3 className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">Usage by Service</h3>
         <div className="space-y-4">
           {Object.entries(byService).map(([service, ops]) => (
             <div key={service} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">

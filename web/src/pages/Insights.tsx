@@ -3,14 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { EventType, Environment, Event } from '../types/api'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { Calendar, Filter, TrendingUp, Activity, AlertTriangle, Zap, GitBranch } from 'lucide-react'
+import { Calendar, Filter, TrendingUp, Activity, AlertTriangle, Zap, GitBranch, X, Clock, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns'
 import ProjectStatsCard from '../components/ProjectStatsCard'
+import Combobox from '../components/Combobox'
 
 interface InsightFilters {
   environment: Environment | 'all'
   service: string | 'all'
-  project: string | 'all'
 }
 
 interface ChartData {
@@ -43,6 +43,13 @@ interface EventTypeData {
   avgDuration?: number
 }
 
+interface EventDetailsModal {
+  isOpen: boolean
+  title: string
+  events: Event[]
+  type: 'project' | 'date' | null
+}
+
 const COLORS = {
   deployments: '#10b981', // green
   incidents: '#ef4444',   // red
@@ -55,8 +62,14 @@ const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4', '#84c
 export default function Insights() {
   const [filters, setFilters] = useState<InsightFilters>({
     environment: 'all',
-    service: 'all',
-    project: 'all'
+    service: 'all'
+  })
+
+  const [eventModal, setEventModal] = useState<EventDetailsModal>({
+    isOpen: false,
+    title: '',
+    events: [],
+    type: null
   })
 
   // Calculate start date (30 days back)
@@ -82,21 +95,8 @@ export default function Insights() {
     return Array.from(services).sort()
   }, [events])
 
-  const uniqueProjects = useMemo(() => {
-    // Extract project from service name (e.g., "auth-service" -> "auth")
-    const projects = new Set(
-      events
-        .map(e => e.attributes.service?.split('-')[0])
-        .filter(Boolean)
-    )
-    return Array.from(projects).sort()
-  }, [events])
-
-  // Filter events by project if selected
-  const filteredEvents = useMemo(() => {
-    if (filters.project === 'all') return events
-    return events.filter(e => e.attributes.service?.startsWith(filters.project))
-  }, [events, filters.project])
+  // No project filter needed - use events directly
+  const filteredEvents = events
 
   // Prepare data for timeline chart
   const chartData = useMemo(() => {
@@ -239,6 +239,75 @@ export default function Insights() {
     { name: 'Drifts', value: metrics.drifts, color: COLORS.drifts },
   ].filter(item => item.value > 0), [metrics])
 
+  // Helper functions for interactions
+  const handleProjectClick = (projectName: string) => {
+    const projectEvents = filteredEvents.filter(event => 
+      event.attributes.service?.startsWith(projectName)
+    )
+    setEventModal({
+      isOpen: true,
+      title: `Events for Project: ${projectName}`,
+      events: projectEvents,
+      type: 'project'
+    })
+  }
+
+  const handleChartClick = (data: any) => {
+    if (!data || !data.activeLabel) return
+    
+    const clickedDate = data.activeLabel
+    const fullDate = format(subDays(new Date(), 29 - chartData.findIndex(d => d.date === clickedDate)), 'yyyy-MM-dd')
+    
+    const dayEvents = filteredEvents.filter(event => {
+      const eventDate = format(parseISO(event.metadata?.createdAt || ''), 'yyyy-MM-dd')
+      return eventDate === fullDate
+    })
+
+    setEventModal({
+      isOpen: true,
+      title: `Events for ${clickedDate}`,
+      events: dayEvents,
+      type: 'date'
+    })
+  }
+
+  const closeModal = () => {
+    setEventModal({
+      isOpen: false,
+      title: '',
+      events: [],
+      type: null
+    })
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'success':
+        return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'failure':
+        return <XCircle className="w-4 h-4 text-red-500" />
+      case 'warning':
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  const getTypeColor = (type: EventType) => {
+    switch (type) {
+      case EventType.DEPLOYMENT:
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      case EventType.INCIDENT:
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      case EventType.OPERATION:
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+      case EventType.DRIFT:
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+    }
+  }
+
   if (isLoading) {
     return <div className="text-center py-12">Loading insights...</div>
   }
@@ -258,62 +327,38 @@ export default function Insights() {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex items-center space-x-4">
-          <Filter className="w-5 h-5 text-gray-400" />
-          <div className="flex items-center space-x-4">
-            <div>
-              <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Environment
-              </label>
-              <select
-                id="environment"
-                value={filters.environment}
-                onChange={(e) => setFilters(prev => ({ ...prev, environment: e.target.value as Environment | 'all' }))}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-              >
-                <option value="all">All environments</option>
-                <option value={Environment.DEVELOPMENT}>Development</option>
-                <option value={Environment.INTEGRATION}>Integration</option>
-                <option value={Environment.TNR}>TNR</option>
-                <option value={Environment.UAT}>UAT</option>
-                <option value={Environment.RECETTE}>Recette</option>
-                <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                <option value={Environment.PRODUCTION}>Production</option>
-                <option value={Environment.MCO}>MCO</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Service
-              </label>
-              <select
-                id="service"
-                value={filters.service}
-                onChange={(e) => setFilters(prev => ({ ...prev, service: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-              >
-                <option value="all">All services</option>
-                {uniqueServices.map(service => (
-                  <option key={service} value={service}>{service}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="project" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Project
-              </label>
-              <select
-                id="project"
-                value={filters.project}
-                onChange={(e) => setFilters(prev => ({ ...prev, project: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-              >
-                <option value="all">All projects</option>
-                {uniqueProjects.map(project => (
-                  <option key={project} value={project}>{project}</option>
-                ))}
-              </select>
-            </div>
+        <div className="flex items-center gap-6">
+          <Filter className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center gap-4 flex-1">
+            <Combobox
+              label="Environment"
+              value={filters.environment}
+              onChange={(value) => setFilters(prev => ({ ...prev, environment: value as Environment | 'all' }))}
+              options={[
+                { value: 'all', label: 'All environments' },
+                { value: Environment.DEVELOPMENT, label: 'Development' },
+                { value: Environment.INTEGRATION, label: 'Integration' },
+                { value: Environment.TNR, label: 'TNR' },
+                { value: Environment.UAT, label: 'UAT' },
+                { value: Environment.RECETTE, label: 'Recette' },
+                { value: Environment.PREPRODUCTION, label: 'Preproduction' },
+                { value: Environment.PRODUCTION, label: 'Production' },
+                { value: Environment.MCO, label: 'MCO' },
+              ]}
+              placeholder="Select environment..."
+              className="w-64"
+            />
+            <Combobox
+              label="Service"
+              value={filters.service}
+              onChange={(value) => setFilters(prev => ({ ...prev, service: value }))}
+              options={[
+                { value: 'all', label: 'All services' },
+                ...uniqueServices.map(service => ({ value: service, label: service }))
+              ]}
+              placeholder="Select service..."
+              className="w-64"
+            />
           </div>
         </div>
       </div>
@@ -484,6 +529,7 @@ export default function Insights() {
               <LineChart 
                 data={chartData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                onClick={handleChartClick}
               >
                 <defs>
                   {/* Gradient definitions for each line */}
@@ -668,10 +714,11 @@ export default function Insights() {
               return (
                 <div 
                   key={project.project}
-                  className={`p-3 rounded-lg border transition-all ${
+                  onClick={() => handleProjectClick(project.project)}
+                  className={`p-3 rounded-lg border transition-all cursor-pointer hover:shadow-lg hover:scale-105 ${
                     index < 3 
-                      ? 'bg-gradient-to-r from-yellow-50 to-white dark:from-yellow-900/10 dark:to-gray-800 border-yellow-200 dark:border-yellow-800' 
-                      : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+                      ? 'bg-gradient-to-r from-yellow-50 to-white dark:from-yellow-900/10 dark:to-gray-800 border-yellow-200 dark:border-yellow-800 hover:from-yellow-100 hover:to-yellow-50' 
+                      : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/50'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -710,6 +757,123 @@ export default function Insights() {
         </div>
       </div>
 
+      {/* Event Details Modal */}
+      {eventModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="flex items-center justify-center w-full h-full">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"
+              onClick={closeModal}
+            ></div>
+
+            {/* Modal panel */}
+            <div className="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {eventModal.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {eventModal.events.length} event{eventModal.events.length !== 1 ? 's' : ''} found
+                  </p>
+                </div>
+                <button
+                  onClick={closeModal}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Events list */}
+              <div className="max-h-96 overflow-y-auto space-y-3">
+                {eventModal.events.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No events found for this selection
+                  </div>
+                ) : (
+                  eventModal.events.map((event) => (
+                    <div 
+                      key={event.metadata?.id}
+                      className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-600/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                              {event.title}
+                            </h4>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(event.attributes.type)}`}>
+                              {event.attributes.type}
+                            </span>
+                            <div className="flex items-center space-x-1">
+                              {getStatusIcon(event.attributes.status)}
+                              <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">
+                                {event.attributes.status}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">Service:</span>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {event.attributes.service || 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">Environment:</span>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {event.attributes.environment || 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">Priority:</span>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {event.attributes.priority || 'N/A'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
+                                {event.metadata?.createdAt 
+                                  ? format(parseISO(event.metadata.createdAt), 'dd/MM HH:mm')
+                                  : 'N/A'
+                                }
+                              </p>
+                            </div>
+                          </div>
+
+                          {event.attributes.message && (
+                            <div className="mt-3">
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Message:</span>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 bg-white dark:bg-gray-800 p-2 rounded border">
+                                {event.attributes.message}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )
