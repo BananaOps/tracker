@@ -319,53 +319,132 @@ export default function Insights() {
       </div>
 
       {/* Global Metrics by Type */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Deployments</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.deployments}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0}% of total
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Deployments Card */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <div className="flex items-center justify-between p-6">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Deployments</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-1">{metrics.deployments}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    {metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
+                <GitBranch className="relative w-12 h-12 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <GitBranch className="w-12 h-12 text-green-600 opacity-20" />
           </div>
         </div>
-        <div className="card border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Incidents</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.incidents}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0}% of total
-              </p>
+
+        {/* Incidents Card */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-red-50/50 dark:from-slate-800 dark:to-red-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-500"></div>
+            <div className="flex items-center justify-between p-6">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Incidents</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-1">{metrics.incidents}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-red-500 to-rose-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    {metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-lg"></div>
+                <AlertTriangle className="relative w-12 h-12 text-red-600 dark:text-red-400" />
+              </div>
             </div>
-            <AlertTriangle className="w-12 h-12 text-red-600 opacity-20" />
           </div>
         </div>
-        <div className="card border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Operations</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.operations}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0}% of total
-              </p>
+
+        {/* Operations Card */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+            <div className="flex items-center justify-between p-6">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Operations</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-1">{metrics.operations}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    {metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
+                <Zap className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-            <Zap className="w-12 h-12 text-blue-600 opacity-20" />
           </div>
         </div>
-        <div className="card border-l-4 border-amber-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Drifts</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.drifts}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0}% of total
-              </p>
+
+        {/* Drifts Card */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+          <div className="relative card border-0 bg-gradient-to-br from-white to-amber-50/50 dark:from-slate-800 dark:to-amber-900/10 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+            <div className="flex items-center justify-between p-6">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Drifts</p>
+                </div>
+                <p className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-1">{metrics.drifts}</p>
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    {metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-lg"></div>
+                <TrendingUp className="relative w-12 h-12 text-amber-600 dark:text-amber-400" />
+              </div>
             </div>
-            <TrendingUp className="w-12 h-12 text-amber-600 opacity-20" />
           </div>
         </div>
       </div>
@@ -373,67 +452,205 @@ export default function Insights() {
       {/* Main Content: Timeline + Top Projects */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Timeline Evolution by Type */}
-        <div className="lg:col-span-2 card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Timeline Evolution by Type</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                className="text-gray-600 dark:text-gray-400"
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }}
-                className="text-gray-600 dark:text-gray-400"
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="deployments" 
-                stroke={COLORS.deployments} 
-                strokeWidth={3}
-                name="Deployments"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="incidents" 
-                stroke={COLORS.incidents} 
-                strokeWidth={3}
-                name="Incidents"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="operations" 
-                stroke={COLORS.operations} 
-                strokeWidth={3}
-                name="Operations"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="drifts" 
-                stroke={COLORS.drifts} 
-                strokeWidth={3}
-                name="Drifts"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="lg:col-span-2 card bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/50 dark:to-slate-800/50 border-0 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                Timeline Evolution by Type
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Real-time activity monitoring across all event types
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-400">LIVE</span>
+            </div>
+          </div>
+          
+          <div className="relative">
+            {/* Background grid pattern */}
+            <div className="absolute inset-0 opacity-5 dark:opacity-10">
+              <div className="w-full h-full" style={{
+                backgroundImage: `
+                  linear-gradient(rgba(148, 163, 184, 0.3) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(148, 163, 184, 0.3) 1px, transparent 1px)
+                `,
+                backgroundSize: '20px 20px'
+              }}></div>
+            </div>
+            
+            <ResponsiveContainer width="100%" height={420}>
+              <LineChart 
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <defs>
+                  {/* Gradient definitions for each line */}
+                  <linearGradient id="deploymentsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.deployments} stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor={COLORS.deployments} stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="incidentsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.incidents} stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor={COLORS.incidents} stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="operationsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.operations} stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor={COLORS.operations} stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="driftsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.drifts} stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor={COLORS.drifts} stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                
+                <CartesianGrid 
+                  strokeDasharray="2 4" 
+                  stroke="rgba(148, 163, 184, 0.2)"
+                  strokeWidth={1}
+                />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ 
+                    fontSize: 11, 
+                    fill: 'rgba(100, 116, 139, 0.8)',
+                    fontWeight: 500
+                  }}
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ 
+                    fontSize: 11, 
+                    fill: 'rgba(100, 116, 139, 0.8)',
+                    fontWeight: 500
+                  }}
+                  dx={-10}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                    color: 'white',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    backdropFilter: 'blur(16px)'
+                  }}
+                  labelStyle={{ 
+                    color: 'rgba(226, 232, 240, 0.9)',
+                    fontWeight: 600,
+                    marginBottom: '8px'
+                  }}
+                  cursor={{
+                    stroke: 'rgba(148, 163, 184, 0.3)',
+                    strokeWidth: 2,
+                    strokeDasharray: '4 4'
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{
+                    paddingTop: '20px',
+                    fontSize: '13px',
+                    fontWeight: 500
+                  }}
+                />
+                
+                {/* Enhanced Lines with gradients and animations */}
+                <Line 
+                  type="monotone" 
+                  dataKey="deployments" 
+                  stroke={COLORS.deployments}
+                  strokeWidth={3}
+                  name="Deployments"
+                  dot={{ 
+                    r: 0,
+                    strokeWidth: 0
+                  }}
+                  activeDot={{ 
+                    r: 6, 
+                    stroke: COLORS.deployments,
+                    strokeWidth: 3,
+                    fill: 'white',
+                    filter: 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.6))'
+                  }}
+                  strokeDasharray="0"
+                  animationDuration={2000}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="incidents" 
+                  stroke={COLORS.incidents}
+                  strokeWidth={3}
+                  name="Incidents"
+                  dot={{ 
+                    r: 0,
+                    strokeWidth: 0
+                  }}
+                  activeDot={{ 
+                    r: 6, 
+                    stroke: COLORS.incidents,
+                    strokeWidth: 3,
+                    fill: 'white',
+                    filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))'
+                  }}
+                  strokeDasharray="0"
+                  animationDuration={2000}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="operations" 
+                  stroke={COLORS.operations}
+                  strokeWidth={3}
+                  name="Operations"
+                  dot={{ 
+                    r: 0,
+                    strokeWidth: 0
+                  }}
+                  activeDot={{ 
+                    r: 6, 
+                    stroke: COLORS.operations,
+                    strokeWidth: 3,
+                    fill: 'white',
+                    filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.6))'
+                  }}
+                  strokeDasharray="0"
+                  animationDuration={2000}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="drifts" 
+                  stroke={COLORS.drifts}
+                  strokeWidth={3}
+                  name="Drifts"
+                  dot={{ 
+                    r: 0,
+                    strokeWidth: 0
+                  }}
+                  activeDot={{ 
+                    r: 6, 
+                    stroke: COLORS.drifts,
+                    strokeWidth: 3,
+                    fill: 'white',
+                    filter: 'drop-shadow(0 0 6px rgba(245, 158, 11, 0.6))'
+                  }}
+                  strokeDasharray="0"
+                  animationDuration={2000}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            
+            {/* Tech-style corner decorations */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-slate-300 dark:border-slate-600 opacity-30"></div>
+            <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-slate-300 dark:border-slate-600 opacity-30"></div>
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-slate-300 dark:border-slate-600 opacity-30"></div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-slate-300 dark:border-slate-600 opacity-30"></div>
+          </div>
         </div>
 
         {/* Top 8 Projects with Medals */}
