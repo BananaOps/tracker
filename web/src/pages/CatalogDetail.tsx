@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { SLALevel, CatalogType, Language, Platform, type Catalog } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server } from 'lucide-react'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -28,20 +28,47 @@ import ReactFlow, {
   Position
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 export default function CatalogDetail() {
   const { serviceName } = useParams<{ serviceName: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const { data: allCatalogs } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: (name: string) => catalogApi.delete(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+      navigate('/catalog')
+    },
+  })
+
   const service = useMemo(() => {
     return allCatalogs?.catalogs.find(c => c.name === serviceName)
   }, [allCatalogs, serviceName])
+
+  const handleEdit = () => {
+    navigate(`/catalog/edit/${serviceName}`)
+  }
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    deleteMutation.mutate(serviceName!)
+    setShowDeleteModal(false)
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false)
+  }
 
   // Build dependency graph
   const { nodes, edges } = useMemo(() => {
@@ -192,10 +219,26 @@ export default function CatalogDetail() {
             </p>
           </div>
         </div>
-        <Link to="/catalog/dependencies" className="btn-primary flex items-center space-x-2">
-          <GitBranch className="w-4 h-4" />
-          <span>View All Dependencies</span>
-        </Link>
+        <div className="flex items-center space-x-3">
+          <Link to="/catalog/dependencies" className="btn-secondary flex items-center space-x-2">
+            <GitBranch className="w-4 h-4" />
+            <span>View All Dependencies</span>
+          </Link>
+          <button
+            onClick={handleEdit}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Edit className="w-4 h-4" />
+            <span>Edit</span>
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            title="Delete service"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Service Info Cards */}
@@ -357,12 +400,20 @@ export default function CatalogDetail() {
                 </span>
               </dd>
             </div>
+            {service.description && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</dt>
+                <dd className="text-sm text-gray-900 dark:text-gray-100 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  {service.description}
+                </dd>
+              </div>
+            )}
             {service.repository && (
               <div>
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Repository</dt>
                 <dd>
                   <a href={service.repository} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors space-x-2">
+                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition-colors space-x-2 border border-gray-300 dark:border-gray-600">
                     <Github className="w-4 h-4" />
                     <span>View on GitHub</span>
                     <ExternalLink className="w-3 h-3" />
@@ -375,7 +426,7 @@ export default function CatalogDetail() {
                 <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Documentation</dt>
                 <dd>
                   <a href={service.link} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors space-x-2">
+                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-600 transition-colors space-x-2 border border-blue-300 dark:border-blue-400">
                     <ExternalLink className="w-4 h-4" />
                     <span>View Documentation</span>
                   </a>
@@ -407,37 +458,39 @@ export default function CatalogDetail() {
                 </dd>
               </div>
               
-              {/* SLA Metrics Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                {service.sla.uptimePercentage && (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                      {service.sla.uptimePercentage}%
+              {/* SLA Metrics Grid - Only show if there are metrics */}
+              {(service.sla.uptimePercentage || service.sla.responseTimeMs) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  {service.sla.uptimePercentage && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
+                        {service.sla.uptimePercentage}%
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Uptime Target
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {calculateDowntime(service.sla.uptimePercentage)} downtime/month
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Uptime Target
+                  )}
+                  {service.sla.responseTimeMs && (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
+                        {service.sla.responseTimeMs}ms
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Response Time Target
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {service.sla.responseTimeMs < 100 ? 'Excellent' : 
+                         service.sla.responseTimeMs < 500 ? 'Good' : 
+                         service.sla.responseTimeMs < 1000 ? 'Acceptable' : 'Needs Improvement'}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {calculateDowntime(service.sla.uptimePercentage)} downtime/month
-                    </div>
-                  </div>
-                )}
-                {service.sla.responseTimeMs && (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                      {service.sla.responseTimeMs}ms
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Response Time Target
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {service.sla.responseTimeMs < 100 ? 'Excellent' : 
-                       service.sla.responseTimeMs < 500 ? 'Good' : 
-                       service.sla.responseTimeMs < 1000 ? 'Acceptable' : 'Needs Improvement'}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               {service.sla.description && (
                 <div>
@@ -530,6 +583,86 @@ export default function CatalogDetail() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Delete Service
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      This action cannot be undone
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleDeleteCancel}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="mb-6">
+                <p className="text-gray-700 dark:text-gray-300 mb-3">
+                  Are you sure you want to delete the service <span className="font-semibold text-gray-900 dark:text-gray-100">"{service.name}"</span>?
+                </p>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-red-700 dark:text-red-300">
+                      <p className="font-medium mb-1">This will permanently delete:</p>
+                      <ul className="list-disc list-inside space-y-1 text-xs">
+                        <li>Service configuration and metadata</li>
+                        <li>SLA settings and targets</li>
+                        <li>Dependency relationships</li>
+                        <li>All associated data</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleteMutation.isPending}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  {deleteMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Service</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

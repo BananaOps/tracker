@@ -25,22 +25,173 @@ const config = {
   catalog: {
     types: ['module', 'library', 'project', 'chart', 'package', 'container'],
     languages: ['golang', 'java', 'python', 'php', 'typescript', 'javascript', 'terraform', 'helm'],
+    platforms: ['kubernetes', 'lambda', 'ec2', 'ecs', 'fargate', 'cloud_run', 'app_service'],
+    slaLevels: ['critical', 'high', 'medium', 'low'],
     projects: [
-      { name: 'payment-service', type: 'project', language: 'golang', team: 'Platform' },
-      { name: 'user-management', type: 'project', language: 'java', team: 'Platform' },
-      { name: 'analytics-engine', type: 'project', language: 'python', team: 'Data' },
-      { name: 'web-frontend', type: 'project', language: 'typescript', team: 'Frontend' },
-      { name: 'mobile-app', type: 'project', language: 'typescript', team: 'Frontend' },
-      { name: 'admin-dashboard', type: 'project', language: 'php', team: 'Frontend' },
-      { name: 'terraform-infra', type: 'module', language: 'terraform', team: 'Infrastructure' },
-      { name: 'kubernetes-charts', type: 'chart', language: 'helm', team: 'Infrastructure' },
-      { name: 'auth-library', type: 'library', language: 'golang', team: 'Security' },
-      { name: 'encryption-lib', type: 'library', language: 'java', team: 'Security' },
-      { name: 'api-client', type: 'library', language: 'python', team: 'Platform' },
-      { name: 'ui-components', type: 'library', language: 'typescript', team: 'Frontend' },
-      { name: 'data-processor', type: 'package', language: 'python', team: 'Data' },
-      { name: 'etl-framework', type: 'package', language: 'python', team: 'Data' },
-      { name: 'monitoring-stack', type: 'container', language: 'golang', team: 'Infrastructure' },
+      { 
+        name: 'payment-service', 
+        type: 'project', 
+        language: 'golang', 
+        team: 'Platform',
+        platform: 'kubernetes',
+        sla: { level: 'critical', uptime: 99.99, responseTime: 100 },
+        dependsOn: ['auth-service', 'database-service'],
+        usedBy: ['web-frontend', 'mobile-app']
+      },
+      { 
+        name: 'user-management', 
+        type: 'project', 
+        language: 'java', 
+        team: 'Platform',
+        platform: 'kubernetes',
+        sla: { level: 'high', uptime: 99.9, responseTime: 200 },
+        dependsOn: ['auth-library', 'database-service'],
+        usedBy: ['payment-service', 'admin-dashboard']
+      },
+      { 
+        name: 'analytics-engine', 
+        type: 'project', 
+        language: 'python', 
+        team: 'Data',
+        platform: 'lambda',
+        sla: { level: 'medium', uptime: 99.5, responseTime: 500 },
+        dependsOn: ['data-processor', 'etl-framework'],
+        usedBy: ['admin-dashboard']
+      },
+      { 
+        name: 'web-frontend', 
+        type: 'project', 
+        language: 'typescript', 
+        team: 'Frontend',
+        platform: 'cloudfront',
+        sla: { level: 'high', uptime: 99.9, responseTime: 150 },
+        dependsOn: ['payment-service', 'user-management', 'ui-components'],
+        usedBy: []
+      },
+      { 
+        name: 'mobile-app', 
+        type: 'project', 
+        language: 'typescript', 
+        team: 'Frontend',
+        platform: 'app_service',
+        sla: { level: 'high', uptime: 99.9, responseTime: 200 },
+        dependsOn: ['payment-service', 'user-management', 'api-client'],
+        usedBy: []
+      },
+      { 
+        name: 'admin-dashboard', 
+        type: 'project', 
+        language: 'php', 
+        team: 'Frontend',
+        platform: 'ec2',
+        sla: { level: 'medium', uptime: 99.5, responseTime: 300 },
+        dependsOn: ['user-management', 'analytics-engine'],
+        usedBy: []
+      },
+      { 
+        name: 'auth-service', 
+        type: 'project', 
+        language: 'golang', 
+        team: 'Security',
+        platform: 'kubernetes',
+        sla: { level: 'critical', uptime: 99.99, responseTime: 50 },
+        dependsOn: ['auth-library', 'database-service'],
+        usedBy: ['payment-service', 'user-management']
+      },
+      { 
+        name: 'database-service', 
+        type: 'project', 
+        language: 'golang', 
+        team: 'Infrastructure',
+        platform: 'rds',
+        sla: { level: 'critical', uptime: 99.99, responseTime: 10 },
+        dependsOn: [],
+        usedBy: ['payment-service', 'user-management', 'auth-service']
+      },
+      { 
+        name: 'notification-service', 
+        type: 'project', 
+        language: 'python', 
+        team: 'Platform',
+        platform: 'lambda',
+        sla: { level: 'medium', uptime: 99.5, responseTime: 1000 },
+        dependsOn: ['auth-service'],
+        usedBy: ['payment-service']
+      },
+      { 
+        name: 'terraform-infra', 
+        type: 'module', 
+        language: 'terraform', 
+        team: 'Infrastructure',
+        dependsOn: [],
+        usedBy: []
+      },
+      { 
+        name: 'kubernetes-charts', 
+        type: 'chart', 
+        language: 'helm', 
+        team: 'Infrastructure',
+        dependsOn: [],
+        usedBy: []
+      },
+      { 
+        name: 'auth-library', 
+        type: 'library', 
+        language: 'golang', 
+        team: 'Security',
+        dependsOn: ['encryption-lib'],
+        usedBy: ['auth-service', 'user-management']
+      },
+      { 
+        name: 'encryption-lib', 
+        type: 'library', 
+        language: 'java', 
+        team: 'Security',
+        dependsOn: [],
+        usedBy: ['auth-library']
+      },
+      { 
+        name: 'api-client', 
+        type: 'library', 
+        language: 'python', 
+        team: 'Platform',
+        dependsOn: [],
+        usedBy: ['mobile-app', 'analytics-engine']
+      },
+      { 
+        name: 'ui-components', 
+        type: 'library', 
+        language: 'typescript', 
+        team: 'Frontend',
+        dependsOn: [],
+        usedBy: ['web-frontend', 'admin-dashboard']
+      },
+      { 
+        name: 'data-processor', 
+        type: 'package', 
+        language: 'python', 
+        team: 'Data',
+        dependsOn: ['etl-framework'],
+        usedBy: ['analytics-engine']
+      },
+      { 
+        name: 'etl-framework', 
+        type: 'package', 
+        language: 'python', 
+        team: 'Data',
+        dependsOn: [],
+        usedBy: ['data-processor', 'analytics-engine']
+      },
+      { 
+        name: 'monitoring-stack', 
+        type: 'container', 
+        language: 'golang', 
+        team: 'Infrastructure',
+        platform: 'kubernetes',
+        sla: { level: 'high', uptime: 99.9, responseTime: 100 },
+        dependsOn: [],
+        usedBy: []
+      },
     ],
   },
 };
@@ -97,6 +248,24 @@ function createCatalog(catalog) {
   return response;
 }
 
+function createLock(lock) {
+  const payload = JSON.stringify(lock);
+  const params = {
+    headers: { 'Content-Type': 'application/json' },
+    timeout: '30s',
+  };
+  
+  const response = http.post(`${API_URL}/lock`, payload, params);
+  
+  if (response.status === 200) {
+    console.log(`✓ Lock created: ${lock.service} (${lock.environment})`);
+  } else {
+    console.error(`✗ Lock failed: ${lock.service} - ${response.status}`);
+  }
+  
+  return response;
+}
+
 export default function () {
   console.log('=== Génération des données de test ===');
   console.log('');
@@ -115,10 +284,27 @@ export default function () {
       languages: project.language,
       owner: team ? team.owner : 'unknown-team',
       version: version,
-      link: `https://github.com/${project.team.toLowerCase()}/${project.name}`,
-      description: `${project.type} for ${project.name} - ${project.language}`,
+      link: `https://docs.${project.team.toLowerCase()}.com/${project.name}`,
+      description: `${project.type.charAt(0).toUpperCase() + project.type.slice(1)} for ${project.name} built with ${project.language}`,
       repository: `https://github.com/${project.team.toLowerCase()}/${project.name}`,
+      dependenciesIn: project.dependsOn || [],
+      dependenciesOut: project.usedBy || [],
     };
+
+    // Add platform for projects only
+    if (project.type === 'project' && project.platform) {
+      catalog.platform = project.platform;
+    }
+
+    // Add SLA for projects with SLA defined
+    if (project.sla) {
+      catalog.sla = {
+        level: project.sla.level,
+        uptimePercentage: project.sla.uptime,
+        responseTimeMs: project.sla.responseTime,
+        description: `SLA for ${project.name}: ${project.sla.level} level service with ${project.sla.uptime}% uptime target and ${project.sla.responseTime}ms response time target.`
+      };
+    }
     
     createCatalog(catalog);
     catalogCount++;
@@ -128,7 +314,53 @@ export default function () {
   console.log(`✓ ${catalogCount} catalogues créés`);
   console.log('');
   
-  // 2. Générer les événements
+  // 2. Générer quelques locks actifs
+  console.log('--- Génération des locks ---');
+  let lockCount = 0;
+  
+  // Créer quelques locks pour simuler des opérations en cours
+  const activeLocks = [
+    {
+      service: 'payment-service',
+      environment: 'production',
+      reason: 'Database migration in progress',
+      owner: 'platform-team',
+      expiresAt: getDate(0, 2), // Expire dans 2 heures
+    },
+    {
+      service: 'user-management',
+      environment: 'preproduction',
+      reason: 'Security patch deployment',
+      owner: 'security-team',
+      expiresAt: getDate(0, 1), // Expire dans 1 heure
+    },
+    {
+      service: 'analytics-engine',
+      environment: 'production',
+      reason: 'Performance optimization',
+      owner: 'data-team',
+      expiresAt: getDate(1, 0), // Expire demain
+    },
+  ];
+
+  activeLocks.forEach((lockData) => {
+    const lock = {
+      service: lockData.service,
+      environment: lockData.environment,
+      reason: lockData.reason,
+      owner: lockData.owner,
+      expiresAt: lockData.expiresAt,
+    };
+    
+    createLock(lock);
+    lockCount++;
+    sleep(0.05);
+  });
+  
+  console.log(`✓ ${lockCount} locks créés`);
+  console.log('');
+  
+  // 3. Générer les événements
   console.log('--- Génération des événements ---');
   let eventCount = 0;
   
@@ -328,12 +560,26 @@ export default function () {
   
   console.log('');
   console.log('=== Génération terminée ===');
-  console.log(`✓ ${catalogCount} catalogues créés`);
+  console.log(`✓ ${catalogCount} catalogues créés (avec SLA, Platform, Dependencies)`);
+  console.log(`✓ ${lockCount} locks créés`);
   console.log(`✓ ${eventCount} événements créés`);
   console.log('');
-  console.log('Vérification:');
+  console.log('🎯 Nouvelles fonctionnalités testées:');
+  console.log('  • SLA avec niveaux Critical/High/Medium/Low');
+  console.log('  • Plateformes de déploiement (Kubernetes, Lambda, EC2, etc.)');
+  console.log('  • Dépendances upstream/downstream entre services');
+  console.log('  • Locks actifs pour opérations en cours');
+  console.log('');
+  console.log('🔍 Vérification:');
   console.log(`  Catalogues: curl ${BASE_URL}/api/v1alpha1/catalogs/list | jq '.totalCount'`);
   console.log(`  Événements: curl ${BASE_URL}/api/v1alpha1/events/list | jq '.totalCount'`);
+  console.log(`  Locks:      curl ${BASE_URL}/api/v1alpha1/locks/list | jq '.totalCount'`);
+  console.log('');
+  console.log('📊 Interface Web:');
+  console.log(`  Dashboard:     ${BASE_URL}/dashboard`);
+  console.log(`  Catalog:       ${BASE_URL}/catalog`);
+  console.log(`  Dependencies:  ${BASE_URL}/catalog/dependencies`);
+  console.log(`  Locks:         ${BASE_URL}/locks`);
 }
 
 export const options = {
