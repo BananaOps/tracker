@@ -158,7 +158,7 @@ export const getEnvironmentLabel = (env?: Environment | string) => {
     case '8':
       return 'MCO'
     default:
-      return 'Environnement'
+      return 'Environment'
   }
 }
 
