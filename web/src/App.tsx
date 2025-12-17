@@ -32,6 +32,7 @@ function App() {
           <Route path="docs" element={<Documentation />} />
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />
+          <Route path="catalog/edit/:name" element={<CreateCatalog />} />
           <Route path="drifts" element={<DriftsList />} />
           <Route path="drifts/create" element={<CreateDrift />} />
           <Route path="rpa" element={<RpaUsage />} />

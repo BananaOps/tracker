@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language } from '../types/api'
-import { Package, BookOpen, Search, X, Plus } from 'lucide-react'
+import { Package, BookOpen, Search, X, Plus, Edit, Trash2 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -23,13 +23,23 @@ import {
 
 export default function CatalogTable() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 100 }),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (name: string) => catalogApi.delete(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog'] })
+      setDeleteConfirm(null)
+    },
   })
 
   const allCatalogs = data?.catalogs || []
@@ -83,6 +93,22 @@ export default function CatalogTable() {
     setSearchQuery('')
     setSelectedTypes([])
     setSelectedLanguages([])
+  }
+
+  const handleEdit = (catalogName: string) => {
+    navigate(`/catalog/edit/${catalogName}`)
+  }
+
+  const handleDelete = (catalogName: string) => {
+    if (deleteConfirm === catalogName) {
+      deleteMutation.mutate(catalogName)
+    } else {
+      setDeleteConfirm(catalogName)
+    }
+  }
+
+  const cancelDelete = () => {
+    setDeleteConfirm(null)
   }
 
   const activeFiltersCount = selectedTypes.length + selectedLanguages.length + (searchQuery ? 1 : 0)
@@ -294,6 +320,9 @@ export default function CatalogTable() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Liens
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -348,6 +377,42 @@ export default function CatalogTable() {
                         >
                           <BookOpen className="w-5 h-5" />
                         </a>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleEdit(catalog.name)}
+                        className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      {deleteConfirm === catalog.name ? (
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleDelete(catalog.name)}
+                            disabled={deleteMutation.isPending}
+                            className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                          >
+                            {deleteMutation.isPending ? '...' : 'Confirmer'}
+                          </button>
+                          <button
+                            onClick={cancelDelete}
+                            className="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(catalog.name)}
+                          className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
                   </td>
