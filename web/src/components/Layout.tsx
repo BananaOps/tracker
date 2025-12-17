@@ -21,7 +21,14 @@ const navigation = [
     ]
   },
   { name: 'Insights', href: '/insights', icon: BarChart3 },
-  { name: 'Catalog', href: '/catalog', icon: Table },
+  { 
+    name: 'Catalog', 
+    icon: Table,
+    submenu: [
+      { name: 'Services', href: '/catalog', icon: Table },
+      { name: 'Dependencies', href: '/catalog/dependencies', icon: GitBranch },
+    ]
+  },
   { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
   { name: 'Locks', href: '/locks', icon: Lock },

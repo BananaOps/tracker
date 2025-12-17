@@ -3,7 +3,7 @@ import { catalogApi } from '../lib/api'
 import { CatalogType, Language, SLALevel, Platform, type Catalog } from '../types/api'
 import { Package, BookOpen, Search, X, Plus, Edit, Trash2, GitBranch } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -336,12 +336,16 @@ export default function CatalogTable() {
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {catalogs.map((catalog: Catalog) => (
-                <tr key={catalog.name} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800">
+                <tr 
+                  key={catalog.name} 
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/catalog/${catalog.name}`)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Link to={`/catalog/${catalog.name}`} className="flex items-center hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                    <div className="flex items-center">
                       <Package className="w-5 h-5 text-gray-400 mr-2" />
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{catalog.name}</span>
-                    </Link>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
@@ -405,7 +409,7 @@ export default function CatalogTable() {
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
                     {catalog.description || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                     <div className="flex space-x-3">
                       {catalog.repository && (
                         <a
@@ -414,6 +418,7 @@ export default function CatalogTable() {
                           rel="noopener noreferrer"
                           className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Repository"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <FontAwesomeIcon icon={faGithub} className="w-5 h-5" />
                         </a>
@@ -425,16 +430,20 @@ export default function CatalogTable() {
                           rel="noopener noreferrer"
                           className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Documentation"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <BookOpen className="w-5 h-5" />
                         </a>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleEdit(catalog.name)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleEdit(catalog.name)
+                        }}
                         className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                         title="Modifier"
                       >
@@ -443,14 +452,20 @@ export default function CatalogTable() {
                       {deleteConfirm === catalog.name ? (
                         <div className="flex items-center space-x-1">
                           <button
-                            onClick={() => handleDelete(catalog.name)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete(catalog.name)
+                            }}
                             disabled={deleteMutation.isPending}
                             className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
                           >
                             {deleteMutation.isPending ? '...' : 'Confirmer'}
                           </button>
                           <button
-                            onClick={cancelDelete}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              cancelDelete()
+                            }}
                             className="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
                           >
                             Annuler
@@ -458,7 +473,10 @@ export default function CatalogTable() {
                         </div>
                       ) : (
                         <button
-                          onClick={() => handleDelete(catalog.name)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(catalog.name)
+                          }}
                           className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
                           title="Supprimer"
                         >
