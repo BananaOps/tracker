@@ -190,24 +190,23 @@ func (e *Catalog) GetVersionCompliance(
 	compliantProjects := 0
 	deliverableStats := make(map[string]*v1alpha1.DeliverableComplianceStats)
 
-	// For each project, check its dependencies against deliverable reference versions
+	// For each project, check its used deliverables against reference versions
 	for _, project := range projectMap {
 		var deliverableUsages []*v1alpha1.DeliverableUsage
 		outdatedCount := 0
 		totalCount := 0
 
-		if project.DependenciesIn != nil {
-			for _, depName := range project.DependenciesIn {
-				deliverable, exists := deliverableMap[depName]
+		if project.UsedDeliverables != nil {
+			for _, usedDeliverable := range project.UsedDeliverables {
+				deliverable, exists := deliverableMap[usedDeliverable.Name]
 				if !exists {
-					continue // Skip if deliverable not found
+					continue // Skip if deliverable not found in catalog
 				}
 
 				totalCount++
 
-				// For now, we'll assume the project's dependency version matches its own version
-				// In a real scenario, you might have more sophisticated version tracking
-				currentVersion := project.Version
+				// Use the actual version specified in UsedDeliverable
+				currentVersion := usedDeliverable.VersionUsed
 				isOutdated := deliverable.ReferenceVersion != "" && currentVersion != deliverable.ReferenceVersion
 				isLatest := deliverable.LatestVersion != "" && currentVersion == deliverable.LatestVersion
 
@@ -216,7 +215,7 @@ func (e *Catalog) GetVersionCompliance(
 				}
 
 				usage := &v1alpha1.DeliverableUsage{
-					Name:             depName,
+					Name:             usedDeliverable.Name,
 					Type:             deliverable.Type,
 					CurrentVersion:   currentVersion,
 					LatestVersion:    deliverable.LatestVersion,
@@ -228,9 +227,9 @@ func (e *Catalog) GetVersionCompliance(
 				deliverableUsages = append(deliverableUsages, usage)
 
 				// Update deliverable stats
-				if _, exists := deliverableStats[depName]; !exists {
-					deliverableStats[depName] = &v1alpha1.DeliverableComplianceStats{
-						Name:             depName,
+				if _, exists := deliverableStats[usedDeliverable.Name]; !exists {
+					deliverableStats[usedDeliverable.Name] = &v1alpha1.DeliverableComplianceStats{
+						Name:             usedDeliverable.Name,
 						Type:             deliverable.Type,
 						ProjectsUsing:    0,
 						ProjectsOutdated: 0,
@@ -238,9 +237,9 @@ func (e *Catalog) GetVersionCompliance(
 						ReferenceVersion: deliverable.ReferenceVersion,
 					}
 				}
-				deliverableStats[depName].ProjectsUsing++
+				deliverableStats[usedDeliverable.Name].ProjectsUsing++
 				if isOutdated {
-					deliverableStats[depName].ProjectsOutdated++
+					deliverableStats[usedDeliverable.Name].ProjectsOutdated++
 				}
 			}
 		}

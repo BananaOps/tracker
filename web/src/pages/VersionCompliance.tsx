@@ -2,11 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { CatalogType, type ProjectCompliance, type DeliverableUsage } from '../types/api'
-import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, TrendingDown } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, TrendingDown, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 export default function VersionCompliance() {
   const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
 
   const { data: complianceData, isLoading, error } = (useQuery as any)({
@@ -19,15 +20,32 @@ export default function VersionCompliance() {
   const filteredData = useMemo(() => {
     if (!complianceData?.projects) return []
     
-    if (selectedTypes.length === 0) return complianceData.projects
+    let filtered = complianceData.projects
     
-    return complianceData.projects.map((project: ProjectCompliance) => ({
-      ...project,
-      deliverables: project.deliverables.filter((d: DeliverableUsage) => 
-        selectedTypes.includes(String(d.type).toLowerCase())
-      )
-    })).filter((project: ProjectCompliance) => project.deliverables.length > 0)
-  }, [complianceData?.projects, selectedTypes])
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter((project: ProjectCompliance) => {
+        const matchesProjectName = project.projectName.toLowerCase().includes(query)
+        const matchesDeliverableName = project.deliverables.some((d: DeliverableUsage) => 
+          d.name.toLowerCase().includes(query)
+        )
+        return matchesProjectName || matchesDeliverableName
+      })
+    }
+    
+    // Filter by deliverable types
+    if (selectedTypes.length > 0) {
+      filtered = filtered.map((project: ProjectCompliance) => ({
+        ...project,
+        deliverables: project.deliverables.filter((d: DeliverableUsage) => 
+          selectedTypes.includes(String(d.type).toLowerCase())
+        )
+      })).filter((project: ProjectCompliance) => project.deliverables.length > 0)
+    }
+    
+    return filtered
+  }, [complianceData?.projects, searchQuery, selectedTypes])
 
   const summary = useMemo(() => {
     if (!complianceData?.summary) {
@@ -61,10 +79,13 @@ export default function VersionCompliance() {
     return 'text-red-600 dark:text-red-400'
   }
 
-  const getComplianceBg = (percentage: number) => {
-    if (percentage >= 90) return 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-    if (percentage >= 70) return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800'
-    return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+  const getComplianceBg = () => {
+    // Use neutral colors for all project blocks
+    return 'bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/70 cursor-pointer transition-colors'
+  }
+
+  const handleProjectClick = (projectName: string) => {
+    navigate(`/catalog/${projectName}`)
   }
 
   if (isLoading) {
@@ -105,7 +126,7 @@ export default function VersionCompliance() {
               <span>Version Compliance</span>
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Track which projects are using outdated deliverables
+              Track which projects are using outdated versions of their declared deliverables (packages, charts, containers, modules, libraries)
             </p>
           </div>
         </div>
@@ -174,8 +195,32 @@ export default function VersionCompliance() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="card">
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="card">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by project name or deliverable name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Type Filters */}
+        <div className="card">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center space-x-4 flex-wrap gap-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by type:</span>
@@ -197,30 +242,39 @@ export default function VersionCompliance() {
             })}
           </div>
           
-          {selectedTypes.length > 0 && (
+          {(selectedTypes.length > 0 || searchQuery) && (
             <button
-              onClick={() => setSelectedTypes([])}
+              onClick={() => {
+                setSelectedTypes([])
+                setSearchQuery('')
+              }}
               className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
             >
-              Clear Filters
+              Clear All Filters
             </button>
           )}
+        </div>
         </div>
       </div>
 
       {/* Projects List */}
       <div className="space-y-4">
         {filteredData.map((project: ProjectCompliance) => (
-          <div key={project.projectName} className={`card border ${getComplianceBg(project.compliancePercentage)}`}>
+          <div 
+            key={project.projectName} 
+            className={`card border ${getComplianceBg()}`}
+            onClick={() => handleProjectClick(project.projectName)}
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <Package className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {project.projectName}
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                    <span>{project.projectName}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">→</span>
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {project.totalCount} deliverables • {project.outdatedCount} outdated
+                    {project.totalCount} used deliverables • {project.outdatedCount} outdated
                   </p>
                 </div>
               </div>
