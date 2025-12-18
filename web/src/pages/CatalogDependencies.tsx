@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { SLALevel, CatalogType, Platform, type Catalog } from '../types/api'
 import { ArrowLeft, GitBranch, Search, X } from 'lucide-react'
-import ReactFlow, { 
+import {
+  ReactFlow,
   Node, 
   Edge, 
   Background, 

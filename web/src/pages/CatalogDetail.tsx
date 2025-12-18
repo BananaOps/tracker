@@ -18,7 +18,8 @@ import {
   faFileCode, 
   faCube 
 } from '@fortawesome/free-solid-svg-icons'
-import ReactFlow, { 
+import {
+  ReactFlow,
   Node, 
   Edge, 
   Background, 
