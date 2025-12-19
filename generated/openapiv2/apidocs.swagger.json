@@ -867,6 +867,14 @@
             "$ref": "#/definitions/v1alpha1UsedDeliverable"
           },
           "title": "For projects: track which deliverables and versions are used"
+        },
+        "communication_channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1CommunicationChannel"
+          },
+          "title": "Communication channels for the service"
         }
       }
     },
@@ -912,6 +920,42 @@
           "type": "string"
         }
       }
+    },
+    "v1alpha1CommunicationChannel": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/v1alpha1CommunicationType",
+          "title": "Type of communication channel"
+        },
+        "name": {
+          "type": "string",
+          "title": "Display name for the channel"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL or link to the channel"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description"
+        }
+      },
+      "title": "Communication channel for a service"
+    },
+    "v1alpha1CommunicationType": {
+      "type": "string",
+      "enum": [
+        "COMMUNICATION_TYPE_UNSPECIFIED",
+        "slack",
+        "teams",
+        "email",
+        "discord",
+        "mattermost",
+        "telegram"
+      ],
+      "default": "COMMUNICATION_TYPE_UNSPECIFIED",
+      "title": "- slack: Slack channel\n - teams: Microsoft Teams channel\n - email: Email address\n - discord: Discord channel\n - mattermost: Mattermost channel\n - telegram: Telegram group/channel"
     },
     "v1alpha1ComplianceSummary": {
       "type": "object",
@@ -1054,8 +1098,16 @@
             "type": "object",
             "$ref": "#/definitions/v1alpha1UsedDeliverable"
           },
-          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
           "title": "For projects: track which deliverables and versions are used"
+        },
+        "communication_channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1CommunicationChannel"
+          },
+          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
+          "title": "Communication channels for the service"
         }
       }
     },

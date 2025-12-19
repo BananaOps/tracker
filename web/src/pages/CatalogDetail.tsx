@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, type Catalog, type UsedDeliverable } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X } from 'lucide-react'
+import { SLALevel, CatalogType, Language, Platform, CommunicationType, type Catalog, type UsedDeliverable } from '../types/api'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -11,12 +11,17 @@ import {
   faJs, 
   faDocker, 
   faRust,
-  faGolang
+  faGolang,
+  faSlack,
+  faDiscord,
+  faTelegram,
+  faMicrosoft
 } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
   faFileCode, 
-  faCube 
+  faCube,
+  faComments
 } from '@fortawesome/free-solid-svg-icons'
 import {
   ReactFlow,
@@ -533,6 +538,28 @@ export default function CatalogDetail() {
                     <ExternalLink className="w-4 h-4" />
                     <span>View Documentation</span>
                   </a>
+                </dd>
+              </div>
+            )}
+            {service.communicationChannels && service.communicationChannels.length > 0 && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Communication Channels</dt>
+                <dd className="space-y-2">
+                  {service.communicationChannels.map((channel, index) => (
+                    <a
+                      key={index}
+                      href={channel.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
+                      style={getCommunicationChannelStyles(channel.type)}
+                      title={channel.description || `${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
+                    >
+                      {getCommunicationChannelIcon(channel.type)}
+                      <span>{channel.name}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ))}
                 </dd>
               </div>
             )}
@@ -1068,6 +1095,111 @@ function getPlatformIcon(platform?: Platform): string {
       return '☁️' // Cloud (garde le nuage)
     default:
       return '⚫' // Unknown/Default
+  }
+}
+
+// Helper functions for Communication Channels
+function getCommunicationChannelIcon(type?: CommunicationType) {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return <FontAwesomeIcon icon={faSlack} className="w-4 h-4" />
+    case CommunicationType.TEAMS:
+      return <FontAwesomeIcon icon={faMicrosoft} className="w-4 h-4" />
+    case CommunicationType.EMAIL:
+      return <Mail className="w-4 h-4" />
+    case CommunicationType.DISCORD:
+      return <FontAwesomeIcon icon={faDiscord} className="w-4 h-4" />
+    case CommunicationType.MATTERMOST:
+      return <FontAwesomeIcon icon={faComments} className="w-4 h-4" />
+    case CommunicationType.TELEGRAM:
+      return <FontAwesomeIcon icon={faTelegram} className="w-4 h-4" />
+    default:
+      return <FontAwesomeIcon icon={faComments} className="w-4 h-4" />
+  }
+}
+
+function getCommunicationChannelColor(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return '#4A154B' // Slack purple
+    case CommunicationType.TEAMS:
+      return '#6264A7' // Teams blue
+    case CommunicationType.EMAIL:
+      return '#EA4335' // Gmail red
+    case CommunicationType.DISCORD:
+      return '#5865F2' // Discord blurple
+    case CommunicationType.MATTERMOST:
+      return '#0058CC' // Mattermost blue
+    case CommunicationType.TELEGRAM:
+      return '#0088CC' // Telegram blue
+    default:
+      return '#6B7280' // Gray
+  }
+}
+
+function getCommunicationChannelStyles(type?: CommunicationType): { backgroundColor: string; borderColor: string; color: string } {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return {
+        backgroundColor: 'rgb(147 51 234 / 0.1)', // purple-600 with opacity
+        borderColor: 'rgb(147 51 234)', // purple-600
+        color: 'rgb(147 51 234)' // purple-600
+      }
+    case CommunicationType.TEAMS:
+      return {
+        backgroundColor: 'rgb(37 99 235 / 0.1)', // blue-600 with opacity
+        borderColor: 'rgb(37 99 235)', // blue-600
+        color: 'rgb(37 99 235)' // blue-600
+      }
+    case CommunicationType.EMAIL:
+      return {
+        backgroundColor: 'rgb(220 38 38 / 0.1)', // red-600 with opacity
+        borderColor: 'rgb(220 38 38)', // red-600
+        color: 'rgb(220 38 38)' // red-600
+      }
+    case CommunicationType.DISCORD:
+      return {
+        backgroundColor: 'rgb(79 70 229 / 0.1)', // indigo-600 with opacity
+        borderColor: 'rgb(79 70 229)', // indigo-600
+        color: 'rgb(79 70 229)' // indigo-600
+      }
+    case CommunicationType.MATTERMOST:
+      return {
+        backgroundColor: 'rgb(8 145 178 / 0.1)', // cyan-600 with opacity
+        borderColor: 'rgb(8 145 178)', // cyan-600
+        color: 'rgb(8 145 178)' // cyan-600
+      }
+    case CommunicationType.TELEGRAM:
+      return {
+        backgroundColor: 'rgb(2 132 199 / 0.1)', // sky-600 with opacity
+        borderColor: 'rgb(2 132 199)', // sky-600
+        color: 'rgb(2 132 199)' // sky-600
+      }
+    default:
+      return {
+        backgroundColor: 'rgb(107 114 128 / 0.1)', // gray-500 with opacity
+        borderColor: 'rgb(107 114 128)', // gray-500
+        color: 'rgb(107 114 128)' // gray-500
+      }
+  }
+}
+
+function getCommunicationChannelLabel(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return 'Slack'
+    case CommunicationType.TEAMS:
+      return 'Microsoft Teams'
+    case CommunicationType.EMAIL:
+      return 'Email'
+    case CommunicationType.DISCORD:
+      return 'Discord'
+    case CommunicationType.MATTERMOST:
+      return 'Mattermost'
+    case CommunicationType.TELEGRAM:
+      return 'Telegram'
+    default:
+      return 'Communication'
   }
 }
 

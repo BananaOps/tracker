@@ -334,6 +334,67 @@ func (Platform) EnumDescriptor() ([]byte, []int) {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{3}
 }
 
+type CommunicationType int32
+
+const (
+	CommunicationType_COMMUNICATION_TYPE_UNSPECIFIED CommunicationType = 0
+	CommunicationType_slack                          CommunicationType = 1 // Slack channel
+	CommunicationType_teams                          CommunicationType = 2 // Microsoft Teams channel
+	CommunicationType_email                          CommunicationType = 3 // Email address
+	CommunicationType_discord                        CommunicationType = 4 // Discord channel
+	CommunicationType_mattermost                     CommunicationType = 5 // Mattermost channel
+	CommunicationType_telegram                       CommunicationType = 6 // Telegram group/channel
+)
+
+// Enum value maps for CommunicationType.
+var (
+	CommunicationType_name = map[int32]string{
+		0: "COMMUNICATION_TYPE_UNSPECIFIED",
+		1: "slack",
+		2: "teams",
+		3: "email",
+		4: "discord",
+		5: "mattermost",
+		6: "telegram",
+	}
+	CommunicationType_value = map[string]int32{
+		"COMMUNICATION_TYPE_UNSPECIFIED": 0,
+		"slack":                          1,
+		"teams":                          2,
+		"email":                          3,
+		"discord":                        4,
+		"mattermost":                     5,
+		"telegram":                       6,
+	}
+)
+
+func (x CommunicationType) Enum() *CommunicationType {
+	p := new(CommunicationType)
+	*p = x
+	return p
+}
+
+func (x CommunicationType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CommunicationType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[4].Descriptor()
+}
+
+func (CommunicationType) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[4]
+}
+
+func (x CommunicationType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CommunicationType.Descriptor instead.
+func (CommunicationType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{4}
+}
+
 type Catalog struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -356,8 +417,10 @@ type Catalog struct {
 	ReferenceVersion  string   `protobuf:"bytes,17,opt,name=reference_version,json=referenceVersion,proto3" json:"reference_version,omitempty"`    // Recommended/reference version to use
 	// For projects: track which deliverables and versions are used
 	UsedDeliverables []*UsedDeliverable `protobuf:"bytes,18,rep,name=used_deliverables,json=usedDeliverables,proto3" json:"used_deliverables,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Communication channels for the service
+	CommunicationChannels []*CommunicationChannel `protobuf:"bytes,19,rep,name=communication_channels,json=communicationChannels,proto3" json:"communication_channels,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Catalog) Reset() {
@@ -516,6 +579,13 @@ func (x *Catalog) GetUsedDeliverables() []*UsedDeliverable {
 	return nil
 }
 
+func (x *Catalog) GetCommunicationChannels() []*CommunicationChannel {
+	if x != nil {
+		return x.CommunicationChannels
+	}
+	return nil
+}
+
 type CreateUpdateCatalogRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -534,8 +604,10 @@ type CreateUpdateCatalogRequest struct {
 	Platform        Platform               `protobuf:"varint,14,opt,name=platform,proto3,enum=tracker.catalog.v1alpha1.Platform" json:"platform,omitempty"`
 	// For projects: track which deliverables and versions are used
 	UsedDeliverables []*UsedDeliverable `protobuf:"bytes,15,rep,name=used_deliverables,json=usedDeliverables,proto3" json:"used_deliverables,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Communication channels for the service
+	CommunicationChannels []*CommunicationChannel `protobuf:"bytes,16,rep,name=communication_channels,json=communicationChannels,proto3" json:"communication_channels,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateUpdateCatalogRequest) Reset() {
@@ -669,6 +741,13 @@ func (x *CreateUpdateCatalogRequest) GetPlatform() Platform {
 func (x *CreateUpdateCatalogRequest) GetUsedDeliverables() []*UsedDeliverable {
 	if x != nil {
 		return x.UsedDeliverables
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetCommunicationChannels() []*CommunicationChannel {
+	if x != nil {
+		return x.CommunicationChannels
 	}
 	return nil
 }
@@ -1681,11 +1760,80 @@ func (x *UsedDeliverable) GetDescription() string {
 	return ""
 }
 
+// Communication channel for a service
+type CommunicationChannel struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          CommunicationType      `protobuf:"varint,1,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.CommunicationType" json:"type,omitempty"` // Type of communication channel
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                                  // Display name for the channel
+	Url           string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`                                                    // URL or link to the channel
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                                    // Optional description
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommunicationChannel) Reset() {
+	*x = CommunicationChannel{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommunicationChannel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommunicationChannel) ProtoMessage() {}
+
+func (x *CommunicationChannel) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommunicationChannel.ProtoReflect.Descriptor instead.
+func (*CommunicationChannel) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *CommunicationChannel) GetType() CommunicationType {
+	if x != nil {
+		return x.Type
+	}
+	return CommunicationType_COMMUNICATION_TYPE_UNSPECIFIED
+}
+
+func (x *CommunicationChannel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CommunicationChannel) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *CommunicationChannel) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 var File_proto_catalog_v1alpha1_catalog_proto protoreflect.FileDescriptor
 
 const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xb0\x06\n" +
+	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x97\a\n" +
 	"\aCatalog\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -1709,7 +1857,8 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x12available_versions\x18\x0f \x03(\tR\x11availableVersions\x12%\n" +
 	"\x0elatest_version\x18\x10 \x01(\tR\rlatestVersion\x12+\n" +
 	"\x11reference_version\x18\x11 \x01(\tR\x10referenceVersion\x12V\n" +
-	"\x11used_deliverables\x18\x12 \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\"\xc0\x05\n" +
+	"\x11used_deliverables\x18\x12 \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\x12e\n" +
+	"\x16communication_channels\x18\x13 \x03(\v2..tracker.catalog.v1alpha1.CommunicationChannelR\x15communicationChannels\"\xa7\x06\n" +
 	"\x1aCreateUpdateCatalogRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -1730,7 +1879,8 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
 	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\x12>\n" +
 	"\bplatform\x18\x0e \x01(\x0e2\".tracker.catalog.v1alpha1.PlatformR\bplatform\x12V\n" +
-	"\x11used_deliverables\x18\x0f \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\"Z\n" +
+	"\x11used_deliverables\x18\x0f \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\x12e\n" +
+	"\x16communication_channels\x18\x10 \x03(\v2..tracker.catalog.v1alpha1.CommunicationChannelR\x15communicationChannels\"Z\n" +
 	"\x1bCreateUpdateCatalogResponse\x12;\n" +
 	"\acatalog\x18\x01 \x01(\v2!.tracker.catalog.v1alpha1.CatalogR\acatalog\"'\n" +
 	"\x11GetCatalogRequest\x12\x12\n" +
@@ -1799,6 +1949,11 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12!\n" +
 	"\fversion_used\x18\x03 \x01(\tR\vversionUsed\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\x9f\x01\n" +
+	"\x14CommunicationChannel\x12?\n" +
+	"\x04type\x18\x01 \x01(\x0e2+.tracker.catalog.v1alpha1.CommunicationTypeR\x04type\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription*w\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\n" +
@@ -1868,7 +2023,16 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"on_premise\x10\x10\x12\n" +
 	"\n" +
 	"\x06hybrid\x10\x11\x12\x0f\n" +
-	"\vmulti_cloud\x10\x122\xc9\a\n" +
+	"\vmulti_cloud\x10\x12*\x83\x01\n" +
+	"\x11CommunicationType\x12\"\n" +
+	"\x1eCOMMUNICATION_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05slack\x10\x01\x12\t\n" +
+	"\x05teams\x10\x02\x12\t\n" +
+	"\x05email\x10\x03\x12\v\n" +
+	"\adiscord\x10\x04\x12\x0e\n" +
+	"\n" +
+	"mattermost\x10\x05\x12\f\n" +
+	"\btelegram\x10\x062\xc9\a\n" +
 	"\x0eCatalogService\x12\xa4\x01\n" +
 	"\x13CreateUpdateCatalog\x124.tracker.catalog.v1alpha1.CreateUpdateCatalogRequest\x1a5.tracker.catalog.v1alpha1.CreateUpdateCatalogResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1alpha1/catalog\x12\x86\x01\n" +
 	"\n" +
@@ -1890,86 +2054,91 @@ func file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP() []byte {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescData
 }
 
-var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
 	(Type)(0),                            // 0: tracker.catalog.v1alpha1.Type
 	(Languages)(0),                       // 1: tracker.catalog.v1alpha1.Languages
 	(SLALevel)(0),                        // 2: tracker.catalog.v1alpha1.SLALevel
 	(Platform)(0),                        // 3: tracker.catalog.v1alpha1.Platform
-	(*Catalog)(nil),                      // 4: tracker.catalog.v1alpha1.Catalog
-	(*CreateUpdateCatalogRequest)(nil),   // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	(*CreateUpdateCatalogResponse)(nil),  // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	(*GetCatalogRequest)(nil),            // 7: tracker.catalog.v1alpha1.GetCatalogRequest
-	(*GetCatalogResponse)(nil),           // 8: tracker.catalog.v1alpha1.GetCatalogResponse
-	(*DeleteCatalogRequest)(nil),         // 9: tracker.catalog.v1alpha1.DeleteCatalogRequest
-	(*DeleteCatalogResponse)(nil),        // 10: tracker.catalog.v1alpha1.DeleteCatalogResponse
-	(*ListCatalogsRequest)(nil),          // 11: tracker.catalog.v1alpha1.ListCatalogsRequest
-	(*ListCatalogsResponse)(nil),         // 12: tracker.catalog.v1alpha1.ListCatalogsResponse
-	(*GetVersionComplianceRequest)(nil),  // 13: tracker.catalog.v1alpha1.GetVersionComplianceRequest
-	(*GetVersionComplianceResponse)(nil), // 14: tracker.catalog.v1alpha1.GetVersionComplianceResponse
-	(*ProjectCompliance)(nil),            // 15: tracker.catalog.v1alpha1.ProjectCompliance
-	(*DeliverableUsage)(nil),             // 16: tracker.catalog.v1alpha1.DeliverableUsage
-	(*ComplianceSummary)(nil),            // 17: tracker.catalog.v1alpha1.ComplianceSummary
-	(*DeliverableComplianceStats)(nil),   // 18: tracker.catalog.v1alpha1.DeliverableComplianceStats
-	(*SLA)(nil),                          // 19: tracker.catalog.v1alpha1.SLA
-	(*UpdateVersionsRequest)(nil),        // 20: tracker.catalog.v1alpha1.UpdateVersionsRequest
-	(*UpdateVersionsResponse)(nil),       // 21: tracker.catalog.v1alpha1.UpdateVersionsResponse
-	(*UsedDeliverable)(nil),              // 22: tracker.catalog.v1alpha1.UsedDeliverable
-	(*timestamppb.Timestamp)(nil),        // 23: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil),       // 24: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),        // 25: google.protobuf.Int32Value
-	(*wrapperspb.DoubleValue)(nil),       // 26: google.protobuf.DoubleValue
+	(CommunicationType)(0),               // 4: tracker.catalog.v1alpha1.CommunicationType
+	(*Catalog)(nil),                      // 5: tracker.catalog.v1alpha1.Catalog
+	(*CreateUpdateCatalogRequest)(nil),   // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	(*CreateUpdateCatalogResponse)(nil),  // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	(*GetCatalogRequest)(nil),            // 8: tracker.catalog.v1alpha1.GetCatalogRequest
+	(*GetCatalogResponse)(nil),           // 9: tracker.catalog.v1alpha1.GetCatalogResponse
+	(*DeleteCatalogRequest)(nil),         // 10: tracker.catalog.v1alpha1.DeleteCatalogRequest
+	(*DeleteCatalogResponse)(nil),        // 11: tracker.catalog.v1alpha1.DeleteCatalogResponse
+	(*ListCatalogsRequest)(nil),          // 12: tracker.catalog.v1alpha1.ListCatalogsRequest
+	(*ListCatalogsResponse)(nil),         // 13: tracker.catalog.v1alpha1.ListCatalogsResponse
+	(*GetVersionComplianceRequest)(nil),  // 14: tracker.catalog.v1alpha1.GetVersionComplianceRequest
+	(*GetVersionComplianceResponse)(nil), // 15: tracker.catalog.v1alpha1.GetVersionComplianceResponse
+	(*ProjectCompliance)(nil),            // 16: tracker.catalog.v1alpha1.ProjectCompliance
+	(*DeliverableUsage)(nil),             // 17: tracker.catalog.v1alpha1.DeliverableUsage
+	(*ComplianceSummary)(nil),            // 18: tracker.catalog.v1alpha1.ComplianceSummary
+	(*DeliverableComplianceStats)(nil),   // 19: tracker.catalog.v1alpha1.DeliverableComplianceStats
+	(*SLA)(nil),                          // 20: tracker.catalog.v1alpha1.SLA
+	(*UpdateVersionsRequest)(nil),        // 21: tracker.catalog.v1alpha1.UpdateVersionsRequest
+	(*UpdateVersionsResponse)(nil),       // 22: tracker.catalog.v1alpha1.UpdateVersionsResponse
+	(*UsedDeliverable)(nil),              // 23: tracker.catalog.v1alpha1.UsedDeliverable
+	(*CommunicationChannel)(nil),         // 24: tracker.catalog.v1alpha1.CommunicationChannel
+	(*timestamppb.Timestamp)(nil),        // 25: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil),       // 26: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),        // 27: google.protobuf.Int32Value
+	(*wrapperspb.DoubleValue)(nil),       // 28: google.protobuf.DoubleValue
 }
 var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	0,  // 0: tracker.catalog.v1alpha1.Catalog.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 1: tracker.catalog.v1alpha1.Catalog.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	23, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
-	23, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	25, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
+	25, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
 	3,  // 5: tracker.catalog.v1alpha1.Catalog.platform:type_name -> tracker.catalog.v1alpha1.Platform
-	22, // 6: tracker.catalog.v1alpha1.Catalog.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
-	0,  // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
-	1,  // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	23, // 9: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
-	23, // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 11: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
-	3,  // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.platform:type_name -> tracker.catalog.v1alpha1.Platform
-	22, // 13: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
-	4,  // 14: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	4,  // 15: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	24, // 16: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	25, // 17: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
-	4,  // 18: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
-	0,  // 19: tracker.catalog.v1alpha1.GetVersionComplianceRequest.types:type_name -> tracker.catalog.v1alpha1.Type
-	15, // 20: tracker.catalog.v1alpha1.GetVersionComplianceResponse.projects:type_name -> tracker.catalog.v1alpha1.ProjectCompliance
-	17, // 21: tracker.catalog.v1alpha1.GetVersionComplianceResponse.summary:type_name -> tracker.catalog.v1alpha1.ComplianceSummary
-	16, // 22: tracker.catalog.v1alpha1.ProjectCompliance.deliverables:type_name -> tracker.catalog.v1alpha1.DeliverableUsage
-	0,  // 23: tracker.catalog.v1alpha1.DeliverableUsage.type:type_name -> tracker.catalog.v1alpha1.Type
-	18, // 24: tracker.catalog.v1alpha1.ComplianceSummary.deliverable_stats:type_name -> tracker.catalog.v1alpha1.DeliverableComplianceStats
-	0,  // 25: tracker.catalog.v1alpha1.DeliverableComplianceStats.type:type_name -> tracker.catalog.v1alpha1.Type
-	2,  // 26: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
-	26, // 27: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
-	24, // 28: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
-	4,  // 29: tracker.catalog.v1alpha1.UpdateVersionsResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	0,  // 30: tracker.catalog.v1alpha1.UsedDeliverable.type:type_name -> tracker.catalog.v1alpha1.Type
-	5,  // 31: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	7,  // 32: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
-	9,  // 33: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
-	11, // 34: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
-	13, // 35: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:input_type -> tracker.catalog.v1alpha1.GetVersionComplianceRequest
-	20, // 36: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:input_type -> tracker.catalog.v1alpha1.UpdateVersionsRequest
-	6,  // 37: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	8,  // 38: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
-	10, // 39: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
-	12, // 40: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
-	14, // 41: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:output_type -> tracker.catalog.v1alpha1.GetVersionComplianceResponse
-	21, // 42: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:output_type -> tracker.catalog.v1alpha1.UpdateVersionsResponse
-	37, // [37:43] is the sub-list for method output_type
-	31, // [31:37] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	23, // 6: tracker.catalog.v1alpha1.Catalog.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
+	24, // 7: tracker.catalog.v1alpha1.Catalog.communication_channels:type_name -> tracker.catalog.v1alpha1.CommunicationChannel
+	0,  // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
+	1,  // 9: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
+	25, // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
+	25, // 11: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 13: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.platform:type_name -> tracker.catalog.v1alpha1.Platform
+	23, // 14: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
+	24, // 15: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.communication_channels:type_name -> tracker.catalog.v1alpha1.CommunicationChannel
+	5,  // 16: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	5,  // 17: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	26, // 18: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	27, // 19: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
+	5,  // 20: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
+	0,  // 21: tracker.catalog.v1alpha1.GetVersionComplianceRequest.types:type_name -> tracker.catalog.v1alpha1.Type
+	16, // 22: tracker.catalog.v1alpha1.GetVersionComplianceResponse.projects:type_name -> tracker.catalog.v1alpha1.ProjectCompliance
+	18, // 23: tracker.catalog.v1alpha1.GetVersionComplianceResponse.summary:type_name -> tracker.catalog.v1alpha1.ComplianceSummary
+	17, // 24: tracker.catalog.v1alpha1.ProjectCompliance.deliverables:type_name -> tracker.catalog.v1alpha1.DeliverableUsage
+	0,  // 25: tracker.catalog.v1alpha1.DeliverableUsage.type:type_name -> tracker.catalog.v1alpha1.Type
+	19, // 26: tracker.catalog.v1alpha1.ComplianceSummary.deliverable_stats:type_name -> tracker.catalog.v1alpha1.DeliverableComplianceStats
+	0,  // 27: tracker.catalog.v1alpha1.DeliverableComplianceStats.type:type_name -> tracker.catalog.v1alpha1.Type
+	2,  // 28: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
+	28, // 29: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
+	26, // 30: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
+	5,  // 31: tracker.catalog.v1alpha1.UpdateVersionsResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	0,  // 32: tracker.catalog.v1alpha1.UsedDeliverable.type:type_name -> tracker.catalog.v1alpha1.Type
+	4,  // 33: tracker.catalog.v1alpha1.CommunicationChannel.type:type_name -> tracker.catalog.v1alpha1.CommunicationType
+	6,  // 34: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	8,  // 35: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
+	10, // 36: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
+	12, // 37: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
+	14, // 38: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:input_type -> tracker.catalog.v1alpha1.GetVersionComplianceRequest
+	21, // 39: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:input_type -> tracker.catalog.v1alpha1.UpdateVersionsRequest
+	7,  // 40: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	9,  // 41: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
+	11, // 42: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
+	13, // 43: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
+	15, // 44: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:output_type -> tracker.catalog.v1alpha1.GetVersionComplianceResponse
+	22, // 45: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:output_type -> tracker.catalog.v1alpha1.UpdateVersionsResponse
+	40, // [40:46] is the sub-list for method output_type
+	34, // [34:40] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_proto_catalog_v1alpha1_catalog_proto_init() }
@@ -1982,8 +2151,8 @@ func file_proto_catalog_v1alpha1_catalog_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_v1alpha1_catalog_proto_rawDesc), len(file_proto_catalog_v1alpha1_catalog_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   19,
+			NumEnums:      5,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

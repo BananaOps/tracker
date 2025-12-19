@@ -138,6 +138,10 @@ const config = {
           { name: 'auth-library', type: 'library', versionUsed: '2.0.0', description: 'Authentication and authorization' },
           { name: 'kubernetes-charts', type: 'chart', versionUsed: '0.7.0', description: 'Helm charts for deployment' },
           { name: 'monitoring-stack', type: 'container', versionUsed: '2.2.0', description: 'Monitoring and observability' }
+        ],
+        communicationChannels: [
+          { type: 'slack', name: '#payment-alerts', url: 'https://company.slack.com/channels/payment-alerts', description: 'Payment service alerts and notifications' },
+          { type: 'email', name: 'Payment Team', url: 'mailto:payment-team@company.com', description: 'Payment team contact' }
         ]
       },
       { 
@@ -153,6 +157,10 @@ const config = {
           { name: 'auth-library', type: 'library', versionUsed: '1.2.0', description: 'User authentication' },
           { name: 'encryption-lib', type: 'library', versionUsed: '1.1.0', description: 'Data encryption' },
           { name: 'kubernetes-charts', type: 'chart', versionUsed: '0.6.0', description: 'Deployment charts' }
+        ],
+        communicationChannels: [
+          { type: 'teams', name: 'User Management Team', url: 'https://teams.microsoft.com/l/channel/user-mgmt', description: 'Microsoft Teams channel for user management' },
+          { type: 'slack', name: '#user-support', url: 'https://company.slack.com/channels/user-support', description: 'User support channel' }
         ]
       },
       { 
@@ -168,6 +176,10 @@ const config = {
           { name: 'data-processor', type: 'package', versionUsed: '1.7.0', description: 'Data processing pipeline' },
           { name: 'etl-framework', type: 'package', versionUsed: '1.0.0', description: 'ETL operations' },
           { name: 'api-client', type: 'library', versionUsed: '3.2.0', description: 'API communication' }
+        ],
+        communicationChannels: [
+          { type: 'discord', name: 'Data Team', url: 'https://discord.gg/data-team', description: 'Data team Discord server' },
+          { type: 'email', name: 'Data Analytics', url: 'mailto:data-analytics@company.com', description: 'Data analytics team' }
         ]
       },
       { 
@@ -182,6 +194,10 @@ const config = {
         usedDeliverables: [
           { name: 'ui-components', type: 'library', versionUsed: '2.2.0', description: 'Reusable UI components' },
           { name: 'api-client', type: 'library', versionUsed: '3.1.0', description: 'Frontend API client' }
+        ],
+        communicationChannels: [
+          { type: 'slack', name: '#frontend-team', url: 'https://company.slack.com/channels/frontend-team', description: 'Frontend development team' },
+          { type: 'mattermost', name: 'Web Development', url: 'https://mattermost.company.com/channels/web-dev', description: 'Web development discussions' }
         ]
       },
       { 
@@ -196,6 +212,10 @@ const config = {
         usedDeliverables: [
           { name: 'api-client', type: 'library', versionUsed: '4.0.0', description: 'Mobile API client' },
           { name: 'ui-components', type: 'library', versionUsed: '2.1.0', description: 'Mobile UI components' }
+        ],
+        communicationChannels: [
+          { type: 'telegram', name: 'Mobile Dev Team', url: 'https://t.me/mobile_dev_team', description: 'Mobile development team chat' },
+          { type: 'email', name: 'Mobile Support', url: 'mailto:mobile-support@company.com', description: 'Mobile app support' }
         ]
       },
       { 

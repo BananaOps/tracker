@@ -60,6 +60,8 @@ message Catalog {
   string reference_version = 17;            // Recommended/reference version to use
   // For projects: track which deliverables and versions are used
   repeated UsedDeliverable used_deliverables = 18;
+  // Communication channels for the service
+  repeated CommunicationChannel communication_channels = 19;
 }
 
 message CreateUpdateCatalogRequest {
@@ -79,6 +81,8 @@ message CreateUpdateCatalogRequest {
   Platform platform = 14;
   // For projects: track which deliverables and versions are used
   repeated UsedDeliverable used_deliverables = 15;
+  // Communication channels for the service
+  repeated CommunicationChannel communication_channels = 16;
   // Note: Version management (available_versions, latest_version, reference_version) 
   // is handled separately via UpdateVersions endpoint
 }
@@ -253,4 +257,22 @@ message UsedDeliverable {
   Type type = 2;                            // Type of deliverable (package, chart, container, module)
   string version_used = 3;                  // Version currently used in this project
   string description = 4;                   // Optional description or usage context
+}
+
+// Communication channel for a service
+message CommunicationChannel {
+  CommunicationType type = 1;               // Type of communication channel
+  string name = 2;                          // Display name for the channel
+  string url = 3;                           // URL or link to the channel
+  string description = 4;                   // Optional description
+}
+
+enum CommunicationType {
+  COMMUNICATION_TYPE_UNSPECIFIED = 0;
+  slack = 1;                                // Slack channel
+  teams = 2;                                // Microsoft Teams channel
+  email = 3;                                // Email address
+  discord = 4;                              // Discord channel
+  mattermost = 5;                           // Mattermost channel
+  telegram = 6;                             // Telegram group/channel
 }

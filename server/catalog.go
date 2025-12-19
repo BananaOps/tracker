@@ -46,19 +46,20 @@ func (e *Catalog) CreateUpdateCatalog(
 	existingCatalog, _ := e.store.Get(ctx, map[string]interface{}{"name": i.Name})
 
 	var catalog = &v1alpha1.Catalog{
-		Name:             i.Name,
-		Type:             i.Type,
-		Languages:        i.Languages,
-		Owner:            i.Owner,
-		Version:          i.Version,
-		Link:             i.Link,
-		Description:      i.Description,
-		Repository:       i.Repository,
-		DependenciesIn:   i.DependenciesIn,
-		DependenciesOut:  i.DependenciesOut,
-		Sla:              i.Sla,
-		Platform:         i.Platform,
-		UsedDeliverables: i.UsedDeliverables,
+		Name:                  i.Name,
+		Type:                  i.Type,
+		Languages:             i.Languages,
+		Owner:                 i.Owner,
+		Version:               i.Version,
+		Link:                  i.Link,
+		Description:           i.Description,
+		Repository:            i.Repository,
+		DependenciesIn:        i.DependenciesIn,
+		DependenciesOut:       i.DependenciesOut,
+		Sla:                   i.Sla,
+		Platform:              i.Platform,
+		UsedDeliverables:      i.UsedDeliverables,
+		CommunicationChannels: i.CommunicationChannels,
 	}
 
 	// Preserve existing version fields if updating

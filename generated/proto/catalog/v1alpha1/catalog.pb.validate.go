@@ -199,6 +199,40 @@ func (m *Catalog) validate(all bool) error {
 
 	}
 
+	for idx, item := range m.GetCommunicationChannels() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CatalogValidationError{
+						field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CatalogValidationError{
+						field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CatalogValidationError{
+					field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return CatalogMultiError(errors)
 	}
@@ -429,6 +463,40 @@ func (m *CreateUpdateCatalogRequest) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return CreateUpdateCatalogRequestValidationError{
 					field:  fmt.Sprintf("UsedDeliverables[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetCommunicationChannels() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateUpdateCatalogRequestValidationError{
+						field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateUpdateCatalogRequestValidationError{
+						field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateUpdateCatalogRequestValidationError{
+					field:  fmt.Sprintf("CommunicationChannels[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2683,3 +2751,113 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UsedDeliverableValidationError{}
+
+// Validate checks the field values on CommunicationChannel with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CommunicationChannel) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CommunicationChannel with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CommunicationChannelMultiError, or nil if none found.
+func (m *CommunicationChannel) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CommunicationChannel) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	// no validation rules for Name
+
+	// no validation rules for Url
+
+	// no validation rules for Description
+
+	if len(errors) > 0 {
+		return CommunicationChannelMultiError(errors)
+	}
+
+	return nil
+}
+
+// CommunicationChannelMultiError is an error wrapping multiple validation
+// errors returned by CommunicationChannel.ValidateAll() if the designated
+// constraints aren't met.
+type CommunicationChannelMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CommunicationChannelMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CommunicationChannelMultiError) AllErrors() []error { return m }
+
+// CommunicationChannelValidationError is the validation error returned by
+// CommunicationChannel.Validate if the designated constraints aren't met.
+type CommunicationChannelValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CommunicationChannelValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CommunicationChannelValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CommunicationChannelValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CommunicationChannelValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CommunicationChannelValidationError) ErrorName() string {
+	return "CommunicationChannelValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CommunicationChannelValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCommunicationChannel.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CommunicationChannelValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CommunicationChannelValidationError{}

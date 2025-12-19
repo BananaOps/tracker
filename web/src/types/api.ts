@@ -246,6 +246,23 @@ export interface UsedDeliverable {
   description?: string
 }
 
+export enum CommunicationType {
+  UNSPECIFIED = 'unspecified',
+  SLACK = 'slack',
+  TEAMS = 'teams',
+  EMAIL = 'email',
+  DISCORD = 'discord',
+  MATTERMOST = 'mattermost',
+  TELEGRAM = 'telegram',
+}
+
+export interface CommunicationChannel {
+  type: CommunicationType
+  name: string
+  url: string
+  description?: string
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -265,6 +282,7 @@ export interface Catalog {
   latestVersion?: string
   referenceVersion?: string
   usedDeliverables?: UsedDeliverable[]
+  communicationChannels?: CommunicationChannel[]
 }
 
 export interface ListEventsResponse {

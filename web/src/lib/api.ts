@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ListCatalogsResponse } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
+import { convertCatalogForAPI, convertCatalogFromAPI, convertCommunicationChannelsFromAPI } from './apiConverters'
 
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
@@ -84,6 +85,7 @@ const realCatalogApi = {
         versionUsed: ud.version_used || ud.versionUsed,
         description: ud.description
       })) || catalog.usedDeliverables,
+      communicationChannels: convertCommunicationChannelsFromAPI(catalog.communication_channels || catalog.communicationChannels || []),
       sla: catalog.sla ? {
         level: catalog.sla.level,
         uptimePercentage: catalog.sla.uptimePercentage?.value,
@@ -113,6 +115,7 @@ const realCatalogApi = {
         versionUsed: ud.version_used || ud.versionUsed,
         description: ud.description
       })) || data.catalog.usedDeliverables,
+      communicationChannels: convertCommunicationChannelsFromAPI(data.catalog.communication_channels || data.catalog.communicationChannels || []),
       sla: data.catalog.sla ? {
         level: data.catalog.sla.level,
         uptimePercentage: data.catalog.sla.uptimePercentage?.value,
@@ -155,7 +158,14 @@ const realCatalogApi = {
         type: ud.type,
         version_used: ud.versionUsed,
         description: ud.description
-      }))
+      })),
+      // Convert communication channels to snake_case
+      communication_channels: catalog.communicationChannels?.map(channel => ({
+        type: channel.type,
+        name: channel.name,
+        url: channel.url,
+        description: channel.description
+      })) || []
       // Note: availableVersions, latestVersion, referenceVersion are NOT sent here
       // They are managed via separate updateVersions endpoint
     }

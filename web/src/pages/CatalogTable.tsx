@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, Platform, type Catalog } from '../types/api'
-import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity } from 'lucide-react'
+import { CatalogType, Language, SLALevel, Platform, CommunicationType, type Catalog } from '../types/api'
+import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -13,12 +13,17 @@ import {
   faDocker, 
   faRust,
   faGolang,
-  faGithub
+  faGithub,
+  faSlack,
+  faDiscord,
+  faTelegram,
+  faMicrosoft
 } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
   faFileCode, 
-  faCube 
+  faCube,
+  faComments
 } from '@fortawesome/free-solid-svg-icons'
 
 export default function CatalogTable() {
@@ -422,6 +427,20 @@ export default function CatalogTable() {
                           <BookOpen className="w-5 h-5" />
                         </a>
                       )}
+                      {catalog.communicationChannels && catalog.communicationChannels.map((channel, idx) => (
+                        <a
+                          key={idx}
+                          href={channel.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-colors"
+                          style={{ color: getCommunicationChannelColor(channel.type) }}
+                          title={`${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {getCommunicationChannelIcon(channel.type)}
+                        </a>
+                      ))}
                     </div>
                   </td>
                 </tr>
@@ -597,5 +616,63 @@ function getPlatformLabel(platform?: Platform): string {
       return 'Multi-Cloud'
     default:
       return 'Not Set'
+  }
+}
+
+// Helper functions for Communication Channels
+function getCommunicationChannelIcon(type?: CommunicationType) {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return <FontAwesomeIcon icon={faSlack} className="w-5 h-5" />
+    case CommunicationType.TEAMS:
+      return <FontAwesomeIcon icon={faMicrosoft} className="w-5 h-5" />
+    case CommunicationType.EMAIL:
+      return <Mail className="w-5 h-5" />
+    case CommunicationType.DISCORD:
+      return <FontAwesomeIcon icon={faDiscord} className="w-5 h-5" />
+    case CommunicationType.MATTERMOST:
+      return <FontAwesomeIcon icon={faComments} className="w-5 h-5" />
+    case CommunicationType.TELEGRAM:
+      return <FontAwesomeIcon icon={faTelegram} className="w-5 h-5" />
+    default:
+      return <FontAwesomeIcon icon={faComments} className="w-5 h-5" />
+  }
+}
+
+function getCommunicationChannelColor(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return '#4A154B' // Slack purple
+    case CommunicationType.TEAMS:
+      return '#6264A7' // Teams blue
+    case CommunicationType.EMAIL:
+      return '#EA4335' // Gmail red
+    case CommunicationType.DISCORD:
+      return '#5865F2' // Discord blurple
+    case CommunicationType.MATTERMOST:
+      return '#0058CC' // Mattermost blue
+    case CommunicationType.TELEGRAM:
+      return '#0088CC' // Telegram blue
+    default:
+      return '#6B7280' // Gray
+  }
+}
+
+function getCommunicationChannelLabel(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return 'Slack'
+    case CommunicationType.TEAMS:
+      return 'Microsoft Teams'
+    case CommunicationType.EMAIL:
+      return 'Email'
+    case CommunicationType.DISCORD:
+      return 'Discord'
+    case CommunicationType.MATTERMOST:
+      return 'Mattermost'
+    case CommunicationType.TELEGRAM:
+      return 'Telegram'
+    default:
+      return 'Communication'
   }
 }

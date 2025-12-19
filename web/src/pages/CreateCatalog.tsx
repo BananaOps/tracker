@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable } from '../types/api'
+import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable, type CommunicationChannel } from '../types/api'
 import { ArrowLeft, Save, Package, X } from 'lucide-react'
 import DependencySelector from '../components/DependencySelector'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
+import CommunicationChannelsManager from '../components/CommunicationChannelsManager'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
@@ -33,6 +34,7 @@ export default function CreateCatalog() {
     sla: undefined,
     platform: Platform.KUBERNETES,
     usedDeliverables: [],
+    communicationChannels: [],
   })
 
   const [newDepIn, setNewDepIn] = useState('')
@@ -85,6 +87,10 @@ export default function CreateCatalog() {
 
   const handleUpdateUsedDeliverables = (usedDeliverables: UsedDeliverable[]) => {
     setFormData(prev => ({ ...prev, usedDeliverables }))
+  }
+
+  const handleUpdateCommunicationChannels = (communicationChannels: CommunicationChannel[]) => {
+    setFormData(prev => ({ ...prev, communicationChannels }))
   }
 
   const handleSLAChange = (field: keyof SLA, value: any) => {
@@ -590,6 +596,14 @@ export default function CreateCatalog() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Communication Channels */}
+          <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <CommunicationChannelsManager
+              channels={formData.communicationChannels || []}
+              onChange={handleUpdateCommunicationChannels}
+            />
           </div>
 
           {/* Action Buttons */}
