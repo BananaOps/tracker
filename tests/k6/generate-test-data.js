@@ -142,7 +142,50 @@ const config = {
         communicationChannels: [
           { type: 'slack', name: '#payment-alerts', url: 'https://company.slack.com/channels/payment-alerts', description: 'Payment service alerts and notifications' },
           { type: 'email', name: 'Payment Team', url: 'mailto:payment-team@company.com', description: 'Payment team contact' }
-        ]
+        ],
+        dashboardLinks: [
+          { type: 'grafana', name: 'Payment Service Metrics', url: 'https://grafana.company.com/d/payment-service', description: 'Service performance and business metrics' },
+          { type: 'datadog', name: 'Payment APM', url: 'https://app.datadoghq.com/apm/service/payment-service', description: 'Application performance monitoring' }
+        ],
+        vulnerabilitySummary: {
+          criticalCount: 2,
+          highCount: 5,
+          mediumCount: 12,
+          lowCount: 8,
+          infoCount: 3,
+          totalCount: 30,
+          lastUpdated: '2024-01-15T10:30:00Z',
+          sources: [
+            {
+              name: 'Snyk',
+              type: 'sca',
+              url: 'https://app.snyk.io/org/company/project/payment-service',
+              criticalCount: 1,
+              highCount: 3,
+              mediumCount: 8,
+              lowCount: 5,
+              infoCount: 2,
+              totalCount: 19,
+              lastScan: '2024-01-15T10:30:00Z',
+              scanVersion: 'v1.1200.0',
+              description: 'Dependency vulnerability scanning'
+            },
+            {
+              name: 'GitHub Security',
+              type: 'sast',
+              url: 'https://github.com/company/payment-service/security/advisories',
+              criticalCount: 1,
+              highCount: 2,
+              mediumCount: 4,
+              lowCount: 3,
+              infoCount: 1,
+              totalCount: 11,
+              lastScan: '2024-01-14T16:45:00Z',
+              scanVersion: 'CodeQL-2.15.3',
+              description: 'Static code analysis and secret scanning'
+            }
+          ]
+        }
       },
       { 
         name: 'user-management', 
@@ -161,7 +204,22 @@ const config = {
         communicationChannels: [
           { type: 'teams', name: 'User Management Team', url: 'https://teams.microsoft.com/l/channel/user-mgmt', description: 'Microsoft Teams channel for user management' },
           { type: 'slack', name: '#user-support', url: 'https://company.slack.com/channels/user-support', description: 'User support channel' }
-        ]
+        ],
+        dashboardLinks: [
+          { type: 'newrelic', name: 'User Service Overview', url: 'https://one.newrelic.com/dashboards/user-service', description: 'User management service monitoring' },
+          { type: 'kibana', name: 'User Activity Logs', url: 'https://kibana.company.com/app/dashboards/user-activity', description: 'User activity and audit logs' }
+        ],
+        vulnerabilitySummary: {
+          criticalCount: 0,
+          highCount: 2,
+          mediumCount: 7,
+          lowCount: 15,
+          infoCount: 5,
+          totalCount: 29,
+          lastScan: '2024-01-14T08:15:00Z',
+          scannerName: 'OWASP ZAP',
+          scanVersion: '2.14.0'
+        }
       },
       { 
         name: 'analytics-engine', 
@@ -180,7 +238,50 @@ const config = {
         communicationChannels: [
           { type: 'discord', name: 'Data Team', url: 'https://discord.gg/data-team', description: 'Data team Discord server' },
           { type: 'email', name: 'Data Analytics', url: 'mailto:data-analytics@company.com', description: 'Data analytics team' }
-        ]
+        ],
+        dashboardLinks: [
+          { type: 'prometheus', name: 'Analytics Metrics', url: 'https://prometheus.company.com/graph?g0.expr=analytics_engine', description: 'Analytics engine performance metrics' },
+          { type: 'custom', name: 'Data Pipeline Status', url: 'https://monitoring.company.com/data-pipeline', description: 'Custom data pipeline monitoring dashboard' }
+        ],
+        vulnerabilitySummary: {
+          criticalCount: 1,
+          highCount: 3,
+          mediumCount: 18,
+          lowCount: 22,
+          infoCount: 7,
+          totalCount: 51,
+          lastUpdated: '2024-01-13T14:45:00Z',
+          sources: [
+            {
+              name: 'Trivy',
+              type: 'container',
+              url: 'https://security.company.com/trivy/analytics-engine',
+              criticalCount: 1,
+              highCount: 2,
+              mediumCount: 12,
+              lowCount: 15,
+              infoCount: 4,
+              totalCount: 34,
+              lastScan: '2024-01-13T14:45:00Z',
+              scanVersion: 'v0.48.3',
+              description: 'Container image vulnerability scanning'
+            },
+            {
+              name: 'Bandit',
+              type: 'sast',
+              url: 'https://ci.company.com/analytics-engine/bandit-report',
+              criticalCount: 0,
+              highCount: 1,
+              mediumCount: 6,
+              lowCount: 7,
+              infoCount: 3,
+              totalCount: 17,
+              lastScan: '2024-01-13T12:30:00Z',
+              scanVersion: '1.7.5',
+              description: 'Python security linting'
+            }
+          ]
+        }
       },
       { 
         name: 'web-frontend', 
@@ -198,7 +299,50 @@ const config = {
         communicationChannels: [
           { type: 'slack', name: '#frontend-team', url: 'https://company.slack.com/channels/frontend-team', description: 'Frontend development team' },
           { type: 'mattermost', name: 'Web Development', url: 'https://mattermost.company.com/channels/web-dev', description: 'Web development discussions' }
-        ]
+        ],
+        dashboardLinks: [
+          { type: 'dynatrace', name: 'Frontend Performance', url: 'https://company.dynatrace.com/ui/dashboards/frontend-perf', description: 'Real user monitoring and frontend performance' },
+          { type: 'splunk', name: 'Frontend Logs', url: 'https://splunk.company.com/en-US/app/search/frontend-logs', description: 'Frontend application logs and errors' }
+        ],
+        vulnerabilitySummary: {
+          criticalCount: 0,
+          highCount: 1,
+          mediumCount: 4,
+          lowCount: 9,
+          infoCount: 12,
+          totalCount: 26,
+          lastUpdated: '2024-01-16T09:20:00Z',
+          sources: [
+            {
+              name: 'npm audit',
+              type: 'sca',
+              url: 'https://ci.company.com/web-frontend/npm-audit',
+              criticalCount: 0,
+              highCount: 1,
+              mediumCount: 3,
+              lowCount: 6,
+              infoCount: 8,
+              totalCount: 18,
+              lastScan: '2024-01-16T09:20:00Z',
+              scanVersion: '10.2.4',
+              description: 'NPM dependency vulnerability audit'
+            },
+            {
+              name: 'ESLint Security',
+              type: 'sast',
+              url: 'https://ci.company.com/web-frontend/eslint-security',
+              criticalCount: 0,
+              highCount: 0,
+              mediumCount: 1,
+              lowCount: 3,
+              infoCount: 4,
+              totalCount: 8,
+              lastScan: '2024-01-16T08:45:00Z',
+              scanVersion: '8.56.0',
+              description: 'JavaScript/TypeScript security linting'
+            }
+          ]
+        }
       },
       { 
         name: 'mobile-app', 
@@ -216,7 +360,22 @@ const config = {
         communicationChannels: [
           { type: 'telegram', name: 'Mobile Dev Team', url: 'https://t.me/mobile_dev_team', description: 'Mobile development team chat' },
           { type: 'email', name: 'Mobile Support', url: 'mailto:mobile-support@company.com', description: 'Mobile app support' }
-        ]
+        ],
+        dashboardLinks: [
+          { type: 'appdynamics', name: 'Mobile App Performance', url: 'https://company.saas.appdynamics.com/controller/#/location=MOBILE_DASHBOARD', description: 'Mobile application performance monitoring' },
+          { type: 'grafana', name: 'Mobile Backend Metrics', url: 'https://grafana.company.com/d/mobile-backend', description: 'Mobile backend service metrics' }
+        ],
+        vulnerabilitySummary: {
+          criticalCount: 3,
+          highCount: 8,
+          mediumCount: 14,
+          lowCount: 6,
+          infoCount: 2,
+          totalCount: 33,
+          lastScan: '2024-01-12T16:00:00Z',
+          scannerName: 'Checkmarx',
+          scanVersion: '9.4.0'
+        }
       },
       { 
         name: 'admin-dashboard', 

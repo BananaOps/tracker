@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CommunicationType, type CommunicationChannel } from '../types/api'
-import { Plus, Trash2, Mail } from 'lucide-react'
+import { Plus, Trash2, Mail, MessageSquare } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSlack, faDiscord, faTelegram, faMicrosoft } from '@fortawesome/free-brands-svg-icons'
 import { faComments } from '@fortawesome/free-solid-svg-icons'

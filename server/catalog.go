@@ -60,6 +60,8 @@ func (e *Catalog) CreateUpdateCatalog(
 		Platform:              i.Platform,
 		UsedDeliverables:      i.UsedDeliverables,
 		CommunicationChannels: i.CommunicationChannels,
+		DashboardLinks:        i.DashboardLinks,
+		VulnerabilitySummary:  i.VulnerabilitySummary,
 	}
 
 	// Preserve existing version fields if updating

@@ -2,11 +2,13 @@ import { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable, type CommunicationChannel } from '../types/api'
+import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable, type CommunicationChannel, type DashboardLink, type VulnerabilitySummary } from '../types/api'
 import { ArrowLeft, Save, Package, X } from 'lucide-react'
 import DependencySelector from '../components/DependencySelector'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import CommunicationChannelsManager from '../components/CommunicationChannelsManager'
+import DashboardLinksManager from '../components/DashboardLinksManager'
+import VulnerabilityManager from '../components/VulnerabilityManager'
 
 export default function CreateCatalog() {
   const navigate = useNavigate()
@@ -35,6 +37,8 @@ export default function CreateCatalog() {
     platform: Platform.KUBERNETES,
     usedDeliverables: [],
     communicationChannels: [],
+    dashboardLinks: [],
+    vulnerabilitySummary: undefined,
   })
 
   const [newDepIn, setNewDepIn] = useState('')
@@ -91,6 +95,14 @@ export default function CreateCatalog() {
 
   const handleUpdateCommunicationChannels = (communicationChannels: CommunicationChannel[]) => {
     setFormData(prev => ({ ...prev, communicationChannels }))
+  }
+
+  const handleUpdateDashboardLinks = (dashboardLinks: DashboardLink[]) => {
+    setFormData(prev => ({ ...prev, dashboardLinks }))
+  }
+
+  const handleUpdateVulnerabilitySummary = (vulnerabilitySummary?: VulnerabilitySummary) => {
+    setFormData(prev => ({ ...prev, vulnerabilitySummary }))
   }
 
   const handleSLAChange = (field: keyof SLA, value: any) => {
@@ -603,6 +615,22 @@ export default function CreateCatalog() {
             <CommunicationChannelsManager
               channels={formData.communicationChannels || []}
               onChange={handleUpdateCommunicationChannels}
+            />
+          </div>
+
+          {/* Dashboard Links */}
+          <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <DashboardLinksManager
+              dashboards={formData.dashboardLinks || []}
+              onChange={handleUpdateDashboardLinks}
+            />
+          </div>
+
+          {/* Vulnerability Summary */}
+          <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <VulnerabilityManager
+              vulnerabilitySummary={formData.vulnerabilitySummary}
+              onChange={handleUpdateVulnerabilitySummary}
             />
           </div>
 

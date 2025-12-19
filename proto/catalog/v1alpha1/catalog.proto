@@ -62,6 +62,10 @@ message Catalog {
   repeated UsedDeliverable used_deliverables = 18;
   // Communication channels for the service
   repeated CommunicationChannel communication_channels = 19;
+  // Dashboard links for monitoring and observability
+  repeated DashboardLink dashboard_links = 20;
+  // Vulnerability summary for security monitoring
+  VulnerabilitySummary vulnerability_summary = 21;
 }
 
 message CreateUpdateCatalogRequest {
@@ -83,6 +87,10 @@ message CreateUpdateCatalogRequest {
   repeated UsedDeliverable used_deliverables = 15;
   // Communication channels for the service
   repeated CommunicationChannel communication_channels = 16;
+  // Dashboard links for monitoring and observability
+  repeated DashboardLink dashboard_links = 17;
+  // Vulnerability summary for security monitoring
+  VulnerabilitySummary vulnerability_summary = 18;
   // Note: Version management (available_versions, latest_version, reference_version) 
   // is handled separately via UpdateVersions endpoint
 }
@@ -276,3 +284,54 @@ enum CommunicationType {
   mattermost = 5;                           // Mattermost channel
   telegram = 6;                             // Telegram group/channel
 }
+
+// Dashboard link for monitoring and observability
+message DashboardLink {
+  DashboardType type = 1;                   // Type of dashboard platform
+  string name = 2;                          // Display name for the dashboard
+  string url = 3;                           // URL or link to the dashboard
+  string description = 4;                   // Optional description
+}
+
+enum DashboardType {
+  DASHBOARD_TYPE_UNSPECIFIED = 0;
+  grafana = 1;                              // Grafana dashboard
+  datadog = 2;                              // Datadog dashboard
+  newrelic = 3;                             // New Relic dashboard
+  prometheus = 4;                           // Prometheus dashboard
+  kibana = 5;                               // Kibana dashboard
+  splunk = 6;                               // Splunk dashboard
+  dynatrace = 7;                            // Dynatrace dashboard
+  appdynamics = 8;                          // AppDynamics dashboard
+  custom = 9;                               // Custom dashboard platform
+}
+
+// Vulnerability summary for a service (aggregated from multiple sources)
+message VulnerabilitySummary {
+  int32 critical_count = 1;                 // Total critical vulnerabilities (aggregated)
+  int32 high_count = 2;                     // Total high vulnerabilities (aggregated)
+  int32 medium_count = 3;                   // Total medium vulnerabilities (aggregated)
+  int32 low_count = 4;                      // Total low vulnerabilities (aggregated)
+  int32 info_count = 5;                     // Total informational findings (aggregated)
+  int32 total_count = 6;                    // Total number of vulnerabilities (aggregated)
+  google.protobuf.Timestamp last_updated = 7; // Last time any source was updated
+  repeated VulnerabilitySource sources = 8; // Individual vulnerability sources
+}
+
+// Individual vulnerability source (Trivy, GitHub Security, Snyk, etc.)
+message VulnerabilitySource {
+  string name = 1;                          // Source name (e.g., "Trivy", "GitHub Security", "Snyk")
+  string type = 2;                          // Source type (e.g., "sast", "sca", "container", "iac")
+  string url = 3;                           // Link to the source report/dashboard
+  int32 critical_count = 4;                 // Critical vulnerabilities from this source
+  int32 high_count = 5;                     // High vulnerabilities from this source
+  int32 medium_count = 6;                   // Medium vulnerabilities from this source
+  int32 low_count = 7;                      // Low vulnerabilities from this source
+  int32 info_count = 8;                     // Info findings from this source
+  int32 total_count = 9;                    // Total from this source
+  google.protobuf.Timestamp last_scan = 10; // Last scan time for this source
+  string scan_version = 11;                 // Version/ID of the scan
+  string description = 12;                  // Optional description of what this source scans
+}
+
+

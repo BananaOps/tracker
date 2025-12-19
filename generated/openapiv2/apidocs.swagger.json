@@ -875,6 +875,18 @@
             "$ref": "#/definitions/v1alpha1CommunicationChannel"
           },
           "title": "Communication channels for the service"
+        },
+        "dashboard_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DashboardLink"
+          },
+          "title": "Dashboard links for monitoring and observability"
+        },
+        "vulnerability_summary": {
+          "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
+          "title": "Vulnerability summary for security monitoring"
         }
       }
     },
@@ -1106,8 +1118,20 @@
             "type": "object",
             "$ref": "#/definitions/v1alpha1CommunicationChannel"
           },
-          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
           "title": "Communication channels for the service"
+        },
+        "dashboard_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DashboardLink"
+          },
+          "title": "Dashboard links for monitoring and observability"
+        },
+        "vulnerability_summary": {
+          "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
+          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
+          "title": "Vulnerability summary for security monitoring"
         }
       }
     },
@@ -1118,6 +1142,45 @@
           "$ref": "#/definitions/v1alpha1Catalog"
         }
       }
+    },
+    "v1alpha1DashboardLink": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/v1alpha1DashboardType",
+          "title": "Type of dashboard platform"
+        },
+        "name": {
+          "type": "string",
+          "title": "Display name for the dashboard"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL or link to the dashboard"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description"
+        }
+      },
+      "title": "Dashboard link for monitoring and observability"
+    },
+    "v1alpha1DashboardType": {
+      "type": "string",
+      "enum": [
+        "DASHBOARD_TYPE_UNSPECIFIED",
+        "grafana",
+        "datadog",
+        "newrelic",
+        "prometheus",
+        "kibana",
+        "splunk",
+        "dynatrace",
+        "appdynamics",
+        "custom"
+      ],
+      "default": "DASHBOARD_TYPE_UNSPECIFIED",
+      "title": "- grafana: Grafana dashboard\n - datadog: Datadog dashboard\n - newrelic: New Relic dashboard\n - prometheus: Prometheus dashboard\n - kibana: Kibana dashboard\n - splunk: Splunk dashboard\n - dynatrace: Dynatrace dashboard\n - appdynamics: AppDynamics dashboard\n - custom: Custom dashboard platform"
     },
     "v1alpha1DeleteCatalogResponse": {
       "type": "object",
@@ -1662,6 +1725,55 @@
         }
       },
       "title": "Used deliverable in a project"
+    },
+    "v1alpha1VulnerabilitySummary": {
+      "type": "object",
+      "properties": {
+        "critical_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of critical vulnerabilities"
+        },
+        "high_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of high vulnerabilities"
+        },
+        "medium_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of medium vulnerabilities"
+        },
+        "low_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of low vulnerabilities"
+        },
+        "info_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of informational findings"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total number of vulnerabilities"
+        },
+        "last_scan": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last vulnerability scan timestamp"
+        },
+        "scanner_name": {
+          "type": "string",
+          "title": "Name of the vulnerability scanner used"
+        },
+        "scan_version": {
+          "type": "string",
+          "title": "Version of the scan/report"
+        }
+      },
+      "title": "Vulnerability summary for a service"
     }
   }
 }

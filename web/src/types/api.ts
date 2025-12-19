@@ -263,6 +263,55 @@ export interface CommunicationChannel {
   description?: string
 }
 
+export enum DashboardType {
+  UNSPECIFIED = 'unspecified',
+  GRAFANA = 'grafana',
+  DATADOG = 'datadog',
+  NEWRELIC = 'newrelic',
+  PROMETHEUS = 'prometheus',
+  KIBANA = 'kibana',
+  SPLUNK = 'splunk',
+  DYNATRACE = 'dynatrace',
+  APPDYNAMICS = 'appdynamics',
+  CUSTOM = 'custom',
+}
+
+// Vulnerability severity levels (using string literals instead of enum to avoid protobuf conflicts)
+export type VulnerabilitySeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
+
+export interface DashboardLink {
+  type: DashboardType
+  name: string
+  url: string
+  description?: string
+}
+
+export interface VulnerabilitySummary {
+  criticalCount: number
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  infoCount: number
+  totalCount: number
+  lastUpdated?: string
+  sources?: VulnerabilitySource[]
+}
+
+export interface VulnerabilitySource {
+  name: string
+  type: string
+  url?: string
+  criticalCount: number
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  infoCount: number
+  totalCount: number
+  lastScan?: string
+  scanVersion?: string
+  description?: string
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -283,6 +332,8 @@ export interface Catalog {
   referenceVersion?: string
   usedDeliverables?: UsedDeliverable[]
   communicationChannels?: CommunicationChannel[]
+  dashboardLinks?: DashboardLink[]
+  vulnerabilitySummary?: VulnerabilitySummary
 }
 
 export interface ListEventsResponse {

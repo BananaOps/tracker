@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language, SLALevel, Platform, CommunicationType, type Catalog } from '../types/api'
+import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
 import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -441,6 +441,20 @@ export default function CatalogTable() {
                           {getCommunicationChannelIcon(channel.type)}
                         </a>
                       ))}
+                      {catalog.dashboardLinks && catalog.dashboardLinks.map((dashboard, idx) => (
+                        <a
+                          key={`dashboard-${idx}`}
+                          href={dashboard.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-colors"
+                          style={{ color: getDashboardColor(dashboard.type) }}
+                          title={`${dashboard.name} (${getDashboardLabel(dashboard.type)})`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {getDashboardIcon(dashboard.type)}
+                        </a>
+                      ))}
                     </div>
                   </td>
                 </tr>
@@ -674,5 +688,72 @@ function getCommunicationChannelLabel(type?: CommunicationType): string {
       return 'Telegram'
     default:
       return 'Communication'
+  }
+}
+
+// Dashboard helper functions
+function getDashboardIcon(type?: DashboardType) {
+  switch (type) {
+    case DashboardType.GRAFANA:
+    case DashboardType.PROMETHEUS:
+    case DashboardType.KIBANA:
+      return <Activity className="w-5 h-5" />
+    case DashboardType.DATADOG:
+    case DashboardType.NEWRELIC:
+    case DashboardType.DYNATRACE:
+    case DashboardType.APPDYNAMICS:
+      return <Activity className="w-5 h-5" />
+    default:
+      return <Activity className="w-5 h-5" />
+  }
+}
+
+function getDashboardLabel(type?: DashboardType): string {
+  switch (type) {
+    case DashboardType.GRAFANA:
+      return 'Grafana'
+    case DashboardType.DATADOG:
+      return 'Datadog'
+    case DashboardType.NEWRELIC:
+      return 'New Relic'
+    case DashboardType.PROMETHEUS:
+      return 'Prometheus'
+    case DashboardType.KIBANA:
+      return 'Kibana'
+    case DashboardType.SPLUNK:
+      return 'Splunk'
+    case DashboardType.DYNATRACE:
+      return 'Dynatrace'
+    case DashboardType.APPDYNAMICS:
+      return 'AppDynamics'
+    case DashboardType.CUSTOM:
+      return 'Custom'
+    default:
+      return 'Dashboard'
+  }
+}
+
+function getDashboardColor(type?: DashboardType): string {
+  switch (type) {
+    case DashboardType.GRAFANA:
+      return '#f97316' // orange-500
+    case DashboardType.DATADOG:
+      return '#a855f7' // purple-500
+    case DashboardType.NEWRELIC:
+      return '#22c55e' // green-500
+    case DashboardType.PROMETHEUS:
+      return '#ef4444' // red-500
+    case DashboardType.KIBANA:
+      return '#f59e0b' // amber-500
+    case DashboardType.SPLUNK:
+      return '#6b7280' // gray-500
+    case DashboardType.DYNATRACE:
+      return '#3b82f6' // blue-500
+    case DashboardType.APPDYNAMICS:
+      return '#6366f1' // indigo-500
+    case DashboardType.CUSTOM:
+      return '#14b8a6' // teal-500
+    default:
+      return '#6b7280' // gray-500
   }
 }

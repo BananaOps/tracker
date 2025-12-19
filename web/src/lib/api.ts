@@ -86,6 +86,35 @@ const realCatalogApi = {
         description: ud.description
       })) || catalog.usedDeliverables,
       communicationChannels: convertCommunicationChannelsFromAPI(catalog.communication_channels || catalog.communicationChannels || []),
+      dashboardLinks: catalog.dashboard_links?.map((link: any) => ({
+        type: link.type,
+        name: link.name,
+        url: link.url,
+        description: link.description
+      })) || catalog.dashboardLinks || [],
+      vulnerabilitySummary: catalog.vulnerability_summary ? {
+        criticalCount: catalog.vulnerability_summary.critical_count || catalog.vulnerability_summary.criticalCount || 0,
+        highCount: catalog.vulnerability_summary.high_count || catalog.vulnerability_summary.highCount || 0,
+        mediumCount: catalog.vulnerability_summary.medium_count || catalog.vulnerability_summary.mediumCount || 0,
+        lowCount: catalog.vulnerability_summary.low_count || catalog.vulnerability_summary.lowCount || 0,
+        infoCount: catalog.vulnerability_summary.info_count || catalog.vulnerability_summary.infoCount || 0,
+        totalCount: catalog.vulnerability_summary.total_count || catalog.vulnerability_summary.totalCount || 0,
+        lastUpdated: catalog.vulnerability_summary.last_updated || catalog.vulnerability_summary.lastUpdated,
+        sources: catalog.vulnerability_summary.sources?.map(source => ({
+          name: source.name,
+          type: source.type,
+          url: source.url,
+          criticalCount: source.critical_count || source.criticalCount || 0,
+          highCount: source.high_count || source.highCount || 0,
+          mediumCount: source.medium_count || source.mediumCount || 0,
+          lowCount: source.low_count || source.lowCount || 0,
+          infoCount: source.info_count || source.infoCount || 0,
+          totalCount: source.total_count || source.totalCount || 0,
+          lastScan: source.last_scan || source.lastScan,
+          scanVersion: source.scan_version || source.scanVersion,
+          description: source.description
+        })) || catalog.vulnerability_summary.sources || []
+      } : catalog.vulnerabilitySummary,
       sla: catalog.sla ? {
         level: catalog.sla.level,
         uptimePercentage: catalog.sla.uptimePercentage?.value,
@@ -116,6 +145,23 @@ const realCatalogApi = {
         description: ud.description
       })) || data.catalog.usedDeliverables,
       communicationChannels: convertCommunicationChannelsFromAPI(data.catalog.communication_channels || data.catalog.communicationChannels || []),
+      dashboardLinks: data.catalog.dashboard_links?.map((link: any) => ({
+        type: link.type,
+        name: link.name,
+        url: link.url,
+        description: link.description
+      })) || data.catalog.dashboardLinks || [],
+      vulnerabilitySummary: data.catalog.vulnerability_summary ? {
+        criticalCount: data.catalog.vulnerability_summary.critical_count || data.catalog.vulnerability_summary.criticalCount || 0,
+        highCount: data.catalog.vulnerability_summary.high_count || data.catalog.vulnerability_summary.highCount || 0,
+        mediumCount: data.catalog.vulnerability_summary.medium_count || data.catalog.vulnerability_summary.mediumCount || 0,
+        lowCount: data.catalog.vulnerability_summary.low_count || data.catalog.vulnerability_summary.lowCount || 0,
+        infoCount: data.catalog.vulnerability_summary.info_count || data.catalog.vulnerability_summary.infoCount || 0,
+        totalCount: data.catalog.vulnerability_summary.total_count || data.catalog.vulnerability_summary.totalCount || 0,
+        lastScan: data.catalog.vulnerability_summary.last_scan || data.catalog.vulnerability_summary.lastScan,
+        scannerName: data.catalog.vulnerability_summary.scanner_name || data.catalog.vulnerability_summary.scannerName,
+        scanVersion: data.catalog.vulnerability_summary.scan_version || data.catalog.vulnerability_summary.scanVersion
+      } : data.catalog.vulnerabilitySummary,
       sla: data.catalog.sla ? {
         level: data.catalog.sla.level,
         uptimePercentage: data.catalog.sla.uptimePercentage?.value,
@@ -165,7 +211,38 @@ const realCatalogApi = {
         name: channel.name,
         url: channel.url,
         description: channel.description
-      })) || []
+      })) || [],
+      // Convert dashboard links to snake_case
+      dashboard_links: catalog.dashboardLinks?.map(link => ({
+        type: link.type,
+        name: link.name,
+        url: link.url,
+        description: link.description
+      })) || [],
+      // Convert vulnerability summary to snake_case
+      vulnerability_summary: catalog.vulnerabilitySummary ? {
+        critical_count: catalog.vulnerabilitySummary.criticalCount,
+        high_count: catalog.vulnerabilitySummary.highCount,
+        medium_count: catalog.vulnerabilitySummary.mediumCount,
+        low_count: catalog.vulnerabilitySummary.lowCount,
+        info_count: catalog.vulnerabilitySummary.infoCount,
+        total_count: catalog.vulnerabilitySummary.totalCount,
+        last_updated: catalog.vulnerabilitySummary.lastUpdated,
+        sources: catalog.vulnerabilitySummary.sources?.map(source => ({
+          name: source.name,
+          type: source.type,
+          url: source.url,
+          critical_count: source.criticalCount,
+          high_count: source.highCount,
+          medium_count: source.mediumCount,
+          low_count: source.lowCount,
+          info_count: source.infoCount,
+          total_count: source.totalCount,
+          last_scan: source.lastScan,
+          scan_version: source.scanVersion,
+          description: source.description
+        })) || []
+      } : undefined
       // Note: availableVersions, latestVersion, referenceVersion are NOT sent here
       // They are managed via separate updateVersions endpoint
     }

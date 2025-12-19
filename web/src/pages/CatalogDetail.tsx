@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, CommunicationType, type Catalog, type UsedDeliverable } from '../types/api'
+import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary } from '../types/api'
 import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -37,6 +37,7 @@ import 'reactflow/dist/style.css'
 import { useMemo, useState } from 'react'
 import DeliverableVersions from '../components/VersionManager'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
+import VulnerabilityManager from '../components/VulnerabilityManager'
 
 export default function CatalogDetail() {
   const { serviceName } = useParams<{ serviceName: string }>()
@@ -118,6 +119,19 @@ export default function CatalogDetail() {
     const updatedService = {
       ...service,
       usedDeliverables
+    }
+    
+    updateServiceMutation.mutate(updatedService)
+  }
+
+  const handleUpdateVulnerabilitySummary = (vulnerabilitySummary?: VulnerabilitySummary) => {
+    if (!service) return
+    
+    console.log('🔧 Updating vulnerability summary:', vulnerabilitySummary)
+    
+    const updatedService = {
+      ...service,
+      vulnerabilitySummary
     }
     
     updateServiceMutation.mutate(updatedService)
@@ -460,205 +474,231 @@ export default function CatalogDetail() {
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Service Information */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-            <Package className="w-5 h-5" />
-            <span>Service Information</span>
-          </h3>
-          <dl className="space-y-4">
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Type</dt>
-              <dd>
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                  <Code className="w-4 h-4 mr-2" />
-                  {getCatalogTypeLabel(service.type)}
-                </span>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Primary Language</dt>
-              <dd>
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 space-x-2">
-                  {getLanguageIcon(service.languages)}
-                  <span>{getLanguageLabel(service.languages)}</span>
-                </span>
-              </dd>
-            </div>
-            {service.platform && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Deployment Platform</dt>
-                <dd>
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                    <Server className="w-4 h-4 mr-2" />
-                    {getPlatformLabel(service.platform)}
-                  </span>
-                </dd>
-              </div>
-            )}
-            <div>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Owner</dt>
-              <dd>
-                <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                  {service.owner}
-                </span>
-              </dd>
-            </div>
-            {service.description && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</dt>
-                <dd className="text-sm text-gray-900 dark:text-gray-100 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  {service.description}
-                </dd>
-              </div>
-            )}
-            {service.repository && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Repository</dt>
-                <dd>
-                  <a href={service.repository} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition-colors space-x-2 border border-gray-300 dark:border-gray-600">
-                    <Github className="w-4 h-4" />
-                    <span>View on GitHub</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </dd>
-              </div>
-            )}
-            {service.link && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Documentation</dt>
-                <dd>
-                  <a href={service.link} target="_blank" rel="noopener noreferrer"
-                     className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-600 transition-colors space-x-2 border border-blue-300 dark:border-blue-400">
-                    <ExternalLink className="w-4 h-4" />
-                    <span>View Documentation</span>
-                  </a>
-                </dd>
-              </div>
-            )}
-            {service.communicationChannels && service.communicationChannels.length > 0 && (
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Communication Channels</dt>
-                <dd className="space-y-2">
-                  {service.communicationChannels.map((channel, index) => (
-                    <a
-                      key={index}
-                      href={channel.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
-                      style={getCommunicationChannelStyles(channel.type)}
-                      title={channel.description || `${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
-                    >
-                      {getCommunicationChannelIcon(channel.type)}
-                      <span>{channel.name}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  ))}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </div>
-
-        {/* SLA Details */}
-        {service.sla ? (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Service Information - Left Column (2/3 width) */}
+        <div className="lg:col-span-2">
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-              <Activity className="w-5 h-5" />
-              <span>SLA Details</span>
+              <Package className="w-5 h-5" />
+              <span>Service Information</span>
             </h3>
             <dl className="space-y-4">
               <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Level</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Type</dt>
                 <dd>
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-                        style={{
-                          backgroundColor: `${getSLAColor(service.sla.level)}20`,
-                          color: getSLAColor(service.sla.level)
-                        }}>
-                    <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: getSLAColor(service.sla.level) }} />
-                    {getSLALabel(service.sla.level)}
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                    <Code className="w-4 h-4 mr-2" />
+                    {getCatalogTypeLabel(service.type)}
                   </span>
                 </dd>
               </div>
-              
-              {/* SLA Metrics Grid - Only show if there are metrics */}
-              {(service.sla.uptimePercentage || service.sla.responseTimeMs) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                  {service.sla.uptimePercentage && (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                        {service.sla.uptimePercentage}%
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Uptime Target
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {calculateDowntime(service.sla.uptimePercentage)} downtime/month
-                      </div>
-                    </div>
-                  )}
-                  {service.sla.responseTimeMs && (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                        {service.sla.responseTimeMs}ms
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Response Time Target
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {service.sla.responseTimeMs < 100 ? 'Excellent' : 
-                         service.sla.responseTimeMs < 500 ? 'Good' : 
-                         service.sla.responseTimeMs < 1000 ? 'Acceptable' : 'Needs Improvement'}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {service.sla.description && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Primary Language</dt>
+                <dd>
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 space-x-2">
+                    {getLanguageIcon(service.languages)}
+                    <span>{getLanguageLabel(service.languages)}</span>
+                  </span>
+                </dd>
+              </div>
+              {service.platform && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</dt>
-                  <dd className="text-sm text-gray-900 dark:text-gray-100 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    {service.sla.description}
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Deployment Platform</dt>
+                  <dd>
+                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+                      <Server className="w-4 h-4 mr-2" />
+                      {getPlatformLabel(service.platform)}
+                    </span>
                   </dd>
                 </div>
               )}
-
-              {/* SLA Level Information */}
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
-                  SLA Level Information
-                </div>
-                <div className="text-xs text-blue-700 dark:text-blue-300">
-                  {getSLADescription(service.sla.level)}
-                </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Owner</dt>
+                <dd>
+                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                    {service.owner}
+                  </span>
+                </dd>
               </div>
+
+              {service.repository && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Repository</dt>
+                  <dd>
+                    <a href={service.repository} target="_blank" rel="noopener noreferrer"
+                       className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition-colors space-x-2 border border-gray-300 dark:border-gray-600">
+                      <Github className="w-4 h-4" />
+                      <span>View on GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {service.link && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Documentation</dt>
+                  <dd>
+                    <a href={service.link} target="_blank" rel="noopener noreferrer"
+                       className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-600 transition-colors space-x-2 border border-blue-300 dark:border-blue-400">
+                      <ExternalLink className="w-4 h-4" />
+                      <span>View Documentation</span>
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {service.communicationChannels && service.communicationChannels.length > 0 && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Communication Channels</dt>
+                  <dd className="space-y-2">
+                    {service.communicationChannels.map((channel, index) => (
+                      <a
+                        key={index}
+                        href={channel.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
+                        style={getCommunicationChannelStyles(channel.type)}
+                        title={channel.description || `${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
+                      >
+                        {getCommunicationChannelIcon(channel.type)}
+                        <span>{channel.name}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ))}
+                  </dd>
+                </div>
+              )}
+              {service.dashboardLinks && service.dashboardLinks.length > 0 && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Dashboard Links</dt>
+                  <dd className="space-y-2">
+                    {service.dashboardLinks.map((dashboard, index) => (
+                      <a
+                        key={index}
+                        href={dashboard.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
+                        style={getDashboardLinkStyles(dashboard.type)}
+                        title={dashboard.description || `${dashboard.name} (${getDashboardLabel(dashboard.type)})`}
+                      >
+                        {getDashboardIcon(dashboard.type)}
+                        <span>{dashboard.name}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ))}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
-        ) : (
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-              <Activity className="w-5 h-5" />
-              <span>SLA Details</span>
-            </h3>
-            <div className="text-center py-8">
-              <Activity className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No SLA defined for this service
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Consider defining SLA targets for better service monitoring
-              </p>
+        </div>
+
+        {/* SLA & Vulnerability - Right Column (1/3 width) */}
+        <div className="space-y-6">
+          {/* SLA Details */}
+          {service.sla ? (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
+                <Activity className="w-5 h-5" />
+                <span>SLA Details</span>
+              </h3>
+              <dl className="space-y-4">
+                <div>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Level</dt>
+                  <dd>
+                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
+                          style={{
+                            backgroundColor: `${getSLAColor(service.sla.level)}20`,
+                            color: getSLAColor(service.sla.level)
+                          }}>
+                      <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: getSLAColor(service.sla.level) }} />
+                      {getSLALabel(service.sla.level)}
+                    </span>
+                  </dd>
+                </div>
+                
+                {/* SLA Metrics Grid - Only show if there are metrics */}
+                {(service.sla.uptimePercentage || service.sla.responseTimeMs) && (
+                  <div className="grid grid-cols-1 gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    {service.sla.uptimePercentage && (
+                      <div className="text-center">
+                        <div className="text-xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
+                          {service.sla.uptimePercentage}%
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Uptime Target
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {calculateDowntime(service.sla.uptimePercentage)} downtime/month
+                        </div>
+                      </div>
+                    )}
+                    {service.sla.responseTimeMs && (
+                      <div className="text-center">
+                        <div className="text-xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
+                          {service.sla.responseTimeMs}ms
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Response Time Target
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {service.sla.responseTimeMs < 100 ? 'Excellent' : 
+                           service.sla.responseTimeMs < 500 ? 'Good' : 
+                           service.sla.responseTimeMs < 1000 ? 'Acceptable' : 'Needs Improvement'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {service.sla.description && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</dt>
+                    <dd className="text-sm text-gray-900 dark:text-gray-100 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      {service.sla.description}
+                    </dd>
+                  </div>
+                )}
+
+                {/* SLA Level Information */}
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
+                    SLA Level Information
+                  </div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300">
+                    {getSLADescription(service.sla.level)}
+                  </div>
+                </div>
+              </dl>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
+                <Activity className="w-5 h-5" />
+                <span>SLA Details</span>
+              </h3>
+              <div className="text-center py-6">
+                <Activity className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No SLA defined
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Consider defining SLA targets
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Vulnerability Summary */}
+          <VulnerabilityManager
+            vulnerabilitySummary={service.vulnerabilitySummary}
+            onChange={handleUpdateVulnerabilitySummary}
+          />
+        </div>
       </div>
 
       {/* Version Management for Deliverables */}
@@ -1200,6 +1240,113 @@ function getCommunicationChannelLabel(type?: CommunicationType): string {
       return 'Telegram'
     default:
       return 'Communication'
+  }
+}
+
+// Helper functions for Dashboard Links
+function getDashboardIcon(type?: import('../types/api').DashboardType) {
+  switch (type) {
+    case 'grafana':
+    case 'prometheus':
+    case 'kibana':
+      return <Activity className="w-4 h-4" />
+    case 'datadog':
+    case 'newrelic':
+    case 'dynatrace':
+    case 'appdynamics':
+      return <Activity className="w-4 h-4" />
+    default:
+      return <Activity className="w-4 h-4" />
+  }
+}
+
+function getDashboardLabel(type?: import('../types/api').DashboardType): string {
+  switch (type) {
+    case 'grafana':
+      return 'Grafana'
+    case 'datadog':
+      return 'Datadog'
+    case 'newrelic':
+      return 'New Relic'
+    case 'prometheus':
+      return 'Prometheus'
+    case 'kibana':
+      return 'Kibana'
+    case 'splunk':
+      return 'Splunk'
+    case 'dynatrace':
+      return 'Dynatrace'
+    case 'appdynamics':
+      return 'AppDynamics'
+    case 'custom':
+      return 'Custom'
+    default:
+      return 'Dashboard'
+  }
+}
+
+function getDashboardLinkStyles(type?: import('../types/api').DashboardType): { backgroundColor: string; borderColor: string; color: string } {
+  switch (type) {
+    case 'grafana':
+      return {
+        backgroundColor: 'rgb(251 146 60 / 0.1)', // orange-400 with opacity
+        borderColor: 'rgb(251 146 60)', // orange-400
+        color: 'rgb(251 146 60)' // orange-400
+      }
+    case 'datadog':
+      return {
+        backgroundColor: 'rgb(147 51 234 / 0.1)', // purple-600 with opacity
+        borderColor: 'rgb(147 51 234)', // purple-600
+        color: 'rgb(147 51 234)' // purple-600
+      }
+    case 'newrelic':
+      return {
+        backgroundColor: 'rgb(34 197 94 / 0.1)', // green-500 with opacity
+        borderColor: 'rgb(34 197 94)', // green-500
+        color: 'rgb(34 197 94)' // green-500
+      }
+    case 'prometheus':
+      return {
+        backgroundColor: 'rgb(239 68 68 / 0.1)', // red-500 with opacity
+        borderColor: 'rgb(239 68 68)', // red-500
+        color: 'rgb(239 68 68)' // red-500
+      }
+    case 'kibana':
+      return {
+        backgroundColor: 'rgb(245 158 11 / 0.1)', // amber-500 with opacity
+        borderColor: 'rgb(245 158 11)', // amber-500
+        color: 'rgb(245 158 11)' // amber-500
+      }
+    case 'splunk':
+      return {
+        backgroundColor: 'rgb(107 114 128 / 0.1)', // gray-500 with opacity
+        borderColor: 'rgb(107 114 128)', // gray-500
+        color: 'rgb(107 114 128)' // gray-500
+      }
+    case 'dynatrace':
+      return {
+        backgroundColor: 'rgb(59 130 246 / 0.1)', // blue-500 with opacity
+        borderColor: 'rgb(59 130 246)', // blue-500
+        color: 'rgb(59 130 246)' // blue-500
+      }
+    case 'appdynamics':
+      return {
+        backgroundColor: 'rgb(99 102 241 / 0.1)', // indigo-500 with opacity
+        borderColor: 'rgb(99 102 241)', // indigo-500
+        color: 'rgb(99 102 241)' // indigo-500
+      }
+    case 'custom':
+      return {
+        backgroundColor: 'rgb(20 184 166 / 0.1)', // teal-500 with opacity
+        borderColor: 'rgb(20 184 166)', // teal-500
+        color: 'rgb(20 184 166)' // teal-500
+      }
+    default:
+      return {
+        backgroundColor: 'rgb(107 114 128 / 0.1)', // gray-500 with opacity
+        borderColor: 'rgb(107 114 128)', // gray-500
+        color: 'rgb(107 114 128)' // gray-500
+      }
   }
 }
 

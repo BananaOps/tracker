@@ -233,6 +233,69 @@ func (m *Catalog) validate(all bool) error {
 
 	}
 
+	for idx, item := range m.GetDashboardLinks() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CatalogValidationError{
+						field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CatalogValidationError{
+						field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CatalogValidationError{
+					field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetVulnerabilitySummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CatalogValidationError{
+					field:  "VulnerabilitySummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CatalogValidationError{
+					field:  "VulnerabilitySummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetVulnerabilitySummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CatalogValidationError{
+				field:  "VulnerabilitySummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return CatalogMultiError(errors)
 	}
@@ -503,6 +566,69 @@ func (m *CreateUpdateCatalogRequest) validate(all bool) error {
 			}
 		}
 
+	}
+
+	for idx, item := range m.GetDashboardLinks() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateUpdateCatalogRequestValidationError{
+						field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateUpdateCatalogRequestValidationError{
+						field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateUpdateCatalogRequestValidationError{
+					field:  fmt.Sprintf("DashboardLinks[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetVulnerabilitySummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "VulnerabilitySummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateUpdateCatalogRequestValidationError{
+					field:  "VulnerabilitySummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetVulnerabilitySummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateUpdateCatalogRequestValidationError{
+				field:  "VulnerabilitySummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -2861,3 +2987,258 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CommunicationChannelValidationError{}
+
+// Validate checks the field values on DashboardLink with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DashboardLink) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DashboardLink with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DashboardLinkMultiError, or
+// nil if none found.
+func (m *DashboardLink) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DashboardLink) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	// no validation rules for Name
+
+	// no validation rules for Url
+
+	// no validation rules for Description
+
+	if len(errors) > 0 {
+		return DashboardLinkMultiError(errors)
+	}
+
+	return nil
+}
+
+// DashboardLinkMultiError is an error wrapping multiple validation errors
+// returned by DashboardLink.ValidateAll() if the designated constraints
+// aren't met.
+type DashboardLinkMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DashboardLinkMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DashboardLinkMultiError) AllErrors() []error { return m }
+
+// DashboardLinkValidationError is the validation error returned by
+// DashboardLink.Validate if the designated constraints aren't met.
+type DashboardLinkValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DashboardLinkValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DashboardLinkValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DashboardLinkValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DashboardLinkValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DashboardLinkValidationError) ErrorName() string { return "DashboardLinkValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DashboardLinkValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDashboardLink.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DashboardLinkValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DashboardLinkValidationError{}
+
+// Validate checks the field values on VulnerabilitySummary with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *VulnerabilitySummary) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on VulnerabilitySummary with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// VulnerabilitySummaryMultiError, or nil if none found.
+func (m *VulnerabilitySummary) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *VulnerabilitySummary) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CriticalCount
+
+	// no validation rules for HighCount
+
+	// no validation rules for MediumCount
+
+	// no validation rules for LowCount
+
+	// no validation rules for InfoCount
+
+	// no validation rules for TotalCount
+
+	if all {
+		switch v := interface{}(m.GetLastScan()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, VulnerabilitySummaryValidationError{
+					field:  "LastScan",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, VulnerabilitySummaryValidationError{
+					field:  "LastScan",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastScan()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return VulnerabilitySummaryValidationError{
+				field:  "LastScan",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for ScannerName
+
+	// no validation rules for ScanVersion
+
+	if len(errors) > 0 {
+		return VulnerabilitySummaryMultiError(errors)
+	}
+
+	return nil
+}
+
+// VulnerabilitySummaryMultiError is an error wrapping multiple validation
+// errors returned by VulnerabilitySummary.ValidateAll() if the designated
+// constraints aren't met.
+type VulnerabilitySummaryMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m VulnerabilitySummaryMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m VulnerabilitySummaryMultiError) AllErrors() []error { return m }
+
+// VulnerabilitySummaryValidationError is the validation error returned by
+// VulnerabilitySummary.Validate if the designated constraints aren't met.
+type VulnerabilitySummaryValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e VulnerabilitySummaryValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e VulnerabilitySummaryValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e VulnerabilitySummaryValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e VulnerabilitySummaryValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e VulnerabilitySummaryValidationError) ErrorName() string {
+	return "VulnerabilitySummaryValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e VulnerabilitySummaryValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sVulnerabilitySummary.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = VulnerabilitySummaryValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = VulnerabilitySummaryValidationError{}
