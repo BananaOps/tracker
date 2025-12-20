@@ -326,6 +326,14 @@ export default function AllDriftsList() {
 
       {/* Search and Filters */}
       <div className="space-y-4">
+        {/* Indicateur de breakpoint pour test */}
+        <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+          <span className="lg:hidden">Small screen</span>
+          <span className="hidden lg:block xl:hidden">Large screen (lg)</span>
+          <span className="hidden xl:block 2xl:hidden">Extra large screen (xl)</span>
+          <span className="hidden 2xl:block">2XL screen (2xl)</span>
+        </div>
+        
         {/* Search Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <div className="relative">
@@ -465,28 +473,26 @@ export default function AllDriftsList() {
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <div className="min-w-full">
+              <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Service
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Title
                   </th>
-                  <th className="hidden sm:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Env
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="hidden md:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
-                    Created
-                  </th>
-                  <th className="hidden lg:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
+                  <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Age
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -498,15 +504,15 @@ export default function AllDriftsList() {
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
                     onClick={() => setSelectedDrift(drift)}
                   >
-                    <td className="px-3 py-4 whitespace-nowrap w-32">
-                      <div className="flex items-center gap-1">
-                        <FontAwesomeIcon icon={faCodeBranch} className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate" title={drift.attributes.service}>
                           {drift.attributes.service}
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-4">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 dark:text-white max-w-xs truncate" title={drift.title}>
                         {drift.title}
                       </div>
@@ -516,30 +522,25 @@ export default function AllDriftsList() {
                         </div>
                       )}
                     </td>
-                    <td className="hidden sm:table-cell px-3 py-4 whitespace-nowrap w-24">
+                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                       {drift.attributes.environment && (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getEnvironmentColor(drift.attributes.environment).bg} ${getEnvironmentColor(drift.attributes.environment).text}`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEnvironmentColor(drift.attributes.environment).bg} ${getEnvironmentColor(drift.attributes.environment).text}`}>
                           {getEnvironmentLabel(drift.attributes.environment)}
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap w-20">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(drift.attributes.status)}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(drift.attributes.status)}`}>
                         {getStatusLabel(drift.attributes.status)}
                       </span>
                     </td>
-                    <td className="hidden md:table-cell px-3 py-4 whitespace-nowrap w-24">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {formatDate(drift.metadata?.createdAt)}
-                      </span>
-                    </td>
-                    <td className="hidden lg:table-cell px-3 py-4 whitespace-nowrap w-16">
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                    <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {getTimeSince(drift.metadata?.createdAt)}
                       </span>
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-right w-20">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {drift.links?.ticket ? (
                           <a
                             href={drift.links.ticket}
@@ -554,9 +555,9 @@ export default function AllDriftsList() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             {isJiraTicket(drift.links.ticket) ? (
-                              <FontAwesomeIcon icon={faJira} className="w-3.5 h-3.5" />
+                              <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
                             ) : (
-                              <ExternalLink className="w-3.5 h-3.5" />
+                              <ExternalLink className="w-4 h-4" />
                             )}
                           </a>
                         ) : (
@@ -568,7 +569,7 @@ export default function AllDriftsList() {
                             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                             title="Add Jira ticket"
                           >
-                            <FontAwesomeIcon icon={faJira} className="w-3.5 h-3.5" />
+                            <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
                           </button>
                         )}
                         <button
@@ -579,7 +580,7 @@ export default function AllDriftsList() {
                           className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                           title="Mark as done"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
+                          <CheckCircle className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -587,6 +588,7 @@ export default function AllDriftsList() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
