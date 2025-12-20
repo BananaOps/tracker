@@ -3,24 +3,36 @@ import { useNavigate } from 'react-router-dom'
 import { eventsApi } from '../lib/api'
 import type { Event } from '../types/api'
 import { EventType, Status, Priority } from '../types/api'
-import { AlertTriangle, Plus, RefreshCw, AlertCircle, ExternalLink, CheckCircle, X } from 'lucide-react'
+import { AlertTriangle, Plus, RefreshCw, AlertCircle, ExternalLink, CheckCircle, X, Search, Filter } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faJira } from '@fortawesome/free-brands-svg-icons'
 import { getEnvironmentColor, getEnvironmentLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 
-export default function DriftsList() {
+export default function AllDriftsList() {
   const navigate = useNavigate()
   const [drifts, setDrifts] = useState<Event[]>([])
+  const [filteredDrifts, setFilteredDrifts] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDrift, setSelectedDrift] = useState<Event | null>(null)
+  
+  // Search and filters
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [environmentFilter, setEnvironmentFilter] = useState<string>('all')
+  const [serviceFilter, setServiceFilter] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
+
+  // Mark as done states
   const [showMarkDonePrompt, setShowMarkDonePrompt] = useState(false)
   const [driftToMarkDone, setDriftToMarkDone] = useState<Event | null>(null)
   const [markDoneUser, setMarkDoneUser] = useState('')
   const [markDoneUserError, setMarkDoneUserError] = useState(false)
   const [markingDone, setMarkingDone] = useState(false)
+
+  // Add ticket states
   const [showCreateTicketPrompt, setShowCreateTicketPrompt] = useState(false)
   const [driftToCreateTicket, setDriftToCreateTicket] = useState<Event | null>(null)
   const [ticketUrl, setTicketUrl] = useState('')
@@ -32,21 +44,15 @@ export default function DriftsList() {
       setLoading(true)
       setError(null)
       
-      // Load all drifts of type DRIFT
+      // Load ALL drifts (no filtering)
       const searchParams = {
         type: EventType.DRIFT as unknown as number,
       }
 
-      console.log('Loading all drifts with filters:', searchParams)
+      console.log('Loading all drifts:', searchParams)
       const data = await eventsApi.search(searchParams)
       
-      // Filter out completed/failed drifts - show everything except failed, done, closed
-      const excludedStatuses = ['failed', 'done', 'closed', 'close']
-      const filteredDrifts = (data.events || []).filter((drift: Event) => 
-        !excludedStatuses.includes(String(drift.attributes.status || '').toLowerCase())
-      )
-
-      setDrifts(filteredDrifts)
+      setDrifts(data.events || [])
     } catch (err) {
       setError('Error loading drifts')
       console.error(err)
@@ -58,6 +64,49 @@ export default function DriftsList() {
   useEffect(() => {
     loadDrifts()
   }, [])
+
+  // Filter and search logic
+  useEffect(() => {
+    let filtered = [...drifts]
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(drift => 
+        drift.title.toLowerCase().includes(query) ||
+        drift.attributes.service.toLowerCase().includes(query) ||
+        (drift.attributes.message && drift.attributes.message.toLowerCase().includes(query))
+      )
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(drift => 
+        String(drift.attributes.status || '').toLowerCase() === statusFilter
+      )
+    }
+
+    // Environment filter
+    if (environmentFilter !== 'all') {
+      filtered = filtered.filter(drift => 
+        String(drift.attributes.environment || '').toLowerCase() === environmentFilter
+      )
+    }
+
+    // Service filter
+    if (serviceFilter !== 'all') {
+      filtered = filtered.filter(drift => 
+        drift.attributes.service === serviceFilter
+      )
+    }
+
+    setFilteredDrifts(filtered)
+  }, [drifts, searchQuery, statusFilter, environmentFilter, serviceFilter])
+
+  // Get unique values for filters
+  const uniqueStatuses = [...new Set(drifts.map(d => String(d.attributes.status || '').toLowerCase()))].filter(Boolean)
+  const uniqueEnvironments = [...new Set(drifts.map(d => String(d.attributes.environment || '').toLowerCase()))].filter(Boolean)
+  const uniqueServices = [...new Set(drifts.map(d => d.attributes.service))].sort()
 
   // Parse timestamp helper
   const parseTimestamp = (timestamp: any): Date | null => {
@@ -123,7 +172,10 @@ export default function DriftsList() {
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       case 'done':
       case 'close':
+      case 'closed':
         return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      case 'failed':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
     }
@@ -151,7 +203,6 @@ export default function DriftsList() {
       setCreatingTicket(true)
       setShowCreateTicketPrompt(false)
 
-      // Update the drift with the new ticket URL
       const updateData = {
         title: driftToCreateTicket.title,
         attributes: driftToCreateTicket.attributes,
@@ -162,8 +213,6 @@ export default function DriftsList() {
       }
 
       await eventsApi.update(driftToCreateTicket.metadata.id, updateData)
-      
-      // Reload the drifts list to reflect the change
       await loadDrifts()
       
     } catch (err: any) {
@@ -197,7 +246,6 @@ export default function DriftsList() {
       setMarkingDone(true)
       setShowMarkDonePrompt(false)
 
-      // Update the drift status to "done"
       const updateData = {
         title: driftToMarkDone.title,
         attributes: {
@@ -209,8 +257,6 @@ export default function DriftsList() {
       }
 
       await eventsApi.update(driftToMarkDone.metadata.id, updateData)
-      
-      // Reload the drifts list to reflect the change
       await loadDrifts()
       
     } catch (err: any) {
@@ -227,6 +273,15 @@ export default function DriftsList() {
     return url.includes('atlassian.net') || url.includes('jira') || /[a-z]+-\d+/i.test(ticketUrl)
   }
 
+  const clearFilters = () => {
+    setSearchQuery('')
+    setStatusFilter('all')
+    setEnvironmentFilter('all')
+    setServiceFilter('all')
+  }
+
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || environmentFilter !== 'all' || serviceFilter !== 'all'
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -239,9 +294,9 @@ export default function DriftsList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Configuration Drifts</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Configuration Drifts</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Monitor and manage active configuration drift detection
+            Search and filter through all configuration drift records
           </p>
         </div>
         <div className="flex gap-3">
@@ -269,91 +324,143 @@ export default function DriftsList() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Drifts Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-yellow-50/50 dark:from-slate-800 dark:to-yellow-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-amber-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Active Drifts</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{drifts.length}</p>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-lg"></div>
-                <FontAwesomeIcon icon={faCodeBranch} className="relative w-12 h-12 text-yellow-600 dark:text-yellow-400" />
-              </div>
-            </div>
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search drifts by title, service, or message..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            />
           </div>
         </div>
 
-        {/* Unique Services Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-orange-50/50 dark:from-slate-800 dark:to-orange-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Affected Services</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
-                  {new Set(drifts.map((d: Event) => d.attributes.service)).size}
-                </p>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-lg"></div>
-                <AlertCircle className="relative w-12 h-12 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Clear All
+              </button>
+            )}
           </div>
-        </div>
 
-        {/* Environments Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-red-50/50 dark:from-slate-800 dark:to-red-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">Critical Issues</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
-                  {drifts.filter((d: Event) => d.attributes.status === 'error' || d.attributes.priority === Priority.P1).length}
-                </p>
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Statuses</option>
+                  {uniqueStatuses.map(status => (
+                    <option key={status} value={status}>
+                      {getStatusLabel(status)}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-lg"></div>
-                <AlertTriangle className="relative w-12 h-12 text-red-600 dark:text-red-400" />
+
+              {/* Environment Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Environment
+                </label>
+                <select
+                  value={environmentFilter}
+                  onChange={(e) => setEnvironmentFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Environments</option>
+                  {uniqueEnvironments.map(env => (
+                    <option key={env} value={env}>
+                      {getEnvironmentLabel(env)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Service Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Service
+                </label>
+                <select
+                  value={serviceFilter}
+                  onChange={(e) => setServiceFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Services</option>
+                  {uniqueServices.map(service => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {drifts.length === 0 ? (
+      {/* Results Summary */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <span>
+          Showing {filteredDrifts.length} of {drifts.length} drifts
+        </span>
+        {hasActiveFilters && (
+          <span className="text-blue-600 dark:text-blue-400">
+            Filters active
+          </span>
+        )}
+      </div>
+
+      {/* Table */}
+      {filteredDrifts.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <FontAwesomeIcon icon={faCodeBranch} className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No active drifts
+            {hasActiveFilters ? 'No drifts match your filters' : 'No drifts found'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            All configurations are in sync or resolved
+            {hasActiveFilters ? 'Try adjusting your search or filters' : 'No configuration drifts have been recorded'}
           </p>
-          <button
-            onClick={() => navigate('/drifts/create')}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Create Drift
-          </button>
+          {hasActiveFilters ? (
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+            >
+              Clear Filters
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/drifts/create')}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              Create Drift
+            </button>
+          )}
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -367,16 +474,16 @@ export default function DriftsList() {
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Title
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
+                  <th className="hidden sm:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
                     Env
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
                     Status
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
+                  <th className="hidden md:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">
                     Created
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
+                  <th className="hidden lg:table-cell px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
                     Age
                   </th>
                   <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
@@ -385,7 +492,7 @@ export default function DriftsList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {drifts.map((drift) => (
+                {filteredDrifts.map((drift) => (
                   <tr 
                     key={drift.metadata?.id} 
                     className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
@@ -409,7 +516,7 @@ export default function DriftsList() {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap w-24">
+                    <td className="hidden sm:table-cell px-3 py-4 whitespace-nowrap w-24">
                       {drift.attributes.environment && (
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getEnvironmentColor(drift.attributes.environment).bg} ${getEnvironmentColor(drift.attributes.environment).text}`}>
                           {getEnvironmentLabel(drift.attributes.environment)}
@@ -421,12 +528,12 @@ export default function DriftsList() {
                         {getStatusLabel(drift.attributes.status)}
                       </span>
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap w-24">
+                    <td className="hidden md:table-cell px-3 py-4 whitespace-nowrap w-24">
                       <span className="text-xs text-gray-600 dark:text-gray-400">
                         {formatDate(drift.metadata?.createdAt)}
                       </span>
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap w-16">
+                    <td className="hidden lg:table-cell px-3 py-4 whitespace-nowrap w-16">
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {getTimeSince(drift.metadata?.createdAt)}
                       </span>
@@ -492,7 +599,7 @@ export default function DriftsList() {
         />
       )}
 
-      {/* Mark as Done Confirmation Modal */}
+      {/* Mark as Done Modal */}
       {showMarkDonePrompt && driftToMarkDone && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div 
@@ -575,7 +682,8 @@ export default function DriftsList() {
           </div>
         </div>
       )}
-      {/* Create Jira Ticket Modal */}
+
+      {/* Add Jira Ticket Modal */}
       {showCreateTicketPrompt && driftToCreateTicket && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div 

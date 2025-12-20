@@ -790,7 +790,9 @@ export default function () {
             notification: true,
           },
           links: {
-            ticket: `INC-${randomInt(1000, 9999)}`,
+            ticket: Math.random() > 0.5 
+              ? `https://company.atlassian.net/browse/INC-${randomInt(1000, 9999)}`
+              : `INC-${randomInt(1000, 9999)}`,
           },
           slackId: `${Date.now()}${randomInt(100000, 999999)}`,
           slackChannel: 'incidents',
@@ -824,7 +826,9 @@ export default function () {
             notification: env === 'production',
           },
           links: {
-            ticket: `DRIFT-${randomInt(100, 999)}`,
+            ticket: Math.random() > 0.5 
+              ? `https://company.atlassian.net/browse/DRIFT-${randomInt(100, 999)}`
+              : `DRIFT-${randomInt(100, 999)}`,
           },
           slackId: `${Date.now()}${randomInt(100000, 999999)}`,
           slackChannel: 'infrastructure',
@@ -858,7 +862,9 @@ export default function () {
             notification: status === 'failure',
           },
           links: {
-            ticket: `RPA-${randomInt(100, 999)}`,
+            ticket: Math.random() > 0.5 
+              ? `https://company.atlassian.net/browse/RPA-${randomInt(100, 999)}`
+              : `RPA-${randomInt(100, 999)}`,
           },
           slackId: `${Date.now()}${randomInt(100000, 999999)}`,
           slackChannel: 'rpa-logs',
@@ -895,7 +901,9 @@ export default function () {
             notification: env === 'production',
           },
           links: {
-            ticket: `OPS-${randomInt(100, 999)}`,
+            ticket: Math.random() > 0.5 
+              ? `https://company.atlassian.net/browse/OPS-${randomInt(100, 999)}`
+              : `OPS-${randomInt(100, 999)}`,
           },
           slackId: `${Date.now()}${randomInt(100000, 999999)}`,
           slackChannel: 'operations',

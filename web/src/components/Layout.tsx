@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3 } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
@@ -30,7 +30,14 @@ const navigation = [
       { name: 'Version Compliance', href: '/catalog/version-compliance', icon: AlertTriangle },
     ]
   },
-  { name: 'Drifts', href: '/drifts', icon: GitBranch },
+  {
+    name: 'Drifts', 
+    icon: GitBranch,
+    submenu: [
+      { name: 'Active Drifts', href: '/drifts', icon: GitBranch },
+      { name: 'All Drifts', href: '/drifts/all', icon: Search },
+    ]
+  },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
   { name: 'Locks', href: '/locks', icon: Lock },
   { name: 'Docs', href: '/docs', icon: BookOpen },
