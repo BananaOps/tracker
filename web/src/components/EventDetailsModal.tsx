@@ -290,7 +290,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
         setExistingLock(createdLock)
       } catch (createErr: any) {
         // Si le lock existe déjà, essayer de le déverrouiller puis le recréer
-        if (createErr.response?.data?.message?.includes('already locked')) {
+        const errorMessage = createErr.response?.data?.message || createErr.message || ''
+        if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
           // Chercher le lock existant
           const locks = await locksApi.list()
           const foundLock = locks.locks.find(
@@ -316,7 +317,16 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       setShowToast(true)
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Error creating lock'
-      setToastMessage(errorMessage)
+      
+      // Améliorer le message d'erreur pour les locks
+      let displayMessage = errorMessage
+      if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
+        displayMessage = `🔒 Service ${editedEvent.attributes.service} is already locked in ${editedEvent.attributes.environment}. Please check the Locks page to see who has locked it.`
+      } else if (errorMessage.toLowerCase().includes('internal error')) {
+        displayMessage = `🔒 Cannot create lock: Service ${editedEvent.attributes.service} may already be locked. Please check the Locks page.`
+      }
+      
+      setToastMessage(displayMessage)
       setShowToast(true)
       console.error('Error creating lock:', err)
     } finally {

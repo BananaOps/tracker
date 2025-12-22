@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
-import { Lock as LockIcon, Unlock, Trash2, Plus, RefreshCw, AlertCircle } from 'lucide-react'
+import { Lock as LockIcon, Unlock, Plus, RefreshCw, AlertCircle, Eye } from 'lucide-react'
 import { getEnvironmentColor, getEnvironmentLabel } from '../lib/eventUtils'
 
 export default function Locks() {
@@ -323,20 +323,18 @@ export default function Locks() {
                         {lock.event_id && (
                           <button
                             onClick={() => navigate(`/events/timeline?event=${lock.event_id}`)}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                            title="View event"
+                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-colors"
+                            title="View linked event"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
+                            <Eye className="w-4 h-4" />
+                            View Event
                           </button>
                         )}
                         <button
                           onClick={() => handleUnlock(lock)}
                           disabled={unlocking === lock.id}
-                          className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Unlock"
+                          className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          title="Unlock service"
                         >
                           {unlocking === lock.id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />

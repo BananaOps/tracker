@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
@@ -171,7 +172,14 @@ func (e *Event) CreateEvent(
 				"resource", getResourceType(i.Attributes.Type),
 				"error", err,
 			)
-			return nil, fmt.Errorf("cannot create event: %w", err)
+
+			// Améliorer le message d'erreur pour être plus explicite
+			if strings.Contains(err.Error(), "already locked") {
+				return nil, fmt.Errorf("cannot create event: service %s is already locked in %s. Please unlock it first",
+					i.Attributes.Service, i.Attributes.Environment.String())
+			}
+
+			return nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
 		}
 	}
 

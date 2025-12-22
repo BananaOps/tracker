@@ -57,6 +57,25 @@ export default function CreateEvent() {
     },
   })
 
+  const getErrorMessage = () => {
+    if (!createMutation.isError) return ''
+    
+    const error = createMutation.error as any
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error'
+    
+    // Améliorer le message d'erreur pour les locks
+    if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
+      return `🔒 Cannot create event: Service is already locked. Please check the Locks page to see who has locked it and unlock it first if needed.`
+    } else if (errorMessage.toLowerCase().includes('cannot create event')) {
+      // Le backend renvoie déjà "cannot create event: ..." avec le détail
+      return `🔒 ${errorMessage}`
+    } else if (errorMessage.toLowerCase().includes('internal error')) {
+      return `🔒 Cannot create event: There may be a lock conflict. Please check the Locks page.`
+    }
+    
+    return `❌ Error creating event: ${errorMessage}`
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setShowToast(false)
@@ -98,7 +117,12 @@ export default function CreateEvent() {
 
       {createMutation.isError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-800 dark:text-red-200 font-medium">Error creating event. Please try again.</p>
+          <p className="text-red-800 dark:text-red-200 font-medium">{getErrorMessage()}</p>
+          {getErrorMessage().includes('🔒') && (
+            <p className="text-red-600 dark:text-red-400 text-sm mt-2">
+              💡 Tip: You can view and manage locks on the <a href="/locks" className="underline hover:text-red-800 dark:hover:text-red-200">Locks page</a>
+            </p>
+          )}
         </div>
       )}
       

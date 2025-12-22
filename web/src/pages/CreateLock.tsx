@@ -86,7 +86,17 @@ export default function CreateLock() {
       
       navigate('/locks')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error creating lock')
+      const errorMessage = err.response?.data?.message || err.message || 'Error creating lock'
+      
+      // Améliorer le message d'erreur pour les locks
+      let displayMessage = errorMessage
+      if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
+        displayMessage = `🔒 Service ${formData.service} is already locked in ${formData.environment}. Please check the Locks page to see who has locked it and unlock it first if needed.`
+      } else if (errorMessage.toLowerCase().includes('internal error')) {
+        displayMessage = `🔒 Cannot create lock: Service ${formData.service} may already be locked. Please check the Locks page.`
+      }
+      
+      setError(displayMessage)
       console.error(err)
     } finally {
       setLoading(false)
