@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { CatalogType, type ProjectCompliance, type DeliverableUsage } from '../types/api'
-import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, TrendingDown, Search, X } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, TrendingDown, Search, X, Minus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 export default function VersionCompliance() {
@@ -53,17 +53,24 @@ export default function VersionCompliance() {
         totalProjects: 0,
         compliantProjects: 0,
         nonCompliantProjects: 0,
+        neutralProjects: 0,
         overallCompliance: 0
       }
     }
+
+    // Count projects without used deliverables as neutral
+    const projectsWithoutDeliverables = complianceData.projects?.filter((p: ProjectCompliance) => 
+      p.totalCount === 0
+    ).length || 0
 
     return {
       totalProjects: complianceData.summary.totalProjects,
       compliantProjects: complianceData.summary.compliantProjects,
       nonCompliantProjects: complianceData.summary.nonCompliantProjects,
+      neutralProjects: projectsWithoutDeliverables,
       overallCompliance: Math.round(complianceData.summary.overallCompliancePercentage)
     }
-  }, [complianceData?.summary])
+  }, [complianceData?.summary, complianceData?.projects])
 
   const toggleTypeFilter = (type: string) => {
     if (selectedTypes.includes(type)) {
@@ -73,15 +80,32 @@ export default function VersionCompliance() {
     }
   }
 
-  const getComplianceColor = (percentage: number) => {
-    if (percentage >= 90) return 'text-green-600 dark:text-green-400'
-    if (percentage >= 70) return 'text-yellow-600 dark:text-yellow-400'
-    return 'text-red-600 dark:text-red-400'
-  }
-
-  const getComplianceBg = () => {
-    // Use neutral colors for all project blocks
-    return 'bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/70 cursor-pointer transition-colors'
+  const getComplianceStatus = (project: ProjectCompliance) => {
+    if (project.totalCount === 0) {
+      return { 
+        status: 'neutral', 
+        icon: Minus, 
+        color: 'text-gray-500 dark:text-gray-400',
+        bgColor: 'bg-gray-100 dark:bg-gray-700',
+        label: 'No Deliverables'
+      }
+    } else if (project.compliancePercentage === 100) {
+      return { 
+        status: 'compliant', 
+        icon: CheckCircle, 
+        color: 'text-green-600 dark:text-green-400',
+        bgColor: 'bg-green-100 dark:bg-green-900/30',
+        label: 'Compliant'
+      }
+    } else {
+      return { 
+        status: 'non-compliant', 
+        icon: AlertTriangle, 
+        color: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-100 dark:bg-red-900/30',
+        label: 'Non-Compliant'
+      }
+    }
   }
 
   const handleProjectClick = (projectName: string) => {
@@ -126,14 +150,14 @@ export default function VersionCompliance() {
               <span>Version Compliance</span>
             </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Track which projects are using outdated versions of their declared deliverables (packages, charts, containers, modules, libraries)
+              Track which projects are using outdated versions of their declared deliverables
             </p>
           </div>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
              style={{
                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
@@ -181,16 +205,16 @@ export default function VersionCompliance() {
 
         <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
              style={{
-               background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%)',
-               borderTop: '4px solid #3b82f6',
-               boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
+               background: 'linear-gradient(135deg, rgba(107, 114, 128, 0.1) 0%, rgba(75, 85, 99, 0.1) 100%)',
+               borderTop: '4px solid #6b7280',
+               boxShadow: '0 0 20px rgba(107, 114, 128, 0.3)'
              }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          <div className={`text-3xl font-bold mb-1 ${getComplianceColor(summary.overallCompliance)}`}>
-            {summary.overallCompliance}%
+          <div className="absolute top-2 right-2 w-2 h-2 bg-gray-500 rounded-full animate-pulse" />
+          <div className="text-3xl font-bold text-gray-600 dark:text-gray-400 mb-1">
+            {summary.neutralProjects}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            Overall Compliance
+            No Deliverables
           </div>
         </div>
       </div>
@@ -257,99 +281,114 @@ export default function VersionCompliance() {
         </div>
       </div>
 
-      {/* Projects List */}
-      <div className="space-y-4">
-        {filteredData.map((project: ProjectCompliance) => (
-          <div 
-            key={project.projectName} 
-            className={`card border ${getComplianceBg()}`}
-            onClick={() => handleProjectClick(project.projectName)}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <Package className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                    <span>{project.projectName}</span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">→</span>
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {project.totalCount} used deliverables • {project.outdatedCount} outdated
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className={`text-2xl font-bold ${getComplianceColor(project.compliancePercentage)}`}>
-                  {project.compliancePercentage}%
-                </div>
-                {project.compliancePercentage === 100 ? (
-                  <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                ) : (
-                  <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
-                )}
-              </div>
-            </div>
-
-            {/* Deliverables */}
-            <div className="space-y-2">
-              {project.deliverables.map((deliverable: DeliverableUsage) => (
-                <div
-                  key={deliverable.name}
-                  className={`p-3 rounded-lg border ${
-                    deliverable.isOutdated
-                      ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-                      : 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {deliverable.name}
-                      </span>
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                        {deliverable.type}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="text-gray-600 dark:text-gray-400">
-                        Current: <span className="font-medium">{deliverable.currentVersion || 'N/A'}</span>
-                      </div>
-                      <div className="text-gray-600 dark:text-gray-400">
-                        Reference: <span className="font-medium text-green-600 dark:text-green-400">{deliverable.referenceVersion || 'N/A'}</span>
-                      </div>
-                      <div className="text-gray-600 dark:text-gray-400">
-                        Latest: <span className="font-medium text-blue-600 dark:text-blue-400">{deliverable.latestVersion || 'N/A'}</span>
-                      </div>
-                      
-                      {deliverable.isOutdated ? (
-                        <div className="flex items-center space-x-1 text-red-600 dark:text-red-400">
-                          <TrendingDown className="w-4 h-4" />
-                          <span className="text-xs font-medium">Outdated</span>
+      {/* Projects Table */}
+      {filteredData.length === 0 ? (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <Package className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No projects found
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Try adjusting your filters or search query
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Project
+                  </th>
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Compliance
+                  </th>
+                  <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Deliverables
+                  </th>
+                  <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Outdated
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredData.map((project: ProjectCompliance) => {
+                  const status = getComplianceStatus(project)
+                  const StatusIcon = status.icon
+                  
+                  return (
+                    <tr key={project.projectName} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-3">
+                          <Package className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {project.projectName}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">
+                              {status.label}
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-xs font-medium">Up to date</span>
+                      </td>
+                      <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-lg font-bold ${status.color}`}>
+                            {project.totalCount === 0 ? '-' : `${project.compliancePercentage}%`}
+                          </span>
+                          {project.totalCount > 0 && (
+                            <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                              <div 
+                                className={`h-1.5 rounded-full ${
+                                  project.compliancePercentage === 100 ? 'bg-green-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${project.compliancePercentage}%` }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                      </td>
+                      <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
+                          {project.totalCount}
+                        </span>
+                      </td>
+                      <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
+                        <span className={`text-sm font-medium ${
+                          project.outdatedCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {project.outdatedCount}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <button
+                          onClick={() => handleProjectClick(project.projectName)}
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        ))}
-
-        {filteredData.length === 0 && (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No projects found</p>
-            <p className="text-xs mt-1">Try adjusting your filters</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
