@@ -356,7 +356,12 @@ export default function CatalogTable() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <Package className="w-5 h-5 text-gray-400 mr-2" />
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{catalog.name}</span>
+                      <span 
+                        className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]" 
+                        title={catalog.name}
+                      >
+                        {catalog.name.length > 25 ? `${catalog.name.substring(0, 25)}...` : catalog.name}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
