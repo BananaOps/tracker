@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
-import { CatalogType, Language } from '../types/api'
-import { Package, BookOpen, Search, X, Plus, Edit, Trash2 } from 'lucide-react'
+import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
+import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -13,49 +13,52 @@ import {
   faDocker, 
   faRust,
   faGolang,
-  faGithub
+  faGithub,
+  faSlack,
+  faDiscord,
+  faTelegram,
+  faMicrosoft
 } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
   faFileCode, 
-  faCube 
+  faCube,
+  faComments
 } from '@fortawesome/free-solid-svg-icons'
 
 export default function CatalogTable() {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 100 }),
   })
 
-  const deleteMutation = useMutation({
-    mutationFn: (name: string) => catalogApi.delete(name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['catalog'] })
-      setDeleteConfirm(null)
-    },
-  })
+
 
   const allCatalogs = data?.catalogs || []
 
   // Extraire les valeurs uniques pour les filtres
-  const uniqueTypes = useMemo(() => {
-    return Array.from(new Set(allCatalogs.map(c => String(c.type).toLowerCase()))).sort()
+  const uniqueTypes = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.map((c: Catalog) => String(c.type).toLowerCase()))).sort() as string[]
   }, [allCatalogs])
 
-  const uniqueLanguages = useMemo(() => {
-    return Array.from(new Set(allCatalogs.map(c => String(c.languages).toLowerCase()))).sort()
+  const uniqueLanguages = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.map((c: Catalog) => String(c.languages).toLowerCase()))).sort() as string[]
+  }, [allCatalogs])
+
+  const uniquePlatforms = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.filter((c: Catalog) => c.platform).map((c: Catalog) => String(c.platform).toLowerCase()))).sort() as string[]
   }, [allCatalogs])
 
   // Filtrer les catalogues
   const catalogs = useMemo(() => {
-    return allCatalogs.filter(catalog => {
+    return allCatalogs.filter((catalog: Catalog) => {
       // Filtre par recherche
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
@@ -77,9 +80,16 @@ export default function CatalogTable() {
         if (!selectedLanguages.includes(catalogLang)) return false
       }
 
+      // Filtre par plateforme
+      if (selectedPlatforms.length > 0) {
+        if (!catalog.platform) return false
+        const catalogPlatform = String(catalog.platform).toLowerCase()
+        if (!selectedPlatforms.includes(catalogPlatform)) return false
+      }
+
       return true
     })
-  }, [allCatalogs, searchQuery, selectedTypes, selectedLanguages])
+  }, [allCatalogs, searchQuery, selectedTypes, selectedLanguages, selectedPlatforms])
 
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
     if (selected.includes(value)) {
@@ -93,25 +103,12 @@ export default function CatalogTable() {
     setSearchQuery('')
     setSelectedTypes([])
     setSelectedLanguages([])
+    setSelectedPlatforms([])
   }
 
-  const handleEdit = (catalogName: string) => {
-    navigate(`/catalog/edit/${catalogName}`)
-  }
 
-  const handleDelete = (catalogName: string) => {
-    if (deleteConfirm === catalogName) {
-      deleteMutation.mutate(catalogName)
-    } else {
-      setDeleteConfirm(catalogName)
-    }
-  }
 
-  const cancelDelete = () => {
-    setDeleteConfirm(null)
-  }
-
-  const activeFiltersCount = selectedTypes.length + selectedLanguages.length + (searchQuery ? 1 : 0)
+  const activeFiltersCount = selectedTypes.length + selectedLanguages.length + selectedPlatforms.length + (searchQuery ? 1 : 0)
 
   const getCatalogTypeLabel = (type: CatalogType | string) => {
     const typeStr = String(type).toLowerCase()
@@ -242,7 +239,7 @@ export default function CatalogTable() {
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
                 <div className="flex flex-wrap gap-2">
-                  {uniqueTypes.map(type => (
+                  {uniqueTypes.map((type: string) => (
                     <button
                       key={type}
                       onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
@@ -262,7 +259,7 @@ export default function CatalogTable() {
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Language:</span>
                 <div className="flex flex-wrap gap-2">
-                  {uniqueLanguages.map(lang => (
+                  {uniqueLanguages.map((lang: string) => (
                     <button
                       key={lang}
                       onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
@@ -276,6 +273,30 @@ export default function CatalogTable() {
                       <span>{getLanguageLabel(lang)}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Filtres Platform */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Platform:</span>
+                <div className="flex flex-wrap gap-2">
+                  {uniquePlatforms.map((platform: string) => {
+                    const platformColors = getPlatformColor(platform as Platform)
+                    return (
+                      <button
+                        key={platform}
+                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
+                          selectedPlatforms.includes(platform)
+                            ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
+                            : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} hover:opacity-80`
+                        }`}
+                      >
+                        {getPlatformIcon(platform as Platform)}
+                        <span>{getPlatformLabel(platform as Platform)}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -300,13 +321,19 @@ export default function CatalogTable() {
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Nom
+                  Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Langage
+                  Language
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Platform
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  SLA
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Version
@@ -314,20 +341,18 @@ export default function CatalogTable() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Owner
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Liens
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
+                  Links
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {catalogs.map((catalog) => (
-                <tr key={catalog.name} className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800">
+              {catalogs.map((catalog: Catalog) => (
+                <tr 
+                  key={catalog.name} 
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/catalog/${catalog.name}`)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <Package className="w-5 h-5 text-gray-400 mr-2" />
@@ -345,16 +370,38 @@ export default function CatalogTable() {
                       <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {catalog.platform ? (
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center space-x-1 w-fit ${getPlatformColor(catalog.platform).bg} ${getPlatformColor(catalog.platform).text} ${getPlatformColor(catalog.platform).darkBg} ${getPlatformColor(catalog.platform).darkText}`}>
+                        {getPlatformIcon(catalog.platform)}
+                        <span>{getPlatformLabel(catalog.platform)}</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {catalog.sla ? (
+                      <span 
+                        className="px-2 py-1 text-xs font-medium rounded-full"
+                        style={{
+                          backgroundColor: `${getSLAColor(catalog.sla.level)}20`,
+                          color: getSLAColor(catalog.sla.level)
+                        }}
+                      >
+                        {getSLALabel(catalog.sla.level)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {catalog.version}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     {catalog.owner}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
-                    {catalog.description || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                     <div className="flex space-x-3">
                       {catalog.repository && (
                         <a
@@ -363,6 +410,7 @@ export default function CatalogTable() {
                           rel="noopener noreferrer"
                           className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Repository"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <FontAwesomeIcon icon={faGithub} className="w-5 h-5" />
                         </a>
@@ -374,46 +422,39 @@ export default function CatalogTable() {
                           rel="noopener noreferrer"
                           className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
                           title="Documentation"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <BookOpen className="w-5 h-5" />
                         </a>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(catalog.name)}
-                        className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                        title="Modifier"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      {deleteConfirm === catalog.name ? (
-                        <div className="flex items-center space-x-1">
-                          <button
-                            onClick={() => handleDelete(catalog.name)}
-                            disabled={deleteMutation.isPending}
-                            className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                          >
-                            {deleteMutation.isPending ? '...' : 'Confirmer'}
-                          </button>
-                          <button
-                            onClick={cancelDelete}
-                            className="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                          >
-                            Annuler
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleDelete(catalog.name)}
-                          className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                          title="Supprimer"
+                      {catalog.communicationChannels && catalog.communicationChannels.map((channel, idx) => (
+                        <a
+                          key={idx}
+                          href={channel.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-colors"
+                          style={{ color: getCommunicationChannelColor(channel.type) }}
+                          title={`${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                          {getCommunicationChannelIcon(channel.type)}
+                        </a>
+                      ))}
+                      {catalog.dashboardLinks && catalog.dashboardLinks.map((dashboard, idx) => (
+                        <a
+                          key={`dashboard-${idx}`}
+                          href={dashboard.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-colors"
+                          style={{ color: getDashboardColor(dashboard.type) }}
+                          title={`${dashboard.name} (${getDashboardLabel(dashboard.type)})`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {getDashboardIcon(dashboard.type)}
+                        </a>
+                      ))}
                     </div>
                   </td>
                 </tr>
@@ -430,4 +471,289 @@ export default function CatalogTable() {
       )}
     </div>
   )
+}
+
+// Helper functions for SLA
+function getSLAColor(level?: SLALevel): string {
+  switch (level) {
+    case SLALevel.CRITICAL:
+      return '#ef4444'
+    case SLALevel.HIGH:
+      return '#f97316'
+    case SLALevel.MEDIUM:
+      return '#eab308'
+    case SLALevel.LOW:
+      return '#22c55e'
+    default:
+      return '#94a3b8'
+  }
+}
+
+function getSLALabel(level?: SLALevel): string {
+  switch (level) {
+    case SLALevel.CRITICAL:
+      return 'Critical'
+    case SLALevel.HIGH:
+      return 'High'
+    case SLALevel.MEDIUM:
+      return 'Medium'
+    case SLALevel.LOW:
+      return 'Low'
+    default:
+      return 'Not Set'
+  }
+}
+
+function getPlatformIcon(platform?: Platform) {
+  switch (platform) {
+    case Platform.EC2:
+      return <Server className="w-3 h-3" />
+    case Platform.LAMBDA:
+      return <Zap className="w-3 h-3" />
+    case Platform.KUBERNETES:
+      return <Server className="w-3 h-3" />
+    case Platform.ECS:
+      return <Package className="w-3 h-3" />
+    case Platform.FARGATE:
+      return <Cloud className="w-3 h-3" />
+    case Platform.CLOUD_RUN:
+      return <Cloud className="w-3 h-3" />
+    case Platform.APP_SERVICE:
+      return <Globe className="w-3 h-3" />
+    case Platform.STEP_FUNCTIONS:
+      return <Zap className="w-3 h-3" />
+    case Platform.EVENT_BRIDGE:
+      return <Activity className="w-3 h-3" />
+    case Platform.RDS:
+      return <Database className="w-3 h-3" />
+    case Platform.DYNAMODB:
+      return <Database className="w-3 h-3" />
+    case Platform.S3:
+      return <HardDrive className="w-3 h-3" />
+    case Platform.CLOUDFRONT:
+      return <Globe className="w-3 h-3" />
+    case Platform.API_GATEWAY:
+      return <Shield className="w-3 h-3" />
+    case Platform.CLOUDWATCH:
+      return <Activity className="w-3 h-3" />
+    case Platform.ON_PREMISE:
+      return <Server className="w-3 h-3" />
+    case Platform.HYBRID:
+      return <Cloud className="w-3 h-3" />
+    case Platform.MULTI_CLOUD:
+      return <Cloud className="w-3 h-3" />
+    default:
+      return <Server className="w-3 h-3" />
+  }
+}
+
+function getPlatformColor(platform?: Platform): { bg: string; text: string; darkBg: string; darkText: string } {
+  switch (platform) {
+    case Platform.EC2:
+      return { bg: 'bg-orange-100', text: 'text-orange-800', darkBg: 'dark:bg-orange-900/30', darkText: 'dark:text-orange-300' }
+    case Platform.LAMBDA:
+      return { bg: 'bg-yellow-100', text: 'text-yellow-800', darkBg: 'dark:bg-yellow-900/30', darkText: 'dark:text-yellow-300' }
+    case Platform.KUBERNETES:
+      return { bg: 'bg-blue-100', text: 'text-blue-800', darkBg: 'dark:bg-blue-900/30', darkText: 'dark:text-blue-300' }
+    case Platform.ECS:
+      return { bg: 'bg-indigo-100', text: 'text-indigo-800', darkBg: 'dark:bg-indigo-900/30', darkText: 'dark:text-indigo-300' }
+    case Platform.FARGATE:
+      return { bg: 'bg-purple-100', text: 'text-purple-800', darkBg: 'dark:bg-purple-900/30', darkText: 'dark:text-purple-300' }
+    case Platform.CLOUD_RUN:
+      return { bg: 'bg-green-100', text: 'text-green-800', darkBg: 'dark:bg-green-900/30', darkText: 'dark:text-green-300' }
+    case Platform.APP_SERVICE:
+      return { bg: 'bg-cyan-100', text: 'text-cyan-800', darkBg: 'dark:bg-cyan-900/30', darkText: 'dark:text-cyan-300' }
+    case Platform.STEP_FUNCTIONS:
+      return { bg: 'bg-amber-100', text: 'text-amber-800', darkBg: 'dark:bg-amber-900/30', darkText: 'dark:text-amber-300' }
+    case Platform.EVENT_BRIDGE:
+      return { bg: 'bg-pink-100', text: 'text-pink-800', darkBg: 'dark:bg-pink-900/30', darkText: 'dark:text-pink-300' }
+    case Platform.RDS:
+      return { bg: 'bg-emerald-100', text: 'text-emerald-800', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' }
+    case Platform.DYNAMODB:
+      return { bg: 'bg-teal-100', text: 'text-teal-800', darkBg: 'dark:bg-teal-900/30', darkText: 'dark:text-teal-300' }
+    case Platform.S3:
+      return { bg: 'bg-red-100', text: 'text-red-800', darkBg: 'dark:bg-red-900/30', darkText: 'dark:text-red-300' }
+    case Platform.CLOUDFRONT:
+      return { bg: 'bg-violet-100', text: 'text-violet-800', darkBg: 'dark:bg-violet-900/30', darkText: 'dark:text-violet-300' }
+    case Platform.API_GATEWAY:
+      return { bg: 'bg-lime-100', text: 'text-lime-800', darkBg: 'dark:bg-lime-900/30', darkText: 'dark:text-lime-300' }
+    case Platform.CLOUDWATCH:
+      return { bg: 'bg-sky-100', text: 'text-sky-800', darkBg: 'dark:bg-sky-900/30', darkText: 'dark:text-sky-300' }
+    case Platform.ON_PREMISE:
+      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
+    case Platform.HYBRID:
+      return { bg: 'bg-slate-100', text: 'text-slate-800', darkBg: 'dark:bg-slate-900/30', darkText: 'dark:text-slate-300' }
+    case Platform.MULTI_CLOUD:
+      return { bg: 'bg-rose-100', text: 'text-rose-800', darkBg: 'dark:bg-rose-900/30', darkText: 'dark:text-rose-300' }
+    default:
+      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
+  }
+}
+
+function getPlatformLabel(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return 'EC2/VM'
+    case Platform.LAMBDA:
+      return 'Lambda/Functions'
+    case Platform.KUBERNETES:
+      return 'Kubernetes'
+    case Platform.ECS:
+      return 'ECS/Containers'
+    case Platform.FARGATE:
+      return 'Fargate'
+    case Platform.CLOUD_RUN:
+      return 'Cloud Run'
+    case Platform.APP_SERVICE:
+      return 'App Service'
+    case Platform.STEP_FUNCTIONS:
+      return 'Step Functions'
+    case Platform.EVENT_BRIDGE:
+      return 'Event Bridge'
+    case Platform.RDS:
+      return 'RDS/Database'
+    case Platform.DYNAMODB:
+      return 'DynamoDB/NoSQL'
+    case Platform.S3:
+      return 'S3/Storage'
+    case Platform.CLOUDFRONT:
+      return 'CloudFront/CDN'
+    case Platform.API_GATEWAY:
+      return 'API Gateway'
+    case Platform.CLOUDWATCH:
+      return 'CloudWatch'
+    case Platform.ON_PREMISE:
+      return 'On-Premise'
+    case Platform.HYBRID:
+      return 'Hybrid Cloud'
+    case Platform.MULTI_CLOUD:
+      return 'Multi-Cloud'
+    default:
+      return 'Not Set'
+  }
+}
+
+// Helper functions for Communication Channels
+function getCommunicationChannelIcon(type?: CommunicationType) {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return <FontAwesomeIcon icon={faSlack} className="w-5 h-5" />
+    case CommunicationType.TEAMS:
+      return <FontAwesomeIcon icon={faMicrosoft} className="w-5 h-5" />
+    case CommunicationType.EMAIL:
+      return <Mail className="w-5 h-5" />
+    case CommunicationType.DISCORD:
+      return <FontAwesomeIcon icon={faDiscord} className="w-5 h-5" />
+    case CommunicationType.MATTERMOST:
+      return <FontAwesomeIcon icon={faComments} className="w-5 h-5" />
+    case CommunicationType.TELEGRAM:
+      return <FontAwesomeIcon icon={faTelegram} className="w-5 h-5" />
+    default:
+      return <FontAwesomeIcon icon={faComments} className="w-5 h-5" />
+  }
+}
+
+function getCommunicationChannelColor(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return '#4A154B' // Slack purple
+    case CommunicationType.TEAMS:
+      return '#6264A7' // Teams blue
+    case CommunicationType.EMAIL:
+      return '#EA4335' // Gmail red
+    case CommunicationType.DISCORD:
+      return '#5865F2' // Discord blurple
+    case CommunicationType.MATTERMOST:
+      return '#0058CC' // Mattermost blue
+    case CommunicationType.TELEGRAM:
+      return '#0088CC' // Telegram blue
+    default:
+      return '#6B7280' // Gray
+  }
+}
+
+function getCommunicationChannelLabel(type?: CommunicationType): string {
+  switch (type) {
+    case CommunicationType.SLACK:
+      return 'Slack'
+    case CommunicationType.TEAMS:
+      return 'Microsoft Teams'
+    case CommunicationType.EMAIL:
+      return 'Email'
+    case CommunicationType.DISCORD:
+      return 'Discord'
+    case CommunicationType.MATTERMOST:
+      return 'Mattermost'
+    case CommunicationType.TELEGRAM:
+      return 'Telegram'
+    default:
+      return 'Communication'
+  }
+}
+
+// Dashboard helper functions
+function getDashboardIcon(type?: DashboardType) {
+  switch (type) {
+    case DashboardType.GRAFANA:
+    case DashboardType.PROMETHEUS:
+    case DashboardType.KIBANA:
+      return <Activity className="w-5 h-5" />
+    case DashboardType.DATADOG:
+    case DashboardType.NEWRELIC:
+    case DashboardType.DYNATRACE:
+    case DashboardType.APPDYNAMICS:
+      return <Activity className="w-5 h-5" />
+    default:
+      return <Activity className="w-5 h-5" />
+  }
+}
+
+function getDashboardLabel(type?: DashboardType): string {
+  switch (type) {
+    case DashboardType.GRAFANA:
+      return 'Grafana'
+    case DashboardType.DATADOG:
+      return 'Datadog'
+    case DashboardType.NEWRELIC:
+      return 'New Relic'
+    case DashboardType.PROMETHEUS:
+      return 'Prometheus'
+    case DashboardType.KIBANA:
+      return 'Kibana'
+    case DashboardType.SPLUNK:
+      return 'Splunk'
+    case DashboardType.DYNATRACE:
+      return 'Dynatrace'
+    case DashboardType.APPDYNAMICS:
+      return 'AppDynamics'
+    case DashboardType.CUSTOM:
+      return 'Custom'
+    default:
+      return 'Dashboard'
+  }
+}
+
+function getDashboardColor(type?: DashboardType): string {
+  switch (type) {
+    case DashboardType.GRAFANA:
+      return '#f97316' // orange-500
+    case DashboardType.DATADOG:
+      return '#a855f7' // purple-500
+    case DashboardType.NEWRELIC:
+      return '#22c55e' // green-500
+    case DashboardType.PROMETHEUS:
+      return '#ef4444' // red-500
+    case DashboardType.KIBANA:
+      return '#f59e0b' // amber-500
+    case DashboardType.SPLUNK:
+      return '#6b7280' // gray-500
+    case DashboardType.DYNATRACE:
+      return '#3b82f6' // blue-500
+    case DashboardType.APPDYNAMICS:
+      return '#6366f1' // indigo-500
+    case DashboardType.CUSTOM:
+      return '#14b8a6' // teal-500
+    default:
+      return '#6b7280' // gray-500
+  }
 }

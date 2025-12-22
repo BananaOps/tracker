@@ -110,6 +110,92 @@
         ]
       }
     },
+    "/api/v1alpha1/catalog/version-compliance": {
+      "get": {
+        "summary": "Version compliance check",
+        "operationId": "CatalogService_GetVersionCompliance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetVersionComplianceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "types",
+            "description": "Optional filters\n\nFilter by deliverable types (package, chart, container, module)",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TYPE_UNSPECIFIED",
+                "module",
+                "library",
+                "workflow",
+                "project",
+                "chart",
+                "package",
+                "container"
+              ]
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "CatalogService"
+        ]
+      }
+    },
+    "/api/v1alpha1/catalog/{name}/versions": {
+      "put": {
+        "summary": "Version management for deliverables",
+        "operationId": "CatalogService_UpdateVersions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateVersionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Service name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CatalogServiceUpdateVersionsBody"
+            }
+          }
+        ],
+        "tags": [
+          "CatalogService"
+        ]
+      }
+    },
     "/api/v1alpha1/catalogs/list": {
       "get": {
         "operationId": "CatalogService_ListCatalogs",
@@ -611,6 +697,27 @@
     }
   },
   "definitions": {
+    "CatalogServiceUpdateVersionsBody": {
+      "type": "object",
+      "properties": {
+        "available_versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "List of available versions"
+        },
+        "latest_version": {
+          "type": "string",
+          "title": "Latest available version"
+        },
+        "reference_version": {
+          "type": "string",
+          "title": "Recommended/reference version to use"
+        }
+      },
+      "title": "Version management messages"
+    },
     "eventv1alpha1Status": {
       "type": "string",
       "enum": [
@@ -699,7 +806,8 @@
           "type": "string"
         },
         "version": {
-          "type": "string"
+          "type": "string",
+          "title": "Current version used by this project"
         },
         "link": {
           "type": "string"
@@ -717,6 +825,68 @@
         "updated_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "dependencies_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies_out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sla": {
+          "$ref": "#/definitions/v1alpha1SLA"
+        },
+        "platform": {
+          "$ref": "#/definitions/v1alpha1Platform"
+        },
+        "available_versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of available versions",
+          "title": "For deliverables (packages, charts, containers, modules)"
+        },
+        "latest_version": {
+          "type": "string",
+          "title": "Latest available version"
+        },
+        "reference_version": {
+          "type": "string",
+          "title": "Recommended/reference version to use"
+        },
+        "used_deliverables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1UsedDeliverable"
+          },
+          "title": "For projects: track which deliverables and versions are used"
+        },
+        "communication_channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1CommunicationChannel"
+          },
+          "title": "Communication channels for the service"
+        },
+        "dashboard_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DashboardLink"
+          },
+          "title": "Dashboard links for monitoring and observability"
+        },
+        "vulnerability_summary": {
+          "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
+          "title": "Vulnerability summary for security monitoring"
         }
       }
     },
@@ -760,6 +930,70 @@
         },
         "comment": {
           "type": "string"
+        }
+      }
+    },
+    "v1alpha1CommunicationChannel": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/v1alpha1CommunicationType",
+          "title": "Type of communication channel"
+        },
+        "name": {
+          "type": "string",
+          "title": "Display name for the channel"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL or link to the channel"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description"
+        }
+      },
+      "title": "Communication channel for a service"
+    },
+    "v1alpha1CommunicationType": {
+      "type": "string",
+      "enum": [
+        "COMMUNICATION_TYPE_UNSPECIFIED",
+        "slack",
+        "teams",
+        "email",
+        "discord",
+        "mattermost",
+        "telegram"
+      ],
+      "default": "COMMUNICATION_TYPE_UNSPECIFIED",
+      "title": "- slack: Slack channel\n - teams: Microsoft Teams channel\n - email: Email address\n - discord: Discord channel\n - mattermost: Mattermost channel\n - telegram: Telegram group/channel"
+    },
+    "v1alpha1ComplianceSummary": {
+      "type": "object",
+      "properties": {
+        "total_projects": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "compliant_projects": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "non_compliant_projects": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "overall_compliance_percentage": {
+          "type": "number",
+          "format": "float"
+        },
+        "deliverable_stats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DeliverableComplianceStats"
+          }
         }
       }
     },
@@ -832,7 +1066,8 @@
           "type": "string"
         },
         "version": {
-          "type": "string"
+          "type": "string",
+          "title": "Current version used by this project"
         },
         "link": {
           "type": "string"
@@ -850,6 +1085,53 @@
         "updated_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "dependencies_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies_out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sla": {
+          "$ref": "#/definitions/v1alpha1SLA"
+        },
+        "platform": {
+          "$ref": "#/definitions/v1alpha1Platform"
+        },
+        "used_deliverables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1UsedDeliverable"
+          },
+          "title": "For projects: track which deliverables and versions are used"
+        },
+        "communication_channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1CommunicationChannel"
+          },
+          "title": "Communication channels for the service"
+        },
+        "dashboard_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DashboardLink"
+          },
+          "title": "Dashboard links for monitoring and observability"
+        },
+        "vulnerability_summary": {
+          "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
+          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
+          "title": "Vulnerability summary for security monitoring"
         }
       }
     },
@@ -860,6 +1142,45 @@
           "$ref": "#/definitions/v1alpha1Catalog"
         }
       }
+    },
+    "v1alpha1DashboardLink": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/v1alpha1DashboardType",
+          "title": "Type of dashboard platform"
+        },
+        "name": {
+          "type": "string",
+          "title": "Display name for the dashboard"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL or link to the dashboard"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description"
+        }
+      },
+      "title": "Dashboard link for monitoring and observability"
+    },
+    "v1alpha1DashboardType": {
+      "type": "string",
+      "enum": [
+        "DASHBOARD_TYPE_UNSPECIFIED",
+        "grafana",
+        "datadog",
+        "newrelic",
+        "prometheus",
+        "kibana",
+        "splunk",
+        "dynatrace",
+        "appdynamics",
+        "custom"
+      ],
+      "default": "DASHBOARD_TYPE_UNSPECIFIED",
+      "title": "- grafana: Grafana dashboard\n - datadog: Datadog dashboard\n - newrelic: New Relic dashboard\n - prometheus: Prometheus dashboard\n - kibana: Kibana dashboard\n - splunk: Splunk dashboard\n - dynatrace: Dynatrace dashboard\n - appdynamics: AppDynamics dashboard\n - custom: Custom dashboard platform"
     },
     "v1alpha1DeleteCatalogResponse": {
       "type": "object",
@@ -880,6 +1201,62 @@
         },
         "slack_id": {
           "type": "string"
+        }
+      }
+    },
+    "v1alpha1DeliverableComplianceStats": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+        },
+        "projects_using": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "projects_outdated": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "latest_version": {
+          "type": "string"
+        },
+        "reference_version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1DeliverableUsage": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+        },
+        "current_version": {
+          "type": "string",
+          "title": "Version used by the project"
+        },
+        "latest_version": {
+          "type": "string",
+          "title": "Latest available version"
+        },
+        "reference_version": {
+          "type": "string",
+          "title": "Recommended version"
+        },
+        "is_outdated": {
+          "type": "boolean",
+          "title": "true if current_version != reference_version"
+        },
+        "is_latest": {
+          "type": "boolean",
+          "title": "true if current_version == latest_version"
         }
       }
     },
@@ -1033,6 +1410,21 @@
         }
       }
     },
+    "v1alpha1GetVersionComplianceResponse": {
+      "type": "object",
+      "properties": {
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ProjectCompliance"
+          }
+        },
+        "summary": {
+          "$ref": "#/definitions/v1alpha1ComplianceSummary"
+        }
+      }
+    },
     "v1alpha1Languages": {
       "type": "string",
       "enum": [
@@ -1132,6 +1524,33 @@
         }
       }
     },
+    "v1alpha1Platform": {
+      "type": "string",
+      "enum": [
+        "PLATFORM_UNSPECIFIED",
+        "ec2",
+        "lambda",
+        "kubernetes",
+        "ecs",
+        "fargate",
+        "cloud_run",
+        "app_service",
+        "step_functions",
+        "event_bridge",
+        "rds",
+        "dynamodb",
+        "s3",
+        "cloudfront",
+        "api_gateway",
+        "cloudwatch",
+        "on_premise",
+        "hybrid",
+        "multi_cloud"
+      ],
+      "default": "PLATFORM_UNSPECIFIED",
+      "description": "AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance\n - lambda: AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions\n - kubernetes: AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule\n - ecs: AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry\n - fargate: Container platforms\n\nAWS Fargate / Azure Container Instances\n - cloud_run: GCP Cloud Run\n - app_service: Azure App Service\n - step_functions: Serverless platforms\n\nAWS Step Functions / Azure Logic Apps / GCP Workflows\n - event_bridge: AWS EventBridge / Azure Event Grid / GCP Eventarc\n - rds: Database platforms\n\nAWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database\n - dynamodb: AWS DynamoDB / Azure Cosmos DB / GCP Firestore\n - s3: Storage platforms\n\nAWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage\n - cloudfront: CDN platforms\n\nAWS CloudFront / Azure CDN / GCP Cloud CDN\n - api_gateway: API platforms\n\nAWS API Gateway / Azure API Management / GCP API Gateway\n - cloudwatch: Monitoring platforms\n\nAWS CloudWatch / Azure Monitor / GCP Cloud Monitoring\n - on_premise: Other\n\nOn-premise infrastructure\n - hybrid: Hybrid cloud\n - multi_cloud: Multi-cloud deployment",
+      "title": "- ec2: Compute platforms"
+    },
     "v1alpha1Priority": {
       "type": "string",
       "enum": [
@@ -1143,6 +1562,63 @@
         "P5"
       ],
       "default": "PRIORITY_UNSPECIFIED"
+    },
+    "v1alpha1ProjectCompliance": {
+      "type": "object",
+      "properties": {
+        "project_name": {
+          "type": "string"
+        },
+        "deliverables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1DeliverableUsage"
+          }
+        },
+        "outdated_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "compliance_percentage": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    "v1alpha1SLA": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "$ref": "#/definitions/v1alpha1SLALevel"
+        },
+        "uptime_percentage": {
+          "type": "number",
+          "format": "double"
+        },
+        "response_time_ms": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1alpha1SLALevel": {
+      "type": "string",
+      "enum": [
+        "SLA_LEVEL_UNSPECIFIED",
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "SLA_LEVEL_UNSPECIFIED"
     },
     "v1alpha1SearchEventsResponse": {
       "type": "object",
@@ -1218,6 +1694,86 @@
           "$ref": "#/definitions/v1alpha1Event"
         }
       }
+    },
+    "v1alpha1UpdateVersionsResponse": {
+      "type": "object",
+      "properties": {
+        "catalog": {
+          "$ref": "#/definitions/v1alpha1Catalog",
+          "title": "Updated catalog with new versions"
+        }
+      }
+    },
+    "v1alpha1UsedDeliverable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name of the deliverable (package, chart, container, module)"
+        },
+        "type": {
+          "$ref": "#/definitions/trackercatalogv1alpha1Type",
+          "title": "Type of deliverable (package, chart, container, module)"
+        },
+        "version_used": {
+          "type": "string",
+          "title": "Version currently used in this project"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description or usage context"
+        }
+      },
+      "title": "Used deliverable in a project"
+    },
+    "v1alpha1VulnerabilitySummary": {
+      "type": "object",
+      "properties": {
+        "critical_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of critical vulnerabilities"
+        },
+        "high_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of high vulnerabilities"
+        },
+        "medium_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of medium vulnerabilities"
+        },
+        "low_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of low vulnerabilities"
+        },
+        "info_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of informational findings"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total number of vulnerabilities"
+        },
+        "last_scan": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last vulnerability scan timestamp"
+        },
+        "scanner_name": {
+          "type": "string",
+          "title": "Name of the vulnerability scanner used"
+        },
+        "scan_version": {
+          "type": "string",
+          "title": "Version of the scan/report"
+        }
+      },
+      "title": "Vulnerability summary for a service"
     }
   }
 }

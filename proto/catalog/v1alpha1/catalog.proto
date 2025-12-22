@@ -24,6 +24,19 @@ service CatalogService {
   rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/catalogs/list"};
   }
+  
+  // Version compliance check
+  rpc GetVersionCompliance(GetVersionComplianceRequest) returns (GetVersionComplianceResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/catalog/version-compliance"};
+  }
+  
+  // Version management for deliverables
+  rpc UpdateVersions(UpdateVersionsRequest) returns (UpdateVersionsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/catalog/{name}/versions"
+      body: "*"
+    };
+  }
 }
 
 message Catalog {
@@ -31,12 +44,28 @@ message Catalog {
   Type type = 2;
   Languages languages = 3;
   string owner = 4;
-  string version = 5;
+  string version = 5;  // Current version used by this project
   string link = 6;
   string description = 7;
   string repository = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+  repeated string dependencies_in = 11;
+  repeated string dependencies_out = 12;
+  SLA sla = 13;
+  Platform platform = 14;
+  // For deliverables (packages, charts, containers, modules)
+  repeated string available_versions = 15;  // List of available versions
+  string latest_version = 16;               // Latest available version
+  string reference_version = 17;            // Recommended/reference version to use
+  // For projects: track which deliverables and versions are used
+  repeated UsedDeliverable used_deliverables = 18;
+  // Communication channels for the service
+  repeated CommunicationChannel communication_channels = 19;
+  // Dashboard links for monitoring and observability
+  repeated DashboardLink dashboard_links = 20;
+  // Vulnerability summary for security monitoring
+  VulnerabilitySummary vulnerability_summary = 21;
 }
 
 message CreateUpdateCatalogRequest {
@@ -44,12 +73,26 @@ message CreateUpdateCatalogRequest {
   Type type = 2;
   Languages languages = 3;
   string owner = 4;
-  string version = 5;
+  string version = 5;  // Current version used by this project
   string link = 6;
   string description = 7;
   string repository = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+  repeated string dependencies_in = 11;
+  repeated string dependencies_out = 12;
+  SLA sla = 13;
+  Platform platform = 14;
+  // For projects: track which deliverables and versions are used
+  repeated UsedDeliverable used_deliverables = 15;
+  // Communication channels for the service
+  repeated CommunicationChannel communication_channels = 16;
+  // Dashboard links for monitoring and observability
+  repeated DashboardLink dashboard_links = 17;
+  // Vulnerability summary for security monitoring
+  VulnerabilitySummary vulnerability_summary = 18;
+  // Note: Version management (available_versions, latest_version, reference_version) 
+  // is handled separately via UpdateVersions endpoint
 }
 
 message CreateUpdateCatalogResponse {
@@ -83,6 +126,52 @@ message ListCatalogsResponse {
   uint32 total_count = 2;
 }
 
+// Version compliance messages
+message GetVersionComplianceRequest {
+  // Optional filters
+  repeated Type types = 1;  // Filter by deliverable types (package, chart, container, module)
+}
+
+message GetVersionComplianceResponse {
+  repeated ProjectCompliance projects = 1;
+  ComplianceSummary summary = 2;
+}
+
+message ProjectCompliance {
+  string project_name = 1;
+  repeated DeliverableUsage deliverables = 2;
+  int32 outdated_count = 3;
+  int32 total_count = 4;
+  float compliance_percentage = 5;
+}
+
+message DeliverableUsage {
+  string name = 1;
+  Type type = 2;
+  string current_version = 3;      // Version used by the project
+  string latest_version = 4;       // Latest available version
+  string reference_version = 5;    // Recommended version
+  bool is_outdated = 6;           // true if current_version != reference_version
+  bool is_latest = 7;             // true if current_version == latest_version
+}
+
+message ComplianceSummary {
+  int32 total_projects = 1;
+  int32 compliant_projects = 2;
+  int32 non_compliant_projects = 3;
+  float overall_compliance_percentage = 4;
+  repeated DeliverableComplianceStats deliverable_stats = 5;
+}
+
+message DeliverableComplianceStats {
+  string name = 1;
+  Type type = 2;
+  int32 projects_using = 3;
+  int32 projects_outdated = 4;
+  string latest_version = 5;
+  string reference_version = 6;
+}
+
 enum Type {
   TYPE_UNSPECIFIED = 0;
   module = 1;
@@ -111,3 +200,138 @@ enum Languages {
   javascrypt = 13;
   groovy = 15;
 }
+
+enum SLALevel {
+  SLA_LEVEL_UNSPECIFIED = 0;
+  critical = 1;
+  high = 2;
+  medium = 3;
+  low = 4;
+}
+
+enum Platform {
+  PLATFORM_UNSPECIFIED = 0;
+  // Compute platforms
+  ec2 = 1;                    // AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance
+  lambda = 2;                 // AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions
+  kubernetes = 3;             // AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule
+  ecs = 4;                    // AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry
+  // Container platforms
+  fargate = 5;                // AWS Fargate / Azure Container Instances
+  cloud_run = 6;              // GCP Cloud Run
+  app_service = 7;            // Azure App Service
+  // Serverless platforms
+  step_functions = 8;         // AWS Step Functions / Azure Logic Apps / GCP Workflows
+  event_bridge = 9;           // AWS EventBridge / Azure Event Grid / GCP Eventarc
+  // Database platforms
+  rds = 10;                   // AWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database
+  dynamodb = 11;              // AWS DynamoDB / Azure Cosmos DB / GCP Firestore
+  // Storage platforms
+  s3 = 12;                    // AWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage
+  // CDN platforms
+  cloudfront = 13;            // AWS CloudFront / Azure CDN / GCP Cloud CDN
+  // API platforms
+  api_gateway = 14;           // AWS API Gateway / Azure API Management / GCP API Gateway
+  // Monitoring platforms
+  cloudwatch = 15;            // AWS CloudWatch / Azure Monitor / GCP Cloud Monitoring
+  // Other
+  on_premise = 16;            // On-premise infrastructure
+  hybrid = 17;                // Hybrid cloud
+  multi_cloud = 18;           // Multi-cloud deployment
+}
+
+message SLA {
+  SLALevel level = 1;
+  google.protobuf.DoubleValue uptime_percentage = 2;
+  google.protobuf.UInt32Value response_time_ms = 3;
+  string description = 4;
+}
+
+// Version management messages
+message UpdateVersionsRequest {
+  string name = 1;                          // Service name
+  repeated string available_versions = 2;   // List of available versions
+  string latest_version = 3;                // Latest available version
+  string reference_version = 4;             // Recommended/reference version to use
+}
+
+message UpdateVersionsResponse {
+  Catalog catalog = 1;                      // Updated catalog with new versions
+}
+
+// Used deliverable in a project
+message UsedDeliverable {
+  string name = 1;                          // Name of the deliverable (package, chart, container, module)
+  Type type = 2;                            // Type of deliverable (package, chart, container, module)
+  string version_used = 3;                  // Version currently used in this project
+  string description = 4;                   // Optional description or usage context
+}
+
+// Communication channel for a service
+message CommunicationChannel {
+  CommunicationType type = 1;               // Type of communication channel
+  string name = 2;                          // Display name for the channel
+  string url = 3;                           // URL or link to the channel
+  string description = 4;                   // Optional description
+}
+
+enum CommunicationType {
+  COMMUNICATION_TYPE_UNSPECIFIED = 0;
+  slack = 1;                                // Slack channel
+  teams = 2;                                // Microsoft Teams channel
+  email = 3;                                // Email address
+  discord = 4;                              // Discord channel
+  mattermost = 5;                           // Mattermost channel
+  telegram = 6;                             // Telegram group/channel
+}
+
+// Dashboard link for monitoring and observability
+message DashboardLink {
+  DashboardType type = 1;                   // Type of dashboard platform
+  string name = 2;                          // Display name for the dashboard
+  string url = 3;                           // URL or link to the dashboard
+  string description = 4;                   // Optional description
+}
+
+enum DashboardType {
+  DASHBOARD_TYPE_UNSPECIFIED = 0;
+  grafana = 1;                              // Grafana dashboard
+  datadog = 2;                              // Datadog dashboard
+  newrelic = 3;                             // New Relic dashboard
+  prometheus = 4;                           // Prometheus dashboard
+  kibana = 5;                               // Kibana dashboard
+  splunk = 6;                               // Splunk dashboard
+  dynatrace = 7;                            // Dynatrace dashboard
+  appdynamics = 8;                          // AppDynamics dashboard
+  custom = 9;                               // Custom dashboard platform
+}
+
+// Vulnerability summary for a service (aggregated from multiple sources)
+message VulnerabilitySummary {
+  int32 critical_count = 1;                 // Total critical vulnerabilities (aggregated)
+  int32 high_count = 2;                     // Total high vulnerabilities (aggregated)
+  int32 medium_count = 3;                   // Total medium vulnerabilities (aggregated)
+  int32 low_count = 4;                      // Total low vulnerabilities (aggregated)
+  int32 info_count = 5;                     // Total informational findings (aggregated)
+  int32 total_count = 6;                    // Total number of vulnerabilities (aggregated)
+  google.protobuf.Timestamp last_updated = 7; // Last time any source was updated
+  repeated VulnerabilitySource sources = 8; // Individual vulnerability sources
+}
+
+// Individual vulnerability source (Trivy, GitHub Security, Snyk, etc.)
+message VulnerabilitySource {
+  string name = 1;                          // Source name (e.g., "Trivy", "GitHub Security", "Snyk")
+  string type = 2;                          // Source type (e.g., "sast", "sca", "container", "iac")
+  string url = 3;                           // Link to the source report/dashboard
+  int32 critical_count = 4;                 // Critical vulnerabilities from this source
+  int32 high_count = 5;                     // High vulnerabilities from this source
+  int32 medium_count = 6;                   // Medium vulnerabilities from this source
+  int32 low_count = 7;                      // Low vulnerabilities from this source
+  int32 info_count = 8;                     // Info findings from this source
+  int32 total_count = 9;                    // Total from this source
+  google.protobuf.Timestamp last_scan = 10; // Last scan time for this source
+  string scan_version = 11;                 // Version/ID of the scan
+  string description = 12;                  // Optional description of what this source scans
+}
+
+

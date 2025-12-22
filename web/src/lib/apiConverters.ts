@@ -7,7 +7,10 @@ import {
   PriorityToNumber,
   StatusToNumber,
   EnvironmentToNumber,
-  CreateEventRequest
+  CreateEventRequest,
+  CommunicationType,
+  type CommunicationChannel,
+  type Catalog
 } from '../types/api'
 
 // Mapping inverse : nombre -> string enum
@@ -132,5 +135,58 @@ export function convertEventToRequest(event: any): CreateEventRequest {
       endDate: event.attributes.endDate,
     },
     links: event.links || {},
+  }
+}
+
+/**
+ * Convertit les canaux de communication pour l'API (camelCase -> snake_case)
+ */
+export function convertCommunicationChannelsForAPI(channels: CommunicationChannel[]): any[] {
+  return channels.map(channel => ({
+    type: channel.type,
+    name: channel.name,
+    url: channel.url,
+    description: channel.description || ''
+  }))
+}
+
+/**
+ * Convertit les canaux de communication depuis l'API (snake_case -> camelCase)
+ */
+export function convertCommunicationChannelsFromAPI(channels: any[]): CommunicationChannel[] {
+  if (!channels) return []
+  
+  return channels.map(channel => ({
+    type: channel.type as CommunicationType,
+    name: channel.name,
+    url: channel.url,
+    description: channel.description
+  }))
+}
+
+/**
+ * Convertit un catalog pour l'API
+ */
+export function convertCatalogForAPI(catalog: Catalog): any {
+  const apiCatalog = {
+    ...catalog,
+    communication_channels: catalog.communicationChannels 
+      ? convertCommunicationChannelsForAPI(catalog.communicationChannels)
+      : []
+  }
+  
+  // Remove camelCase version
+  delete (apiCatalog as any).communicationChannels
+  
+  return apiCatalog
+}
+
+/**
+ * Convertit un catalog depuis l'API
+ */
+export function convertCatalogFromAPI(catalog: any): Catalog {
+  return {
+    ...catalog,
+    communicationChannels: convertCommunicationChannelsFromAPI(catalog.communication_channels || catalog.communicationChannels)
   }
 }

@@ -185,6 +185,133 @@ export interface CreateEventRequest {
   slackId?: string
 }
 
+export enum SLALevel {
+  UNSPECIFIED = 'unspecified',
+  CRITICAL = 'critical',
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low',
+}
+
+export enum Platform {
+  UNSPECIFIED = 'unspecified',
+  // Compute platforms
+  EC2 = 'ec2',                        // AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance
+  LAMBDA = 'lambda',                  // AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions
+  KUBERNETES = 'kubernetes',          // AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule
+  ECS = 'ecs',                        // AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry
+  // Container platforms
+  FARGATE = 'fargate',                // AWS Fargate / Azure Container Instances
+  CLOUD_RUN = 'cloud_run',            // GCP Cloud Run
+  APP_SERVICE = 'app_service',        // Azure App Service
+  // Serverless platforms
+  STEP_FUNCTIONS = 'step_functions',  // AWS Step Functions / Azure Logic Apps / GCP Workflows
+  EVENT_BRIDGE = 'event_bridge',      // AWS EventBridge / Azure Event Grid / GCP Eventarc
+  // Database platforms
+  RDS = 'rds',                        // AWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database
+  DYNAMODB = 'dynamodb',              // AWS DynamoDB / Azure Cosmos DB / GCP Firestore
+  // Storage platforms
+  S3 = 's3',                          // AWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage
+  // CDN platforms
+  CLOUDFRONT = 'cloudfront',          // AWS CloudFront / Azure CDN / GCP Cloud CDN
+  // API platforms
+  API_GATEWAY = 'api_gateway',        // AWS API Gateway / Azure API Management / GCP API Gateway
+  // Monitoring platforms
+  CLOUDWATCH = 'cloudwatch',          // AWS CloudWatch / Azure Monitor / GCP Cloud Monitoring
+  // Other
+  ON_PREMISE = 'on_premise',          // On-premise infrastructure
+  HYBRID = 'hybrid',                  // Hybrid cloud
+  MULTI_CLOUD = 'multi_cloud',        // Multi-cloud deployment
+}
+
+export interface SLA {
+  level: SLALevel
+  uptimePercentage?: number
+  responseTimeMs?: number
+  description?: string
+}
+
+// Backend SLA format (with protobuf wrappers)
+export interface BackendSLA {
+  level: SLALevel
+  uptime_percentage?: { value: number } | null
+  response_time_ms?: { value: number } | null
+  description?: string
+}
+
+export interface UsedDeliverable {
+  name: string
+  type: CatalogType
+  versionUsed: string
+  description?: string
+}
+
+export enum CommunicationType {
+  UNSPECIFIED = 'unspecified',
+  SLACK = 'slack',
+  TEAMS = 'teams',
+  EMAIL = 'email',
+  DISCORD = 'discord',
+  MATTERMOST = 'mattermost',
+  TELEGRAM = 'telegram',
+}
+
+export interface CommunicationChannel {
+  type: CommunicationType
+  name: string
+  url: string
+  description?: string
+}
+
+export enum DashboardType {
+  UNSPECIFIED = 'unspecified',
+  GRAFANA = 'grafana',
+  DATADOG = 'datadog',
+  NEWRELIC = 'newrelic',
+  PROMETHEUS = 'prometheus',
+  KIBANA = 'kibana',
+  SPLUNK = 'splunk',
+  DYNATRACE = 'dynatrace',
+  APPDYNAMICS = 'appdynamics',
+  CUSTOM = 'custom',
+}
+
+// Vulnerability severity levels (using string literals instead of enum to avoid protobuf conflicts)
+export type VulnerabilitySeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
+
+export interface DashboardLink {
+  type: DashboardType
+  name: string
+  url: string
+  description?: string
+}
+
+export interface VulnerabilitySummary {
+  criticalCount: number
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  infoCount: number
+  totalCount: number
+  lastUpdated?: string
+  sources?: VulnerabilitySource[]
+}
+
+export interface VulnerabilitySource {
+  name: string
+  type: string
+  url?: string
+  criticalCount: number
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  infoCount: number
+  totalCount: number
+  lastScan?: string
+  scanVersion?: string
+  description?: string
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -196,6 +323,17 @@ export interface Catalog {
   repository?: string
   createdAt?: string
   updatedAt?: string
+  dependenciesIn?: string[]
+  dependenciesOut?: string[]
+  sla?: SLA
+  platform?: Platform
+  availableVersions?: string[]
+  latestVersion?: string
+  referenceVersion?: string
+  usedDeliverables?: UsedDeliverable[]
+  communicationChannels?: CommunicationChannel[]
+  dashboardLinks?: DashboardLink[]
+  vulnerabilitySummary?: VulnerabilitySummary
 }
 
 export interface ListEventsResponse {
@@ -206,4 +344,44 @@ export interface ListEventsResponse {
 export interface ListCatalogsResponse {
   catalogs: Catalog[]
   totalCount: number
+}
+
+export interface DeliverableUsage {
+  name: string
+  type: CatalogType
+  currentVersion?: string
+  latestVersion?: string
+  referenceVersion?: string
+  isOutdated: boolean
+  isLatest: boolean
+}
+
+export interface ProjectCompliance {
+  projectName: string
+  deliverables: DeliverableUsage[]
+  outdatedCount: number
+  totalCount: number
+  compliancePercentage: number
+}
+
+export interface DeliverableComplianceStats {
+  name: string
+  type: CatalogType
+  projectsUsing: number
+  projectsOutdated: number
+  latestVersion?: string
+  referenceVersion?: string
+}
+
+export interface ComplianceSummary {
+  totalProjects: number
+  compliantProjects: number
+  nonCompliantProjects: number
+  overallCompliancePercentage: number
+  deliverableStats: DeliverableComplianceStats[]
+}
+
+export interface GetVersionComplianceResponse {
+  projects: ProjectCompliance[]
+  summary: ComplianceSummary
 }

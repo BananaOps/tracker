@@ -173,20 +173,328 @@ func (Languages) EnumDescriptor() ([]byte, []int) {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{1}
 }
 
+type SLALevel int32
+
+const (
+	SLALevel_SLA_LEVEL_UNSPECIFIED SLALevel = 0
+	SLALevel_critical              SLALevel = 1
+	SLALevel_high                  SLALevel = 2
+	SLALevel_medium                SLALevel = 3
+	SLALevel_low                   SLALevel = 4
+)
+
+// Enum value maps for SLALevel.
+var (
+	SLALevel_name = map[int32]string{
+		0: "SLA_LEVEL_UNSPECIFIED",
+		1: "critical",
+		2: "high",
+		3: "medium",
+		4: "low",
+	}
+	SLALevel_value = map[string]int32{
+		"SLA_LEVEL_UNSPECIFIED": 0,
+		"critical":              1,
+		"high":                  2,
+		"medium":                3,
+		"low":                   4,
+	}
+)
+
+func (x SLALevel) Enum() *SLALevel {
+	p := new(SLALevel)
+	*p = x
+	return p
+}
+
+func (x SLALevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SLALevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[2].Descriptor()
+}
+
+func (SLALevel) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[2]
+}
+
+func (x SLALevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SLALevel.Descriptor instead.
+func (SLALevel) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{2}
+}
+
+type Platform int32
+
+const (
+	Platform_PLATFORM_UNSPECIFIED Platform = 0
+	// Compute platforms
+	Platform_ec2        Platform = 1 // AWS EC2 / Azure VM / GCP Compute Engine / Scaleway Instance
+	Platform_lambda     Platform = 2 // AWS Lambda / Azure Functions / GCP Cloud Functions / Scaleway Functions
+	Platform_kubernetes Platform = 3 // AWS EKS / Azure AKS / GCP GKE / Scaleway Kapsule
+	Platform_ecs        Platform = 4 // AWS ECS / Azure Container Instances / GCP Cloud Run / Scaleway Container Registry
+	// Container platforms
+	Platform_fargate     Platform = 5 // AWS Fargate / Azure Container Instances
+	Platform_cloud_run   Platform = 6 // GCP Cloud Run
+	Platform_app_service Platform = 7 // Azure App Service
+	// Serverless platforms
+	Platform_step_functions Platform = 8 // AWS Step Functions / Azure Logic Apps / GCP Workflows
+	Platform_event_bridge   Platform = 9 // AWS EventBridge / Azure Event Grid / GCP Eventarc
+	// Database platforms
+	Platform_rds      Platform = 10 // AWS RDS / Azure SQL Database / GCP Cloud SQL / Scaleway Database
+	Platform_dynamodb Platform = 11 // AWS DynamoDB / Azure Cosmos DB / GCP Firestore
+	// Storage platforms
+	Platform_s3 Platform = 12 // AWS S3 / Azure Blob Storage / GCP Cloud Storage / Scaleway Object Storage
+	// CDN platforms
+	Platform_cloudfront Platform = 13 // AWS CloudFront / Azure CDN / GCP Cloud CDN
+	// API platforms
+	Platform_api_gateway Platform = 14 // AWS API Gateway / Azure API Management / GCP API Gateway
+	// Monitoring platforms
+	Platform_cloudwatch Platform = 15 // AWS CloudWatch / Azure Monitor / GCP Cloud Monitoring
+	// Other
+	Platform_on_premise  Platform = 16 // On-premise infrastructure
+	Platform_hybrid      Platform = 17 // Hybrid cloud
+	Platform_multi_cloud Platform = 18 // Multi-cloud deployment
+)
+
+// Enum value maps for Platform.
+var (
+	Platform_name = map[int32]string{
+		0:  "PLATFORM_UNSPECIFIED",
+		1:  "ec2",
+		2:  "lambda",
+		3:  "kubernetes",
+		4:  "ecs",
+		5:  "fargate",
+		6:  "cloud_run",
+		7:  "app_service",
+		8:  "step_functions",
+		9:  "event_bridge",
+		10: "rds",
+		11: "dynamodb",
+		12: "s3",
+		13: "cloudfront",
+		14: "api_gateway",
+		15: "cloudwatch",
+		16: "on_premise",
+		17: "hybrid",
+		18: "multi_cloud",
+	}
+	Platform_value = map[string]int32{
+		"PLATFORM_UNSPECIFIED": 0,
+		"ec2":                  1,
+		"lambda":               2,
+		"kubernetes":           3,
+		"ecs":                  4,
+		"fargate":              5,
+		"cloud_run":            6,
+		"app_service":          7,
+		"step_functions":       8,
+		"event_bridge":         9,
+		"rds":                  10,
+		"dynamodb":             11,
+		"s3":                   12,
+		"cloudfront":           13,
+		"api_gateway":          14,
+		"cloudwatch":           15,
+		"on_premise":           16,
+		"hybrid":               17,
+		"multi_cloud":          18,
+	}
+)
+
+func (x Platform) Enum() *Platform {
+	p := new(Platform)
+	*p = x
+	return p
+}
+
+func (x Platform) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Platform) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[3].Descriptor()
+}
+
+func (Platform) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[3]
+}
+
+func (x Platform) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Platform.Descriptor instead.
+func (Platform) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{3}
+}
+
+type CommunicationType int32
+
+const (
+	CommunicationType_COMMUNICATION_TYPE_UNSPECIFIED CommunicationType = 0
+	CommunicationType_slack                          CommunicationType = 1 // Slack channel
+	CommunicationType_teams                          CommunicationType = 2 // Microsoft Teams channel
+	CommunicationType_email                          CommunicationType = 3 // Email address
+	CommunicationType_discord                        CommunicationType = 4 // Discord channel
+	CommunicationType_mattermost                     CommunicationType = 5 // Mattermost channel
+	CommunicationType_telegram                       CommunicationType = 6 // Telegram group/channel
+)
+
+// Enum value maps for CommunicationType.
+var (
+	CommunicationType_name = map[int32]string{
+		0: "COMMUNICATION_TYPE_UNSPECIFIED",
+		1: "slack",
+		2: "teams",
+		3: "email",
+		4: "discord",
+		5: "mattermost",
+		6: "telegram",
+	}
+	CommunicationType_value = map[string]int32{
+		"COMMUNICATION_TYPE_UNSPECIFIED": 0,
+		"slack":                          1,
+		"teams":                          2,
+		"email":                          3,
+		"discord":                        4,
+		"mattermost":                     5,
+		"telegram":                       6,
+	}
+)
+
+func (x CommunicationType) Enum() *CommunicationType {
+	p := new(CommunicationType)
+	*p = x
+	return p
+}
+
+func (x CommunicationType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CommunicationType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[4].Descriptor()
+}
+
+func (CommunicationType) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[4]
+}
+
+func (x CommunicationType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CommunicationType.Descriptor instead.
+func (CommunicationType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{4}
+}
+
+type DashboardType int32
+
+const (
+	DashboardType_DASHBOARD_TYPE_UNSPECIFIED DashboardType = 0
+	DashboardType_grafana                    DashboardType = 1 // Grafana dashboard
+	DashboardType_datadog                    DashboardType = 2 // Datadog dashboard
+	DashboardType_newrelic                   DashboardType = 3 // New Relic dashboard
+	DashboardType_prometheus                 DashboardType = 4 // Prometheus dashboard
+	DashboardType_kibana                     DashboardType = 5 // Kibana dashboard
+	DashboardType_splunk                     DashboardType = 6 // Splunk dashboard
+	DashboardType_dynatrace                  DashboardType = 7 // Dynatrace dashboard
+	DashboardType_appdynamics                DashboardType = 8 // AppDynamics dashboard
+	DashboardType_custom                     DashboardType = 9 // Custom dashboard platform
+)
+
+// Enum value maps for DashboardType.
+var (
+	DashboardType_name = map[int32]string{
+		0: "DASHBOARD_TYPE_UNSPECIFIED",
+		1: "grafana",
+		2: "datadog",
+		3: "newrelic",
+		4: "prometheus",
+		5: "kibana",
+		6: "splunk",
+		7: "dynatrace",
+		8: "appdynamics",
+		9: "custom",
+	}
+	DashboardType_value = map[string]int32{
+		"DASHBOARD_TYPE_UNSPECIFIED": 0,
+		"grafana":                    1,
+		"datadog":                    2,
+		"newrelic":                   3,
+		"prometheus":                 4,
+		"kibana":                     5,
+		"splunk":                     6,
+		"dynatrace":                  7,
+		"appdynamics":                8,
+		"custom":                     9,
+	}
+)
+
+func (x DashboardType) Enum() *DashboardType {
+	p := new(DashboardType)
+	*p = x
+	return p
+}
+
+func (x DashboardType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DashboardType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_catalog_v1alpha1_catalog_proto_enumTypes[5].Descriptor()
+}
+
+func (DashboardType) Type() protoreflect.EnumType {
+	return &file_proto_catalog_v1alpha1_catalog_proto_enumTypes[5]
+}
+
+func (x DashboardType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DashboardType.Descriptor instead.
+func (DashboardType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{5}
+}
+
 type Catalog struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
-	Languages     Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
-	Owner         string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
-	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	Link          string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
-	Description   string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	Repository    string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type            Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	Languages       Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
+	Owner           string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
+	Version         string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"` // Current version used by this project
+	Link            string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
+	Description     string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Repository      string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
+	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
+	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	Platform        Platform               `protobuf:"varint,14,opt,name=platform,proto3,enum=tracker.catalog.v1alpha1.Platform" json:"platform,omitempty"`
+	// For deliverables (packages, charts, containers, modules)
+	AvailableVersions []string `protobuf:"bytes,15,rep,name=available_versions,json=availableVersions,proto3" json:"available_versions,omitempty"` // List of available versions
+	LatestVersion     string   `protobuf:"bytes,16,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`             // Latest available version
+	ReferenceVersion  string   `protobuf:"bytes,17,opt,name=reference_version,json=referenceVersion,proto3" json:"reference_version,omitempty"`    // Recommended/reference version to use
+	// For projects: track which deliverables and versions are used
+	UsedDeliverables []*UsedDeliverable `protobuf:"bytes,18,rep,name=used_deliverables,json=usedDeliverables,proto3" json:"used_deliverables,omitempty"`
+	// Communication channels for the service
+	CommunicationChannels []*CommunicationChannel `protobuf:"bytes,19,rep,name=communication_channels,json=communicationChannels,proto3" json:"communication_channels,omitempty"`
+	// Dashboard links for monitoring and observability
+	DashboardLinks []*DashboardLink `protobuf:"bytes,20,rep,name=dashboard_links,json=dashboardLinks,proto3" json:"dashboard_links,omitempty"`
+	// Vulnerability summary for security monitoring
+	VulnerabilitySummary *VulnerabilitySummary `protobuf:"bytes,21,opt,name=vulnerability_summary,json=vulnerabilitySummary,proto3" json:"vulnerability_summary,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Catalog) Reset() {
@@ -289,20 +597,109 @@ func (x *Catalog) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Catalog) GetDependenciesIn() []string {
+	if x != nil {
+		return x.DependenciesIn
+	}
+	return nil
+}
+
+func (x *Catalog) GetDependenciesOut() []string {
+	if x != nil {
+		return x.DependenciesOut
+	}
+	return nil
+}
+
+func (x *Catalog) GetSla() *SLA {
+	if x != nil {
+		return x.Sla
+	}
+	return nil
+}
+
+func (x *Catalog) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_PLATFORM_UNSPECIFIED
+}
+
+func (x *Catalog) GetAvailableVersions() []string {
+	if x != nil {
+		return x.AvailableVersions
+	}
+	return nil
+}
+
+func (x *Catalog) GetLatestVersion() string {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return ""
+}
+
+func (x *Catalog) GetReferenceVersion() string {
+	if x != nil {
+		return x.ReferenceVersion
+	}
+	return ""
+}
+
+func (x *Catalog) GetUsedDeliverables() []*UsedDeliverable {
+	if x != nil {
+		return x.UsedDeliverables
+	}
+	return nil
+}
+
+func (x *Catalog) GetCommunicationChannels() []*CommunicationChannel {
+	if x != nil {
+		return x.CommunicationChannels
+	}
+	return nil
+}
+
+func (x *Catalog) GetDashboardLinks() []*DashboardLink {
+	if x != nil {
+		return x.DashboardLinks
+	}
+	return nil
+}
+
+func (x *Catalog) GetVulnerabilitySummary() *VulnerabilitySummary {
+	if x != nil {
+		return x.VulnerabilitySummary
+	}
+	return nil
+}
+
 type CreateUpdateCatalogRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type          Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
-	Languages     Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
-	Owner         string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
-	Version       string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
-	Link          string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
-	Description   string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
-	Repository    string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type            Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	Languages       Languages              `protobuf:"varint,3,opt,name=languages,proto3,enum=tracker.catalog.v1alpha1.Languages" json:"languages,omitempty"`
+	Owner           string                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
+	Version         string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"` // Current version used by this project
+	Link            string                 `protobuf:"bytes,6,opt,name=link,proto3" json:"link,omitempty"`
+	Description     string                 `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Repository      string                 `protobuf:"bytes,8,opt,name=repository,proto3" json:"repository,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DependenciesIn  []string               `protobuf:"bytes,11,rep,name=dependencies_in,json=dependenciesIn,proto3" json:"dependencies_in,omitempty"`
+	DependenciesOut []string               `protobuf:"bytes,12,rep,name=dependencies_out,json=dependenciesOut,proto3" json:"dependencies_out,omitempty"`
+	Sla             *SLA                   `protobuf:"bytes,13,opt,name=sla,proto3" json:"sla,omitempty"`
+	Platform        Platform               `protobuf:"varint,14,opt,name=platform,proto3,enum=tracker.catalog.v1alpha1.Platform" json:"platform,omitempty"`
+	// For projects: track which deliverables and versions are used
+	UsedDeliverables []*UsedDeliverable `protobuf:"bytes,15,rep,name=used_deliverables,json=usedDeliverables,proto3" json:"used_deliverables,omitempty"`
+	// Communication channels for the service
+	CommunicationChannels []*CommunicationChannel `protobuf:"bytes,16,rep,name=communication_channels,json=communicationChannels,proto3" json:"communication_channels,omitempty"`
+	// Dashboard links for monitoring and observability
+	DashboardLinks []*DashboardLink `protobuf:"bytes,17,rep,name=dashboard_links,json=dashboardLinks,proto3" json:"dashboard_links,omitempty"`
+	// Vulnerability summary for security monitoring
+	VulnerabilitySummary *VulnerabilitySummary `protobuf:"bytes,18,opt,name=vulnerability_summary,json=vulnerabilitySummary,proto3" json:"vulnerability_summary,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CreateUpdateCatalogRequest) Reset() {
@@ -401,6 +798,62 @@ func (x *CreateUpdateCatalogRequest) GetCreatedAt() *timestamppb.Timestamp {
 func (x *CreateUpdateCatalogRequest) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetDependenciesIn() []string {
+	if x != nil {
+		return x.DependenciesIn
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetDependenciesOut() []string {
+	if x != nil {
+		return x.DependenciesOut
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetSla() *SLA {
+	if x != nil {
+		return x.Sla
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_PLATFORM_UNSPECIFIED
+}
+
+func (x *CreateUpdateCatalogRequest) GetUsedDeliverables() []*UsedDeliverable {
+	if x != nil {
+		return x.UsedDeliverables
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetCommunicationChannels() []*CommunicationChannel {
+	if x != nil {
+		return x.CommunicationChannels
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetDashboardLinks() []*DashboardLink {
+	if x != nil {
+		return x.DashboardLinks
+	}
+	return nil
+}
+
+func (x *CreateUpdateCatalogRequest) GetVulnerabilitySummary() *VulnerabilitySummary {
+	if x != nil {
+		return x.VulnerabilitySummary
 	}
 	return nil
 }
@@ -737,11 +1190,934 @@ func (x *ListCatalogsResponse) GetTotalCount() uint32 {
 	return 0
 }
 
+// Version compliance messages
+type GetVersionComplianceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Optional filters
+	Types         []Type `protobuf:"varint,1,rep,packed,name=types,proto3,enum=tracker.catalog.v1alpha1.Type" json:"types,omitempty"` // Filter by deliverable types (package, chart, container, module)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVersionComplianceRequest) Reset() {
+	*x = GetVersionComplianceRequest{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVersionComplianceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVersionComplianceRequest) ProtoMessage() {}
+
+func (x *GetVersionComplianceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVersionComplianceRequest.ProtoReflect.Descriptor instead.
+func (*GetVersionComplianceRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetVersionComplianceRequest) GetTypes() []Type {
+	if x != nil {
+		return x.Types
+	}
+	return nil
+}
+
+type GetVersionComplianceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Projects      []*ProjectCompliance   `protobuf:"bytes,1,rep,name=projects,proto3" json:"projects,omitempty"`
+	Summary       *ComplianceSummary     `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetVersionComplianceResponse) Reset() {
+	*x = GetVersionComplianceResponse{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetVersionComplianceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetVersionComplianceResponse) ProtoMessage() {}
+
+func (x *GetVersionComplianceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetVersionComplianceResponse.ProtoReflect.Descriptor instead.
+func (*GetVersionComplianceResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetVersionComplianceResponse) GetProjects() []*ProjectCompliance {
+	if x != nil {
+		return x.Projects
+	}
+	return nil
+}
+
+func (x *GetVersionComplianceResponse) GetSummary() *ComplianceSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
+type ProjectCompliance struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ProjectName          string                 `protobuf:"bytes,1,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	Deliverables         []*DeliverableUsage    `protobuf:"bytes,2,rep,name=deliverables,proto3" json:"deliverables,omitempty"`
+	OutdatedCount        int32                  `protobuf:"varint,3,opt,name=outdated_count,json=outdatedCount,proto3" json:"outdated_count,omitempty"`
+	TotalCount           int32                  `protobuf:"varint,4,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	CompliancePercentage float32                `protobuf:"fixed32,5,opt,name=compliance_percentage,json=compliancePercentage,proto3" json:"compliance_percentage,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ProjectCompliance) Reset() {
+	*x = ProjectCompliance{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProjectCompliance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProjectCompliance) ProtoMessage() {}
+
+func (x *ProjectCompliance) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProjectCompliance.ProtoReflect.Descriptor instead.
+func (*ProjectCompliance) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ProjectCompliance) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+func (x *ProjectCompliance) GetDeliverables() []*DeliverableUsage {
+	if x != nil {
+		return x.Deliverables
+	}
+	return nil
+}
+
+func (x *ProjectCompliance) GetOutdatedCount() int32 {
+	if x != nil {
+		return x.OutdatedCount
+	}
+	return 0
+}
+
+func (x *ProjectCompliance) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *ProjectCompliance) GetCompliancePercentage() float32 {
+	if x != nil {
+		return x.CompliancePercentage
+	}
+	return 0
+}
+
+type DeliverableUsage struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Name             string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type             Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	CurrentVersion   string                 `protobuf:"bytes,3,opt,name=current_version,json=currentVersion,proto3" json:"current_version,omitempty"`       // Version used by the project
+	LatestVersion    string                 `protobuf:"bytes,4,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`          // Latest available version
+	ReferenceVersion string                 `protobuf:"bytes,5,opt,name=reference_version,json=referenceVersion,proto3" json:"reference_version,omitempty"` // Recommended version
+	IsOutdated       bool                   `protobuf:"varint,6,opt,name=is_outdated,json=isOutdated,proto3" json:"is_outdated,omitempty"`                  // true if current_version != reference_version
+	IsLatest         bool                   `protobuf:"varint,7,opt,name=is_latest,json=isLatest,proto3" json:"is_latest,omitempty"`                        // true if current_version == latest_version
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DeliverableUsage) Reset() {
+	*x = DeliverableUsage{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverableUsage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverableUsage) ProtoMessage() {}
+
+func (x *DeliverableUsage) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverableUsage.ProtoReflect.Descriptor instead.
+func (*DeliverableUsage) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeliverableUsage) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DeliverableUsage) GetType() Type {
+	if x != nil {
+		return x.Type
+	}
+	return Type_TYPE_UNSPECIFIED
+}
+
+func (x *DeliverableUsage) GetCurrentVersion() string {
+	if x != nil {
+		return x.CurrentVersion
+	}
+	return ""
+}
+
+func (x *DeliverableUsage) GetLatestVersion() string {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return ""
+}
+
+func (x *DeliverableUsage) GetReferenceVersion() string {
+	if x != nil {
+		return x.ReferenceVersion
+	}
+	return ""
+}
+
+func (x *DeliverableUsage) GetIsOutdated() bool {
+	if x != nil {
+		return x.IsOutdated
+	}
+	return false
+}
+
+func (x *DeliverableUsage) GetIsLatest() bool {
+	if x != nil {
+		return x.IsLatest
+	}
+	return false
+}
+
+type ComplianceSummary struct {
+	state                       protoimpl.MessageState        `protogen:"open.v1"`
+	TotalProjects               int32                         `protobuf:"varint,1,opt,name=total_projects,json=totalProjects,proto3" json:"total_projects,omitempty"`
+	CompliantProjects           int32                         `protobuf:"varint,2,opt,name=compliant_projects,json=compliantProjects,proto3" json:"compliant_projects,omitempty"`
+	NonCompliantProjects        int32                         `protobuf:"varint,3,opt,name=non_compliant_projects,json=nonCompliantProjects,proto3" json:"non_compliant_projects,omitempty"`
+	OverallCompliancePercentage float32                       `protobuf:"fixed32,4,opt,name=overall_compliance_percentage,json=overallCompliancePercentage,proto3" json:"overall_compliance_percentage,omitempty"`
+	DeliverableStats            []*DeliverableComplianceStats `protobuf:"bytes,5,rep,name=deliverable_stats,json=deliverableStats,proto3" json:"deliverable_stats,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
+}
+
+func (x *ComplianceSummary) Reset() {
+	*x = ComplianceSummary{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComplianceSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComplianceSummary) ProtoMessage() {}
+
+func (x *ComplianceSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ComplianceSummary.ProtoReflect.Descriptor instead.
+func (*ComplianceSummary) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ComplianceSummary) GetTotalProjects() int32 {
+	if x != nil {
+		return x.TotalProjects
+	}
+	return 0
+}
+
+func (x *ComplianceSummary) GetCompliantProjects() int32 {
+	if x != nil {
+		return x.CompliantProjects
+	}
+	return 0
+}
+
+func (x *ComplianceSummary) GetNonCompliantProjects() int32 {
+	if x != nil {
+		return x.NonCompliantProjects
+	}
+	return 0
+}
+
+func (x *ComplianceSummary) GetOverallCompliancePercentage() float32 {
+	if x != nil {
+		return x.OverallCompliancePercentage
+	}
+	return 0
+}
+
+func (x *ComplianceSummary) GetDeliverableStats() []*DeliverableComplianceStats {
+	if x != nil {
+		return x.DeliverableStats
+	}
+	return nil
+}
+
+type DeliverableComplianceStats struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Name             string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type             Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"`
+	ProjectsUsing    int32                  `protobuf:"varint,3,opt,name=projects_using,json=projectsUsing,proto3" json:"projects_using,omitempty"`
+	ProjectsOutdated int32                  `protobuf:"varint,4,opt,name=projects_outdated,json=projectsOutdated,proto3" json:"projects_outdated,omitempty"`
+	LatestVersion    string                 `protobuf:"bytes,5,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`
+	ReferenceVersion string                 `protobuf:"bytes,6,opt,name=reference_version,json=referenceVersion,proto3" json:"reference_version,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DeliverableComplianceStats) Reset() {
+	*x = DeliverableComplianceStats{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeliverableComplianceStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeliverableComplianceStats) ProtoMessage() {}
+
+func (x *DeliverableComplianceStats) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeliverableComplianceStats.ProtoReflect.Descriptor instead.
+func (*DeliverableComplianceStats) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *DeliverableComplianceStats) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DeliverableComplianceStats) GetType() Type {
+	if x != nil {
+		return x.Type
+	}
+	return Type_TYPE_UNSPECIFIED
+}
+
+func (x *DeliverableComplianceStats) GetProjectsUsing() int32 {
+	if x != nil {
+		return x.ProjectsUsing
+	}
+	return 0
+}
+
+func (x *DeliverableComplianceStats) GetProjectsOutdated() int32 {
+	if x != nil {
+		return x.ProjectsOutdated
+	}
+	return 0
+}
+
+func (x *DeliverableComplianceStats) GetLatestVersion() string {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return ""
+}
+
+func (x *DeliverableComplianceStats) GetReferenceVersion() string {
+	if x != nil {
+		return x.ReferenceVersion
+	}
+	return ""
+}
+
+type SLA struct {
+	state            protoimpl.MessageState  `protogen:"open.v1"`
+	Level            SLALevel                `protobuf:"varint,1,opt,name=level,proto3,enum=tracker.catalog.v1alpha1.SLALevel" json:"level,omitempty"`
+	UptimePercentage *wrapperspb.DoubleValue `protobuf:"bytes,2,opt,name=uptime_percentage,json=uptimePercentage,proto3" json:"uptime_percentage,omitempty"`
+	ResponseTimeMs   *wrapperspb.UInt32Value `protobuf:"bytes,3,opt,name=response_time_ms,json=responseTimeMs,proto3" json:"response_time_ms,omitempty"`
+	Description      string                  `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SLA) Reset() {
+	*x = SLA{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SLA) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SLA) ProtoMessage() {}
+
+func (x *SLA) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SLA.ProtoReflect.Descriptor instead.
+func (*SLA) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SLA) GetLevel() SLALevel {
+	if x != nil {
+		return x.Level
+	}
+	return SLALevel_SLA_LEVEL_UNSPECIFIED
+}
+
+func (x *SLA) GetUptimePercentage() *wrapperspb.DoubleValue {
+	if x != nil {
+		return x.UptimePercentage
+	}
+	return nil
+}
+
+func (x *SLA) GetResponseTimeMs() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.ResponseTimeMs
+	}
+	return nil
+}
+
+func (x *SLA) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+// Version management messages
+type UpdateVersionsRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Name              string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                                                    // Service name
+	AvailableVersions []string               `protobuf:"bytes,2,rep,name=available_versions,json=availableVersions,proto3" json:"available_versions,omitempty"` // List of available versions
+	LatestVersion     string                 `protobuf:"bytes,3,opt,name=latest_version,json=latestVersion,proto3" json:"latest_version,omitempty"`             // Latest available version
+	ReferenceVersion  string                 `protobuf:"bytes,4,opt,name=reference_version,json=referenceVersion,proto3" json:"reference_version,omitempty"`    // Recommended/reference version to use
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdateVersionsRequest) Reset() {
+	*x = UpdateVersionsRequest{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVersionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVersionsRequest) ProtoMessage() {}
+
+func (x *UpdateVersionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVersionsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateVersionsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateVersionsRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateVersionsRequest) GetAvailableVersions() []string {
+	if x != nil {
+		return x.AvailableVersions
+	}
+	return nil
+}
+
+func (x *UpdateVersionsRequest) GetLatestVersion() string {
+	if x != nil {
+		return x.LatestVersion
+	}
+	return ""
+}
+
+func (x *UpdateVersionsRequest) GetReferenceVersion() string {
+	if x != nil {
+		return x.ReferenceVersion
+	}
+	return ""
+}
+
+type UpdateVersionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Catalog       *Catalog               `protobuf:"bytes,1,opt,name=catalog,proto3" json:"catalog,omitempty"` // Updated catalog with new versions
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateVersionsResponse) Reset() {
+	*x = UpdateVersionsResponse{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateVersionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateVersionsResponse) ProtoMessage() {}
+
+func (x *UpdateVersionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateVersionsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateVersionsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateVersionsResponse) GetCatalog() *Catalog {
+	if x != nil {
+		return x.Catalog
+	}
+	return nil
+}
+
+// Used deliverable in a project
+type UsedDeliverable struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                                     // Name of the deliverable (package, chart, container, module)
+	Type          Type                   `protobuf:"varint,2,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.Type" json:"type,omitempty"` // Type of deliverable (package, chart, container, module)
+	VersionUsed   string                 `protobuf:"bytes,3,opt,name=version_used,json=versionUsed,proto3" json:"version_used,omitempty"`    // Version currently used in this project
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                       // Optional description or usage context
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UsedDeliverable) Reset() {
+	*x = UsedDeliverable{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UsedDeliverable) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UsedDeliverable) ProtoMessage() {}
+
+func (x *UsedDeliverable) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UsedDeliverable.ProtoReflect.Descriptor instead.
+func (*UsedDeliverable) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UsedDeliverable) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UsedDeliverable) GetType() Type {
+	if x != nil {
+		return x.Type
+	}
+	return Type_TYPE_UNSPECIFIED
+}
+
+func (x *UsedDeliverable) GetVersionUsed() string {
+	if x != nil {
+		return x.VersionUsed
+	}
+	return ""
+}
+
+func (x *UsedDeliverable) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+// Communication channel for a service
+type CommunicationChannel struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          CommunicationType      `protobuf:"varint,1,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.CommunicationType" json:"type,omitempty"` // Type of communication channel
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                                  // Display name for the channel
+	Url           string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`                                                    // URL or link to the channel
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                                    // Optional description
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommunicationChannel) Reset() {
+	*x = CommunicationChannel{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommunicationChannel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommunicationChannel) ProtoMessage() {}
+
+func (x *CommunicationChannel) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommunicationChannel.ProtoReflect.Descriptor instead.
+func (*CommunicationChannel) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *CommunicationChannel) GetType() CommunicationType {
+	if x != nil {
+		return x.Type
+	}
+	return CommunicationType_COMMUNICATION_TYPE_UNSPECIFIED
+}
+
+func (x *CommunicationChannel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CommunicationChannel) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *CommunicationChannel) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+// Dashboard link for monitoring and observability
+type DashboardLink struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          DashboardType          `protobuf:"varint,1,opt,name=type,proto3,enum=tracker.catalog.v1alpha1.DashboardType" json:"type,omitempty"` // Type of dashboard platform
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                              // Display name for the dashboard
+	Url           string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`                                                // URL or link to the dashboard
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`                                // Optional description
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DashboardLink) Reset() {
+	*x = DashboardLink{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DashboardLink) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DashboardLink) ProtoMessage() {}
+
+func (x *DashboardLink) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DashboardLink.ProtoReflect.Descriptor instead.
+func (*DashboardLink) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DashboardLink) GetType() DashboardType {
+	if x != nil {
+		return x.Type
+	}
+	return DashboardType_DASHBOARD_TYPE_UNSPECIFIED
+}
+
+func (x *DashboardLink) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DashboardLink) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *DashboardLink) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+// Vulnerability summary for a service
+type VulnerabilitySummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CriticalCount int32                  `protobuf:"varint,1,opt,name=critical_count,json=criticalCount,proto3" json:"critical_count,omitempty"` // Number of critical vulnerabilities
+	HighCount     int32                  `protobuf:"varint,2,opt,name=high_count,json=highCount,proto3" json:"high_count,omitempty"`             // Number of high vulnerabilities
+	MediumCount   int32                  `protobuf:"varint,3,opt,name=medium_count,json=mediumCount,proto3" json:"medium_count,omitempty"`       // Number of medium vulnerabilities
+	LowCount      int32                  `protobuf:"varint,4,opt,name=low_count,json=lowCount,proto3" json:"low_count,omitempty"`                // Number of low vulnerabilities
+	InfoCount     int32                  `protobuf:"varint,5,opt,name=info_count,json=infoCount,proto3" json:"info_count,omitempty"`             // Number of informational findings
+	TotalCount    int32                  `protobuf:"varint,6,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`          // Total number of vulnerabilities
+	LastScan      *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_scan,json=lastScan,proto3" json:"last_scan,omitempty"`                 // Last vulnerability scan timestamp
+	ScannerName   string                 `protobuf:"bytes,8,opt,name=scanner_name,json=scannerName,proto3" json:"scanner_name,omitempty"`        // Name of the vulnerability scanner used
+	ScanVersion   string                 `protobuf:"bytes,9,opt,name=scan_version,json=scanVersion,proto3" json:"scan_version,omitempty"`        // Version of the scan/report
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VulnerabilitySummary) Reset() {
+	*x = VulnerabilitySummary{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VulnerabilitySummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VulnerabilitySummary) ProtoMessage() {}
+
+func (x *VulnerabilitySummary) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VulnerabilitySummary.ProtoReflect.Descriptor instead.
+func (*VulnerabilitySummary) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *VulnerabilitySummary) GetCriticalCount() int32 {
+	if x != nil {
+		return x.CriticalCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetHighCount() int32 {
+	if x != nil {
+		return x.HighCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetMediumCount() int32 {
+	if x != nil {
+		return x.MediumCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetLowCount() int32 {
+	if x != nil {
+		return x.LowCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetInfoCount() int32 {
+	if x != nil {
+		return x.InfoCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySummary) GetLastScan() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastScan
+	}
+	return nil
+}
+
+func (x *VulnerabilitySummary) GetScannerName() string {
+	if x != nil {
+		return x.ScannerName
+	}
+	return ""
+}
+
+func (x *VulnerabilitySummary) GetScanVersion() string {
+	if x != nil {
+		return x.ScanVersion
+	}
+	return ""
+}
+
 var File_proto_catalog_v1alpha1_catalog_proto protoreflect.FileDescriptor
 
 const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
-	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x90\x03\n" +
+	"$proto/catalog/v1alpha1/catalog.proto\x12\x18tracker.catalog.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xce\b\n" +
 	"\aCatalog\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -757,7 +2133,18 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa3\x03\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
+	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
+	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\x12>\n" +
+	"\bplatform\x18\x0e \x01(\x0e2\".tracker.catalog.v1alpha1.PlatformR\bplatform\x12-\n" +
+	"\x12available_versions\x18\x0f \x03(\tR\x11availableVersions\x12%\n" +
+	"\x0elatest_version\x18\x10 \x01(\tR\rlatestVersion\x12+\n" +
+	"\x11reference_version\x18\x11 \x01(\tR\x10referenceVersion\x12V\n" +
+	"\x11used_deliverables\x18\x12 \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\x12e\n" +
+	"\x16communication_channels\x18\x13 \x03(\v2..tracker.catalog.v1alpha1.CommunicationChannelR\x15communicationChannels\x12P\n" +
+	"\x0fdashboard_links\x18\x14 \x03(\v2'.tracker.catalog.v1alpha1.DashboardLinkR\x0edashboardLinks\x12c\n" +
+	"\x15vulnerability_summary\x18\x15 \x01(\v2..tracker.catalog.v1alpha1.VulnerabilitySummaryR\x14vulnerabilitySummary\"\xde\a\n" +
 	"\x1aCreateUpdateCatalogRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12A\n" +
@@ -773,7 +2160,15 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"Z\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12'\n" +
+	"\x0fdependencies_in\x18\v \x03(\tR\x0edependenciesIn\x12)\n" +
+	"\x10dependencies_out\x18\f \x03(\tR\x0fdependenciesOut\x12/\n" +
+	"\x03sla\x18\r \x01(\v2\x1d.tracker.catalog.v1alpha1.SLAR\x03sla\x12>\n" +
+	"\bplatform\x18\x0e \x01(\x0e2\".tracker.catalog.v1alpha1.PlatformR\bplatform\x12V\n" +
+	"\x11used_deliverables\x18\x0f \x03(\v2).tracker.catalog.v1alpha1.UsedDeliverableR\x10usedDeliverables\x12e\n" +
+	"\x16communication_channels\x18\x10 \x03(\v2..tracker.catalog.v1alpha1.CommunicationChannelR\x15communicationChannels\x12P\n" +
+	"\x0fdashboard_links\x18\x11 \x03(\v2'.tracker.catalog.v1alpha1.DashboardLinkR\x0edashboardLinks\x12c\n" +
+	"\x15vulnerability_summary\x18\x12 \x01(\v2..tracker.catalog.v1alpha1.VulnerabilitySummaryR\x14vulnerabilitySummary\"Z\n" +
 	"\x1bCreateUpdateCatalogResponse\x12;\n" +
 	"\acatalog\x18\x01 \x01(\v2!.tracker.catalog.v1alpha1.CatalogR\acatalog\"'\n" +
 	"\x11GetCatalogRequest\x12\x12\n" +
@@ -791,7 +2186,81 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x14ListCatalogsResponse\x12=\n" +
 	"\bcatalogs\x18\x01 \x03(\v2!.tracker.catalog.v1alpha1.CatalogR\bcatalogs\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\rR\n" +
-	"totalCount*w\n" +
+	"totalCount\"S\n" +
+	"\x1bGetVersionComplianceRequest\x124\n" +
+	"\x05types\x18\x01 \x03(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x05types\"\xae\x01\n" +
+	"\x1cGetVersionComplianceResponse\x12G\n" +
+	"\bprojects\x18\x01 \x03(\v2+.tracker.catalog.v1alpha1.ProjectComplianceR\bprojects\x12E\n" +
+	"\asummary\x18\x02 \x01(\v2+.tracker.catalog.v1alpha1.ComplianceSummaryR\asummary\"\x83\x02\n" +
+	"\x11ProjectCompliance\x12!\n" +
+	"\fproject_name\x18\x01 \x01(\tR\vprojectName\x12N\n" +
+	"\fdeliverables\x18\x02 \x03(\v2*.tracker.catalog.v1alpha1.DeliverableUsageR\fdeliverables\x12%\n" +
+	"\x0eoutdated_count\x18\x03 \x01(\x05R\routdatedCount\x12\x1f\n" +
+	"\vtotal_count\x18\x04 \x01(\x05R\n" +
+	"totalCount\x123\n" +
+	"\x15compliance_percentage\x18\x05 \x01(\x02R\x14compliancePercentage\"\x95\x02\n" +
+	"\x10DeliverableUsage\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12'\n" +
+	"\x0fcurrent_version\x18\x03 \x01(\tR\x0ecurrentVersion\x12%\n" +
+	"\x0elatest_version\x18\x04 \x01(\tR\rlatestVersion\x12+\n" +
+	"\x11reference_version\x18\x05 \x01(\tR\x10referenceVersion\x12\x1f\n" +
+	"\vis_outdated\x18\x06 \x01(\bR\n" +
+	"isOutdated\x12\x1b\n" +
+	"\tis_latest\x18\a \x01(\bR\bisLatest\"\xc6\x02\n" +
+	"\x11ComplianceSummary\x12%\n" +
+	"\x0etotal_projects\x18\x01 \x01(\x05R\rtotalProjects\x12-\n" +
+	"\x12compliant_projects\x18\x02 \x01(\x05R\x11compliantProjects\x124\n" +
+	"\x16non_compliant_projects\x18\x03 \x01(\x05R\x14nonCompliantProjects\x12B\n" +
+	"\x1doverall_compliance_percentage\x18\x04 \x01(\x02R\x1boverallCompliancePercentage\x12a\n" +
+	"\x11deliverable_stats\x18\x05 \x03(\v24.tracker.catalog.v1alpha1.DeliverableComplianceStatsR\x10deliverableStats\"\x8c\x02\n" +
+	"\x1aDeliverableComplianceStats\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12%\n" +
+	"\x0eprojects_using\x18\x03 \x01(\x05R\rprojectsUsing\x12+\n" +
+	"\x11projects_outdated\x18\x04 \x01(\x05R\x10projectsOutdated\x12%\n" +
+	"\x0elatest_version\x18\x05 \x01(\tR\rlatestVersion\x12+\n" +
+	"\x11reference_version\x18\x06 \x01(\tR\x10referenceVersion\"\xf4\x01\n" +
+	"\x03SLA\x128\n" +
+	"\x05level\x18\x01 \x01(\x0e2\".tracker.catalog.v1alpha1.SLALevelR\x05level\x12I\n" +
+	"\x11uptime_percentage\x18\x02 \x01(\v2\x1c.google.protobuf.DoubleValueR\x10uptimePercentage\x12F\n" +
+	"\x10response_time_ms\x18\x03 \x01(\v2\x1c.google.protobuf.UInt32ValueR\x0eresponseTimeMs\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xae\x01\n" +
+	"\x15UpdateVersionsRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12-\n" +
+	"\x12available_versions\x18\x02 \x03(\tR\x11availableVersions\x12%\n" +
+	"\x0elatest_version\x18\x03 \x01(\tR\rlatestVersion\x12+\n" +
+	"\x11reference_version\x18\x04 \x01(\tR\x10referenceVersion\"U\n" +
+	"\x16UpdateVersionsResponse\x12;\n" +
+	"\acatalog\x18\x01 \x01(\v2!.tracker.catalog.v1alpha1.CatalogR\acatalog\"\x9e\x01\n" +
+	"\x0fUsedDeliverable\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x122\n" +
+	"\x04type\x18\x02 \x01(\x0e2\x1e.tracker.catalog.v1alpha1.TypeR\x04type\x12!\n" +
+	"\fversion_used\x18\x03 \x01(\tR\vversionUsed\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\x9f\x01\n" +
+	"\x14CommunicationChannel\x12?\n" +
+	"\x04type\x18\x01 \x01(\x0e2+.tracker.catalog.v1alpha1.CommunicationTypeR\x04type\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\x94\x01\n" +
+	"\rDashboardLink\x12;\n" +
+	"\x04type\x18\x01 \x01(\x0e2'.tracker.catalog.v1alpha1.DashboardTypeR\x04type\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xdb\x02\n" +
+	"\x14VulnerabilitySummary\x12%\n" +
+	"\x0ecritical_count\x18\x01 \x01(\x05R\rcriticalCount\x12\x1d\n" +
+	"\n" +
+	"high_count\x18\x02 \x01(\x05R\thighCount\x12!\n" +
+	"\fmedium_count\x18\x03 \x01(\x05R\vmediumCount\x12\x1b\n" +
+	"\tlow_count\x18\x04 \x01(\x05R\blowCount\x12\x1d\n" +
+	"\n" +
+	"info_count\x18\x05 \x01(\x05R\tinfoCount\x12\x1f\n" +
+	"\vtotal_count\x18\x06 \x01(\x05R\n" +
+	"totalCount\x127\n" +
+	"\tlast_scan\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\blastScan\x12!\n" +
+	"\fscanner_name\x18\b \x01(\tR\vscannerName\x12!\n" +
+	"\fscan_version\x18\t \x01(\tR\vscanVersion*w\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
@@ -826,13 +2295,73 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
 	"javascrypt\x10\r\x12\n" +
 	"\n" +
-	"\x06groovy\x10\x0f2\xe7\x04\n" +
+	"\x06groovy\x10\x0f*R\n" +
+	"\bSLALevel\x12\x19\n" +
+	"\x15SLA_LEVEL_UNSPECIFIED\x10\x00\x12\f\n" +
+	"\bcritical\x10\x01\x12\b\n" +
+	"\x04high\x10\x02\x12\n" +
+	"\n" +
+	"\x06medium\x10\x03\x12\a\n" +
+	"\x03low\x10\x04*\xa2\x02\n" +
+	"\bPlatform\x12\x18\n" +
+	"\x14PLATFORM_UNSPECIFIED\x10\x00\x12\a\n" +
+	"\x03ec2\x10\x01\x12\n" +
+	"\n" +
+	"\x06lambda\x10\x02\x12\x0e\n" +
+	"\n" +
+	"kubernetes\x10\x03\x12\a\n" +
+	"\x03ecs\x10\x04\x12\v\n" +
+	"\afargate\x10\x05\x12\r\n" +
+	"\tcloud_run\x10\x06\x12\x0f\n" +
+	"\vapp_service\x10\a\x12\x12\n" +
+	"\x0estep_functions\x10\b\x12\x10\n" +
+	"\fevent_bridge\x10\t\x12\a\n" +
+	"\x03rds\x10\n" +
+	"\x12\f\n" +
+	"\bdynamodb\x10\v\x12\x06\n" +
+	"\x02s3\x10\f\x12\x0e\n" +
+	"\n" +
+	"cloudfront\x10\r\x12\x0f\n" +
+	"\vapi_gateway\x10\x0e\x12\x0e\n" +
+	"\n" +
+	"cloudwatch\x10\x0f\x12\x0e\n" +
+	"\n" +
+	"on_premise\x10\x10\x12\n" +
+	"\n" +
+	"\x06hybrid\x10\x11\x12\x0f\n" +
+	"\vmulti_cloud\x10\x12*\x83\x01\n" +
+	"\x11CommunicationType\x12\"\n" +
+	"\x1eCOMMUNICATION_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05slack\x10\x01\x12\t\n" +
+	"\x05teams\x10\x02\x12\t\n" +
+	"\x05email\x10\x03\x12\v\n" +
+	"\adiscord\x10\x04\x12\x0e\n" +
+	"\n" +
+	"mattermost\x10\x05\x12\f\n" +
+	"\btelegram\x10\x06*\xab\x01\n" +
+	"\rDashboardType\x12\x1e\n" +
+	"\x1aDASHBOARD_TYPE_UNSPECIFIED\x10\x00\x12\v\n" +
+	"\agrafana\x10\x01\x12\v\n" +
+	"\adatadog\x10\x02\x12\f\n" +
+	"\bnewrelic\x10\x03\x12\x0e\n" +
+	"\n" +
+	"prometheus\x10\x04\x12\n" +
+	"\n" +
+	"\x06kibana\x10\x05\x12\n" +
+	"\n" +
+	"\x06splunk\x10\x06\x12\r\n" +
+	"\tdynatrace\x10\a\x12\x0f\n" +
+	"\vappdynamics\x10\b\x12\n" +
+	"\n" +
+	"\x06custom\x10\t2\xc9\a\n" +
 	"\x0eCatalogService\x12\xa4\x01\n" +
 	"\x13CreateUpdateCatalog\x124.tracker.catalog.v1alpha1.CreateUpdateCatalogRequest\x1a5.tracker.catalog.v1alpha1.CreateUpdateCatalogResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1alpha1/catalog\x12\x86\x01\n" +
 	"\n" +
 	"GetCatalog\x12+.tracker.catalog.v1alpha1.GetCatalogRequest\x1a,.tracker.catalog.v1alpha1.GetCatalogResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1alpha1/catalog\x12\x8f\x01\n" +
 	"\rDeleteCatalog\x12..tracker.catalog.v1alpha1.DeleteCatalogRequest\x1a/.tracker.catalog.v1alpha1.DeleteCatalogResponse\"\x1d\x82\xd3\xe4\x93\x02\x17*\x15/api/v1alpha1/catalog\x12\x92\x01\n" +
-	"\fListCatalogs\x12-.tracker.catalog.v1alpha1.ListCatalogsRequest\x1a..tracker.catalog.v1alpha1.ListCatalogsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/catalogs/listB\x18Z\x16proto/catalog/v1alpha1b\x06proto3"
+	"\fListCatalogs\x12-.tracker.catalog.v1alpha1.ListCatalogsRequest\x1a..tracker.catalog.v1alpha1.ListCatalogsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/catalogs/list\x12\xb7\x01\n" +
+	"\x14GetVersionCompliance\x125.tracker.catalog.v1alpha1.GetVersionComplianceRequest\x1a6.tracker.catalog.v1alpha1.GetVersionComplianceResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1alpha1/catalog/version-compliance\x12\xa5\x01\n" +
+	"\x0eUpdateVersions\x12/.tracker.catalog.v1alpha1.UpdateVersionsRequest\x1a0.tracker.catalog.v1alpha1.UpdateVersionsResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1alpha1/catalog/{name}/versionsB\x18Z\x16proto/catalog/v1alpha1b\x06proto3"
 
 var (
 	file_proto_catalog_v1alpha1_catalog_proto_rawDescOnce sync.Once
@@ -846,51 +2375,100 @@ func file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP() []byte {
 	return file_proto_catalog_v1alpha1_catalog_proto_rawDescData
 }
 
-var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
-	(Type)(0),                           // 0: tracker.catalog.v1alpha1.Type
-	(Languages)(0),                      // 1: tracker.catalog.v1alpha1.Languages
-	(*Catalog)(nil),                     // 2: tracker.catalog.v1alpha1.Catalog
-	(*CreateUpdateCatalogRequest)(nil),  // 3: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	(*CreateUpdateCatalogResponse)(nil), // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	(*GetCatalogRequest)(nil),           // 5: tracker.catalog.v1alpha1.GetCatalogRequest
-	(*GetCatalogResponse)(nil),          // 6: tracker.catalog.v1alpha1.GetCatalogResponse
-	(*DeleteCatalogRequest)(nil),        // 7: tracker.catalog.v1alpha1.DeleteCatalogRequest
-	(*DeleteCatalogResponse)(nil),       // 8: tracker.catalog.v1alpha1.DeleteCatalogResponse
-	(*ListCatalogsRequest)(nil),         // 9: tracker.catalog.v1alpha1.ListCatalogsRequest
-	(*ListCatalogsResponse)(nil),        // 10: tracker.catalog.v1alpha1.ListCatalogsResponse
-	(*timestamppb.Timestamp)(nil),       // 11: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil),      // 12: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),       // 13: google.protobuf.Int32Value
+	(Type)(0),                            // 0: tracker.catalog.v1alpha1.Type
+	(Languages)(0),                       // 1: tracker.catalog.v1alpha1.Languages
+	(SLALevel)(0),                        // 2: tracker.catalog.v1alpha1.SLALevel
+	(Platform)(0),                        // 3: tracker.catalog.v1alpha1.Platform
+	(CommunicationType)(0),               // 4: tracker.catalog.v1alpha1.CommunicationType
+	(DashboardType)(0),                   // 5: tracker.catalog.v1alpha1.DashboardType
+	(*Catalog)(nil),                      // 6: tracker.catalog.v1alpha1.Catalog
+	(*CreateUpdateCatalogRequest)(nil),   // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	(*CreateUpdateCatalogResponse)(nil),  // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	(*GetCatalogRequest)(nil),            // 9: tracker.catalog.v1alpha1.GetCatalogRequest
+	(*GetCatalogResponse)(nil),           // 10: tracker.catalog.v1alpha1.GetCatalogResponse
+	(*DeleteCatalogRequest)(nil),         // 11: tracker.catalog.v1alpha1.DeleteCatalogRequest
+	(*DeleteCatalogResponse)(nil),        // 12: tracker.catalog.v1alpha1.DeleteCatalogResponse
+	(*ListCatalogsRequest)(nil),          // 13: tracker.catalog.v1alpha1.ListCatalogsRequest
+	(*ListCatalogsResponse)(nil),         // 14: tracker.catalog.v1alpha1.ListCatalogsResponse
+	(*GetVersionComplianceRequest)(nil),  // 15: tracker.catalog.v1alpha1.GetVersionComplianceRequest
+	(*GetVersionComplianceResponse)(nil), // 16: tracker.catalog.v1alpha1.GetVersionComplianceResponse
+	(*ProjectCompliance)(nil),            // 17: tracker.catalog.v1alpha1.ProjectCompliance
+	(*DeliverableUsage)(nil),             // 18: tracker.catalog.v1alpha1.DeliverableUsage
+	(*ComplianceSummary)(nil),            // 19: tracker.catalog.v1alpha1.ComplianceSummary
+	(*DeliverableComplianceStats)(nil),   // 20: tracker.catalog.v1alpha1.DeliverableComplianceStats
+	(*SLA)(nil),                          // 21: tracker.catalog.v1alpha1.SLA
+	(*UpdateVersionsRequest)(nil),        // 22: tracker.catalog.v1alpha1.UpdateVersionsRequest
+	(*UpdateVersionsResponse)(nil),       // 23: tracker.catalog.v1alpha1.UpdateVersionsResponse
+	(*UsedDeliverable)(nil),              // 24: tracker.catalog.v1alpha1.UsedDeliverable
+	(*CommunicationChannel)(nil),         // 25: tracker.catalog.v1alpha1.CommunicationChannel
+	(*DashboardLink)(nil),                // 26: tracker.catalog.v1alpha1.DashboardLink
+	(*VulnerabilitySummary)(nil),         // 27: tracker.catalog.v1alpha1.VulnerabilitySummary
+	(*timestamppb.Timestamp)(nil),        // 28: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil),       // 29: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),        // 30: google.protobuf.Int32Value
+	(*wrapperspb.DoubleValue)(nil),       // 31: google.protobuf.DoubleValue
 }
 var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	0,  // 0: tracker.catalog.v1alpha1.Catalog.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 1: tracker.catalog.v1alpha1.Catalog.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	11, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
-	11, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 4: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
-	1,  // 5: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	11, // 6: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
-	11, // 7: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 8: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	2,  // 9: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	12, // 10: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	13, // 11: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
-	2,  // 12: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
-	3,  // 13: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	5,  // 14: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
-	7,  // 15: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
-	9,  // 16: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
-	4,  // 17: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	6,  // 18: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
-	8,  // 19: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
-	10, // 20: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
-	17, // [17:21] is the sub-list for method output_type
-	13, // [13:17] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	28, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
+	28, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
+	21, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 5: tracker.catalog.v1alpha1.Catalog.platform:type_name -> tracker.catalog.v1alpha1.Platform
+	24, // 6: tracker.catalog.v1alpha1.Catalog.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
+	25, // 7: tracker.catalog.v1alpha1.Catalog.communication_channels:type_name -> tracker.catalog.v1alpha1.CommunicationChannel
+	26, // 8: tracker.catalog.v1alpha1.Catalog.dashboard_links:type_name -> tracker.catalog.v1alpha1.DashboardLink
+	27, // 9: tracker.catalog.v1alpha1.Catalog.vulnerability_summary:type_name -> tracker.catalog.v1alpha1.VulnerabilitySummary
+	0,  // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
+	1,  // 11: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
+	28, // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
+	28, // 13: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
+	21, // 14: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
+	3,  // 15: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.platform:type_name -> tracker.catalog.v1alpha1.Platform
+	24, // 16: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
+	25, // 17: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.communication_channels:type_name -> tracker.catalog.v1alpha1.CommunicationChannel
+	26, // 18: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.dashboard_links:type_name -> tracker.catalog.v1alpha1.DashboardLink
+	27, // 19: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.vulnerability_summary:type_name -> tracker.catalog.v1alpha1.VulnerabilitySummary
+	6,  // 20: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	6,  // 21: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	29, // 22: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	30, // 23: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
+	6,  // 24: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
+	0,  // 25: tracker.catalog.v1alpha1.GetVersionComplianceRequest.types:type_name -> tracker.catalog.v1alpha1.Type
+	17, // 26: tracker.catalog.v1alpha1.GetVersionComplianceResponse.projects:type_name -> tracker.catalog.v1alpha1.ProjectCompliance
+	19, // 27: tracker.catalog.v1alpha1.GetVersionComplianceResponse.summary:type_name -> tracker.catalog.v1alpha1.ComplianceSummary
+	18, // 28: tracker.catalog.v1alpha1.ProjectCompliance.deliverables:type_name -> tracker.catalog.v1alpha1.DeliverableUsage
+	0,  // 29: tracker.catalog.v1alpha1.DeliverableUsage.type:type_name -> tracker.catalog.v1alpha1.Type
+	20, // 30: tracker.catalog.v1alpha1.ComplianceSummary.deliverable_stats:type_name -> tracker.catalog.v1alpha1.DeliverableComplianceStats
+	0,  // 31: tracker.catalog.v1alpha1.DeliverableComplianceStats.type:type_name -> tracker.catalog.v1alpha1.Type
+	2,  // 32: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
+	31, // 33: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
+	29, // 34: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
+	6,  // 35: tracker.catalog.v1alpha1.UpdateVersionsResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
+	0,  // 36: tracker.catalog.v1alpha1.UsedDeliverable.type:type_name -> tracker.catalog.v1alpha1.Type
+	4,  // 37: tracker.catalog.v1alpha1.CommunicationChannel.type:type_name -> tracker.catalog.v1alpha1.CommunicationType
+	5,  // 38: tracker.catalog.v1alpha1.DashboardLink.type:type_name -> tracker.catalog.v1alpha1.DashboardType
+	28, // 39: tracker.catalog.v1alpha1.VulnerabilitySummary.last_scan:type_name -> google.protobuf.Timestamp
+	7,  // 40: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	9,  // 41: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
+	11, // 42: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
+	13, // 43: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
+	15, // 44: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:input_type -> tracker.catalog.v1alpha1.GetVersionComplianceRequest
+	22, // 45: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:input_type -> tracker.catalog.v1alpha1.UpdateVersionsRequest
+	8,  // 46: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	10, // 47: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
+	12, // 48: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
+	14, // 49: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
+	16, // 50: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:output_type -> tracker.catalog.v1alpha1.GetVersionComplianceResponse
+	23, // 51: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:output_type -> tracker.catalog.v1alpha1.UpdateVersionsResponse
+	46, // [46:52] is the sub-list for method output_type
+	40, // [40:46] is the sub-list for method input_type
+	40, // [40:40] is the sub-list for extension type_name
+	40, // [40:40] is the sub-list for extension extendee
+	0,  // [0:40] is the sub-list for field type_name
 }
 
 func init() { file_proto_catalog_v1alpha1_catalog_proto_init() }
@@ -903,8 +2481,8 @@ func file_proto_catalog_v1alpha1_catalog_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_v1alpha1_catalog_proto_rawDesc), len(file_proto_catalog_v1alpha1_catalog_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   9,
+			NumEnums:      6,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

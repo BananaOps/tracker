@@ -49,7 +49,15 @@ The Catalog feature helps you maintain an inventory of all your modules, librari
   "version": "2.1.0",
   "link": "https://docs.example.com/user-service",
   "description": "User management microservice with authentication",
-  "repository": "https://github.com/org/user-service"
+  "repository": "https://github.com/org/user-service",
+  "dependenciesIn": ["database", "redis-cache", "auth-service"],
+  "dependenciesOut": ["api-gateway", "web-app"],
+  "sla": {
+    "level": 1,
+    "uptimePercentage": 99.99,
+    "responseTimeMs": 100,
+    "description": "Critical service for all authentication flows"
+  }
 }
 ```
 
@@ -68,6 +76,26 @@ The Catalog feature helps you maintain an inventory of all your modules, librari
 - **link** (string): Documentation URL
 - **description** (string): Brief description
 - **repository** (string): Source code repository URL
+- **dependenciesIn** (array): Upstream dependencies (services this service depends on)
+- **dependenciesOut** (array): Downstream dependencies (services that depend on this service)
+- **sla** (object): Service Level Agreement configuration
+
+#### SLA Configuration
+
+The `sla` object defines service level targets:
+
+- **level** (int): SLA level (1=Critical, 2=High, 3=Medium, 4=Low)
+- **uptimePercentage** (float): Target uptime percentage (e.g., 99.99)
+- **responseTimeMs** (int): Target response time in milliseconds
+- **description** (string): Additional SLA details
+
+**SLA Levels:**
+| Level | Value | Uptime Target | Use Case |
+|-------|-------|---------------|----------|
+| Critical | `1` | 99.99% | Mission-critical services |
+| High | `2` | 99.9% | Important production services |
+| Medium | `3` | 99.5% | Standard services |
+| Low | `4` | 99% | Non-critical services |
 
 ## REST API
 
@@ -192,9 +220,9 @@ grpcurl --plaintext localhost:8765 tracker.catalog.v1alpha1.CatalogService/ListC
 
 ## Use Cases
 
-### 1. Track Microservices
+### 1. Track Microservices with SLA and Dependencies
 
-Maintain an inventory of all your microservices:
+Maintain an inventory of all your microservices with their dependencies and SLA targets:
 
 ```bash
 curl -X PUT http://localhost:8080/api/v1alpha1/catalog \
@@ -207,7 +235,15 @@ curl -X PUT http://localhost:8080/api/v1alpha1/catalog \
     "version": "1.8.3",
     "description": "Payment processing service with Stripe integration",
     "repository": "https://github.com/org/payment-service",
-    "link": "https://docs.example.com/payments"
+    "link": "https://docs.example.com/payments",
+    "dependenciesIn": ["user-service", "database", "stripe-api"],
+    "dependenciesOut": ["api-gateway", "mobile-app"],
+    "sla": {
+      "level": 1,
+      "uptimePercentage": 99.99,
+      "responseTimeMs": 200,
+      "description": "Critical payment processing service"
+    }
   }'
 ```
 
@@ -405,6 +441,45 @@ curl "http://localhost:8080/api/v1alpha1/catalogs/list?per_page=100" | \
 ### Find Outdated Versions
 
 Compare catalog versions with latest releases to identify outdated components.
+
+## Dependency Visualization
+
+The Tracker UI provides powerful dependency visualization features:
+
+### Service Detail Page
+
+Navigate to `/catalog/{service-name}` to view:
+- **Interactive dependency graph** showing upstream and downstream dependencies
+- **SLA metrics** with color-coded badges
+- **Dependency counts** (in/out)
+- **Service information** (type, language, owner, version)
+- **Links** to repository and documentation
+
+### Global Dependencies View
+
+Navigate to `/catalog/dependencies` to view:
+- **Complete dependency graph** of all services
+- **Filter by SLA level** to focus on critical services
+- **Search functionality** to find specific services
+- **Statistics** showing total services and dependencies
+
+### Understanding Dependencies
+
+- **Upstream Dependencies (In)**: Services that this service depends on
+  - Example: `payment-service` depends on `user-service`, `database`, `stripe-api`
+  - If an upstream service fails, this service may be impacted
+
+- **Downstream Dependencies (Out)**: Services that depend on this service
+  - Example: `api-gateway`, `mobile-app` depend on `payment-service`
+  - If this service fails, downstream services will be impacted
+
+### Dependency Graph Features
+
+- **Interactive navigation**: Click on any service node to view its details
+- **Color coding**: Nodes are colored by SLA level (red=critical, orange=high, yellow=medium, green=low)
+- **Zoom and pan**: Use mouse wheel to zoom, drag to pan
+- **Minimap**: Overview of the entire graph in the corner
+- **Animated edges**: Flow direction is indicated by animated arrows
 
 ## Integration with Events
 

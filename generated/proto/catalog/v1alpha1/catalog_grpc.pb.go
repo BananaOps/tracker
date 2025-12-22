@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CatalogService_CreateUpdateCatalog_FullMethodName = "/tracker.catalog.v1alpha1.CatalogService/CreateUpdateCatalog"
-	CatalogService_GetCatalog_FullMethodName          = "/tracker.catalog.v1alpha1.CatalogService/GetCatalog"
-	CatalogService_DeleteCatalog_FullMethodName       = "/tracker.catalog.v1alpha1.CatalogService/DeleteCatalog"
-	CatalogService_ListCatalogs_FullMethodName        = "/tracker.catalog.v1alpha1.CatalogService/ListCatalogs"
+	CatalogService_CreateUpdateCatalog_FullMethodName  = "/tracker.catalog.v1alpha1.CatalogService/CreateUpdateCatalog"
+	CatalogService_GetCatalog_FullMethodName           = "/tracker.catalog.v1alpha1.CatalogService/GetCatalog"
+	CatalogService_DeleteCatalog_FullMethodName        = "/tracker.catalog.v1alpha1.CatalogService/DeleteCatalog"
+	CatalogService_ListCatalogs_FullMethodName         = "/tracker.catalog.v1alpha1.CatalogService/ListCatalogs"
+	CatalogService_GetVersionCompliance_FullMethodName = "/tracker.catalog.v1alpha1.CatalogService/GetVersionCompliance"
+	CatalogService_UpdateVersions_FullMethodName       = "/tracker.catalog.v1alpha1.CatalogService/UpdateVersions"
 )
 
 // CatalogServiceClient is the client API for CatalogService service.
@@ -33,6 +35,10 @@ type CatalogServiceClient interface {
 	GetCatalog(ctx context.Context, in *GetCatalogRequest, opts ...grpc.CallOption) (*GetCatalogResponse, error)
 	DeleteCatalog(ctx context.Context, in *DeleteCatalogRequest, opts ...grpc.CallOption) (*DeleteCatalogResponse, error)
 	ListCatalogs(ctx context.Context, in *ListCatalogsRequest, opts ...grpc.CallOption) (*ListCatalogsResponse, error)
+	// Version compliance check
+	GetVersionCompliance(ctx context.Context, in *GetVersionComplianceRequest, opts ...grpc.CallOption) (*GetVersionComplianceResponse, error)
+	// Version management for deliverables
+	UpdateVersions(ctx context.Context, in *UpdateVersionsRequest, opts ...grpc.CallOption) (*UpdateVersionsResponse, error)
 }
 
 type catalogServiceClient struct {
@@ -83,6 +89,26 @@ func (c *catalogServiceClient) ListCatalogs(ctx context.Context, in *ListCatalog
 	return out, nil
 }
 
+func (c *catalogServiceClient) GetVersionCompliance(ctx context.Context, in *GetVersionComplianceRequest, opts ...grpc.CallOption) (*GetVersionComplianceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVersionComplianceResponse)
+	err := c.cc.Invoke(ctx, CatalogService_GetVersionCompliance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogServiceClient) UpdateVersions(ctx context.Context, in *UpdateVersionsRequest, opts ...grpc.CallOption) (*UpdateVersionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateVersionsResponse)
+	err := c.cc.Invoke(ctx, CatalogService_UpdateVersions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CatalogServiceServer is the server API for CatalogService service.
 // All implementations must embed UnimplementedCatalogServiceServer
 // for forward compatibility.
@@ -91,6 +117,10 @@ type CatalogServiceServer interface {
 	GetCatalog(context.Context, *GetCatalogRequest) (*GetCatalogResponse, error)
 	DeleteCatalog(context.Context, *DeleteCatalogRequest) (*DeleteCatalogResponse, error)
 	ListCatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error)
+	// Version compliance check
+	GetVersionCompliance(context.Context, *GetVersionComplianceRequest) (*GetVersionComplianceResponse, error)
+	// Version management for deliverables
+	UpdateVersions(context.Context, *UpdateVersionsRequest) (*UpdateVersionsResponse, error)
 	mustEmbedUnimplementedCatalogServiceServer()
 }
 
@@ -112,6 +142,12 @@ func (UnimplementedCatalogServiceServer) DeleteCatalog(context.Context, *DeleteC
 }
 func (UnimplementedCatalogServiceServer) ListCatalogs(context.Context, *ListCatalogsRequest) (*ListCatalogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCatalogs not implemented")
+}
+func (UnimplementedCatalogServiceServer) GetVersionCompliance(context.Context, *GetVersionComplianceRequest) (*GetVersionComplianceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVersionCompliance not implemented")
+}
+func (UnimplementedCatalogServiceServer) UpdateVersions(context.Context, *UpdateVersionsRequest) (*UpdateVersionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateVersions not implemented")
 }
 func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
 func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
@@ -206,6 +242,42 @@ func _CatalogService_ListCatalogs_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogService_GetVersionCompliance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVersionComplianceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).GetVersionCompliance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_GetVersionCompliance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).GetVersionCompliance(ctx, req.(*GetVersionComplianceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CatalogService_UpdateVersions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateVersionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).UpdateVersions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_UpdateVersions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).UpdateVersions(ctx, req.(*UpdateVersionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CatalogService_ServiceDesc is the grpc.ServiceDesc for CatalogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +300,14 @@ var CatalogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCatalogs",
 			Handler:    _CatalogService_ListCatalogs_Handler,
+		},
+		{
+			MethodName: "GetVersionCompliance",
+			Handler:    _CatalogService_GetVersionCompliance_Handler,
+		},
+		{
+			MethodName: "UpdateVersions",
+			Handler:    _CatalogService_UpdateVersions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

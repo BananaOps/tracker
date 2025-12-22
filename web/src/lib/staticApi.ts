@@ -86,6 +86,115 @@ export const staticCatalogApi = {
   delete: async () => {
     throw new Error('Delete operation not available in static demo mode')
   },
+
+  getVersionCompliance: async () => {
+    // Mock version compliance data for static mode
+    return {
+      projects: [
+        {
+          projectName: 'auth-service',
+          deliverables: [
+            {
+              name: 'base-docker-image',
+              type: 'container' as any,
+              currentVersion: '1.2.0',
+              latestVersion: '1.4.0',
+              referenceVersion: '1.3.0',
+              isOutdated: true,
+              isLatest: false
+            },
+            {
+              name: 'logging-module',
+              type: 'module' as any,
+              currentVersion: '2.1.0',
+              latestVersion: '2.1.0',
+              referenceVersion: '2.1.0',
+              isOutdated: false,
+              isLatest: true
+            }
+          ],
+          outdatedCount: 1,
+          totalCount: 2,
+          compliancePercentage: 50
+        },
+        {
+          projectName: 'payment-service',
+          deliverables: [
+            {
+              name: 'base-docker-image',
+              type: 'container' as any,
+              currentVersion: '1.3.0',
+              latestVersion: '1.4.0',
+              referenceVersion: '1.3.0',
+              isOutdated: false,
+              isLatest: false
+            },
+            {
+              name: 'validation-package',
+              type: 'package' as any,
+              currentVersion: '3.0.0',
+              latestVersion: '3.2.0',
+              referenceVersion: '3.1.0',
+              isOutdated: true,
+              isLatest: false
+            }
+          ],
+          outdatedCount: 1,
+          totalCount: 2,
+          compliancePercentage: 50
+        }
+      ],
+      summary: {
+        totalProjects: 2,
+        compliantProjects: 0,
+        nonCompliantProjects: 2,
+        overallCompliancePercentage: 50,
+        deliverableStats: [
+          {
+            name: 'base-docker-image',
+            type: 'container' as any,
+            projectsUsing: 2,
+            projectsOutdated: 1,
+            latestVersion: '1.4.0',
+            referenceVersion: '1.3.0'
+          },
+          {
+            name: 'logging-module',
+            type: 'module' as any,
+            projectsUsing: 1,
+            projectsOutdated: 0,
+            latestVersion: '2.1.0',
+            referenceVersion: '2.1.0'
+          },
+          {
+            name: 'validation-package',
+            type: 'package' as any,
+            projectsUsing: 1,
+            projectsOutdated: 1,
+            latestVersion: '3.2.0',
+            referenceVersion: '3.1.0'
+          }
+        ]
+      }
+    }
+  },
+
+  updateVersions: async (name: string, versions: string[], latestVersion?: string, referenceVersion?: string) => {
+    // Mock version update for static mode
+    console.log('🔧 Static API: Mock updating versions for service:', name, { versions, latestVersion, referenceVersion })
+    
+    // In static mode, we just return a mock response
+    return {
+      name,
+      type: 'package' as any,
+      languages: 'javascript' as any,
+      owner: 'mock-owner',
+      version: '1.0.0',
+      availableVersions: versions,
+      latestVersion,
+      referenceVersion,
+    }
+  },
 }
 
 export const staticLocksApi = {
