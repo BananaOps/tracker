@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/BananaOps/tracker/compare/v0.11.0...v0.12.0) (2025-12-23)
+
+
+### Features
+
+* add catalog dependencies ([#119](https://github.com/BananaOps/tracker/issues/119)) ([2ed9eab](https://github.com/BananaOps/tracker/commit/2ed9eab03d7fdf2b53eb28469afd37f0d210d1b6))
+* add endpoint changelog ([#121](https://github.com/BananaOps/tracker/issues/121)) ([051ddce](https://github.com/BananaOps/tracker/commit/051ddce7fc02e1887d6f5c940fa31dd5e7113ae5))
+
+
+### Bug Fixes
+
+* errer message when service is locked ([4827e31](https://github.com/BananaOps/tracker/commit/4827e31b89b35005a7c695536bc16f4d1605c7f8))
+* limite service name to 25 ([4358225](https://github.com/BananaOps/tracker/commit/43582257930e4240ef40e6f9f25209be27eeaff8))
+
 ## [0.11.0](https://github.com/BananaOps/tracker/compare/v0.10.1...v0.11.0) (2025-12-17)
 
 
