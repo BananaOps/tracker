@@ -38,6 +38,19 @@ service EventService {
   rpc TodayEvents(TodayEventsRequest) returns (TodayEventsResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/events/today"};
   }
+
+  // Append a changelog entry to an existing event
+  rpc AddChangelogEntry(AddChangelogEntryRequest) returns (AddChangelogEntryResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/event/{id}/changelog"
+      body: "*"
+    };
+  }
+
+  // Get the changelog entries for an existing event
+  rpc GetEventChangelog(GetEventChangelogRequest) returns (GetEventChangelogResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/event/{id}/changelog"};
+  }
 }
 
 message EventAttributes {
@@ -142,6 +155,32 @@ message TodayEventsRequest {
 
 message TodayEventsResponse {
   repeated Event events = 1;
+  uint32 total_count = 2;
+}
+
+// Request to append a single changelog entry to an event
+message AddChangelogEntryRequest {
+  // Event identifier
+  string id = 1 [(validate.rules).string = {uuid: true}];
+  // Changelog entry to append
+  ChangelogEntry entry = 2;
+}
+
+// Response returns the updated event including its changelog
+message AddChangelogEntryResponse {
+  Event event = 1;
+}
+
+// Request to fetch event changelog entries
+message GetEventChangelogRequest {
+  string id = 1 [(validate.rules).string = {uuid: true}];
+  google.protobuf.UInt32Value per_page = 2;
+  google.protobuf.Int32Value page = 3;
+}
+
+// Response for event changelog entries
+message GetEventChangelogResponse {
+  repeated ChangelogEntry changelog = 1;
   uint32 total_count = 2;
 }
 

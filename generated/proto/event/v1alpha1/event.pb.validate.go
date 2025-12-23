@@ -2263,6 +2263,606 @@ var _ interface {
 	ErrorName() string
 } = TodayEventsResponseValidationError{}
 
+// Validate checks the field values on AddChangelogEntryRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddChangelogEntryRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddChangelogEntryRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddChangelogEntryRequestMultiError, or nil if none found.
+func (m *AddChangelogEntryRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddChangelogEntryRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = AddChangelogEntryRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEntry()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddChangelogEntryRequestValidationError{
+					field:  "Entry",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddChangelogEntryRequestValidationError{
+					field:  "Entry",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEntry()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddChangelogEntryRequestValidationError{
+				field:  "Entry",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AddChangelogEntryRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AddChangelogEntryRequest) _validateUuid(uuid string) error {
+	if matched := _event_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// AddChangelogEntryRequestMultiError is an error wrapping multiple validation
+// errors returned by AddChangelogEntryRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AddChangelogEntryRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddChangelogEntryRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddChangelogEntryRequestMultiError) AllErrors() []error { return m }
+
+// AddChangelogEntryRequestValidationError is the validation error returned by
+// AddChangelogEntryRequest.Validate if the designated constraints aren't met.
+type AddChangelogEntryRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddChangelogEntryRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddChangelogEntryRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddChangelogEntryRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddChangelogEntryRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddChangelogEntryRequestValidationError) ErrorName() string {
+	return "AddChangelogEntryRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddChangelogEntryRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddChangelogEntryRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddChangelogEntryRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddChangelogEntryRequestValidationError{}
+
+// Validate checks the field values on AddChangelogEntryResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddChangelogEntryResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddChangelogEntryResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddChangelogEntryResponseMultiError, or nil if none found.
+func (m *AddChangelogEntryResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddChangelogEntryResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetEvent()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddChangelogEntryResponseValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddChangelogEntryResponseValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEvent()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddChangelogEntryResponseValidationError{
+				field:  "Event",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AddChangelogEntryResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddChangelogEntryResponseMultiError is an error wrapping multiple validation
+// errors returned by AddChangelogEntryResponse.ValidateAll() if the
+// designated constraints aren't met.
+type AddChangelogEntryResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddChangelogEntryResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddChangelogEntryResponseMultiError) AllErrors() []error { return m }
+
+// AddChangelogEntryResponseValidationError is the validation error returned by
+// AddChangelogEntryResponse.Validate if the designated constraints aren't met.
+type AddChangelogEntryResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddChangelogEntryResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddChangelogEntryResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddChangelogEntryResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddChangelogEntryResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddChangelogEntryResponseValidationError) ErrorName() string {
+	return "AddChangelogEntryResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddChangelogEntryResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddChangelogEntryResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddChangelogEntryResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddChangelogEntryResponseValidationError{}
+
+// Validate checks the field values on GetEventChangelogRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventChangelogRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventChangelogRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventChangelogRequestMultiError, or nil if none found.
+func (m *GetEventChangelogRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventChangelogRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = GetEventChangelogRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPerPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventChangelogRequestValidationError{
+					field:  "PerPage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventChangelogRequestValidationError{
+					field:  "PerPage",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPerPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventChangelogRequestValidationError{
+				field:  "PerPage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventChangelogRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventChangelogRequestValidationError{
+					field:  "Page",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventChangelogRequestValidationError{
+				field:  "Page",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetEventChangelogRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetEventChangelogRequest) _validateUuid(uuid string) error {
+	if matched := _event_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// GetEventChangelogRequestMultiError is an error wrapping multiple validation
+// errors returned by GetEventChangelogRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetEventChangelogRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventChangelogRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventChangelogRequestMultiError) AllErrors() []error { return m }
+
+// GetEventChangelogRequestValidationError is the validation error returned by
+// GetEventChangelogRequest.Validate if the designated constraints aren't met.
+type GetEventChangelogRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventChangelogRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventChangelogRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventChangelogRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventChangelogRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventChangelogRequestValidationError) ErrorName() string {
+	return "GetEventChangelogRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventChangelogRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventChangelogRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventChangelogRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventChangelogRequestValidationError{}
+
+// Validate checks the field values on GetEventChangelogResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventChangelogResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventChangelogResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventChangelogResponseMultiError, or nil if none found.
+func (m *GetEventChangelogResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventChangelogResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetChangelog() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetEventChangelogResponseValidationError{
+						field:  fmt.Sprintf("Changelog[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetEventChangelogResponseValidationError{
+						field:  fmt.Sprintf("Changelog[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetEventChangelogResponseValidationError{
+					field:  fmt.Sprintf("Changelog[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for TotalCount
+
+	if len(errors) > 0 {
+		return GetEventChangelogResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventChangelogResponseMultiError is an error wrapping multiple validation
+// errors returned by GetEventChangelogResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetEventChangelogResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventChangelogResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventChangelogResponseMultiError) AllErrors() []error { return m }
+
+// GetEventChangelogResponseValidationError is the validation error returned by
+// GetEventChangelogResponse.Validate if the designated constraints aren't met.
+type GetEventChangelogResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventChangelogResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventChangelogResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventChangelogResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventChangelogResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventChangelogResponseValidationError) ErrorName() string {
+	return "GetEventChangelogResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventChangelogResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventChangelogResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventChangelogResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventChangelogResponseValidationError{}
+
 // Validate checks the field values on UpdateEventRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

@@ -2004,18 +2004,17 @@ func (x *DashboardLink) GetDescription() string {
 	return ""
 }
 
-// Vulnerability summary for a service
+// Vulnerability summary for a service (aggregated from multiple sources)
 type VulnerabilitySummary struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CriticalCount int32                  `protobuf:"varint,1,opt,name=critical_count,json=criticalCount,proto3" json:"critical_count,omitempty"` // Number of critical vulnerabilities
-	HighCount     int32                  `protobuf:"varint,2,opt,name=high_count,json=highCount,proto3" json:"high_count,omitempty"`             // Number of high vulnerabilities
-	MediumCount   int32                  `protobuf:"varint,3,opt,name=medium_count,json=mediumCount,proto3" json:"medium_count,omitempty"`       // Number of medium vulnerabilities
-	LowCount      int32                  `protobuf:"varint,4,opt,name=low_count,json=lowCount,proto3" json:"low_count,omitempty"`                // Number of low vulnerabilities
-	InfoCount     int32                  `protobuf:"varint,5,opt,name=info_count,json=infoCount,proto3" json:"info_count,omitempty"`             // Number of informational findings
-	TotalCount    int32                  `protobuf:"varint,6,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`          // Total number of vulnerabilities
-	LastScan      *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_scan,json=lastScan,proto3" json:"last_scan,omitempty"`                 // Last vulnerability scan timestamp
-	ScannerName   string                 `protobuf:"bytes,8,opt,name=scanner_name,json=scannerName,proto3" json:"scanner_name,omitempty"`        // Name of the vulnerability scanner used
-	ScanVersion   string                 `protobuf:"bytes,9,opt,name=scan_version,json=scanVersion,proto3" json:"scan_version,omitempty"`        // Version of the scan/report
+	CriticalCount int32                  `protobuf:"varint,1,opt,name=critical_count,json=criticalCount,proto3" json:"critical_count,omitempty"` // Total critical vulnerabilities (aggregated)
+	HighCount     int32                  `protobuf:"varint,2,opt,name=high_count,json=highCount,proto3" json:"high_count,omitempty"`             // Total high vulnerabilities (aggregated)
+	MediumCount   int32                  `protobuf:"varint,3,opt,name=medium_count,json=mediumCount,proto3" json:"medium_count,omitempty"`       // Total medium vulnerabilities (aggregated)
+	LowCount      int32                  `protobuf:"varint,4,opt,name=low_count,json=lowCount,proto3" json:"low_count,omitempty"`                // Total low vulnerabilities (aggregated)
+	InfoCount     int32                  `protobuf:"varint,5,opt,name=info_count,json=infoCount,proto3" json:"info_count,omitempty"`             // Total informational findings (aggregated)
+	TotalCount    int32                  `protobuf:"varint,6,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`          // Total number of vulnerabilities (aggregated)
+	LastUpdated   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`        // Last time any source was updated
+	Sources       []*VulnerabilitySource `protobuf:"bytes,8,rep,name=sources,proto3" json:"sources,omitempty"`                                   // Individual vulnerability sources
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2092,23 +2091,149 @@ func (x *VulnerabilitySummary) GetTotalCount() int32 {
 	return 0
 }
 
-func (x *VulnerabilitySummary) GetLastScan() *timestamppb.Timestamp {
+func (x *VulnerabilitySummary) GetLastUpdated() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastUpdated
+	}
+	return nil
+}
+
+func (x *VulnerabilitySummary) GetSources() []*VulnerabilitySource {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+// Individual vulnerability source (Trivy, GitHub Security, Snyk, etc.)
+type VulnerabilitySource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                                         // Source name (e.g., "Trivy", "GitHub Security", "Snyk")
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`                                         // Source type (e.g., "sast", "sca", "container", "iac")
+	Url           string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`                                           // Link to the source report/dashboard
+	CriticalCount int32                  `protobuf:"varint,4,opt,name=critical_count,json=criticalCount,proto3" json:"critical_count,omitempty"` // Critical vulnerabilities from this source
+	HighCount     int32                  `protobuf:"varint,5,opt,name=high_count,json=highCount,proto3" json:"high_count,omitempty"`             // High vulnerabilities from this source
+	MediumCount   int32                  `protobuf:"varint,6,opt,name=medium_count,json=mediumCount,proto3" json:"medium_count,omitempty"`       // Medium vulnerabilities from this source
+	LowCount      int32                  `protobuf:"varint,7,opt,name=low_count,json=lowCount,proto3" json:"low_count,omitempty"`                // Low vulnerabilities from this source
+	InfoCount     int32                  `protobuf:"varint,8,opt,name=info_count,json=infoCount,proto3" json:"info_count,omitempty"`             // Info findings from this source
+	TotalCount    int32                  `protobuf:"varint,9,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`          // Total from this source
+	LastScan      *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_scan,json=lastScan,proto3" json:"last_scan,omitempty"`                // Last scan time for this source
+	ScanVersion   string                 `protobuf:"bytes,11,opt,name=scan_version,json=scanVersion,proto3" json:"scan_version,omitempty"`       // Version/ID of the scan
+	Description   string                 `protobuf:"bytes,12,opt,name=description,proto3" json:"description,omitempty"`                          // Optional description of what this source scans
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VulnerabilitySource) Reset() {
+	*x = VulnerabilitySource{}
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VulnerabilitySource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VulnerabilitySource) ProtoMessage() {}
+
+func (x *VulnerabilitySource) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_catalog_v1alpha1_catalog_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VulnerabilitySource.ProtoReflect.Descriptor instead.
+func (*VulnerabilitySource) Descriptor() ([]byte, []int) {
+	return file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *VulnerabilitySource) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *VulnerabilitySource) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *VulnerabilitySource) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *VulnerabilitySource) GetCriticalCount() int32 {
+	if x != nil {
+		return x.CriticalCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetHighCount() int32 {
+	if x != nil {
+		return x.HighCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetMediumCount() int32 {
+	if x != nil {
+		return x.MediumCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetLowCount() int32 {
+	if x != nil {
+		return x.LowCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetInfoCount() int32 {
+	if x != nil {
+		return x.InfoCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *VulnerabilitySource) GetLastScan() *timestamppb.Timestamp {
 	if x != nil {
 		return x.LastScan
 	}
 	return nil
 }
 
-func (x *VulnerabilitySummary) GetScannerName() string {
+func (x *VulnerabilitySource) GetScanVersion() string {
 	if x != nil {
-		return x.ScannerName
+		return x.ScanVersion
 	}
 	return ""
 }
 
-func (x *VulnerabilitySummary) GetScanVersion() string {
+func (x *VulnerabilitySource) GetDescription() string {
 	if x != nil {
-		return x.ScanVersion
+		return x.Description
 	}
 	return ""
 }
@@ -2247,7 +2372,7 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\x04type\x18\x01 \x01(\x0e2'.tracker.catalog.v1alpha1.DashboardTypeR\x04type\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
 	"\x03url\x18\x03 \x01(\tR\x03url\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xdb\x02\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"\xe4\x02\n" +
 	"\x14VulnerabilitySummary\x12%\n" +
 	"\x0ecritical_count\x18\x01 \x01(\x05R\rcriticalCount\x12\x1d\n" +
 	"\n" +
@@ -2257,10 +2382,26 @@ const file_proto_catalog_v1alpha1_catalog_proto_rawDesc = "" +
 	"\n" +
 	"info_count\x18\x05 \x01(\x05R\tinfoCount\x12\x1f\n" +
 	"\vtotal_count\x18\x06 \x01(\x05R\n" +
+	"totalCount\x12=\n" +
+	"\flast_updated\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vlastUpdated\x12G\n" +
+	"\asources\x18\b \x03(\v2-.tracker.catalog.v1alpha1.VulnerabilitySourceR\asources\"\x93\x03\n" +
+	"\x13VulnerabilitySource\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12%\n" +
+	"\x0ecritical_count\x18\x04 \x01(\x05R\rcriticalCount\x12\x1d\n" +
+	"\n" +
+	"high_count\x18\x05 \x01(\x05R\thighCount\x12!\n" +
+	"\fmedium_count\x18\x06 \x01(\x05R\vmediumCount\x12\x1b\n" +
+	"\tlow_count\x18\a \x01(\x05R\blowCount\x12\x1d\n" +
+	"\n" +
+	"info_count\x18\b \x01(\x05R\tinfoCount\x12\x1f\n" +
+	"\vtotal_count\x18\t \x01(\x05R\n" +
 	"totalCount\x127\n" +
-	"\tlast_scan\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\blastScan\x12!\n" +
-	"\fscanner_name\x18\b \x01(\tR\vscannerName\x12!\n" +
-	"\fscan_version\x18\t \x01(\tR\vscanVersion*w\n" +
+	"\tlast_scan\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\blastScan\x12!\n" +
+	"\fscan_version\x18\v \x01(\tR\vscanVersion\x12 \n" +
+	"\vdescription\x18\f \x01(\tR\vdescription*w\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
@@ -2376,7 +2517,7 @@ func file_proto_catalog_v1alpha1_catalog_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_catalog_v1alpha1_catalog_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_proto_catalog_v1alpha1_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
 	(Type)(0),                            // 0: tracker.catalog.v1alpha1.Type
 	(Languages)(0),                       // 1: tracker.catalog.v1alpha1.Languages
@@ -2406,16 +2547,17 @@ var file_proto_catalog_v1alpha1_catalog_proto_goTypes = []any{
 	(*CommunicationChannel)(nil),         // 25: tracker.catalog.v1alpha1.CommunicationChannel
 	(*DashboardLink)(nil),                // 26: tracker.catalog.v1alpha1.DashboardLink
 	(*VulnerabilitySummary)(nil),         // 27: tracker.catalog.v1alpha1.VulnerabilitySummary
-	(*timestamppb.Timestamp)(nil),        // 28: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil),       // 29: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),        // 30: google.protobuf.Int32Value
-	(*wrapperspb.DoubleValue)(nil),       // 31: google.protobuf.DoubleValue
+	(*VulnerabilitySource)(nil),          // 28: tracker.catalog.v1alpha1.VulnerabilitySource
+	(*timestamppb.Timestamp)(nil),        // 29: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil),       // 30: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),        // 31: google.protobuf.Int32Value
+	(*wrapperspb.DoubleValue)(nil),       // 32: google.protobuf.DoubleValue
 }
 var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	0,  // 0: tracker.catalog.v1alpha1.Catalog.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 1: tracker.catalog.v1alpha1.Catalog.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	28, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
-	28, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 2: tracker.catalog.v1alpha1.Catalog.created_at:type_name -> google.protobuf.Timestamp
+	29, // 3: tracker.catalog.v1alpha1.Catalog.updated_at:type_name -> google.protobuf.Timestamp
 	21, // 4: tracker.catalog.v1alpha1.Catalog.sla:type_name -> tracker.catalog.v1alpha1.SLA
 	3,  // 5: tracker.catalog.v1alpha1.Catalog.platform:type_name -> tracker.catalog.v1alpha1.Platform
 	24, // 6: tracker.catalog.v1alpha1.Catalog.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
@@ -2424,8 +2566,8 @@ var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	27, // 9: tracker.catalog.v1alpha1.Catalog.vulnerability_summary:type_name -> tracker.catalog.v1alpha1.VulnerabilitySummary
 	0,  // 10: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.type:type_name -> tracker.catalog.v1alpha1.Type
 	1,  // 11: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.languages:type_name -> tracker.catalog.v1alpha1.Languages
-	28, // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
-	28, // 13: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 12: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.created_at:type_name -> google.protobuf.Timestamp
+	29, // 13: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.updated_at:type_name -> google.protobuf.Timestamp
 	21, // 14: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.sla:type_name -> tracker.catalog.v1alpha1.SLA
 	3,  // 15: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.platform:type_name -> tracker.catalog.v1alpha1.Platform
 	24, // 16: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.used_deliverables:type_name -> tracker.catalog.v1alpha1.UsedDeliverable
@@ -2434,8 +2576,8 @@ var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	27, // 19: tracker.catalog.v1alpha1.CreateUpdateCatalogRequest.vulnerability_summary:type_name -> tracker.catalog.v1alpha1.VulnerabilitySummary
 	6,  // 20: tracker.catalog.v1alpha1.CreateUpdateCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
 	6,  // 21: tracker.catalog.v1alpha1.GetCatalogResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
-	29, // 22: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	30, // 23: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
+	30, // 22: tracker.catalog.v1alpha1.ListCatalogsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	31, // 23: tracker.catalog.v1alpha1.ListCatalogsRequest.page:type_name -> google.protobuf.Int32Value
 	6,  // 24: tracker.catalog.v1alpha1.ListCatalogsResponse.catalogs:type_name -> tracker.catalog.v1alpha1.Catalog
 	0,  // 25: tracker.catalog.v1alpha1.GetVersionComplianceRequest.types:type_name -> tracker.catalog.v1alpha1.Type
 	17, // 26: tracker.catalog.v1alpha1.GetVersionComplianceResponse.projects:type_name -> tracker.catalog.v1alpha1.ProjectCompliance
@@ -2445,30 +2587,32 @@ var file_proto_catalog_v1alpha1_catalog_proto_depIdxs = []int32{
 	20, // 30: tracker.catalog.v1alpha1.ComplianceSummary.deliverable_stats:type_name -> tracker.catalog.v1alpha1.DeliverableComplianceStats
 	0,  // 31: tracker.catalog.v1alpha1.DeliverableComplianceStats.type:type_name -> tracker.catalog.v1alpha1.Type
 	2,  // 32: tracker.catalog.v1alpha1.SLA.level:type_name -> tracker.catalog.v1alpha1.SLALevel
-	31, // 33: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
-	29, // 34: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
+	32, // 33: tracker.catalog.v1alpha1.SLA.uptime_percentage:type_name -> google.protobuf.DoubleValue
+	30, // 34: tracker.catalog.v1alpha1.SLA.response_time_ms:type_name -> google.protobuf.UInt32Value
 	6,  // 35: tracker.catalog.v1alpha1.UpdateVersionsResponse.catalog:type_name -> tracker.catalog.v1alpha1.Catalog
 	0,  // 36: tracker.catalog.v1alpha1.UsedDeliverable.type:type_name -> tracker.catalog.v1alpha1.Type
 	4,  // 37: tracker.catalog.v1alpha1.CommunicationChannel.type:type_name -> tracker.catalog.v1alpha1.CommunicationType
 	5,  // 38: tracker.catalog.v1alpha1.DashboardLink.type:type_name -> tracker.catalog.v1alpha1.DashboardType
-	28, // 39: tracker.catalog.v1alpha1.VulnerabilitySummary.last_scan:type_name -> google.protobuf.Timestamp
-	7,  // 40: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
-	9,  // 41: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
-	11, // 42: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
-	13, // 43: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
-	15, // 44: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:input_type -> tracker.catalog.v1alpha1.GetVersionComplianceRequest
-	22, // 45: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:input_type -> tracker.catalog.v1alpha1.UpdateVersionsRequest
-	8,  // 46: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
-	10, // 47: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
-	12, // 48: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
-	14, // 49: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
-	16, // 50: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:output_type -> tracker.catalog.v1alpha1.GetVersionComplianceResponse
-	23, // 51: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:output_type -> tracker.catalog.v1alpha1.UpdateVersionsResponse
-	46, // [46:52] is the sub-list for method output_type
-	40, // [40:46] is the sub-list for method input_type
-	40, // [40:40] is the sub-list for extension type_name
-	40, // [40:40] is the sub-list for extension extendee
-	0,  // [0:40] is the sub-list for field type_name
+	29, // 39: tracker.catalog.v1alpha1.VulnerabilitySummary.last_updated:type_name -> google.protobuf.Timestamp
+	28, // 40: tracker.catalog.v1alpha1.VulnerabilitySummary.sources:type_name -> tracker.catalog.v1alpha1.VulnerabilitySource
+	29, // 41: tracker.catalog.v1alpha1.VulnerabilitySource.last_scan:type_name -> google.protobuf.Timestamp
+	7,  // 42: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:input_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogRequest
+	9,  // 43: tracker.catalog.v1alpha1.CatalogService.GetCatalog:input_type -> tracker.catalog.v1alpha1.GetCatalogRequest
+	11, // 44: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:input_type -> tracker.catalog.v1alpha1.DeleteCatalogRequest
+	13, // 45: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:input_type -> tracker.catalog.v1alpha1.ListCatalogsRequest
+	15, // 46: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:input_type -> tracker.catalog.v1alpha1.GetVersionComplianceRequest
+	22, // 47: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:input_type -> tracker.catalog.v1alpha1.UpdateVersionsRequest
+	8,  // 48: tracker.catalog.v1alpha1.CatalogService.CreateUpdateCatalog:output_type -> tracker.catalog.v1alpha1.CreateUpdateCatalogResponse
+	10, // 49: tracker.catalog.v1alpha1.CatalogService.GetCatalog:output_type -> tracker.catalog.v1alpha1.GetCatalogResponse
+	12, // 50: tracker.catalog.v1alpha1.CatalogService.DeleteCatalog:output_type -> tracker.catalog.v1alpha1.DeleteCatalogResponse
+	14, // 51: tracker.catalog.v1alpha1.CatalogService.ListCatalogs:output_type -> tracker.catalog.v1alpha1.ListCatalogsResponse
+	16, // 52: tracker.catalog.v1alpha1.CatalogService.GetVersionCompliance:output_type -> tracker.catalog.v1alpha1.GetVersionComplianceResponse
+	23, // 53: tracker.catalog.v1alpha1.CatalogService.UpdateVersions:output_type -> tracker.catalog.v1alpha1.UpdateVersionsResponse
+	48, // [48:54] is the sub-list for method output_type
+	42, // [42:48] is the sub-list for method input_type
+	42, // [42:42] is the sub-list for extension type_name
+	42, // [42:42] is the sub-list for extension extendee
+	0,  // [0:42] is the sub-list for field type_name
 }
 
 func init() { file_proto_catalog_v1alpha1_catalog_proto_init() }
@@ -2482,7 +2626,7 @@ func file_proto_catalog_v1alpha1_catalog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_catalog_v1alpha1_catalog_proto_rawDesc), len(file_proto_catalog_v1alpha1_catalog_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

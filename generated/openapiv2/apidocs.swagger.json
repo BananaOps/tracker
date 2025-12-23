@@ -360,6 +360,89 @@
         ]
       }
     },
+    "/api/v1alpha1/event/{id}/changelog": {
+      "get": {
+        "summary": "Get the changelog entries for an existing event",
+        "operationId": "EventService_GetEventChangelog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetEventChangelogResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      },
+      "post": {
+        "summary": "Append a changelog entry to an existing event",
+        "operationId": "EventService_AddChangelogEntry",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AddChangelogEntryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Event identifier",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EventServiceAddChangelogEntryBody"
+            }
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
     "/api/v1alpha1/events/list": {
       "get": {
         "operationId": "EventService_ListEvents",
@@ -718,6 +801,16 @@
       },
       "title": "Version management messages"
     },
+    "EventServiceAddChangelogEntryBody": {
+      "type": "object",
+      "properties": {
+        "entry": {
+          "$ref": "#/definitions/v1alpha1ChangelogEntry",
+          "title": "Changelog entry to append"
+        }
+      },
+      "title": "Request to append a single changelog entry to an event"
+    },
     "eventv1alpha1Status": {
       "type": "string",
       "enum": [
@@ -789,6 +882,15 @@
         "rpa_usage"
       ],
       "default": "TYPE_UNSPECIFIED"
+    },
+    "v1alpha1AddChangelogEntryResponse": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/v1alpha1Event"
+        }
+      },
+      "title": "Response returns the updated event including its changelog"
     },
     "v1alpha1Catalog": {
       "type": "object",
@@ -1394,6 +1496,23 @@
         }
       }
     },
+    "v1alpha1GetEventChangelogResponse": {
+      "type": "object",
+      "properties": {
+        "changelog": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ChangelogEntry"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "Response for event changelog entries"
+    },
     "v1alpha1GetEventResponse": {
       "type": "object",
       "properties": {
@@ -1726,54 +1845,115 @@
       },
       "title": "Used deliverable in a project"
     },
+    "v1alpha1VulnerabilitySource": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Source name (e.g., \"Trivy\", \"GitHub Security\", \"Snyk\")"
+        },
+        "type": {
+          "type": "string",
+          "title": "Source type (e.g., \"sast\", \"sca\", \"container\", \"iac\")"
+        },
+        "url": {
+          "type": "string",
+          "title": "Link to the source report/dashboard"
+        },
+        "critical_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Critical vulnerabilities from this source"
+        },
+        "high_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "High vulnerabilities from this source"
+        },
+        "medium_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Medium vulnerabilities from this source"
+        },
+        "low_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Low vulnerabilities from this source"
+        },
+        "info_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Info findings from this source"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total from this source"
+        },
+        "last_scan": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Last scan time for this source"
+        },
+        "scan_version": {
+          "type": "string",
+          "title": "Version/ID of the scan"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description of what this source scans"
+        }
+      },
+      "title": "Individual vulnerability source (Trivy, GitHub Security, Snyk, etc.)"
+    },
     "v1alpha1VulnerabilitySummary": {
       "type": "object",
       "properties": {
         "critical_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Number of critical vulnerabilities"
+          "title": "Total critical vulnerabilities (aggregated)"
         },
         "high_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Number of high vulnerabilities"
+          "title": "Total high vulnerabilities (aggregated)"
         },
         "medium_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Number of medium vulnerabilities"
+          "title": "Total medium vulnerabilities (aggregated)"
         },
         "low_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Number of low vulnerabilities"
+          "title": "Total low vulnerabilities (aggregated)"
         },
         "info_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Number of informational findings"
+          "title": "Total informational findings (aggregated)"
         },
         "total_count": {
           "type": "integer",
           "format": "int32",
-          "title": "Total number of vulnerabilities"
+          "title": "Total number of vulnerabilities (aggregated)"
         },
-        "last_scan": {
+        "last_updated": {
           "type": "string",
           "format": "date-time",
-          "title": "Last vulnerability scan timestamp"
+          "title": "Last time any source was updated"
         },
-        "scanner_name": {
-          "type": "string",
-          "title": "Name of the vulnerability scanner used"
-        },
-        "scan_version": {
-          "type": "string",
-          "title": "Version of the scan/report"
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1VulnerabilitySource"
+          },
+          "title": "Individual vulnerability sources"
         }
       },
-      "title": "Vulnerability summary for a service"
+      "title": "Vulnerability summary for a service (aggregated from multiple sources)"
     }
   }
 }

@@ -19,13 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EventService_CreateEvent_FullMethodName  = "/tracker.event.v1alpha1.EventService/CreateEvent"
-	EventService_UpdateEvent_FullMethodName  = "/tracker.event.v1alpha1.EventService/UpdateEvent"
-	EventService_DeleteEvents_FullMethodName = "/tracker.event.v1alpha1.EventService/DeleteEvents"
-	EventService_GetEvent_FullMethodName     = "/tracker.event.v1alpha1.EventService/GetEvent"
-	EventService_SearchEvents_FullMethodName = "/tracker.event.v1alpha1.EventService/SearchEvents"
-	EventService_ListEvents_FullMethodName   = "/tracker.event.v1alpha1.EventService/ListEvents"
-	EventService_TodayEvents_FullMethodName  = "/tracker.event.v1alpha1.EventService/TodayEvents"
+	EventService_CreateEvent_FullMethodName       = "/tracker.event.v1alpha1.EventService/CreateEvent"
+	EventService_UpdateEvent_FullMethodName       = "/tracker.event.v1alpha1.EventService/UpdateEvent"
+	EventService_DeleteEvents_FullMethodName      = "/tracker.event.v1alpha1.EventService/DeleteEvents"
+	EventService_GetEvent_FullMethodName          = "/tracker.event.v1alpha1.EventService/GetEvent"
+	EventService_SearchEvents_FullMethodName      = "/tracker.event.v1alpha1.EventService/SearchEvents"
+	EventService_ListEvents_FullMethodName        = "/tracker.event.v1alpha1.EventService/ListEvents"
+	EventService_TodayEvents_FullMethodName       = "/tracker.event.v1alpha1.EventService/TodayEvents"
+	EventService_AddChangelogEntry_FullMethodName = "/tracker.event.v1alpha1.EventService/AddChangelogEntry"
+	EventService_GetEventChangelog_FullMethodName = "/tracker.event.v1alpha1.EventService/GetEventChangelog"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -39,6 +41,10 @@ type EventServiceClient interface {
 	SearchEvents(ctx context.Context, in *SearchEventsRequest, opts ...grpc.CallOption) (*SearchEventsResponse, error)
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	TodayEvents(ctx context.Context, in *TodayEventsRequest, opts ...grpc.CallOption) (*TodayEventsResponse, error)
+	// Append a changelog entry to an existing event
+	AddChangelogEntry(ctx context.Context, in *AddChangelogEntryRequest, opts ...grpc.CallOption) (*AddChangelogEntryResponse, error)
+	// Get the changelog entries for an existing event
+	GetEventChangelog(ctx context.Context, in *GetEventChangelogRequest, opts ...grpc.CallOption) (*GetEventChangelogResponse, error)
 }
 
 type eventServiceClient struct {
@@ -119,6 +125,26 @@ func (c *eventServiceClient) TodayEvents(ctx context.Context, in *TodayEventsReq
 	return out, nil
 }
 
+func (c *eventServiceClient) AddChangelogEntry(ctx context.Context, in *AddChangelogEntryRequest, opts ...grpc.CallOption) (*AddChangelogEntryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddChangelogEntryResponse)
+	err := c.cc.Invoke(ctx, EventService_AddChangelogEntry_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) GetEventChangelog(ctx context.Context, in *GetEventChangelogRequest, opts ...grpc.CallOption) (*GetEventChangelogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEventChangelogResponse)
+	err := c.cc.Invoke(ctx, EventService_GetEventChangelog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
@@ -130,6 +156,10 @@ type EventServiceServer interface {
 	SearchEvents(context.Context, *SearchEventsRequest) (*SearchEventsResponse, error)
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	TodayEvents(context.Context, *TodayEventsRequest) (*TodayEventsResponse, error)
+	// Append a changelog entry to an existing event
+	AddChangelogEntry(context.Context, *AddChangelogEntryRequest) (*AddChangelogEntryResponse, error)
+	// Get the changelog entries for an existing event
+	GetEventChangelog(context.Context, *GetEventChangelogRequest) (*GetEventChangelogResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -160,6 +190,12 @@ func (UnimplementedEventServiceServer) ListEvents(context.Context, *ListEventsRe
 }
 func (UnimplementedEventServiceServer) TodayEvents(context.Context, *TodayEventsRequest) (*TodayEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TodayEvents not implemented")
+}
+func (UnimplementedEventServiceServer) AddChangelogEntry(context.Context, *AddChangelogEntryRequest) (*AddChangelogEntryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddChangelogEntry not implemented")
+}
+func (UnimplementedEventServiceServer) GetEventChangelog(context.Context, *GetEventChangelogRequest) (*GetEventChangelogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEventChangelog not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -308,6 +344,42 @@ func _EventService_TodayEvents_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_AddChangelogEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddChangelogEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).AddChangelogEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_AddChangelogEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).AddChangelogEntry(ctx, req.(*AddChangelogEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_GetEventChangelog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEventChangelogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetEventChangelog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetEventChangelog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetEventChangelog(ctx, req.(*GetEventChangelogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +414,14 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TodayEvents",
 			Handler:    _EventService_TodayEvents_Handler,
+		},
+		{
+			MethodName: "AddChangelogEntry",
+			Handler:    _EventService_AddChangelogEntry_Handler,
+		},
+		{
+			MethodName: "GetEventChangelog",
+			Handler:    _EventService_GetEventChangelog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

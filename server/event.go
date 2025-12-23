@@ -514,6 +514,113 @@ func (e *Event) DeleteEvent(
 	return eventResult, nil
 }
 
+func (e *Event) AddChangelogEntry(
+	ctx context.Context,
+	i *v1alpha1.AddChangelogEntryRequest,
+) (*v1alpha1.AddChangelogEntryResponse, error) {
+
+	// Retrieve the existing event
+	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, fmt.Errorf("event not found with id %s", i.Id)
+		}
+		return nil, err
+	}
+
+	// Validate the changelog entry
+	if i.Entry == nil {
+		return nil, fmt.Errorf("changelog entry cannot be nil")
+	}
+
+	// Set timestamp if not provided
+	if i.Entry.Timestamp == nil {
+		i.Entry.Timestamp = timestamppb.Now()
+	}
+
+	// Append the new changelog entry
+	if eventDatabase.Changelog == nil {
+		eventDatabase.Changelog = []*v1alpha1.ChangelogEntry{}
+	}
+	eventDatabase.Changelog = append(eventDatabase.Changelog, i.Entry)
+
+	// Update the event in the database
+	updatedEvent, err := e.store.Update(ctx, map[string]interface{}{"metadata.id": i.Id}, eventDatabase)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update event changelog: %w", err)
+	}
+
+	e.logger.Info("changelog entry added",
+		"event_id", i.Id,
+		"user", i.Entry.User,
+		"change_type", i.Entry.ChangeType.String(),
+	)
+
+	return &v1alpha1.AddChangelogEntryResponse{
+		Event: updatedEvent,
+	}, nil
+}
+
+func (e *Event) GetEventChangelog(
+	ctx context.Context,
+	i *v1alpha1.GetEventChangelogRequest,
+) (*v1alpha1.GetEventChangelogResponse, error) {
+
+	// Retrieve the existing event
+	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, fmt.Errorf("event not found with id %s", i.Id)
+		}
+		return nil, err
+	}
+
+	// Get pagination parameters with defaults
+	perPage := uint32(50) // default
+	if i.PerPage != nil {
+		perPage = i.PerPage.Value
+	}
+
+	page := int32(1) // default
+	if i.Page != nil {
+		page = i.Page.Value
+	}
+
+	// Calculate pagination
+	totalCount := uint32(len(eventDatabase.Changelog))
+	startIdx := int((page - 1) * int32(perPage))
+	endIdx := int(page * int32(perPage))
+
+	// Handle out of bounds
+	if startIdx < 0 {
+		startIdx = 0
+	}
+	if startIdx >= int(totalCount) {
+		return &v1alpha1.GetEventChangelogResponse{
+			Changelog:  []*v1alpha1.ChangelogEntry{},
+			TotalCount: totalCount,
+		}, nil
+	}
+	if endIdx > int(totalCount) {
+		endIdx = int(totalCount)
+	}
+
+	// Extract the paginated changelog
+	paginatedChangelog := eventDatabase.Changelog[startIdx:endIdx]
+
+	e.logger.Info("changelog retrieved",
+		"event_id", i.Id,
+		"total_entries", totalCount,
+		"page", page,
+		"per_page", perPage,
+	)
+
+	return &v1alpha1.GetEventChangelogResponse{
+		Changelog:  paginatedChangelog,
+		TotalCount: totalCount,
+	}, nil
+}
+
 func recordEvent(status string, service string, environment string, duration time.Duration) {
 	// Incrase the counter of events
 	eventCounter.With(prometheus.Labels{"status": status, "service": service, "environment": environment}).Inc()
