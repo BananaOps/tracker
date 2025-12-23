@@ -10,11 +10,11 @@ dependencies = [
 ]
 
 [project.scripts]
-tracker-mcp-server = "tracker_mcp_server:main"
+tracker-mcp-server = "tracker_mcp_server:run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-dev-dependencies = []
+[dependency-groups]
+dev = []

@@ -7,7 +7,19 @@
         "TRACKER_URL": "http://localhost:8080"
       },
       "disabled": false,
-      "autoApprove": ["list_events", "today_events", "search_events", "list_catalog", "list_locks"]
+      "autoApprove": [
+        "list_events",
+        "today_events",
+        "search_events",
+        "get_event",
+        "get_event_changelog",
+        "list_catalog",
+        "get_catalog_service",
+        "get_version_compliance",
+        "list_locks",
+        "get_lock",
+        "get_openapi_spec"
+      ]
     }
   }
 }

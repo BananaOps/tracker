@@ -96,13 +96,14 @@ class TrackerMCPServer:
     async def list_catalog(self, per_page: int = 10, page: int = 1) -> dict[str, Any]:
         """List catalog services"""
         params = {"perPage": per_page, "page": page}
-        response = await self.client.get(f"{self.api_base}/catalog/list", params=params)
+        response = await self.client.get(f"{self.api_base}/catalogs/list", params=params)
         response.raise_for_status()
         return response.json()
     
     async def get_catalog_service(self, service_name: str) -> dict[str, Any]:
         """Get a specific service from catalog"""
-        response = await self.client.get(f"{self.api_base}/catalog/{service_name}")
+        params = {"name": service_name}
+        response = await self.client.get(f"{self.api_base}/catalog", params=params)
         response.raise_for_status()
         return response.json()
     
@@ -116,6 +117,25 @@ class TrackerMCPServer:
     async def get_lock(self, lock_id: str) -> dict[str, Any]:
         """Get a specific lock by ID"""
         response = await self.client.get(f"{self.api_base}/locks/{lock_id}")
+        response.raise_for_status()
+        return response.json()
+    
+    async def get_openapi_spec(self) -> dict[str, Any]:
+        """Get the OpenAPI specification"""
+        response = await self.client.get(f"{self.base_url}/swagger.json")
+        response.raise_for_status()
+        return response.json()
+    
+    async def get_event_changelog(self, event_id: str, per_page: int = 50, page: int = 1) -> dict[str, Any]:
+        """Get changelog entries for an event"""
+        params = {"perPage": per_page, "page": page}
+        response = await self.client.get(f"{self.api_base}/event/{event_id}/changelog", params=params)
+        response.raise_for_status()
+        return response.json()
+    
+    async def get_version_compliance(self) -> dict[str, Any]:
+        """Get version compliance report for catalog deliverables"""
+        response = await self.client.get(f"{self.api_base}/catalog/version-compliance")
         response.raise_for_status()
         return response.json()
 
@@ -314,6 +334,46 @@ async def main():
                     },
                     "required": ["lock_id"]
                 }
+            ),
+            Tool(
+                name="get_openapi_spec",
+                description="Get the OpenAPI/Swagger specification for the Tracker API. Returns the complete API documentation in OpenAPI 2.0 format.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
+                }
+            ),
+            Tool(
+                name="get_event_changelog",
+                description="Get changelog entries for the given event ID (supports pagination).",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "event_id": {
+                            "type": "string",
+                            "description": "The event ID to retrieve changelog for"
+                        },
+                        "per_page": {
+                            "type": "number",
+                            "description": "Items per page",
+                            "default": 50
+                        },
+                        "page": {
+                            "type": "number",
+                            "description": "Page index (1-based)",
+                            "default": 1
+                        }
+                    },
+                    "required": ["event_id"]
+                }
+            ),
+            Tool(
+                name="get_version_compliance",
+                description="Get version compliance report for catalog deliverables (packages, charts, containers, modules).",
+                inputSchema={
+                    "type": "object",
+                    "properties": {}
+                }
             )
         ]
     
@@ -362,6 +422,16 @@ async def main():
                 )
             elif name == "get_lock":
                 result = await tracker.get_lock(arguments["lock_id"])
+            elif name == "get_openapi_spec":
+                result = await tracker.get_openapi_spec()
+            elif name == "get_event_changelog":
+                result = await tracker.get_event_changelog(
+                    event_id=arguments["event_id"],
+                    per_page=arguments.get("per_page", 50),
+                    page=arguments.get("page", 1)
+                )
+            elif name == "get_version_compliance":
+                result = await tracker.get_version_compliance()
             else:
                 raise ValueError(f"Unknown tool: {name}")
             
