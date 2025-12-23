@@ -296,6 +296,8 @@ export const getStatusLabel = (status?: Status | string) => {
   switch (statusStr) {
     case 'start':
     case '1':
+    case 'in_progress':
+    case '12':
       return 'In Progress'
     case 'failure':
     case '2':
@@ -361,6 +363,8 @@ export const getStatusColor = (status?: Status | string) => {
     case '1':
     case 'warning':
     case '4':
+    case 'in_progress':
+    case '12':
       return {
         bg: 'bg-yellow-100',
         text: 'text-yellow-800',

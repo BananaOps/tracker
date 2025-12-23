@@ -34,6 +34,7 @@ export const NumberToStatus: Record<number, Status> = {
   9: Status.OPEN,
   10: Status.CLOSE,
   11: Status.DONE,
+  12: Status.IN_PROGRESS,
 }
 
 export const NumberToEnvironment: Record<number, Environment> = {

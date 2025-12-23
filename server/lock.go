@@ -259,10 +259,16 @@ func (e *Lock) UnlockByEventId(ctx context.Context, eventId string) error {
 		return nil // Pas de lock à libérer
 	}
 
+	// Essayer avec "event_id" (snake_case)
 	lock, err := e.store.Get(ctx, map[string]interface{}{"event_id": eventId})
-	if err != nil {
-		// Lock n'existe pas, ce n'est pas une erreur
-		return nil
+	if err != nil || lock == nil || lock.Id == "" {
+		// Certains documents peuvent avoir été sérialisés avec le nom de champ par défaut (eventid)
+		// Essayer avec la variante lowerCamel sans underscore
+		lock, err = e.store.Get(ctx, map[string]interface{}{"eventid": eventId})
+		if err != nil || lock == nil || lock.Id == "" {
+			// Lock n'existe pas, ce n'est pas une erreur
+			return nil
+		}
 	}
 
 	if lock.Id == "" {

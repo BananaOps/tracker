@@ -23,6 +23,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
+  const [changelog, setChangelog] = useState(event.changelog || [])
   const [editOwner, setEditOwner] = useState('')
   const [ownerError, setOwnerError] = useState(false)
   const [lockingService, setLockingService] = useState(false)
@@ -60,7 +61,23 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   // Mettre à jour editedEvent quand normalizedEvent change
   useEffect(() => {
     setEditedEvent(normalizedEvent)
+    setChangelog(event.changelog || [])
   }, [normalizedEvent])
+
+  // Rafraîchir l'historique lorsque l'onglet History est actif
+  useEffect(() => {
+    const fetchChangelog = async () => {
+      if (activeTab === 'history' && editedEvent.metadata?.id) {
+        try {
+          const res = await eventsApi.getChangelog(editedEvent.metadata.id)
+          setChangelog(res.changelog || [])
+        } catch (err) {
+          console.error('Error fetching changelog on tab switch:', err)
+        }
+      }
+    }
+    fetchChangelog()
+  }, [activeTab, editedEvent.metadata?.id])
   
   const typeColor = getEventTypeColor(editedEvent.attributes.type)
 
@@ -80,6 +97,12 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       // Normaliser la réponse de l'API (nombres -> strings enum)
       const normalized = convertEventFromAPI(updatedEvent)
       setEditedEvent(normalized)
+      // Rafraîchir l'historique après mise à jour
+      if (normalized.metadata?.id) {
+        eventsApi.getChangelog(normalized.metadata.id).then((res) => {
+          setChangelog(res.changelog || [])
+        }).catch((err) => console.error('Error fetching changelog:', err))
+      }
       setIsEditing(false)
       setToastMessage('Event updated successfully!')
       setShowToast(true)
@@ -241,6 +264,15 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       // Mettre à jour l'état local
       const normalized = convertEventFromAPI(result)
       setEditedEvent(normalized)
+      // Rafraîchir l'historique après approbation
+      if (normalized.metadata?.id) {
+        try {
+          const res = await eventsApi.getChangelog(normalized.metadata.id)
+          setChangelog(res.changelog || [])
+        } catch (err) {
+          console.error('Error fetching changelog after approval:', err)
+        }
+      }
 
       // Invalider le cache
       queryClient.invalidateQueries({ queryKey: ['events'] })
@@ -444,9 +476,9 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
               >
                 <History className="w-4 h-4" />
                 <span>History</span>
-                {event.changelog && event.changelog.length > 0 && (
+                {changelog && changelog.length > 0 && (
                   <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded-full">
-                    {event.changelog.length}
+                    {changelog.length}
                   </span>
                 )}
               </button>
@@ -532,7 +564,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         attributes: { ...editedEvent.attributes, status: e.target.value as Status }
                       })}
                     >
-                      <option value={Status.START}>Started</option>
+                      <option value={Status.START}>Start</option>
+                      <option value={Status.IN_PROGRESS}>In Progress</option>
                       <option value={Status.SUCCESS}>Success</option>
                       <option value={Status.FAILURE}>Failed</option>
                       <option value={Status.WARNING}>Warning</option>
@@ -744,7 +777,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
               /* History Tab */
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Change History</h3>
-                <EventChangelog changelog={event.changelog} />
+                <EventChangelog changelog={changelog} />
               </div>
             )}
           </div>

@@ -67,6 +67,26 @@ const realEventsApi = {
   delete: async (id: string) => {
     await axiosInstance.delete(`/event/${id}`)
   },
+
+  // Fetch event changelog (supports pagination)
+  getChangelog: async (
+    id: string,
+    params?: { perPage?: number; page?: number }
+  ) => {
+    const { data } = await axiosInstance.get<{ changelog?: import('../types/api').ChangelogEntry[]; totalCount?: number; Changelog?: import('../types/api').ChangelogEntry[]; TotalCount?: number }>(`/event/${id}/changelog`, { params })
+    // Normalize potential casing differences from backend
+    let changelog = (data.changelog || (data as any).Changelog || []) as import('../types/api').ChangelogEntry[]
+    // Normalize timestamp wrapper if present
+    changelog = changelog.map((entry: any) => {
+      const ts = entry.timestamp
+      if (ts && typeof ts === 'object' && typeof ts.seconds === 'number') {
+        return { ...entry, timestamp: new Date(ts.seconds * 1000).toISOString() }
+      }
+      return entry
+    })
+    const totalCount = (data.totalCount ?? (data as any).TotalCount ?? changelog.length) as number
+    return { changelog, totalCount }
+  },
 }
 
 const realCatalogApi = {
