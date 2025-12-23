@@ -3131,11 +3131,11 @@ func (m *VulnerabilitySummary) validate(all bool) error {
 	// no validation rules for TotalCount
 
 	if all {
-		switch v := interface{}(m.GetLastScan()).(type) {
+		switch v := interface{}(m.GetLastUpdated()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, VulnerabilitySummaryValidationError{
-					field:  "LastScan",
+					field:  "LastUpdated",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -3143,25 +3143,55 @@ func (m *VulnerabilitySummary) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, VulnerabilitySummaryValidationError{
-					field:  "LastScan",
+					field:  "LastUpdated",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetLastScan()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetLastUpdated()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return VulnerabilitySummaryValidationError{
-				field:  "LastScan",
+				field:  "LastUpdated",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	// no validation rules for ScannerName
+	for idx, item := range m.GetSources() {
+		_, _ = idx, item
 
-	// no validation rules for ScanVersion
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, VulnerabilitySummaryValidationError{
+						field:  fmt.Sprintf("Sources[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, VulnerabilitySummaryValidationError{
+						field:  fmt.Sprintf("Sources[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return VulnerabilitySummaryValidationError{
+					field:  fmt.Sprintf("Sources[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return VulnerabilitySummaryMultiError(errors)
@@ -3242,3 +3272,156 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = VulnerabilitySummaryValidationError{}
+
+// Validate checks the field values on VulnerabilitySource with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *VulnerabilitySource) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on VulnerabilitySource with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// VulnerabilitySourceMultiError, or nil if none found.
+func (m *VulnerabilitySource) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *VulnerabilitySource) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Type
+
+	// no validation rules for Url
+
+	// no validation rules for CriticalCount
+
+	// no validation rules for HighCount
+
+	// no validation rules for MediumCount
+
+	// no validation rules for LowCount
+
+	// no validation rules for InfoCount
+
+	// no validation rules for TotalCount
+
+	if all {
+		switch v := interface{}(m.GetLastScan()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, VulnerabilitySourceValidationError{
+					field:  "LastScan",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, VulnerabilitySourceValidationError{
+					field:  "LastScan",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastScan()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return VulnerabilitySourceValidationError{
+				field:  "LastScan",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for ScanVersion
+
+	// no validation rules for Description
+
+	if len(errors) > 0 {
+		return VulnerabilitySourceMultiError(errors)
+	}
+
+	return nil
+}
+
+// VulnerabilitySourceMultiError is an error wrapping multiple validation
+// errors returned by VulnerabilitySource.ValidateAll() if the designated
+// constraints aren't met.
+type VulnerabilitySourceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m VulnerabilitySourceMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m VulnerabilitySourceMultiError) AllErrors() []error { return m }
+
+// VulnerabilitySourceValidationError is the validation error returned by
+// VulnerabilitySource.Validate if the designated constraints aren't met.
+type VulnerabilitySourceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e VulnerabilitySourceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e VulnerabilitySourceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e VulnerabilitySourceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e VulnerabilitySourceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e VulnerabilitySourceValidationError) ErrorName() string {
+	return "VulnerabilitySourceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e VulnerabilitySourceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sVulnerabilitySource.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = VulnerabilitySourceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = VulnerabilitySourceValidationError{}

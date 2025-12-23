@@ -157,6 +157,7 @@ const (
 	Status_open               Status = 9
 	Status_close              Status = 10
 	Status_done               Status = 11
+	Status_in_progress        Status = 12
 )
 
 // Enum value maps for Status.
@@ -174,6 +175,7 @@ var (
 		9:  "open",
 		10: "close",
 		11: "done",
+		12: "in_progress",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED": 0,
@@ -188,6 +190,7 @@ var (
 		"open":               9,
 		"close":              10,
 		"done":               11,
+		"in_progress":        12,
 	}
 )
 
@@ -1375,6 +1378,220 @@ func (x *TodayEventsResponse) GetTotalCount() uint32 {
 	return 0
 }
 
+// Request to append a single changelog entry to an event
+type AddChangelogEntryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Event identifier
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Changelog entry to append
+	Entry         *ChangelogEntry `protobuf:"bytes,2,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddChangelogEntryRequest) Reset() {
+	*x = AddChangelogEntryRequest{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddChangelogEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddChangelogEntryRequest) ProtoMessage() {}
+
+func (x *AddChangelogEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddChangelogEntryRequest.ProtoReflect.Descriptor instead.
+func (*AddChangelogEntryRequest) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *AddChangelogEntryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AddChangelogEntryRequest) GetEntry() *ChangelogEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
+// Response returns the updated event including its changelog
+type AddChangelogEntryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Event         *Event                 `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddChangelogEntryResponse) Reset() {
+	*x = AddChangelogEntryResponse{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddChangelogEntryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddChangelogEntryResponse) ProtoMessage() {}
+
+func (x *AddChangelogEntryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddChangelogEntryResponse.ProtoReflect.Descriptor instead.
+func (*AddChangelogEntryResponse) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *AddChangelogEntryResponse) GetEvent() *Event {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+// Request to fetch event changelog entries
+type GetEventChangelogRequest struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Id            string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PerPage       *wrapperspb.UInt32Value `protobuf:"bytes,2,opt,name=per_page,json=perPage,proto3" json:"per_page,omitempty"`
+	Page          *wrapperspb.Int32Value  `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEventChangelogRequest) Reset() {
+	*x = GetEventChangelogRequest{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventChangelogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventChangelogRequest) ProtoMessage() {}
+
+func (x *GetEventChangelogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventChangelogRequest.ProtoReflect.Descriptor instead.
+func (*GetEventChangelogRequest) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetEventChangelogRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetEventChangelogRequest) GetPerPage() *wrapperspb.UInt32Value {
+	if x != nil {
+		return x.PerPage
+	}
+	return nil
+}
+
+func (x *GetEventChangelogRequest) GetPage() *wrapperspb.Int32Value {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// Response for event changelog entries
+type GetEventChangelogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Changelog     []*ChangelogEntry      `protobuf:"bytes,1,rep,name=changelog,proto3" json:"changelog,omitempty"`
+	TotalCount    uint32                 `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEventChangelogResponse) Reset() {
+	*x = GetEventChangelogResponse{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventChangelogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventChangelogResponse) ProtoMessage() {}
+
+func (x *GetEventChangelogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventChangelogResponse.ProtoReflect.Descriptor instead.
+func (*GetEventChangelogResponse) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetEventChangelogResponse) GetChangelog() []*ChangelogEntry {
+	if x != nil {
+		return x.Changelog
+	}
+	return nil
+}
+
+func (x *GetEventChangelogResponse) GetTotalCount() uint32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
 type UpdateEventRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -1388,7 +1605,7 @@ type UpdateEventRequest struct {
 
 func (x *UpdateEventRequest) Reset() {
 	*x = UpdateEventRequest{}
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[15]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1400,7 +1617,7 @@ func (x *UpdateEventRequest) String() string {
 func (*UpdateEventRequest) ProtoMessage() {}
 
 func (x *UpdateEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[15]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1413,7 +1630,7 @@ func (x *UpdateEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEventRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEventRequest) Descriptor() ([]byte, []int) {
-	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{15}
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateEventRequest) GetTitle() string {
@@ -1460,7 +1677,7 @@ type UpdateEventResponse struct {
 
 func (x *UpdateEventResponse) Reset() {
 	*x = UpdateEventResponse{}
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[16]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1472,7 +1689,7 @@ func (x *UpdateEventResponse) String() string {
 func (*UpdateEventResponse) ProtoMessage() {}
 
 func (x *UpdateEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[16]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1485,7 +1702,7 @@ func (x *UpdateEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEventResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEventResponse) Descriptor() ([]byte, []int) {
-	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{16}
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UpdateEventResponse) GetEvent() *Event {
@@ -1505,7 +1722,7 @@ type DeleteEventRequest struct {
 
 func (x *DeleteEventRequest) Reset() {
 	*x = DeleteEventRequest{}
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[17]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1517,7 +1734,7 @@ func (x *DeleteEventRequest) String() string {
 func (*DeleteEventRequest) ProtoMessage() {}
 
 func (x *DeleteEventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[17]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1530,7 +1747,7 @@ func (x *DeleteEventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEventRequest.ProtoReflect.Descriptor instead.
 func (*DeleteEventRequest) Descriptor() ([]byte, []int) {
-	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{17}
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *DeleteEventRequest) GetId() string {
@@ -1557,7 +1774,7 @@ type DeleteEventResponse struct {
 
 func (x *DeleteEventResponse) Reset() {
 	*x = DeleteEventResponse{}
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[18]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1569,7 +1786,7 @@ func (x *DeleteEventResponse) String() string {
 func (*DeleteEventResponse) ProtoMessage() {}
 
 func (x *DeleteEventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[18]
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1582,7 +1799,7 @@ func (x *DeleteEventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteEventResponse.ProtoReflect.Descriptor instead.
 func (*DeleteEventResponse) Descriptor() ([]byte, []int) {
-	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{18}
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DeleteEventResponse) GetId() string {
@@ -1693,6 +1910,19 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x13TodayEventsResponse\x125\n" +
 	"\x06events\x18\x01 \x03(\v2\x1d.tracker.event.v1alpha1.EventR\x06events\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\rR\n" +
+	"totalCount\"r\n" +
+	"\x18AddChangelogEntryRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\x12<\n" +
+	"\x05entry\x18\x02 \x01(\v2&.tracker.event.v1alpha1.ChangelogEntryR\x05entry\"P\n" +
+	"\x19AddChangelogEntryResponse\x123\n" +
+	"\x05event\x18\x01 \x01(\v2\x1d.tracker.event.v1alpha1.EventR\x05event\"\x9e\x01\n" +
+	"\x18GetEventChangelogRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\x127\n" +
+	"\bper_page\x18\x02 \x01(\v2\x1c.google.protobuf.UInt32ValueR\aperPage\x12/\n" +
+	"\x04page\x18\x03 \x01(\v2\x1b.google.protobuf.Int32ValueR\x04page\"\x82\x01\n" +
+	"\x19GetEventChangelogResponse\x12D\n" +
+	"\tchangelog\x18\x01 \x03(\v2&.tracker.event.v1alpha1.ChangelogEntryR\tchangelog\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\rR\n" +
 	"totalCount\"\xd8\x01\n" +
 	"\x12UpdateEventRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12G\n" +
@@ -1724,7 +1954,7 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x02P2\x10\x02\x12\x06\n" +
 	"\x02P3\x10\x03\x12\x06\n" +
 	"\x02P4\x10\x04\x12\x06\n" +
-	"\x02P5\x10\x05*\xaf\x01\n" +
+	"\x02P5\x10\x05*\xc0\x01\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05start\x10\x01\x12\v\n" +
@@ -1738,7 +1968,8 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x04open\x10\t\x12\t\n" +
 	"\x05close\x10\n" +
 	"\x12\b\n" +
-	"\x04done\x10\v*\x97\x01\n" +
+	"\x04done\x10\v\x12\x0f\n" +
+	"\vin_progress\x10\f*\x97\x01\n" +
 	"\vEnvironment\x12\x1b\n" +
 	"\x17ENVIRONMENT_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vdevelopment\x10\x01\x12\x0f\n" +
@@ -1763,7 +1994,8 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x06linked\x10\a\x12\n" +
 	"\n" +
 	"\x06locked\x10\b\x12\f\n" +
-	"\bunlocked\x10\t2\xd4\a\n" +
+	"\bunlocked\x10\t2\xa5\n" +
+	"\n" +
 	"\fEventService\x12\x86\x01\n" +
 	"\vCreateEvent\x12*.tracker.event.v1alpha1.CreateEventRequest\x1a+.tracker.event.v1alpha1.CreateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1alpha1/event\x12\x86\x01\n" +
 	"\vUpdateEvent\x12*.tracker.event.v1alpha1.UpdateEventRequest\x1a+.tracker.event.v1alpha1.UpdateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1alpha1/event\x12\x89\x01\n" +
@@ -1772,7 +2004,9 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\fSearchEvents\x12+.tracker.event.v1alpha1.SearchEventsRequest\x1a,.tracker.event.v1alpha1.SearchEventsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1alpha1/events/search\x12\x86\x01\n" +
 	"\n" +
 	"ListEvents\x12).tracker.event.v1alpha1.ListEventsRequest\x1a*.tracker.event.v1alpha1.ListEventsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1alpha1/events/list\x12\x8a\x01\n" +
-	"\vTodayEvents\x12*.tracker.event.v1alpha1.TodayEventsRequest\x1a+.tracker.event.v1alpha1.TodayEventsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/events/todayB\x16Z\x14proto/event/v1alpha1b\x06proto3"
+	"\vTodayEvents\x12*.tracker.event.v1alpha1.TodayEventsRequest\x1a+.tracker.event.v1alpha1.TodayEventsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/events/today\x12\xa7\x01\n" +
+	"\x11AddChangelogEntry\x120.tracker.event.v1alpha1.AddChangelogEntryRequest\x1a1.tracker.event.v1alpha1.AddChangelogEntryResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1alpha1/event/{id}/changelog\x12\xa4\x01\n" +
+	"\x11GetEventChangelog\x120.tracker.event.v1alpha1.GetEventChangelogRequest\x1a1.tracker.event.v1alpha1.GetEventChangelogResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/event/{id}/changelogB\x16Z\x14proto/event/v1alpha1b\x06proto3"
 
 var (
 	file_proto_event_v1alpha1_event_proto_rawDescOnce sync.Once
@@ -1787,47 +2021,51 @@ func file_proto_event_v1alpha1_event_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_event_v1alpha1_event_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_proto_event_v1alpha1_event_proto_goTypes = []any{
-	(Type)(0),                      // 0: tracker.event.v1alpha1.Type
-	(Priority)(0),                  // 1: tracker.event.v1alpha1.Priority
-	(Status)(0),                    // 2: tracker.event.v1alpha1.Status
-	(Environment)(0),               // 3: tracker.event.v1alpha1.Environment
-	(ChangeType)(0),                // 4: tracker.event.v1alpha1.ChangeType
-	(*EventAttributes)(nil),        // 5: tracker.event.v1alpha1.EventAttributes
-	(*EventMetadata)(nil),          // 6: tracker.event.v1alpha1.EventMetadata
-	(*EventLinks)(nil),             // 7: tracker.event.v1alpha1.EventLinks
-	(*ChangelogEntry)(nil),         // 8: tracker.event.v1alpha1.ChangelogEntry
-	(*Event)(nil),                  // 9: tracker.event.v1alpha1.Event
-	(*CreateEventRequest)(nil),     // 10: tracker.event.v1alpha1.CreateEventRequest
-	(*CreateEventResponse)(nil),    // 11: tracker.event.v1alpha1.CreateEventResponse
-	(*GetEventRequest)(nil),        // 12: tracker.event.v1alpha1.GetEventRequest
-	(*GetEventResponse)(nil),       // 13: tracker.event.v1alpha1.GetEventResponse
-	(*SearchEventsRequest)(nil),    // 14: tracker.event.v1alpha1.SearchEventsRequest
-	(*SearchEventsResponse)(nil),   // 15: tracker.event.v1alpha1.SearchEventsResponse
-	(*ListEventsRequest)(nil),      // 16: tracker.event.v1alpha1.ListEventsRequest
-	(*ListEventsResponse)(nil),     // 17: tracker.event.v1alpha1.ListEventsResponse
-	(*TodayEventsRequest)(nil),     // 18: tracker.event.v1alpha1.TodayEventsRequest
-	(*TodayEventsResponse)(nil),    // 19: tracker.event.v1alpha1.TodayEventsResponse
-	(*UpdateEventRequest)(nil),     // 20: tracker.event.v1alpha1.UpdateEventRequest
-	(*UpdateEventResponse)(nil),    // 21: tracker.event.v1alpha1.UpdateEventResponse
-	(*DeleteEventRequest)(nil),     // 22: tracker.event.v1alpha1.DeleteEventRequest
-	(*DeleteEventResponse)(nil),    // 23: tracker.event.v1alpha1.DeleteEventResponse
-	(*timestamppb.Timestamp)(nil),  // 24: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),    // 25: google.protobuf.Duration
-	(*wrapperspb.UInt32Value)(nil), // 26: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),  // 27: google.protobuf.Int32Value
+	(Type)(0),                         // 0: tracker.event.v1alpha1.Type
+	(Priority)(0),                     // 1: tracker.event.v1alpha1.Priority
+	(Status)(0),                       // 2: tracker.event.v1alpha1.Status
+	(Environment)(0),                  // 3: tracker.event.v1alpha1.Environment
+	(ChangeType)(0),                   // 4: tracker.event.v1alpha1.ChangeType
+	(*EventAttributes)(nil),           // 5: tracker.event.v1alpha1.EventAttributes
+	(*EventMetadata)(nil),             // 6: tracker.event.v1alpha1.EventMetadata
+	(*EventLinks)(nil),                // 7: tracker.event.v1alpha1.EventLinks
+	(*ChangelogEntry)(nil),            // 8: tracker.event.v1alpha1.ChangelogEntry
+	(*Event)(nil),                     // 9: tracker.event.v1alpha1.Event
+	(*CreateEventRequest)(nil),        // 10: tracker.event.v1alpha1.CreateEventRequest
+	(*CreateEventResponse)(nil),       // 11: tracker.event.v1alpha1.CreateEventResponse
+	(*GetEventRequest)(nil),           // 12: tracker.event.v1alpha1.GetEventRequest
+	(*GetEventResponse)(nil),          // 13: tracker.event.v1alpha1.GetEventResponse
+	(*SearchEventsRequest)(nil),       // 14: tracker.event.v1alpha1.SearchEventsRequest
+	(*SearchEventsResponse)(nil),      // 15: tracker.event.v1alpha1.SearchEventsResponse
+	(*ListEventsRequest)(nil),         // 16: tracker.event.v1alpha1.ListEventsRequest
+	(*ListEventsResponse)(nil),        // 17: tracker.event.v1alpha1.ListEventsResponse
+	(*TodayEventsRequest)(nil),        // 18: tracker.event.v1alpha1.TodayEventsRequest
+	(*TodayEventsResponse)(nil),       // 19: tracker.event.v1alpha1.TodayEventsResponse
+	(*AddChangelogEntryRequest)(nil),  // 20: tracker.event.v1alpha1.AddChangelogEntryRequest
+	(*AddChangelogEntryResponse)(nil), // 21: tracker.event.v1alpha1.AddChangelogEntryResponse
+	(*GetEventChangelogRequest)(nil),  // 22: tracker.event.v1alpha1.GetEventChangelogRequest
+	(*GetEventChangelogResponse)(nil), // 23: tracker.event.v1alpha1.GetEventChangelogResponse
+	(*UpdateEventRequest)(nil),        // 24: tracker.event.v1alpha1.UpdateEventRequest
+	(*UpdateEventResponse)(nil),       // 25: tracker.event.v1alpha1.UpdateEventResponse
+	(*DeleteEventRequest)(nil),        // 26: tracker.event.v1alpha1.DeleteEventRequest
+	(*DeleteEventResponse)(nil),       // 27: tracker.event.v1alpha1.DeleteEventResponse
+	(*timestamppb.Timestamp)(nil),     // 28: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),       // 29: google.protobuf.Duration
+	(*wrapperspb.UInt32Value)(nil),    // 30: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),     // 31: google.protobuf.Int32Value
 }
 var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	0,  // 0: tracker.event.v1alpha1.EventAttributes.type:type_name -> tracker.event.v1alpha1.Type
 	1,  // 1: tracker.event.v1alpha1.EventAttributes.priority:type_name -> tracker.event.v1alpha1.Priority
 	2,  // 2: tracker.event.v1alpha1.EventAttributes.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 3: tracker.event.v1alpha1.EventAttributes.environment:type_name -> tracker.event.v1alpha1.Environment
-	24, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
-	24, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
-	24, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
-	25, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
-	24, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
+	28, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
+	28, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
+	28, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
+	29, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
+	28, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 9: tracker.event.v1alpha1.ChangelogEntry.change_type:type_name -> tracker.event.v1alpha1.ChangeType
 	5,  // 10: tracker.event.v1alpha1.Event.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
 	7,  // 11: tracker.event.v1alpha1.Event.links:type_name -> tracker.event.v1alpha1.EventLinks
@@ -1842,34 +2080,43 @@ var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	2,  // 20: tracker.event.v1alpha1.SearchEventsRequest.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 21: tracker.event.v1alpha1.SearchEventsRequest.environment:type_name -> tracker.event.v1alpha1.Environment
 	9,  // 22: tracker.event.v1alpha1.SearchEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	26, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	27, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
+	30, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	31, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 25: tracker.event.v1alpha1.ListEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	26, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	27, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
+	30, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	31, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 28: tracker.event.v1alpha1.TodayEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	5,  // 29: tracker.event.v1alpha1.UpdateEventRequest.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
-	7,  // 30: tracker.event.v1alpha1.UpdateEventRequest.links:type_name -> tracker.event.v1alpha1.EventLinks
-	9,  // 31: tracker.event.v1alpha1.UpdateEventResponse.event:type_name -> tracker.event.v1alpha1.Event
-	10, // 32: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
-	20, // 33: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
-	22, // 34: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
-	12, // 35: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
-	14, // 36: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
-	16, // 37: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
-	18, // 38: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
-	11, // 39: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
-	21, // 40: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
-	23, // 41: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
-	13, // 42: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
-	15, // 43: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
-	17, // 44: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
-	19, // 45: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
-	39, // [39:46] is the sub-list for method output_type
-	32, // [32:39] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	8,  // 29: tracker.event.v1alpha1.AddChangelogEntryRequest.entry:type_name -> tracker.event.v1alpha1.ChangelogEntry
+	9,  // 30: tracker.event.v1alpha1.AddChangelogEntryResponse.event:type_name -> tracker.event.v1alpha1.Event
+	30, // 31: tracker.event.v1alpha1.GetEventChangelogRequest.per_page:type_name -> google.protobuf.UInt32Value
+	31, // 32: tracker.event.v1alpha1.GetEventChangelogRequest.page:type_name -> google.protobuf.Int32Value
+	8,  // 33: tracker.event.v1alpha1.GetEventChangelogResponse.changelog:type_name -> tracker.event.v1alpha1.ChangelogEntry
+	5,  // 34: tracker.event.v1alpha1.UpdateEventRequest.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
+	7,  // 35: tracker.event.v1alpha1.UpdateEventRequest.links:type_name -> tracker.event.v1alpha1.EventLinks
+	9,  // 36: tracker.event.v1alpha1.UpdateEventResponse.event:type_name -> tracker.event.v1alpha1.Event
+	10, // 37: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
+	24, // 38: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
+	26, // 39: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
+	12, // 40: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
+	14, // 41: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
+	16, // 42: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
+	18, // 43: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
+	20, // 44: tracker.event.v1alpha1.EventService.AddChangelogEntry:input_type -> tracker.event.v1alpha1.AddChangelogEntryRequest
+	22, // 45: tracker.event.v1alpha1.EventService.GetEventChangelog:input_type -> tracker.event.v1alpha1.GetEventChangelogRequest
+	11, // 46: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
+	25, // 47: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
+	27, // 48: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
+	13, // 49: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
+	15, // 50: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
+	17, // 51: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
+	19, // 52: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
+	21, // 53: tracker.event.v1alpha1.EventService.AddChangelogEntry:output_type -> tracker.event.v1alpha1.AddChangelogEntryResponse
+	23, // 54: tracker.event.v1alpha1.EventService.GetEventChangelog:output_type -> tracker.event.v1alpha1.GetEventChangelogResponse
+	46, // [46:55] is the sub-list for method output_type
+	37, // [37:46] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_proto_event_v1alpha1_event_proto_init() }
@@ -1883,7 +2130,7 @@ func file_proto_event_v1alpha1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_event_v1alpha1_event_proto_rawDesc), len(file_proto_event_v1alpha1_event_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   19,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

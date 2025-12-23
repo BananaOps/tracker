@@ -19,6 +19,12 @@ service LockService {
   rpc GetLock(GetLockRequest) returns (GetLockResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/lock/{id}"};
   }
+  rpc UpdateLock(UpdateLockRequest) returns (UpdateLockResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/lock/{id}"
+      body: "*"
+    };
+  }
   rpc UnLock(UnLockRequest) returns (UnLockResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/unlock/{id}"};
   }
@@ -54,6 +60,19 @@ message GetLockRequest {
 }
 
 message GetLockResponse {
+  Lock lock = 1;
+}
+
+message UpdateLockRequest {
+  string id = 1 [(validate.rules).string = {uuid: true}];
+  string service = 2;
+  string who = 3;
+  string environment = 4;
+  string resource = 5;
+  string event_id = 6;
+}
+
+message UpdateLockResponse {
   Lock lock = 1;
 }
 
