@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	LockService_CreateLock_FullMethodName = "/tracker.lock.v1alpha1.LockService/CreateLock"
 	LockService_GetLock_FullMethodName    = "/tracker.lock.v1alpha1.LockService/GetLock"
+	LockService_UpdateLock_FullMethodName = "/tracker.lock.v1alpha1.LockService/UpdateLock"
 	LockService_UnLock_FullMethodName     = "/tracker.lock.v1alpha1.LockService/UnLock"
 	LockService_ListLocks_FullMethodName  = "/tracker.lock.v1alpha1.LockService/ListLocks"
 )
@@ -31,6 +32,7 @@ const (
 type LockServiceClient interface {
 	CreateLock(ctx context.Context, in *CreateLockRequest, opts ...grpc.CallOption) (*CreateLockResponse, error)
 	GetLock(ctx context.Context, in *GetLockRequest, opts ...grpc.CallOption) (*GetLockResponse, error)
+	UpdateLock(ctx context.Context, in *UpdateLockRequest, opts ...grpc.CallOption) (*UpdateLockResponse, error)
 	UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*UnLockResponse, error)
 	ListLocks(ctx context.Context, in *ListLocksRequest, opts ...grpc.CallOption) (*ListLocksResponse, error)
 }
@@ -63,6 +65,16 @@ func (c *lockServiceClient) GetLock(ctx context.Context, in *GetLockRequest, opt
 	return out, nil
 }
 
+func (c *lockServiceClient) UpdateLock(ctx context.Context, in *UpdateLockRequest, opts ...grpc.CallOption) (*UpdateLockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateLockResponse)
+	err := c.cc.Invoke(ctx, LockService_UpdateLock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *lockServiceClient) UnLock(ctx context.Context, in *UnLockRequest, opts ...grpc.CallOption) (*UnLockResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnLockResponse)
@@ -89,6 +101,7 @@ func (c *lockServiceClient) ListLocks(ctx context.Context, in *ListLocksRequest,
 type LockServiceServer interface {
 	CreateLock(context.Context, *CreateLockRequest) (*CreateLockResponse, error)
 	GetLock(context.Context, *GetLockRequest) (*GetLockResponse, error)
+	UpdateLock(context.Context, *UpdateLockRequest) (*UpdateLockResponse, error)
 	UnLock(context.Context, *UnLockRequest) (*UnLockResponse, error)
 	ListLocks(context.Context, *ListLocksRequest) (*ListLocksResponse, error)
 	mustEmbedUnimplementedLockServiceServer()
@@ -106,6 +119,9 @@ func (UnimplementedLockServiceServer) CreateLock(context.Context, *CreateLockReq
 }
 func (UnimplementedLockServiceServer) GetLock(context.Context, *GetLockRequest) (*GetLockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLock not implemented")
+}
+func (UnimplementedLockServiceServer) UpdateLock(context.Context, *UpdateLockRequest) (*UpdateLockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateLock not implemented")
 }
 func (UnimplementedLockServiceServer) UnLock(context.Context, *UnLockRequest) (*UnLockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnLock not implemented")
@@ -170,6 +186,24 @@ func _LockService_GetLock_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LockService_UpdateLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LockServiceServer).UpdateLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LockService_UpdateLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LockServiceServer).UpdateLock(ctx, req.(*UpdateLockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LockService_UnLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UnLockRequest)
 	if err := dec(in); err != nil {
@@ -220,6 +254,10 @@ var LockService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLock",
 			Handler:    _LockService_GetLock_Handler,
+		},
+		{
+			MethodName: "UpdateLock",
+			Handler:    _LockService_UpdateLock_Handler,
 		},
 		{
 			MethodName: "UnLock",

@@ -192,13 +192,43 @@ func (e *Event) CreateEvent(
 
 	// Mettre à jour le lock avec l'event_id
 	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
-		// Note: Pour mettre à jour le lock avec l'event_id, il faudrait ajouter une méthode UpdateLock
-		// Pour l'instant, le lock est créé sans event_id
-		e.logger.Info("lock created for event",
-			"event_id", eventResult.Event.Metadata.Id,
-			"service", i.Attributes.Service,
-			"environment", i.Attributes.Environment.String(),
-		)
+		// Récupérer le lock correspondant et mettre à jour son event_id
+		filter := map[string]interface{}{
+			"service":     i.Attributes.Service,
+			"environment": i.Attributes.Environment.String(),
+			"resource":    getResourceType(i.Attributes.Type),
+		}
+
+		existingLock, err2 := e.lockService.store.Get(ctx, filter)
+		if err2 == nil && existingLock != nil && existingLock.Id != "" {
+			_, errUpd := e.lockService.UpdateLock(ctx, &lock.UpdateLockRequest{
+				Id:      existingLock.Id,
+				EventId: eventResult.Event.Metadata.Id,
+			})
+			if errUpd != nil {
+				e.logger.Warn("failed to update lock with event_id",
+					"lock_id", existingLock.Id,
+					"event_id", eventResult.Event.Metadata.Id,
+					"service", i.Attributes.Service,
+					"environment", i.Attributes.Environment.String(),
+					"error", errUpd,
+				)
+			} else {
+				e.logger.Info("lock updated with event_id",
+					"lock_id", existingLock.Id,
+					"event_id", eventResult.Event.Metadata.Id,
+					"service", i.Attributes.Service,
+					"environment", i.Attributes.Environment.String(),
+				)
+			}
+		} else {
+			e.logger.Warn("lock not found for event to update",
+				"service", i.Attributes.Service,
+				"environment", i.Attributes.Environment.String(),
+				"resource", getResourceType(i.Attributes.Type),
+				"error", err2,
+			)
+		}
 	}
 
 	// log event to json format

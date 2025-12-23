@@ -129,6 +129,52 @@ func (e *Lock) GetLock(
 	return lockResult, nil
 }
 
+func (e *Lock) UpdateLock(
+	ctx context.Context,
+	i *v1alpha1.UpdateLockRequest,
+) (*v1alpha1.UpdateLockResponse, error) {
+
+	// Retrieve existing lock by id
+	existing, err := e.store.Get(ctx, map[string]interface{}{"id": i.Id})
+	if err != nil {
+		return nil, fmt.Errorf("no lock found in tracker for id %s", i.Id)
+	}
+
+	// Update fields only if provided (non-empty)
+	if i.Service != "" {
+		existing.Service = i.Service
+	}
+	if i.Who != "" {
+		existing.Who = i.Who
+	}
+	if i.Environment != "" {
+		existing.Environment = i.Environment
+	}
+	if i.Resource != "" {
+		existing.Resource = i.Resource
+	}
+	if i.EventId != "" {
+		existing.EventId = i.EventId
+	}
+
+	// Persist update
+	updated, err := e.store.Update(ctx, map[string]interface{}{"id": i.Id}, existing)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update lock %s: %w", i.Id, err)
+	}
+
+	e.logger.Info("lock updated",
+		"id", updated.Id,
+		"service", updated.Service,
+		"environment", updated.Environment,
+		"resource", updated.Resource,
+		"who", updated.Who,
+		"event_id", updated.EventId,
+	)
+
+	return &v1alpha1.UpdateLockResponse{Lock: updated}, nil
+}
+
 func (e *Lock) UnLock(
 	ctx context.Context,
 	i *v1alpha1.UnLockRequest,

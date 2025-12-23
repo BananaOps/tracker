@@ -325,6 +325,134 @@ func (x *GetLockResponse) GetLock() *Lock {
 	return nil
 }
 
+type UpdateLockRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Service       string                 `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	Who           string                 `protobuf:"bytes,3,opt,name=who,proto3" json:"who,omitempty"`
+	Environment   string                 `protobuf:"bytes,4,opt,name=environment,proto3" json:"environment,omitempty"`
+	Resource      string                 `protobuf:"bytes,5,opt,name=resource,proto3" json:"resource,omitempty"`
+	EventId       string                 `protobuf:"bytes,6,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateLockRequest) Reset() {
+	*x = UpdateLockRequest{}
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateLockRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateLockRequest) ProtoMessage() {}
+
+func (x *UpdateLockRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateLockRequest.ProtoReflect.Descriptor instead.
+func (*UpdateLockRequest) Descriptor() ([]byte, []int) {
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UpdateLockRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateLockRequest) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *UpdateLockRequest) GetWho() string {
+	if x != nil {
+		return x.Who
+	}
+	return ""
+}
+
+func (x *UpdateLockRequest) GetEnvironment() string {
+	if x != nil {
+		return x.Environment
+	}
+	return ""
+}
+
+func (x *UpdateLockRequest) GetResource() string {
+	if x != nil {
+		return x.Resource
+	}
+	return ""
+}
+
+func (x *UpdateLockRequest) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
+type UpdateLockResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Lock          *Lock                  `protobuf:"bytes,1,opt,name=lock,proto3" json:"lock,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateLockResponse) Reset() {
+	*x = UpdateLockResponse{}
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateLockResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateLockResponse) ProtoMessage() {}
+
+func (x *UpdateLockResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateLockResponse.ProtoReflect.Descriptor instead.
+func (*UpdateLockResponse) Descriptor() ([]byte, []int) {
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateLockResponse) GetLock() *Lock {
+	if x != nil {
+		return x.Lock
+	}
+	return nil
+}
+
 type UnLockRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -334,7 +462,7 @@ type UnLockRequest struct {
 
 func (x *UnLockRequest) Reset() {
 	*x = UnLockRequest{}
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[5]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +474,7 @@ func (x *UnLockRequest) String() string {
 func (*UnLockRequest) ProtoMessage() {}
 
 func (x *UnLockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[5]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,7 +487,7 @@ func (x *UnLockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnLockRequest.ProtoReflect.Descriptor instead.
 func (*UnLockRequest) Descriptor() ([]byte, []int) {
-	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{5}
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UnLockRequest) GetId() string {
@@ -380,7 +508,7 @@ type UnLockResponse struct {
 
 func (x *UnLockResponse) Reset() {
 	*x = UnLockResponse{}
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[6]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +520,7 @@ func (x *UnLockResponse) String() string {
 func (*UnLockResponse) ProtoMessage() {}
 
 func (x *UnLockResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[6]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -405,7 +533,7 @@ func (x *UnLockResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnLockResponse.ProtoReflect.Descriptor instead.
 func (*UnLockResponse) Descriptor() ([]byte, []int) {
-	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{6}
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UnLockResponse) GetMessage() string {
@@ -439,7 +567,7 @@ type ListLocksRequest struct {
 
 func (x *ListLocksRequest) Reset() {
 	*x = ListLocksRequest{}
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[7]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -451,7 +579,7 @@ func (x *ListLocksRequest) String() string {
 func (*ListLocksRequest) ProtoMessage() {}
 
 func (x *ListLocksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[7]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +592,7 @@ func (x *ListLocksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLocksRequest.ProtoReflect.Descriptor instead.
 func (*ListLocksRequest) Descriptor() ([]byte, []int) {
-	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{7}
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListLocksRequest) GetPerPage() *wrapperspb.UInt32Value {
@@ -491,7 +619,7 @@ type ListLocksResponse struct {
 
 func (x *ListLocksResponse) Reset() {
 	*x = ListLocksResponse{}
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[8]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +631,7 @@ func (x *ListLocksResponse) String() string {
 func (*ListLocksResponse) ProtoMessage() {}
 
 func (x *ListLocksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[8]
+	mi := &file_proto_lock_v1alpha1_lock_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +644,7 @@ func (x *ListLocksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLocksResponse.ProtoReflect.Descriptor instead.
 func (*ListLocksResponse) Descriptor() ([]byte, []int) {
-	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{8}
+	return file_proto_lock_v1alpha1_lock_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListLocksResponse) GetLocks() []*Lock {
@@ -558,6 +686,15 @@ const file_proto_lock_v1alpha1_lock_proto_rawDesc = "" +
 	"\x0eGetLockRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"B\n" +
 	"\x0fGetLockResponse\x12/\n" +
+	"\x04lock\x18\x01 \x01(\v2\x1b.tracker.lock.v1alpha1.LockR\x04lock\"\xb2\x01\n" +
+	"\x11UpdateLockRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\x12\x18\n" +
+	"\aservice\x18\x02 \x01(\tR\aservice\x12\x10\n" +
+	"\x03who\x18\x03 \x01(\tR\x03who\x12 \n" +
+	"\venvironment\x18\x04 \x01(\tR\venvironment\x12\x1a\n" +
+	"\bresource\x18\x05 \x01(\tR\bresource\x12\x19\n" +
+	"\bevent_id\x18\x06 \x01(\tR\aeventId\"E\n" +
+	"\x12UpdateLockResponse\x12/\n" +
 	"\x04lock\x18\x01 \x01(\v2\x1b.tracker.lock.v1alpha1.LockR\x04lock\"\x1f\n" +
 	"\rUnLockRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"Z\n" +
@@ -572,11 +709,13 @@ const file_proto_lock_v1alpha1_lock_proto_rawDesc = "" +
 	"\x11ListLocksResponse\x121\n" +
 	"\x05locks\x18\x01 \x03(\v2\x1b.tracker.lock.v1alpha1.LockR\x05locks\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\rR\n" +
-	"totalCount2\x88\x04\n" +
+	"totalCount2\x90\x05\n" +
 	"\vLockService\x12\x80\x01\n" +
 	"\n" +
 	"CreateLock\x12(.tracker.lock.v1alpha1.CreateLockRequest\x1a).tracker.lock.v1alpha1.CreateLockResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1alpha1/lock\x12y\n" +
-	"\aGetLock\x12%.tracker.lock.v1alpha1.GetLockRequest\x1a&.tracker.lock.v1alpha1.GetLockResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1alpha1/lock/{id}\x12x\n" +
+	"\aGetLock\x12%.tracker.lock.v1alpha1.GetLockRequest\x1a&.tracker.lock.v1alpha1.GetLockResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1alpha1/lock/{id}\x12\x85\x01\n" +
+	"\n" +
+	"UpdateLock\x12(.tracker.lock.v1alpha1.UpdateLockRequest\x1a).tracker.lock.v1alpha1.UpdateLockResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\x1a\x17/api/v1alpha1/lock/{id}\x12x\n" +
 	"\x06UnLock\x12$.tracker.lock.v1alpha1.UnLockRequest\x1a%.tracker.lock.v1alpha1.UnLockResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1alpha1/unlock/{id}\x12\x80\x01\n" +
 	"\tListLocks\x12'.tracker.lock.v1alpha1.ListLocksRequest\x1a(.tracker.lock.v1alpha1.ListLocksResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1alpha1/locks/listB\x15Z\x13proto/lock/v1alpha1b\x06proto3"
 
@@ -592,41 +731,46 @@ func file_proto_lock_v1alpha1_lock_proto_rawDescGZIP() []byte {
 	return file_proto_lock_v1alpha1_lock_proto_rawDescData
 }
 
-var file_proto_lock_v1alpha1_lock_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_lock_v1alpha1_lock_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_lock_v1alpha1_lock_proto_goTypes = []any{
 	(*Lock)(nil),                   // 0: tracker.lock.v1alpha1.Lock
 	(*CreateLockRequest)(nil),      // 1: tracker.lock.v1alpha1.CreateLockRequest
 	(*CreateLockResponse)(nil),     // 2: tracker.lock.v1alpha1.CreateLockResponse
 	(*GetLockRequest)(nil),         // 3: tracker.lock.v1alpha1.GetLockRequest
 	(*GetLockResponse)(nil),        // 4: tracker.lock.v1alpha1.GetLockResponse
-	(*UnLockRequest)(nil),          // 5: tracker.lock.v1alpha1.UnLockRequest
-	(*UnLockResponse)(nil),         // 6: tracker.lock.v1alpha1.UnLockResponse
-	(*ListLocksRequest)(nil),       // 7: tracker.lock.v1alpha1.ListLocksRequest
-	(*ListLocksResponse)(nil),      // 8: tracker.lock.v1alpha1.ListLocksResponse
-	(*timestamppb.Timestamp)(nil),  // 9: google.protobuf.Timestamp
-	(*wrapperspb.UInt32Value)(nil), // 10: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),  // 11: google.protobuf.Int32Value
+	(*UpdateLockRequest)(nil),      // 5: tracker.lock.v1alpha1.UpdateLockRequest
+	(*UpdateLockResponse)(nil),     // 6: tracker.lock.v1alpha1.UpdateLockResponse
+	(*UnLockRequest)(nil),          // 7: tracker.lock.v1alpha1.UnLockRequest
+	(*UnLockResponse)(nil),         // 8: tracker.lock.v1alpha1.UnLockResponse
+	(*ListLocksRequest)(nil),       // 9: tracker.lock.v1alpha1.ListLocksRequest
+	(*ListLocksResponse)(nil),      // 10: tracker.lock.v1alpha1.ListLocksResponse
+	(*timestamppb.Timestamp)(nil),  // 11: google.protobuf.Timestamp
+	(*wrapperspb.UInt32Value)(nil), // 12: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),  // 13: google.protobuf.Int32Value
 }
 var file_proto_lock_v1alpha1_lock_proto_depIdxs = []int32{
-	9,  // 0: tracker.lock.v1alpha1.Lock.created_at:type_name -> google.protobuf.Timestamp
+	11, // 0: tracker.lock.v1alpha1.Lock.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: tracker.lock.v1alpha1.CreateLockResponse.lock:type_name -> tracker.lock.v1alpha1.Lock
 	0,  // 2: tracker.lock.v1alpha1.GetLockResponse.lock:type_name -> tracker.lock.v1alpha1.Lock
-	10, // 3: tracker.lock.v1alpha1.ListLocksRequest.per_page:type_name -> google.protobuf.UInt32Value
-	11, // 4: tracker.lock.v1alpha1.ListLocksRequest.page:type_name -> google.protobuf.Int32Value
-	0,  // 5: tracker.lock.v1alpha1.ListLocksResponse.locks:type_name -> tracker.lock.v1alpha1.Lock
-	1,  // 6: tracker.lock.v1alpha1.LockService.CreateLock:input_type -> tracker.lock.v1alpha1.CreateLockRequest
-	3,  // 7: tracker.lock.v1alpha1.LockService.GetLock:input_type -> tracker.lock.v1alpha1.GetLockRequest
-	5,  // 8: tracker.lock.v1alpha1.LockService.UnLock:input_type -> tracker.lock.v1alpha1.UnLockRequest
-	7,  // 9: tracker.lock.v1alpha1.LockService.ListLocks:input_type -> tracker.lock.v1alpha1.ListLocksRequest
-	2,  // 10: tracker.lock.v1alpha1.LockService.CreateLock:output_type -> tracker.lock.v1alpha1.CreateLockResponse
-	4,  // 11: tracker.lock.v1alpha1.LockService.GetLock:output_type -> tracker.lock.v1alpha1.GetLockResponse
-	6,  // 12: tracker.lock.v1alpha1.LockService.UnLock:output_type -> tracker.lock.v1alpha1.UnLockResponse
-	8,  // 13: tracker.lock.v1alpha1.LockService.ListLocks:output_type -> tracker.lock.v1alpha1.ListLocksResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	0,  // 3: tracker.lock.v1alpha1.UpdateLockResponse.lock:type_name -> tracker.lock.v1alpha1.Lock
+	12, // 4: tracker.lock.v1alpha1.ListLocksRequest.per_page:type_name -> google.protobuf.UInt32Value
+	13, // 5: tracker.lock.v1alpha1.ListLocksRequest.page:type_name -> google.protobuf.Int32Value
+	0,  // 6: tracker.lock.v1alpha1.ListLocksResponse.locks:type_name -> tracker.lock.v1alpha1.Lock
+	1,  // 7: tracker.lock.v1alpha1.LockService.CreateLock:input_type -> tracker.lock.v1alpha1.CreateLockRequest
+	3,  // 8: tracker.lock.v1alpha1.LockService.GetLock:input_type -> tracker.lock.v1alpha1.GetLockRequest
+	5,  // 9: tracker.lock.v1alpha1.LockService.UpdateLock:input_type -> tracker.lock.v1alpha1.UpdateLockRequest
+	7,  // 10: tracker.lock.v1alpha1.LockService.UnLock:input_type -> tracker.lock.v1alpha1.UnLockRequest
+	9,  // 11: tracker.lock.v1alpha1.LockService.ListLocks:input_type -> tracker.lock.v1alpha1.ListLocksRequest
+	2,  // 12: tracker.lock.v1alpha1.LockService.CreateLock:output_type -> tracker.lock.v1alpha1.CreateLockResponse
+	4,  // 13: tracker.lock.v1alpha1.LockService.GetLock:output_type -> tracker.lock.v1alpha1.GetLockResponse
+	6,  // 14: tracker.lock.v1alpha1.LockService.UpdateLock:output_type -> tracker.lock.v1alpha1.UpdateLockResponse
+	8,  // 15: tracker.lock.v1alpha1.LockService.UnLock:output_type -> tracker.lock.v1alpha1.UnLockResponse
+	10, // 16: tracker.lock.v1alpha1.LockService.ListLocks:output_type -> tracker.lock.v1alpha1.ListLocksResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_lock_v1alpha1_lock_proto_init() }
@@ -640,7 +784,7 @@ func file_proto_lock_v1alpha1_lock_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_lock_v1alpha1_lock_proto_rawDesc), len(file_proto_lock_v1alpha1_lock_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

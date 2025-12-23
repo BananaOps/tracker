@@ -709,6 +709,42 @@
         "tags": [
           "LockService"
         ]
+      },
+      "put": {
+        "operationId": "LockService_UpdateLock",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateLockResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LockServiceUpdateLockBody"
+            }
+          }
+        ],
+        "tags": [
+          "LockService"
+        ]
       }
     },
     "/api/v1alpha1/locks/list": {
@@ -811,6 +847,26 @@
         }
       },
       "title": "Request to append a single changelog entry to an event"
+    },
+    "LockServiceUpdateLockBody": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string"
+        },
+        "who": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "event_id": {
+          "type": "string"
+        }
+      }
     },
     "eventv1alpha1Status": {
       "type": "string",
@@ -1813,6 +1869,14 @@
       "properties": {
         "event": {
           "$ref": "#/definitions/v1alpha1Event"
+        }
+      }
+    },
+    "v1alpha1UpdateLockResponse": {
+      "type": "object",
+      "properties": {
+        "lock": {
+          "$ref": "#/definitions/v1alpha1Lock"
         }
       }
     },

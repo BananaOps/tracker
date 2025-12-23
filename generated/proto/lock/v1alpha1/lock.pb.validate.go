@@ -669,6 +669,269 @@ var _ interface {
 	ErrorName() string
 } = GetLockResponseValidationError{}
 
+// Validate checks the field values on UpdateLockRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *UpdateLockRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateLockRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateLockRequestMultiError, or nil if none found.
+func (m *UpdateLockRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateLockRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UpdateLockRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Service
+
+	// no validation rules for Who
+
+	// no validation rules for Environment
+
+	// no validation rules for Resource
+
+	// no validation rules for EventId
+
+	if len(errors) > 0 {
+		return UpdateLockRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateLockRequest) _validateUuid(uuid string) error {
+	if matched := _lock_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// UpdateLockRequestMultiError is an error wrapping multiple validation errors
+// returned by UpdateLockRequest.ValidateAll() if the designated constraints
+// aren't met.
+type UpdateLockRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateLockRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateLockRequestMultiError) AllErrors() []error { return m }
+
+// UpdateLockRequestValidationError is the validation error returned by
+// UpdateLockRequest.Validate if the designated constraints aren't met.
+type UpdateLockRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateLockRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateLockRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateLockRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateLockRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateLockRequestValidationError) ErrorName() string {
+	return "UpdateLockRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateLockRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateLockRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateLockRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateLockRequestValidationError{}
+
+// Validate checks the field values on UpdateLockResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateLockResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateLockResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateLockResponseMultiError, or nil if none found.
+func (m *UpdateLockResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateLockResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetLock()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateLockResponseValidationError{
+					field:  "Lock",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateLockResponseValidationError{
+					field:  "Lock",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLock()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateLockResponseValidationError{
+				field:  "Lock",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateLockResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateLockResponseMultiError is an error wrapping multiple validation errors
+// returned by UpdateLockResponse.ValidateAll() if the designated constraints
+// aren't met.
+type UpdateLockResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateLockResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateLockResponseMultiError) AllErrors() []error { return m }
+
+// UpdateLockResponseValidationError is the validation error returned by
+// UpdateLockResponse.Validate if the designated constraints aren't met.
+type UpdateLockResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateLockResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateLockResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateLockResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateLockResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateLockResponseValidationError) ErrorName() string {
+	return "UpdateLockResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateLockResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateLockResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateLockResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateLockResponseValidationError{}
+
 // Validate checks the field values on UnLockRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

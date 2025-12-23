@@ -75,3 +75,10 @@ func (c *LockStoreClient) Unlock(ctx context.Context, filter map[string]interfac
 
 	return cursor.DeletedCount, nil
 }
+
+func (c *LockStoreClient) Update(ctx context.Context, filter map[string]interface{}, lockUpdate *v1alpha1.Lock) (result *v1alpha1.Lock, err error) {
+	result = &v1alpha1.Lock{}
+	updateFilter := bson.D{{Key: "$set", Value: lockUpdate}}
+	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter).Decode(&result)
+	return
+}
