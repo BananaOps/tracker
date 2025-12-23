@@ -237,6 +237,7 @@ enum Status {
   open = 9;
   close = 10;
   done = 11;
+  in_progress = 12;
 }
 
 enum Environment {

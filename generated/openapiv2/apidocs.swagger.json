@@ -552,7 +552,8 @@
               "recommandation",
               "open",
               "close",
-              "done"
+              "done",
+              "in_progress"
             ],
             "default": "STATUS_UNSPECIFIED"
           },
@@ -825,7 +826,8 @@
         "recommandation",
         "open",
         "close",
-        "done"
+        "done",
+        "in_progress"
       ],
       "default": "STATUS_UNSPECIFIED"
     },

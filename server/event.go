@@ -81,7 +81,7 @@ func shouldCreateLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
 
 // shouldReleaseLock détermine si un lock doit être libéré pour cet événement
 func shouldReleaseLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
-	// Libérer le lock quand l'événement se termine
+	// Libérer le lock quand l'événement se termine (success, failure ou done)
 	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
 		(status == v1alpha1.Status_success || status == v1alpha1.Status_failure || status == v1alpha1.Status_done)
 }

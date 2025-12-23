@@ -157,6 +157,7 @@ const (
 	Status_open               Status = 9
 	Status_close              Status = 10
 	Status_done               Status = 11
+	Status_in_progress        Status = 12
 )
 
 // Enum value maps for Status.
@@ -174,6 +175,7 @@ var (
 		9:  "open",
 		10: "close",
 		11: "done",
+		12: "in_progress",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED": 0,
@@ -188,6 +190,7 @@ var (
 		"open":               9,
 		"close":              10,
 		"done":               11,
+		"in_progress":        12,
 	}
 )
 
@@ -1951,7 +1954,7 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x02P2\x10\x02\x12\x06\n" +
 	"\x02P3\x10\x03\x12\x06\n" +
 	"\x02P4\x10\x04\x12\x06\n" +
-	"\x02P5\x10\x05*\xaf\x01\n" +
+	"\x02P5\x10\x05*\xc0\x01\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05start\x10\x01\x12\v\n" +
@@ -1965,7 +1968,8 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x04open\x10\t\x12\t\n" +
 	"\x05close\x10\n" +
 	"\x12\b\n" +
-	"\x04done\x10\v*\x97\x01\n" +
+	"\x04done\x10\v\x12\x0f\n" +
+	"\vin_progress\x10\f*\x97\x01\n" +
 	"\vEnvironment\x12\x1b\n" +
 	"\x17ENVIRONMENT_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vdevelopment\x10\x01\x12\x0f\n" +
