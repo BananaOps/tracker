@@ -75,6 +75,17 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+gateway:
+  enabled: true
+  name: gateway-tracker
+  namespace: 
+  pathType: Exact
+  annotations: {}
+  hosts:
+    - host: tracker.local
+      paths:
+        - path: /
+        
 resources:
   limits:
     cpu: 250m
