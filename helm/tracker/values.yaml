@@ -60,7 +60,7 @@ service:
   annotations: {}
 
 ingress:
-  enabled: true
+  enabled: false
   className: traefik
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -74,6 +74,22 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+openshift:
+  enabled: false
+  route:
+    enabled: false
+    labels:
+      test: test-label
+    annotations:
+      test: test-annotation
+    to:
+      kind: Service
+      weight: 100
+    host: tracker.local
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
 
 resources:
   limits:
