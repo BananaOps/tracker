@@ -1,0 +1,42 @@
+{{- if and (.Values.openshift.enabled) (.Values.openshift.route.enabled) -}}
+{{- $fullName := include "tracker.fullname" . -}}
+{{- $svcPort := .Values.service.http.port -}}
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "tracker.labels" . | nindent 4 }}
+    {{- with .Values.openshift.route.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.openshift.route.host }}
+  to:
+    kind: {{ .Values.openshift.route.to.kind | default "Service" }}
+    name: {{ $fullName }}
+    weight: {{ .Values.openshift.route.to.weight | default 100 }}
+  port:
+    targetPort: {{ $svcPort }}
+  tls:
+    termination: {{ .Values.openshift.route.tls.termination | default "edge" }}
+    {{- if .Values.openshift.route.tls.certificate }}
+    certificate: |
+      {{ .Values.openshift.route.tls.certificate | indent 6 }}
+    {{- end }}
+    {{- if .Values.openshift.route.tls.key }}
+    key: |
+      {{ .Values.openshift.route.tls.key | indent 6 }}
+    {{- end }}
+    {{- if .Values.openshift.route.tls.caCertificate }}
+    caCertificate: |
+      {{ .Values.openshift.route.tls.caCertificate | indent 6 }}
+    {{- end }}
+    insecureEdgeTerminationPolicy: {{ .Values.openshift.route.tls.insecureEdgeTerminationPolicy | default "Redirect" }}
+  wildcardPolicy: {{ .Values.openshift.route.wildcardPolicy | default "None" }}
+{{- end -}}
