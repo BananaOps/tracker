@@ -79,10 +79,8 @@ openshift:
   enabled: false
   route:
     enabled: false
-    labels:
-      test: test-label
-    annotations:
-      test: test-annotation
+    labels: {}
+    annotations: {}
     to:
       kind: Service
       weight: 100
