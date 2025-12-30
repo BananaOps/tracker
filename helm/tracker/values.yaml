@@ -76,7 +76,7 @@ ingress:
   #      - chart-example.local
 
 gateway:
-  enabled: true
+  enabled: false
   name: gateway-tracker
   namespace: 
   pathType: Exact
