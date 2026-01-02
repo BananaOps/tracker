@@ -60,7 +60,7 @@ service:
   annotations: {}
 
 ingress:
-  enabled: true
+  enabled: false
   className: traefik
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -85,7 +85,21 @@ gateway:
     - host: tracker.local
       paths:
         - path: /
-        
+
+openshift:
+  enabled: false
+  route:
+    enabled: false
+    labels: {}
+    annotations: {}
+    to:
+      kind: Service
+      weight: 100
+    host: tracker.local
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
 resources:
   limits:
     cpu: 250m
@@ -93,7 +107,6 @@ resources:
   requests:
     cpu: 250m
     memory: 128Mi
-
 
 # Configure Prometheus service scrapping with
 prometheus:
