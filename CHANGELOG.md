@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/BananaOps/tracker/compare/v0.12.0...v0.13.0) (2026-01-02)
+
+
+### Features
+
+* **helm/tracker:** add support for gateway API httproute in addition of ingress ([#122](https://github.com/BananaOps/tracker/issues/122)) ([19fe83d](https://github.com/BananaOps/tracker/commit/19fe83d6e517be024ab1bbac894926aea135351b))
+* **helm/tracker:** add support for openshift route object in addition of ingress ([#123](https://github.com/BananaOps/tracker/issues/123)) ([c9319ed](https://github.com/BananaOps/tracker/commit/c9319eddfbd0d871a3d4adec1fba85d5fcfeea78))
+
 ## [0.12.0](https://github.com/BananaOps/tracker/compare/v0.11.0...v0.12.0) (2025-12-23)
 
 
