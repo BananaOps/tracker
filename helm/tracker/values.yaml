@@ -75,6 +75,17 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+gateway:
+  enabled: false
+  name: gateway-tracker
+  namespace: 
+  pathType: Exact
+  annotations: {}
+  hosts:
+    - host: tracker.local
+      paths:
+        - path: /
+
 openshift:
   enabled: false
   route:
@@ -96,7 +107,6 @@ resources:
   requests:
     cpu: 250m
     memory: 128Mi
-
 
 # Configure Prometheus service scrapping with
 prometheus:
