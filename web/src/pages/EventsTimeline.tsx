@@ -202,9 +202,9 @@ export default function EventsTimeline() {
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
       {/* Sidebar Filters - Style Datadog */}
       {showSidebar && (
-        <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col">
+        <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4" />
@@ -230,11 +230,11 @@ export default function EventsTimeline() {
           </div>
 
           {/* Filters Content */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 p-3">
+            <div className="space-y-4">
               {/* Event Type Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
                   Event Type
                 </h4>
                 <div className="space-y-2">
@@ -452,47 +452,61 @@ export default function EventsTimeline() {
               ))}
             </div>
           )}
+        </div>
 
-          {/* Time Controls */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        {/* Time Controls Bar - Datadog Style */}
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="flex items-center justify-between">
+            {/* Left: Time Range Display */}
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="icon" onClick={goToPreviousPeriod} className="h-8 w-8">
+              <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {format(startDate, 'MMM dd, HH:mm', { locale: fr })} - {format(endDate, 'MMM dd, HH:mm', { locale: fr })}
+              </span>
+              <select
+                value={selectedDays}
+                onChange={(e) => setSelectedDays(Number(e.target.value))}
+                className="h-7 px-2 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value={1}>Last 1 day</option>
+                <option value={3}>Last 3 days</option>
+                <option value={7}>Last 7 days</option>
+                <option value={14}>Last 14 days</option>
+                <option value={30}>Last 30 days</option>
+                <option value={60}>Last 60 days</option>
+                <option value={90}>Last 90 days</option>
+              </select>
+            </div>
+
+            {/* Center: Navigation */}
+            <div className="flex items-center space-x-1">
+              <Button variant="ghost" size="icon" onClick={goToPreviousPeriod} className="h-7 w-7">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button
-                variant={isToday ? "secondary" : "outline"}
+                variant={isToday ? "secondary" : "ghost"}
                 size="sm"
                 onClick={goToToday}
                 disabled={isToday}
-                className="h-8"
+                className="h-7 px-3 text-xs"
               >
                 Today
               </Button>
-              <Button variant="outline" size="icon" onClick={goToNextPeriod} className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={goToNextPeriod} className="h-7 w-7">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
-            <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="w-4 h-4" />
-              <span className="font-medium">
-                {format(startDate, 'dd MMM yyyy', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
-              </span>
-            </div>
-
-            <select
-              value={selectedDays}
-              onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="h-8 px-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
+            {/* Right: Sort */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+              className="h-7 gap-1 text-xs"
             >
-              <option value={1}>1 day</option>
-              <option value={3}>3 days</option>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-              <option value={60}>60 days</option>
-              <option value={90}>90 days</option>
-            </select>
+              {sortOrder === 'desc' ? <ArrowDown className="w-3 h-3" /> : <ArrowUp className="w-3 h-3" />}
+              {sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+            </Button>
           </div>
         </div>
 
