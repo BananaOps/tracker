@@ -15,6 +15,7 @@ export default function Dashboard() {
   const { data: todayEvents } = useQuery({
     queryKey: ['events', 'today'],
     queryFn: () => eventsApi.today({ perPage: 100 }),
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   })
 
   const events = todayEvents?.events || []
@@ -27,6 +28,9 @@ export default function Dashboard() {
       for (let j = i + 1; j < events.length; j++) {
         const event1 = events[i]
         const event2 = events[j]
+        
+        // Vérifier que les événements concernent le même environnement
+        if (event1.attributes.environment !== event2.attributes.environment) continue
         
         const start1Str = event1.attributes.startDate || event1.metadata?.createdAt
         const start2Str = event2.attributes.startDate || event2.metadata?.createdAt
@@ -242,7 +246,7 @@ export default function Dashboard() {
               </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold bg-gradient-to-r from-orange-900 to-red-900 dark:from-orange-100 dark:to-red-100 bg-clip-text text-transparent mb-2">
-                ⚠️ Overlapping Events Detected
+                Overlapping Events Detected
               </h3>
               <p className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-3">
                 {stats.overlaps} event overlap{stats.overlaps > 1 ? 's' : ''} detected today. Multiple events are running simultaneously.
@@ -251,7 +255,6 @@ export default function Dashboard() {
                 {overlappingEvents.slice(0, 5).map((overlap, idx) => (
                   <div key={idx} className="text-sm bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-200 dark:border-orange-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg">⚠️</span>
                       <span className="text-gray-900 dark:text-gray-100">
                         <span className="font-semibold">{overlap.event1.title}</span>
                         <span className="text-gray-500 dark:text-gray-400 mx-1">overlaps with</span>
