@@ -1,8 +1,34 @@
 import { Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  compact?: boolean
+}
+
+export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme()
+
+  if (compact) {
+    // Mode compact : un seul bouton qui cycle entre les thèmes
+    const cycleTheme = () => {
+      if (theme === 'light') setTheme('dark')
+      else if (theme === 'dark') setTheme('system')
+      else setTheme('light')
+    }
+
+    const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
+
+    return (
+      <button
+        onClick={cycleTheme}
+        className="p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+        title={`Current: ${theme} mode (click to change)`}
+        type="button"
+      >
+        <Icon className="w-4 h-4" />
+      </button>
+    )
+  }
 
   return (
     <div className="flex items-center space-x-1 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
