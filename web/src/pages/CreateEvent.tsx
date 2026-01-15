@@ -49,7 +49,7 @@ export default function CreateEvent() {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setShowToast(true)
       setTimeout(() => {
-        navigate('/events/timeline')
+        navigate(-1) // Retour à la page précédente
       }, 2000)
     },
     onError: (error: any) => {
@@ -362,7 +362,7 @@ export default function CreateEvent() {
         <div className="flex justify-end space-x-3">
           <button
             type="button"
-            onClick={() => navigate('/events/timeline')}
+            onClick={() => navigate(-1)}
             className="btn-secondary"
           >
             Cancel
