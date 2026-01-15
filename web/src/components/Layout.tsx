@@ -84,15 +84,19 @@ export default function Layout() {
   }, [hoverTimeout])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      <DemoBanner />
-      <OpenSourceBanner />
-      <StaticModeBanner />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Banners at the top - not fixed, naturally inserted */}
+      <div>
+        <DemoBanner />
+        <OpenSourceBanner />
+        <StaticModeBanner />
+      </div>
       
-      {/* Sidebar Navigation */}
-      <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-screen z-40 transition-all duration-300`}>
-        {/* Logo */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="flex">
+        {/* Sidebar Navigation */}
+        <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-screen z-40 transition-all duration-300`}>
+          {/* Logo */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           {!isCollapsed && (
             <Link to="/dashboard" className="flex items-center group">
               <div className="relative">
@@ -253,6 +257,7 @@ export default function Layout() {
       
       {/* Fixed Footer */}
       <Footer isCollapsed={isCollapsed} />
+      </div>
     </div>
   )
 }
