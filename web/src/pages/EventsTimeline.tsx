@@ -130,8 +130,9 @@ export default function EventsTimeline() {
 
   const handleCustomDateApply = () => {
     if (customStartDate && customEndDate) {
-      const start = new Date(customStartDate)
-      const end = new Date(customEndDate)
+      // Créer les dates et forcer l'heure à minuit pour le début et 23:59:59 pour la fin
+      const start = startOfDay(new Date(customStartDate))
+      const end = endOfDay(new Date(customEndDate))
       setStartDate(start)
       setEndDate(end)
       setSelectedTimeRange('Custom range')
@@ -501,7 +502,7 @@ export default function EventsTimeline() {
                       <div>
                         <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">From</label>
                         <Input
-                          type="datetime-local"
+                          type="date"
                           value={customStartDate}
                           onChange={(e) => setCustomStartDate(e.target.value)}
                           className="h-8 text-xs"
@@ -510,7 +511,7 @@ export default function EventsTimeline() {
                       <div>
                         <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">To</label>
                         <Input
-                          type="datetime-local"
+                          type="date"
                           value={customEndDate}
                           onChange={(e) => setCustomEndDate(e.target.value)}
                           className="h-8 text-xs"
