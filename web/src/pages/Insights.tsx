@@ -403,7 +403,7 @@ export default function Insights() {
       </div>
 
       {/* Global Metrics by Type */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1.5">
         {/* Deployments Card */}
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>

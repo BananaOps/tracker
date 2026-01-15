@@ -3,11 +3,16 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertTriangle, Calendar, ChevronLeft, ChevronRight, Mail, User, Users, ExternalLink } from 'lucide-react'
+import { AlertTriangle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, User, Users, ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Event, Catalog } from '../types/api'
-import { getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
+import { getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Separator } from '../components/ui/separator'
+import { Input } from '../components/ui/input'
 
 type OverlapPair = {
   event1: Event
@@ -22,6 +27,9 @@ export default function EventsOverlaps() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [selectedDays, setSelectedDays] = useState<number>(7) // Nombre de jours à analyser
+  const [customStartDate, setCustomStartDate] = useState<string>('')
+  const [customEndDate, setCustomEndDate] = useState<string>('')
+  const [isCustomPeriod, setIsCustomPeriod] = useState<boolean>(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['events', 'list'],
@@ -46,8 +54,27 @@ export default function EventsOverlaps() {
   }, [catalogs])
 
   // Calculer la période d'analyse
-  const startDate = startOfDay(currentDate)
-  const endDate = endOfDay(addDays(currentDate, selectedDays - 1))
+  const startDate = useMemo(() => {
+    if (isCustomPeriod && customStartDate) {
+      try {
+        return startOfDay(new Date(customStartDate))
+      } catch {
+        return startOfDay(currentDate)
+      }
+    }
+    return startOfDay(currentDate)
+  }, [isCustomPeriod, customStartDate, currentDate])
+
+  const endDate = useMemo(() => {
+    if (isCustomPeriod && customEndDate) {
+      try {
+        return endOfDay(new Date(customEndDate))
+      } catch {
+        return endOfDay(addDays(currentDate, selectedDays - 1))
+      }
+    }
+    return endOfDay(addDays(currentDate, selectedDays - 1))
+  }, [isCustomPeriod, customEndDate, currentDate, selectedDays])
 
   // Filtrer les événements de la période
   const periodEvents = useMemo(() => {
@@ -63,7 +90,7 @@ export default function EventsOverlaps() {
     })
   }, [allEvents, startDate, endDate])
 
-  // Détecter tous les chevauchements
+  // Détecter tous les chevauchements (uniquement si même environnement)
   const overlaps = useMemo(() => {
     const overlappingPairs: OverlapPair[] = []
     
@@ -71,6 +98,11 @@ export default function EventsOverlaps() {
       for (let j = i + 1; j < periodEvents.length; j++) {
         const event1 = periodEvents[i]
         const event2 = periodEvents[j]
+        
+        // Vérifier que les deux événements ont le même environnement
+        const env1 = event1.attributes.environment
+        const env2 = event2.attributes.environment
+        if (!env1 || !env2 || env1.toLowerCase() !== env2.toLowerCase()) continue
         
         const start1Str = event1.attributes.startDate || event1.metadata?.createdAt
         const start2Str = event2.attributes.startDate || event2.metadata?.createdAt
@@ -127,73 +159,123 @@ export default function EventsOverlaps() {
 
   const goToToday = () => {
     setCurrentDate(new Date())
+    setIsCustomPeriod(false)
+  }
+
+  const handlePeriodChange = (days: number) => {
+    if (days === -1) {
+      // Custom period
+      setIsCustomPeriod(true)
+      setCustomStartDate(format(new Date(), 'yyyy-MM-dd'))
+      setCustomEndDate(format(addDays(new Date(), 7), 'yyyy-MM-dd'))
+    } else {
+      setIsCustomPeriod(false)
+      setSelectedDays(days)
+    }
   }
 
   if (isLoading || catalogLoading) {
-    return <div className="text-center py-12">Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading overlaps...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* Header - Style Calendar */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Event Overlaps</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Manage and coordinate overlapping events
+            {overlaps.length} overlap{overlaps.length > 1 ? 's' : ''} detected (same environment only)
           </p>
         </div>
       </div>
 
-      {/* Contrôles de navigation et filtres */}
-      <div className="card">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center space-x-3">
-            <button 
-              onClick={goToPreviousPeriod} 
-              className="btn-secondary p-2"
-              title="Previous period"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={goToToday}
-              className="btn-secondary px-4 py-2"
-              title="Go to today"
-            >
-              Today
-            </button>
-            <button 
-              onClick={goToNextPeriod} 
-              className="btn-secondary p-2"
-              title="Next period"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+      {/* Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            {!isCustomPeriod && (
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="icon" onClick={goToPreviousPeriod}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" onClick={goToToday}>
+                  Today
+                </Button>
+                <Button variant="outline" size="icon" onClick={goToNextPeriod}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {format(startDate, 'dd MMM yyyy', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Period:</label>
+              <select
+                value={isCustomPeriod ? -1 : selectedDays}
+                onChange={(e) => handlePeriodChange(Number(e.target.value))}
+                className="w-[140px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={1}>1 day</option>
+                <option value={3}>3 days</option>
+                <option value={7}>7 days</option>
+                <option value={14}>14 days</option>
+                <option value={30}>30 days</option>
+                <option value={-1}>Custom</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {format(startDate, 'dd MMM yyyy', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Period:</label>
-            <select
-              value={selectedDays}
-              onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-            >
-              <option value={1}>1 day</option>
-              <option value={3}>3 days</option>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-            </select>
-          </div>
-        </div>
-      </div>
+          {/* Custom Date Inputs */}
+          {isCustomPeriod && (
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date:</label>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-[160px]"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date:</label>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="w-[160px]"
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setIsCustomPeriod(false)
+                    setSelectedDays(7)
+                  }}
+                >
+                  Cancel Custom
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -261,7 +343,7 @@ export default function EventsOverlaps() {
               </div>
               <div className="relative">
                 <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
-                <Calendar className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
+                <CalendarIcon className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
@@ -291,35 +373,42 @@ export default function EventsOverlaps() {
         </div>
       </div>
 
-      {/* Liste des chevauchements */}
-      {overlaps.length === 0 ? (
-        <div className="card text-center py-12">
-          <div className="flex flex-col items-center space-y-3">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">No Overlaps Detected</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              All events in this period are well coordinated!
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {Array.from(overlapsByDay.entries()).map(([dayKey, dayOverlaps]) => {
-            const day = new Date(dayKey)
-            return (
-              <div key={dayKey} className="card">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-primary-600" />
-                  <span>{format(day, 'EEEE dd MMMM yyyy', { locale: fr })}</span>
-                  <span className="px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 rounded-full font-medium">
-                    {dayOverlaps.length} overlap{dayOverlaps.length > 1 ? 's' : ''}
-                  </span>
-                </h3>
-
-                <div className="space-y-4">
-                  {dayOverlaps.map((overlap, idx) => {
+      {/* Liste des chevauchements avec layout Calendar */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Overlaps List - 2/3 width */}
+        <div className="xl:col-span-2">
+          {overlaps.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">No Overlaps Detected</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    All events in this period are well coordinated!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {Array.from(overlapsByDay.entries()).map(([dayKey, dayOverlaps]) => {
+                const day = new Date(dayKey)
+                return (
+                  <Card key={dayKey}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <CalendarIcon className="w-5 h-5 text-primary-600" />
+                        <span>{format(day, 'EEEE dd MMMM yyyy', { locale: fr })}</span>
+                        <Badge variant="secondary" className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200">
+                          {dayOverlaps.length} overlap{dayOverlaps.length > 1 ? 's' : ''}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {dayOverlaps.map((overlap, idx) => {
                     const typeColor1 = getEventTypeColor(overlap.event1.attributes.type)
                     const typeColor2 = getEventTypeColor(overlap.event2.attributes.type)
                     
@@ -478,14 +567,90 @@ export default function EventsOverlaps() {
                           </div>
                         </div>
                       </div>
-                    )
-                  })}
+                          )
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Summary Panel - 1/3 width */}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Period Summary</CardTitle>
+              <CardDescription>
+                {format(startDate, 'dd MMM', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Quick Stats */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Overlaps</span>
+                  </div>
+                  <span className="text-lg font-bold text-orange-600">{overlaps.length}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <CalendarIcon className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Days Affected</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">{overlapsByDay.size}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Services</span>
+                  </div>
+                  <span className="text-lg font-bold text-purple-600">
+                    {new Set(overlaps.flatMap(o => [o.event1.attributes.service, o.event2.attributes.service])).size}
+                  </span>
                 </div>
               </div>
-            )
-          })}
+
+              {/* Most Affected Services */}
+              {overlaps.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Most Affected Services</h4>
+                    <div className="space-y-2">
+                      {Array.from(
+                        overlaps
+                          .flatMap(o => [o.event1.attributes.service, o.event2.attributes.service])
+                          .reduce((acc, service) => {
+                            acc.set(service, (acc.get(service) || 0) + 1)
+                            return acc
+                          }, new Map<string, number>())
+                          .entries()
+                      )
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([service, count]) => (
+                          <div key={service} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300 truncate flex-1" title={service}>
+                              {service}
+                            </span>
+                            <Badge variant="secondary" className="ml-2">{count}</Badge>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
+      </div>
 
       {selectedEvent && (
         <EventDetailsModal 
