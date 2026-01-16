@@ -10,13 +10,9 @@ import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label'
-import { Textarea } from '../components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Checkbox } from '../components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
-import { Alert, AlertDescription } from '../components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, GitBranch } from 'lucide-react'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
@@ -71,9 +67,9 @@ export default function CreateDrift() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
       <div className="flex items-center space-x-3">
-        <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 text-yellow-600" />
+        <GitBranch className="w-8 h-8 text-yellow-600" />
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Drift</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a detected configuration drift</p>
@@ -81,12 +77,10 @@ export default function CreateDrift() {
       </div>
 
       {createMutation.isError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Error creating drift. Please try again.
-          </AlertDescription>
-        </Alert>
+        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>Error creating drift. Please try again.</span>
+        </div>
       )}
       
       {showToast && (
@@ -97,16 +91,16 @@ export default function CreateDrift() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Alert>
-          <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600" />
-          <AlertDescription>
-            <h3 className="text-sm font-medium mb-1">What is a drift?</h3>
-            <p className="text-sm">
+        <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <GitBranch className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">What is a drift?</h3>
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
               A drift is a configuration deviation detected between the expected state and the actual state of a resource.
               This can be a manual modification, an unplanned update, or a configuration divergence.
             </p>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
 
         <Card>
           <CardHeader>
@@ -115,9 +109,9 @@ export default function CreateDrift() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Drift Title <span className="text-red-500">*</span>
-              </Label>
+              </label>
               <Input
                 id="title"
                 type="text"
@@ -130,27 +124,25 @@ export default function CreateDrift() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="service">
+                <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Affected Service <span className="text-red-500">*</span>
                   {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
-                </Label>
+                </label>
                 {catalogServices.length > 0 ? (
-                  <Select
+                  <select
                     value={formData.attributes.service}
-                    onValueChange={(value) => setFormData({
+                    onChange={(e) => setFormData({
                       ...formData,
-                      attributes: { ...formData.attributes, service: value }
+                      attributes: { ...formData.attributes, service: e.target.value }
                     })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required
                   >
-                    <SelectTrigger id="service">
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {catalogServices.map((service: string) => (
-                        <SelectItem key={service} value={service}>{service}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <option value="">Select a service</option>
+                    {catalogServices.map((service: string) => (
+                      <option key={service} value={service}>{service}</option>
+                    ))}
+                  </select>
                 ) : (
                   <Input
                     id="service"
@@ -172,79 +164,67 @@ export default function CreateDrift() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="environment">Environment</Label>
-                <Select
+                <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
+                <select
                   value={formData.attributes.environment}
-                  onValueChange={(value) => setFormData({
+                  onChange={(e) => setFormData({
                     ...formData,
-                    attributes: { ...formData.attributes, environment: value as Environment }
+                    attributes: { ...formData.attributes, environment: e.target.value as Environment }
                   })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <SelectTrigger id="environment">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Environment.DEVELOPMENT}>Development</SelectItem>
-                    <SelectItem value={Environment.INTEGRATION}>Integration</SelectItem>
-                    <SelectItem value={Environment.UAT}>UAT</SelectItem>
-                    <SelectItem value={Environment.RECETTE}>Recette</SelectItem>
-                    <SelectItem value={Environment.PREPRODUCTION}>Preproduction</SelectItem>
-                    <SelectItem value={Environment.PRODUCTION}>Production</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value={Environment.DEVELOPMENT}>Development</option>
+                  <option value={Environment.INTEGRATION}>Integration</option>
+                  <option value={Environment.UAT}>UAT</option>
+                  <option value={Environment.RECETTE}>Recette</option>
+                  <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                  <option value={Environment.PRODUCTION}>Production</option>
+                </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
+                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                <select
                   value={formData.attributes.priority}
-                  onValueChange={(value) => setFormData({
+                  onChange={(e) => setFormData({
                     ...formData,
-                    attributes: { ...formData.attributes, priority: value as Priority }
+                    attributes: { ...formData.attributes, priority: e.target.value as Priority }
                   })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <SelectTrigger id="priority">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Priority.P1}>P1 - Critical (production impact)</SelectItem>
-                    <SelectItem value={Priority.P2}>P2 - High (fix quickly)</SelectItem>
-                    <SelectItem value={Priority.P3}>P3 - Medium</SelectItem>
-                    <SelectItem value={Priority.P4}>P4 - Low</SelectItem>
-                    <SelectItem value={Priority.P5}>P5 - Very Low</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value={Priority.P1}>P1 - Critical (production impact)</option>
+                  <option value={Priority.P2}>P2 - High (fix quickly)</option>
+                  <option value={Priority.P3}>P3 - Medium</option>
+                  <option value={Priority.P4}>P4 - Low</option>
+                  <option value={Priority.P5}>P5 - Very Low</option>
+                </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                <select
                   value={formData.attributes.status}
-                  onValueChange={(value) => setFormData({
+                  onChange={(e) => setFormData({
                     ...formData,
-                    attributes: { ...formData.attributes, status: value as Status }
+                    attributes: { ...formData.attributes, status: e.target.value as Status }
                   })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Status.OPEN}>Open (detected)</SelectItem>
-                    <SelectItem value={Status.START}>In Progress (fixing)</SelectItem>
-                    <SelectItem value={Status.DONE}>Resolved</SelectItem>
-                    <SelectItem value={Status.CLOSE}>Closed</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value={Status.OPEN}>Open (detected)</option>
+                  <option value={Status.START}>In Progress (fixing)</option>
+                  <option value={Status.DONE}>Resolved</option>
+                  <option value={Status.CLOSE}>Closed</option>
+                </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Drift Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
+              </label>
+              <textarea
                 id="message"
                 required
                 rows={4}
@@ -254,6 +234,7 @@ export default function CreateDrift() {
                   attributes: { ...formData.attributes, message: e.target.value }
                 })}
                 placeholder="Describe the detected drift: what configuration changed, what is the difference between expected and actual state..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
               />
             </div>
 
@@ -266,18 +247,18 @@ export default function CreateDrift() {
                   attributes: { ...formData.attributes, impact: checked as boolean }
                 })}
               />
-              <Label htmlFor="impact" className="font-normal cursor-pointer">
+              <label htmlFor="impact" className="text-sm font-normal cursor-pointer text-gray-700 dark:text-gray-300">
                 This drift has an impact on the service
-              </Label>
+              </label>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
               Check if the drift affects service functionality or security
             </p>
 
             <div className="space-y-2">
-              <Label htmlFor="owner">
+              <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Owner / Responsible <span className="text-red-500">*</span>
-              </Label>
+              </label>
               <Input
                 id="owner"
                 type="text"
@@ -292,7 +273,7 @@ export default function CreateDrift() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ticket">Ticket URL (optional)</Label>
+              <label htmlFor="ticket" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket URL (optional)</label>
               <Input
                 id="ticket"
                 type="url"
@@ -322,7 +303,7 @@ export default function CreateDrift() {
             type="submit"
             disabled={createMutation.isPending}
           >
-            <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4 mr-2" />
+            <GitBranch className="w-4 h-4 mr-2" />
             {createMutation.isPending ? 'Creating...' : 'Create Drift'}
           </Button>
         </div>

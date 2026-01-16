@@ -4,16 +4,13 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faWrench, faRobot } from '@fortawesome/free-solid-svg-icons'
+import { Bot } from 'lucide-react'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
-import { Textarea } from '../components/ui/textarea'
 import { Card, CardContent } from '../components/ui/card'
-import { Alert, AlertDescription } from '../components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
@@ -102,43 +99,43 @@ export default function CreateRpaOperation() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center space-x-3">
-          <FontAwesomeIcon icon={faWrench} className="w-8 h-8 text-purple-600" />
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
+      <div className="flex items-center space-x-3">
+        <Bot className="w-8 h-8 text-purple-600" />
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create RPA Operation</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register an RPA automation operation</p>
+        </div>
+      </div>
+
+      {createMutation.isError && (
+        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>Error creating RPA operation. Please try again.</span>
+        </div>
+      )}
+      
+      {showToast && (
+        <Toast 
+          message="RPA Operation created successfully!"
+          onClose={() => setShowToast(false)}
+        />
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+          <Bot className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create RPA Operation</h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register an RPA automation operation</p>
+            <h3 className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">What is an RPA operation?</h3>
+            <p className="text-sm text-purple-800 dark:text-purple-200">
+              RPA (Robotic Process Automation) refers to the automation of repetitive business processes.
+              Use this page to track executions of your robots, automation scripts, or automated workflows.
+            </p>
           </div>
         </div>
 
-        {createMutation.isError && (
-          <Alert variant="destructive">
-            <AlertDescription>Error creating RPA operation. Please try again.</AlertDescription>
-          </Alert>
-        )}
-        
-        {showToast && (
-          <Toast 
-            message="RPA Operation created successfully!"
-            onClose={() => setShowToast(false)}
-          />
-        )}
-
         <Card>
-          <CardContent className="pt-6">
-            <Alert className="mb-6">
-              <FontAwesomeIcon icon={faRobot} className="w-5 h-5" />
-              <AlertDescription>
-                <h3 className="text-sm font-medium mb-1">What is an RPA operation?</h3>
-                <p className="text-sm">
-                  RPA (Robotic Process Automation) refers to the automation of repetitive business processes.
-                  Use this page to track executions of your robots, automation scripts, or automated workflows.
-                </p>
-              </AlertDescription>
-            </Alert>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Operation Name <span className="text-red-500">*</span>
@@ -160,23 +157,20 @@ export default function CreateRpaOperation() {
                     {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
                   </label>
                   {catalogServices.length > 0 ? (
-                    <Select
+                    <select
                       value={formData.attributes.service}
-                      onValueChange={(value) => setFormData({
+                      onChange={(e) => setFormData({
                         ...formData,
-                        attributes: { ...formData.attributes, service: value }
+                        attributes: { ...formData.attributes, service: e.target.value }
                       })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       required
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {catalogServices.map((service: string) => (
-                          <SelectItem key={service} value={service}>{service}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="">Select a service</option>
+                      {catalogServices.map((service: string) => (
+                        <option key={service} value={service}>{service}</option>
+                      ))}
+                    </select>
                   ) : (
                     <Input
                       type="text"
@@ -198,56 +192,48 @@ export default function CreateRpaOperation() {
 
                 <div className="space-y-2">
                   <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
-                  <Select
+                  <select
                     value={formData.attributes.environment}
-                    onValueChange={(value) => setFormData({
+                    onChange={(e) => setFormData({
                       ...formData,
-                      attributes: { ...formData.attributes, environment: value as Environment }
+                      attributes: { ...formData.attributes, environment: e.target.value as Environment }
                     })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={Environment.DEVELOPMENT}>Development</SelectItem>
-                      <SelectItem value={Environment.INTEGRATION}>Integration</SelectItem>
-                      <SelectItem value={Environment.UAT}>UAT</SelectItem>
-                      <SelectItem value={Environment.RECETTE}>Recette</SelectItem>
-                      <SelectItem value={Environment.PREPRODUCTION}>Preproduction</SelectItem>
-                      <SelectItem value={Environment.PRODUCTION}>Production</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <option value={Environment.DEVELOPMENT}>Development</option>
+                    <option value={Environment.INTEGRATION}>Integration</option>
+                    <option value={Environment.UAT}>UAT</option>
+                    <option value={Environment.RECETTE}>Recette</option>
+                    <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                    <option value={Environment.PRODUCTION}>Production</option>
+                  </select>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Operation Status</label>
-                <Select
+                <select
                   value={formData.attributes.status}
-                  onValueChange={(value) => setFormData({
+                  onChange={(e) => setFormData({
                     ...formData,
-                    attributes: { ...formData.attributes, status: value as Status }
+                    attributes: { ...formData.attributes, status: e.target.value as Status }
                   })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Status.START}>Started</SelectItem>
-                    <SelectItem value={Status.SUCCESS}>Success</SelectItem>
-                    <SelectItem value={Status.FAILURE}>Failure</SelectItem>
-                    <SelectItem value={Status.WARNING}>Warning</SelectItem>
-                    <SelectItem value={Status.ERROR}>Error</SelectItem>
-                    <SelectItem value={Status.DONE}>Done</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value={Status.START}>Started</option>
+                  <option value={Status.SUCCESS}>Success</option>
+                  <option value={Status.FAILURE}>Failure</option>
+                  <option value={Status.WARNING}>Warning</option>
+                  <option value={Status.ERROR}>Error</option>
+                  <option value={Status.DONE}>Done</option>
+                </select>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Operation Description <span className="text-red-500">*</span>
                 </label>
-                <Textarea
+                <textarea
                   id="message"
                   required
                   rows={4}
@@ -257,6 +243,7 @@ export default function CreateRpaOperation() {
                     attributes: { ...formData.attributes, message: e.target.value }
                   })}
                   placeholder="Describe the operation performed: number of items processed, duration, results, any errors..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
                 />
               </div>
 
@@ -293,26 +280,25 @@ export default function CreateRpaOperation() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  type="button"
-                  onClick={() => navigate('/rpa')}
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                >
-                  <FontAwesomeIcon icon={faWrench} className="w-4 h-4 mr-2" />
-                  {createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}
-                </Button>
-              </div>
-            </form>
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                onClick={() => navigate('/rpa')}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                {createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
-      </div>
+      </form>
     </div>
   )
 }
