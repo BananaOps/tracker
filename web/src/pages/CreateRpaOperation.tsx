@@ -7,6 +7,7 @@ import type { CreateEventRequest } from '../types/api'
 import { Bot } from 'lucide-react'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
+import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent } from '../components/ui/card'
@@ -154,35 +155,19 @@ export default function CreateRpaOperation() {
                 <div className="space-y-2">
                   <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Service / RPA Robot <span className="text-red-500">*</span>
-                    {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
                   </label>
-                  {catalogServices.length > 0 ? (
-                    <select
-                      value={formData.attributes.service}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        attributes: { ...formData.attributes, service: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    >
-                      <option value="">Select a service</option>
-                      {catalogServices.map((service: string) => (
-                        <option key={service} value={service}>{service}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      type="text"
-                      required
-                      value={formData.attributes.service}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        attributes: { ...formData.attributes, service: e.target.value }
-                      })}
-                      placeholder="Ex: rpa-invoice-processor, rpa-data-sync"
-                    />
-                  )}
+                  <ServiceAutocomplete
+                    id="service"
+                    value={formData.attributes.service}
+                    onChange={(value) => setFormData({
+                      ...formData,
+                      attributes: { ...formData.attributes, service: value }
+                    })}
+                    services={catalogServices}
+                    loading={catalogLoading}
+                    required
+                    placeholder="Type to search or select a service"
+                  />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {catalogServices.length > 0 
                       ? 'Name of the robot or RPA service' 
