@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail } from 'lucide-react'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -23,6 +23,11 @@ import {
   faCube,
   faComments
 } from '@fortawesome/free-solid-svg-icons'
+import KubernetesIcon from '../components/icons/KubernetesIcon'
+import KotlinIcon from '../components/icons/KotlinIcon'
+import TerraformIcon from '../components/icons/TerraformIcon'
+import SlackIcon from '../components/icons/SlackIcon'
+import GrafanaIcon from '../components/icons/GrafanaIcon'
 import {
   ReactFlow,
   Node, 
@@ -31,13 +36,131 @@ import {
   Controls, 
   MiniMap,
   MarkerType,
-  Position
+  Position,
+  NodeProps,
+  Handle
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useMemo, useState } from 'react'
 import DeliverableVersions from '../components/VersionManager'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
+
+// Custom Node Component for Dependency Graph
+function DependencyNode({ data }: NodeProps) {
+  const { name, platform, platformLabel, slaLevel, isCurrent, type } = data
+  const slaColor = getSLAColor(slaLevel)
+  const platformColor = getPlatformColor(platform)
+  
+  return (
+    <div 
+      className={`
+        ${isCurrent ? 'min-w-[160px] min-h-[100px]' : 'min-w-[140px] min-h-[85px]'}
+        bg-white dark:bg-gray-800 
+        border-2 rounded-lg shadow-lg
+        transition-all duration-200 hover:shadow-xl
+        ${isCurrent ? 'ring-2 ring-offset-2 ring-indigo-500' : ''}
+      `}
+      style={{ 
+        borderColor: slaColor,
+        borderTopWidth: '4px',
+        borderTopColor: platformColor
+      }}
+    >
+      {/* Connection Handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ 
+          background: '#6366f1',
+          width: 8,
+          height: 8,
+          border: '2px solid white'
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ 
+          background: '#10b981',
+          width: 8,
+          height: 8,
+          border: '2px solid white'
+        }}
+      />
+      
+      <div className="p-3 flex flex-col items-center justify-center h-full">
+        {/* Platform Icon */}
+        <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-full" 
+             style={{ backgroundColor: `${platformColor}20` }}>
+          {getPlatformIconComponent(platform, isCurrent ? 'w-6 h-6' : 'w-5 h-5')}
+        </div>
+        
+        {/* Service Name */}
+        <div className={`${isCurrent ? 'text-sm' : 'text-xs'} font-bold text-gray-900 dark:text-gray-100 text-center mb-1 truncate max-w-full px-1`}>
+          {name}
+        </div>
+        
+        {/* Platform Label */}
+        {platformLabel && (
+          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center truncate max-w-full px-1">
+            {platformLabel}
+          </div>
+        )}
+        
+        {/* SLA Badge */}
+        {slaLevel && (
+          <div className="mt-2 flex items-center">
+            <div 
+              className="w-2 h-2 rounded-full mr-1" 
+              style={{ backgroundColor: slaColor }}
+            />
+            <span className="text-[9px] font-medium" style={{ color: slaColor }}>
+              {getSLALabel(slaLevel)}
+            </span>
+          </div>
+        )}
+        
+        {/* Type Badge for Current Service */}
+        {isCurrent && (
+          <div className="mt-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[9px] font-medium rounded-full">
+            Current
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Helper function to get platform icon as React component
+function getPlatformIconComponent(platform?: Platform, className: string = 'w-5 h-5') {
+  const iconColor = getPlatformColor(platform)
+  
+  switch (platform) {
+    case Platform.KUBERNETES:
+      return (
+        <div style={{ color: iconColor }}>
+          <KubernetesIcon className={className} />
+        </div>
+      )
+    case Platform.LAMBDA:
+      return <Zap className={className} style={{ color: iconColor }} />
+    case Platform.EC2:
+      return <Server className={className} style={{ color: iconColor }} />
+    case Platform.ECS:
+    case Platform.FARGATE:
+      return <FontAwesomeIcon icon={faDocker} className={className} style={{ color: iconColor }} />
+    case Platform.RDS:
+    case Platform.DYNAMODB:
+      return <Activity className={className} style={{ color: iconColor }} />
+    case Platform.S3:
+      return <Package className={className} style={{ color: iconColor }} />
+    case Platform.API_GATEWAY:
+      return <GitBranch className={className} style={{ color: iconColor }} />
+    default:
+      return <Server className={className} style={{ color: iconColor }} />
+  }
+}
 
 export default function CatalogDetail() {
   const { serviceName } = useParams<{ serviceName: string }>()
@@ -146,40 +269,18 @@ export default function CatalogDetail() {
     const catalogMap = new Map(allCatalogs.catalogs.map(c => [c.name, c]))
 
     // Center node (current service)
-    const currentPlatformColor = service.platform ? getPlatformColor(service.platform) : '#667eea'
-    const currentPlatformIcon = service.platform ? getPlatformIcon(service.platform) : '📦'
-    
     nodes.push({
       id: service.name,
+      type: 'dependencyNode',
       data: { 
-        label: (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', marginBottom: '4px' }}>{currentPlatformIcon}</div>
-            <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{service.name}</div>
-            {service.platform && (
-              <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>
-                {getPlatformLabel(service.platform)}
-              </div>
-            )}
-          </div>
-        ),
-        sla: service.sla?.level,
-        isCurrent: true
+        name: service.name,
+        platform: service.platform,
+        platformLabel: service.platform ? getPlatformLabel(service.platform) : undefined,
+        slaLevel: service.sla?.level,
+        isCurrent: true,
+        type: 'current'
       },
       position: { x: 400, y: 300 },
-      type: 'default',
-      style: {
-        background: `linear-gradient(135deg, ${currentPlatformColor} 0%, ${currentPlatformColor}dd 100%)`,
-        color: 'white',
-        border: '3px solid #fff',
-        borderRadius: '12px',
-        padding: '16px',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        boxShadow: `0 0 30px ${currentPlatformColor}60, 0 0 60px ${currentPlatformColor}40`,
-        minWidth: '120px',
-        minHeight: '80px',
-      },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
     })
@@ -187,40 +288,19 @@ export default function CatalogDetail() {
     // Dependencies In (upstream - services we depend on)
     service.dependenciesIn?.forEach((depName, index) => {
       const dep = catalogMap.get(depName)
-      const slaColor = dep?.sla ? getSLABorderColor(dep.sla.level) : '#94a3b8'
-      const platformColor = dep?.platform ? getPlatformColor(dep.platform) : '#3b82f6'
-      const platformIcon = dep?.platform ? getPlatformIcon(dep.platform) : '📦'
       
       nodes.push({
         id: depName,
+        type: 'dependencyNode',
         data: { 
-          label: (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '16px', marginBottom: '2px' }}>{platformIcon}</div>
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{depName}</div>
-              {dep?.platform && (
-                <div style={{ fontSize: '8px', opacity: 0.8, marginTop: '1px' }}>
-                  {getPlatformLabel(dep.platform)}
-                </div>
-              )}
-            </div>
-          ),
-          sla: dep?.sla?.level,
+          name: depName,
+          platform: dep?.platform,
+          platformLabel: dep?.platform ? getPlatformLabel(dep.platform) : undefined,
+          slaLevel: dep?.sla?.level,
+          isCurrent: false,
           type: 'upstream'
         },
         position: { x: 50, y: 100 + index * 120 },
-        type: 'default',
-        style: {
-          background: `linear-gradient(135deg, ${platformColor} 0%, ${platformColor}dd 100%)`,
-          color: 'white',
-          border: `2px solid ${slaColor}`,
-          borderRadius: '8px',
-          padding: '12px',
-          fontSize: '12px',
-          boxShadow: `0 0 20px ${platformColor}40`,
-          minWidth: '100px',
-          minHeight: '70px',
-        },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       })
@@ -231,51 +311,33 @@ export default function CatalogDetail() {
         target: service.name,
         type: 'smoothstep',
         animated: true,
-        style: { stroke: '#64748b', strokeWidth: 2 },
+        style: { stroke: '#6366f1', strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#64748b',
+          color: '#6366f1',
         },
+        label: 'depends on',
+        labelStyle: { fontSize: 10, fill: '#6b7280' },
+        labelBgStyle: { fill: '#f9fafb', fillOpacity: 0.9 },
       })
     })
 
     // Dependencies Out (downstream - services that depend on us)
     service.dependenciesOut?.forEach((depName, index) => {
       const dep = catalogMap.get(depName)
-      const slaColor = dep?.sla ? getSLABorderColor(dep.sla.level) : '#94a3b8'
-      const platformColor = dep?.platform ? getPlatformColor(dep.platform) : '#10b981'
-      const platformIcon = dep?.platform ? getPlatformIcon(dep.platform) : '📦'
       
       nodes.push({
         id: depName,
+        type: 'dependencyNode',
         data: { 
-          label: (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '16px', marginBottom: '2px' }}>{platformIcon}</div>
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{depName}</div>
-              {dep?.platform && (
-                <div style={{ fontSize: '8px', opacity: 0.8, marginTop: '1px' }}>
-                  {getPlatformLabel(dep.platform)}
-                </div>
-              )}
-            </div>
-          ),
-          sla: dep?.sla?.level,
+          name: depName,
+          platform: dep?.platform,
+          platformLabel: dep?.platform ? getPlatformLabel(dep.platform) : undefined,
+          slaLevel: dep?.sla?.level,
+          isCurrent: false,
           type: 'downstream'
         },
         position: { x: 750, y: 100 + index * 120 },
-        type: 'default',
-        style: {
-          background: `linear-gradient(135deg, ${platformColor} 0%, ${platformColor}dd 100%)`,
-          color: 'white',
-          border: `2px solid ${slaColor}`,
-          borderRadius: '8px',
-          padding: '12px',
-          fontSize: '12px',
-          boxShadow: `0 0 20px ${platformColor}40`,
-          minWidth: '100px',
-          minHeight: '70px',
-        },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       })
@@ -286,16 +348,24 @@ export default function CatalogDetail() {
         target: depName,
         type: 'smoothstep',
         animated: true,
-        style: { stroke: '#64748b', strokeWidth: 2 },
+        style: { stroke: '#10b981', strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#64748b',
+          color: '#10b981',
         },
+        label: 'used by',
+        labelStyle: { fontSize: 10, fill: '#6b7280' },
+        labelBgStyle: { fill: '#f9fafb', fillOpacity: 0.9 },
       })
     })
 
     return { nodes, edges }
   }, [service, allCatalogs])
+
+  // Define custom node types
+  const nodeTypes = useMemo(() => ({
+    dependencyNode: DependencyNode
+  }), [])
 
   if (!service) {
     return (
@@ -309,7 +379,7 @@ export default function CatalogDetail() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -352,7 +422,7 @@ export default function CatalogDetail() {
       </div>
 
       {/* Service Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-1.5">
         {/* SLA Card */}
         <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
              style={{
@@ -437,44 +507,68 @@ export default function CatalogDetail() {
       </div>
 
       {/* Dependency Graph */}
-      <div className="card p-0 overflow-hidden" style={{ height: '600px' }}>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" style={{ height: '600px' }}>
         <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Dependency Graph
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+            <GitBranch className="w-5 h-5" />
+            <span>Dependency Graph</span>
           </h3>
-          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-            <div className="flex items-center">
-              <span className="inline-block w-3 h-3 bg-blue-500 rounded mr-2"></span>
-              Upstream (we depend on)
+          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#6366f1' }}></div>
+              <span>Upstream (we depend on)</span>
             </div>
-            <div className="flex items-center">
-              <span className="inline-block w-3 h-3 bg-green-500 rounded mr-2"></span>
-              Downstream (depends on us)
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#10b981' }}></div>
+              <span>Downstream (depends on us)</span>
             </div>
-            <div className="flex items-center">
-              <span className="text-base mr-1">🖥️⚡☸️</span>
-              Platform icons show deployment type
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#ef4444' }}></div>
+              <span>Critical SLA</span>
             </div>
-            <div className="flex items-center">
-              <span className="inline-block w-3 h-3 border-2 border-red-500 rounded mr-2"></span>
-              Border color indicates SLA level
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#f97316' }}></div>
+              <span>High SLA</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#eab308' }}></div>
+              <span>Medium SLA</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#22c55e' }}></div>
+              <span>Low SLA</span>
             </div>
           </div>
         </div>
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-left"
+          minZoom={0.5}
+          maxZoom={1.5}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            animated: true,
+          }}
         >
-          <Background />
+          <Background color="#e5e7eb" gap={16} />
           <Controls />
-          <MiniMap />
+          <MiniMap 
+            nodeColor={(node) => {
+              if (node.data.isCurrent) return '#6366f1'
+              if (node.data.type === 'upstream') return '#3b82f6'
+              if (node.data.type === 'downstream') return '#10b981'
+              return '#94a3b8'
+            }}
+            maskColor="rgba(0, 0, 0, 0.1)"
+          />
         </ReactFlow>
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5">
         {/* Service Information - Left Column (2/3 width) */}
         <div className="lg:col-span-2">
           <div className="card">
@@ -506,7 +600,11 @@ export default function CatalogDetail() {
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Deployment Platform</dt>
                   <dd>
                     <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                      <Server className="w-4 h-4 mr-2" />
+                      {service.platform === Platform.KUBERNETES ? (
+                        <KubernetesIcon className="w-4 h-4 mr-2" />
+                      ) : (
+                        <Server className="w-4 h-4 mr-2" />
+                      )}
                       {getPlatformLabel(service.platform)}
                     </span>
                   </dd>
@@ -598,7 +696,7 @@ export default function CatalogDetail() {
         </div>
 
         {/* SLA & Vulnerability - Right Column (1/3 width) */}
-        <div className="space-y-6">
+        <div className="space-y-1.5">
           {/* SLA Details */}
           {service.sla ? (
             <div className="card">
@@ -623,7 +721,7 @@ export default function CatalogDetail() {
                 
                 {/* SLA Metrics Grid - Only show if there are metrics */}
                 {(service.sla.uptimePercentage || service.sla.responseTimeMs) && (
-                  <div className="grid grid-cols-1 gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <div className="grid grid-cols-1 gap-1.5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                     {service.sla.uptimePercentage && (
                       <div className="text-center">
                         <div className="text-xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
@@ -706,7 +804,7 @@ export default function CatalogDetail() {
         service.type === CatalogType.CHART || 
         service.type === CatalogType.CONTAINER || 
         service.type === CatalogType.MODULE) && (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-1.5">
           <DeliverableVersions
             serviceName={service.name}
             serviceType={service.type as 'package' | 'chart' | 'container' | 'module'}
@@ -720,7 +818,7 @@ export default function CatalogDetail() {
 
       {/* Used Deliverables Management for Projects */}
       {service.type === CatalogType.PROJECT && (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-1.5">
           <UsedDeliverablesManager
             usedDeliverables={service.usedDeliverables || []}
             onUpdate={handleUpdateUsedDeliverables}
@@ -739,7 +837,7 @@ export default function CatalogDetail() {
       )}
 
       {/* Dependencies Lists */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
         {/* Upstream Dependencies */}
         {service.dependenciesIn && service.dependenciesIn.length > 0 && (
           <div className="card">
@@ -930,9 +1028,9 @@ function getLanguageIcon(lang: Language | string) {
     case 'golang':
       return <FontAwesomeIcon icon={faGolang} className="w-4 h-4" style={{ color: '#00add8' }} />
     case 'kotlin':
-      return <FontAwesomeIcon icon={faJava} className="w-4 h-4" style={{ color: '#7f52ff' }} />
+      return <KotlinIcon className="w-4 h-4" />
     case 'terraform':
-      return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-purple-700" />
+      return <TerraformIcon className="w-4 h-4" />
     case 'helm':
       return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-blue-700" />
     case 'yaml':
@@ -1142,7 +1240,7 @@ function getPlatformIcon(platform?: Platform): string {
 function getCommunicationChannelIcon(type?: CommunicationType) {
   switch (type) {
     case CommunicationType.SLACK:
-      return <FontAwesomeIcon icon={faSlack} className="w-4 h-4" />
+      return <SlackIcon className="w-4 h-4" />
     case CommunicationType.TEAMS:
       return <FontAwesomeIcon icon={faMicrosoft} className="w-4 h-4" />
     case CommunicationType.EMAIL:
@@ -1247,6 +1345,7 @@ function getCommunicationChannelLabel(type?: CommunicationType): string {
 function getDashboardIcon(type?: import('../types/api').DashboardType) {
   switch (type) {
     case 'grafana':
+      return <GrafanaIcon className="w-4 h-4" />
     case 'prometheus':
     case 'kibana':
       return <Activity className="w-4 h-4" />
