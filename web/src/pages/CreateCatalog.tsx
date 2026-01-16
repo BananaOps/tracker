@@ -3,7 +3,10 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable, type CommunicationChannel, type DashboardLink, type VulnerabilitySummary } from '../types/api'
-import { ArrowLeft, Save, Package, X } from 'lucide-react'
+import { Package, X, Table } from 'lucide-react'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
 import DependencySelector from '../components/DependencySelector'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import CommunicationChannelsManager from '../components/CommunicationChannelsManager'
@@ -55,8 +58,8 @@ export default function CreateCatalog() {
   const availableServices = useMemo(() => {
     if (!allCatalogs) return []
     return allCatalogs.catalogs
-      .map(c => c.name)
-      .filter(n => n !== formData.name)
+      .map((c: Catalog) => c.name)
+      .filter((n: string) => n !== formData.name)
       .sort()
   }, [allCatalogs, formData.name])
 
@@ -173,69 +176,75 @@ export default function CreateCatalog() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => navigate('/catalog')}
-          className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-4xl mx-auto pt-12">
+      <div className="flex items-center space-x-3">
+        <Table className="w-8 h-8 text-indigo-600" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             {isEditing ? 'Edit Service' : 'Add to Catalog'}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {isEditing ? `Editing ${name}` : 'Create a new service in the catalog'}
           </p>
         </div>
       </div>
 
-      <div className="card">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+          <Table className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-indigo-900 dark:text-indigo-100 mb-1">What is the catalog?</h3>
+            <p className="text-sm text-indigo-800 dark:text-indigo-200">
+              The catalog is a centralized registry of all services, libraries, modules, and infrastructure components in your organization. It helps track dependencies, versions, SLAs, and ownership.
+            </p>
+          </div>
+        </div>
+
+        <Card>
           {/* Basic Information */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-              Basic Information
-            </h2>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Essential details about the service</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
 
             {/* Service Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Service Name *
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Service Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
+                <Input
                   type="text"
                   id="name"
                   required
                   disabled={isEditing}
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                  className="pl-10"
                   placeholder="e.g., auth-service, payment-api, user-dashboard"
                 />
               </div>
               {isEditing && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Service name cannot be changed
                 </p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Type */}
-              <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Type *
+              <div className="space-y-2">
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="type"
                   required
                   value={formData.type}
                   onChange={(e) => handleChange('type', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value={CatalogType.MODULE}>Module</option>
                   <option value={CatalogType.LIBRARY}>Library</option>
@@ -248,16 +257,16 @@ export default function CreateCatalog() {
               </div>
 
               {/* Language */}
-              <div>
-                <label htmlFor="languages" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Primary Language *
+              <div className="space-y-2">
+                <label htmlFor="languages" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Primary Language <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="languages"
                   required
                   value={formData.languages}
                   onChange={(e) => handleChange('languages', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value={Language.GOLANG}>Go</option>
                   <option value={Language.KOTLIN}>Kotlin</option>
@@ -328,40 +337,38 @@ export default function CreateCatalog() {
               )}
 
               {/* Owner */}
-              <div>
-                <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Owner *
+              <div className="space-y-2">
+                <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Owner <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   id="owner"
                   required
                   value={formData.owner}
                   onChange={(e) => handleChange('owner', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="e.g., team-backend, john.doe, platform-team"
                 />
               </div>
 
               {/* Version */}
-              <div>
-                <label htmlFor="version" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Version *
+              <div className="space-y-2">
+                <label htmlFor="version" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Version <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   id="version"
                   value={formData.version}
                   onChange={(e) => handleChange('version', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="e.g., v1.2.3, 2.0.0, latest"
                 />
               </div>
             </div>
 
             {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
               <textarea
@@ -369,51 +376,51 @@ export default function CreateCatalog() {
                 rows={3}
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
                 placeholder="Service description, role, and features..."
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Repository */}
-              <div>
-                <label htmlFor="repository" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="space-y-2">
+                <label htmlFor="repository" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Repository
                 </label>
-                <input
+                <Input
                   type="url"
                   id="repository"
                   value={formData.repository}
                   onChange={(e) => handleChange('repository', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="https://github.com/org/repo"
                 />
               </div>
 
               {/* Documentation */}
-              <div>
-                <label htmlFor="link" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="space-y-2">
+                <label htmlFor="link" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Documentation
                 </label>
-                <input
+                <Input
                   type="url"
                   id="link"
                   value={formData.link}
                   onChange={(e) => handleChange('link', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="https://docs.example.com/service"
                 />
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
           {/* Dependencies */}
-          <div className="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Dependencies
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dependencies</CardTitle>
+              <CardDescription>Manage service dependencies</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Upstream Dependencies (In) */}
               <div>
                 <DependencySelector
@@ -482,7 +489,8 @@ export default function CreateCatalog() {
                 </div>
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
           {/* Used Deliverables Section - Only for Projects */}
           {formData.type === CatalogType.PROJECT && (
@@ -498,8 +506,8 @@ export default function CreateCatalog() {
                   usedDeliverables={formData.usedDeliverables || []}
                   onUpdate={handleUpdateUsedDeliverables}
                   availableDeliverables={allCatalogs?.catalogs
-                    .filter(c => [CatalogType.PACKAGE, CatalogType.CHART, CatalogType.CONTAINER, CatalogType.MODULE, CatalogType.LIBRARY].includes(c.type))
-                    .map(c => ({ 
+                    .filter((c: Catalog) => [CatalogType.PACKAGE, CatalogType.CHART, CatalogType.CONTAINER, CatalogType.MODULE, CatalogType.LIBRARY].includes(c.type))
+                    .map((c: Catalog) => ({ 
                       name: c.name, 
                       type: c.type, 
                       availableVersions: c.availableVersions || [],
@@ -635,30 +643,26 @@ export default function CreateCatalog() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
+          <div className="flex items-center justify-end space-x-3">
+            <Button
               type="button"
               onClick={() => navigate('/catalog')}
-              className="btn-secondary"
+              variant="outline"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={createUpdateMutation.isPending || !formData.name || !formData.owner}
-              className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4" />
-              <span>
-                {createUpdateMutation.isPending 
-                  ? (isEditing ? 'Updating...' : 'Creating...') 
-                  : (isEditing ? 'Update' : 'Create')
-                }
-              </span>
-            </button>
+              <Package className="w-4 h-4 mr-2" />
+              {createUpdateMutation.isPending 
+                ? (isEditing ? 'Updating...' : 'Creating...') 
+                : (isEditing ? 'Update' : 'Create')
+              }
+            </Button>
           </div>
         </form>
-      </div>
     </div>
   )
 }
