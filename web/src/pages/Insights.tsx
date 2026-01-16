@@ -4,9 +4,11 @@ import { eventsApi } from '../lib/api'
 import { EventType, Environment, Event } from '../types/api'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { Calendar, Filter, TrendingUp, Activity, AlertTriangle, Zap, GitBranch, X, Clock, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns'
+import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO, addDays } from 'date-fns'
 import ProjectStatsCard from '../components/ProjectStatsCard'
 import Combobox from '../components/Combobox'
+import { Input } from '../components/ui/input'
+import { Button } from '../components/ui/button'
 
 interface InsightFilters {
   environment: Environment | 'all'
@@ -73,10 +75,36 @@ export default function Insights() {
   })
 
   const [selectedDays, setSelectedDays] = useState<number>(30)
+  const [customStartDate, setCustomStartDate] = useState<string>('')
+  const [customEndDate, setCustomEndDate] = useState<string>('')
+  const [isCustomPeriod, setIsCustomPeriod] = useState<boolean>(false)
 
-  // Calculate start date based on selected days
-  const startDate = useMemo(() => format(subDays(new Date(), selectedDays), 'yyyy-MM-dd'), [selectedDays])
-  const endDate = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
+  // Calculate start date based on selected days or custom dates
+  const startDate = useMemo(() => {
+    if (isCustomPeriod && customStartDate) {
+      return customStartDate
+    }
+    return format(subDays(new Date(), selectedDays), 'yyyy-MM-dd')
+  }, [selectedDays, isCustomPeriod, customStartDate])
+
+  const endDate = useMemo(() => {
+    if (isCustomPeriod && customEndDate) {
+      return customEndDate
+    }
+    return format(new Date(), 'yyyy-MM-dd')
+  }, [isCustomPeriod, customEndDate])
+
+  const handlePeriodChange = (days: number) => {
+    if (days === -1) {
+      // Custom period
+      setIsCustomPeriod(true)
+      setCustomStartDate(format(new Date(), 'yyyy-MM-dd'))
+      setCustomEndDate(format(addDays(new Date(), 7), 'yyyy-MM-dd'))
+    } else {
+      setIsCustomPeriod(false)
+      setSelectedDays(days)
+    }
+  }
 
   // Fetch events from the last 30 days
   const { data: eventsData, isLoading } = useQuery({
@@ -315,95 +343,114 @@ export default function Insights() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Insights</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
-            <Calendar className="w-4 h-4 mr-1" />
-            Data from the last {selectedDays} days ({format(subDays(new Date(), selectedDays - 1), 'dd/MM')} - {format(new Date(), 'dd/MM')})
-          </p>
-        </div>
-        
-        {/* Period Selection Buttons */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Period:</span>
-          <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-1">
-            <button
-              onClick={() => setSelectedDays(30)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                selectedDays === 30
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              30 days
-            </button>
-            <button
-              onClick={() => setSelectedDays(60)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                selectedDays === 60
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              60 days
-            </button>
-            <button
-              onClick={() => setSelectedDays(90)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                selectedDays === 90
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              90 days
-            </button>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Insights</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1">
+          <Calendar className="w-4 h-4 mr-1" />
+          {isCustomPeriod 
+            ? `Custom period: ${format(new Date(startDate), 'dd/MM/yyyy')} - ${format(new Date(endDate), 'dd/MM/yyyy')}`
+            : `Data from the last ${selectedDays} days (${format(subDays(new Date(), selectedDays - 1), 'dd/MM')} - ${format(new Date(), 'dd/MM')})`
+          }
+        </p>
       </div>
 
       {/* Filters */}
       <div className="card">
-        <div className="flex items-center gap-6">
-          <Filter className="w-5 h-5 text-gray-400 flex-shrink-0" />
-          <div className="flex items-center gap-4 flex-1">
-            <Combobox
-              label="Environment"
-              value={filters.environment}
-              onChange={(value) => setFilters(prev => ({ ...prev, environment: value as Environment | 'all' }))}
-              options={[
-                { value: 'all', label: 'All environments' },
-                { value: Environment.DEVELOPMENT, label: 'Development' },
-                { value: Environment.INTEGRATION, label: 'Integration' },
-                { value: Environment.TNR, label: 'TNR' },
-                { value: Environment.UAT, label: 'UAT' },
-                { value: Environment.RECETTE, label: 'Recette' },
-                { value: Environment.PREPRODUCTION, label: 'Preproduction' },
-                { value: Environment.PRODUCTION, label: 'Production' },
-                { value: Environment.MCO, label: 'MCO' },
-              ]}
-              placeholder="Select environment..."
-              className="w-64"
-            />
-            <Combobox
-              label="Service"
-              value={filters.service}
-              onChange={(value) => setFilters(prev => ({ ...prev, service: value }))}
-              options={[
-                { value: 'all', label: 'All services' },
-                ...uniqueServices.map(service => ({ value: service, label: service }))
-              ]}
-              placeholder="Select service..."
-              className="w-64"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-6">
+            <Filter className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <div className="flex items-center gap-4 flex-1 flex-wrap">
+              <Combobox
+                label="Environment"
+                value={filters.environment}
+                onChange={(value) => setFilters(prev => ({ ...prev, environment: value as Environment | 'all' }))}
+                options={[
+                  { value: 'all', label: 'All environments' },
+                  { value: Environment.DEVELOPMENT, label: 'Development' },
+                  { value: Environment.INTEGRATION, label: 'Integration' },
+                  { value: Environment.TNR, label: 'TNR' },
+                  { value: Environment.UAT, label: 'UAT' },
+                  { value: Environment.RECETTE, label: 'Recette' },
+                  { value: Environment.PREPRODUCTION, label: 'Preproduction' },
+                  { value: Environment.PRODUCTION, label: 'Production' },
+                  { value: Environment.MCO, label: 'MCO' },
+                ]}
+                placeholder="Select environment..."
+                className="w-64"
+              />
+              <Combobox
+                label="Service"
+                value={filters.service}
+                onChange={(value) => setFilters(prev => ({ ...prev, service: value }))}
+                options={[
+                  { value: 'all', label: 'All services' },
+                  ...uniqueServices.map(service => ({ value: service, label: service }))
+                ]}
+                placeholder="Select service..."
+                className="w-64"
+              />
+              
+              {/* Period Selection */}
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Period</label>
+                <select
+                  value={isCustomPeriod ? -1 : selectedDays}
+                  onChange={(e) => handlePeriodChange(Number(e.target.value))}
+                  className="w-[140px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value={7}>7 days</option>
+                  <option value={14}>14 days</option>
+                  <option value={30}>30 days</option>
+                  <option value={60}>60 days</option>
+                  <option value={90}>90 days</option>
+                  <option value={-1}>Custom</option>
+                </select>
+              </div>
+            </div>
           </div>
+
+          {/* Custom Date Inputs */}
+          {isCustomPeriod && (
+            <div className="pl-11 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date:</label>
+                  <Input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="w-[160px]"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date:</label>
+                  <Input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="w-[160px]"
+                  />
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setIsCustomPeriod(false)
+                    setSelectedDays(30)
+                  }}
+                >
+                  Cancel Custom
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Global Metrics by Type */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1.5">
         {/* Deployments Card */}
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>

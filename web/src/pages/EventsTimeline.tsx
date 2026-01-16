@@ -1,21 +1,51 @@
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
-import { format, subDays, isAfter, addDays, startOfDay, endOfDay } from 'date-fns'
+import { format, subDays, addDays, startOfDay, endOfDay, subHours, subMinutes, startOfHour } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import type { Event } from '../types/api'
-import { Filter, X, Plus, ArrowUp, ArrowDown, Calendar, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react'
+import { 
+  Filter, X, Plus, ArrowUp, ArrowDown, Calendar, ChevronLeft, 
+  ChevronRight, CheckCircle, Search, SlidersHorizontal, Clock 
+} from 'lucide-react'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor, isEventApproved } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { useState, useMemo } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+
+type TimeRange = {
+  label: string
+  getValue: () => { start: Date; end: Date }
+}
+
+const timeRanges: TimeRange[] = [
+  { label: 'Last 24 hours', getValue: () => ({ start: subHours(new Date(), 24), end: new Date() }) },
+  { label: 'Last 2 days', getValue: () => ({ start: subDays(new Date(), 2), end: new Date() }) },
+  { label: 'Last 7 days', getValue: () => ({ start: subDays(new Date(), 7), end: new Date() }) },
+  { label: 'Last 14 days', getValue: () => ({ start: subDays(new Date(), 14), end: new Date() }) },
+  { label: 'Last 30 days', getValue: () => ({ start: subDays(new Date(), 30), end: new Date() }) },
+  { label: 'Last 60 days', getValue: () => ({ start: subDays(new Date(), 60), end: new Date() }) },
+  { label: 'Last 90 days', getValue: () => ({ start: subDays(new Date(), 90), end: new Date() }) },
+]
 
 export default function EventsTimeline() {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date())
-  const [selectedDays, setSelectedDays] = useState<number>(7)
-  const [showFilters, setShowFilters] = useState(false)
+  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
+  const [endDate, setEndDate] = useState<Date>(new Date())
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('Last 7 days')
+  const [showSidebar, setShowSidebar] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('')
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
   
   // États des filtres
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
@@ -37,108 +67,124 @@ export default function EventsTimeline() {
   const allEvents = data?.events || []
   const catalogs = catalogData?.catalogs || []
 
-  // Extraire les services du catalogue
   const catalogServices = useMemo(() => {
     return catalogs.map(c => c.name).sort()
   }, [catalogs])
 
+  const filteredCatalogServices = useMemo(() => {
+    if (!serviceSearchQuery.trim()) return catalogServices
+    const query = serviceSearchQuery.toLowerCase()
+    return catalogServices.filter(service => service.toLowerCase().includes(query))
+  }, [catalogServices, serviceSearchQuery])
+
   const uniqueEnvironments = useMemo(() => {
-    return Array.from(new Set(allEvents.map(e => e.attributes.environment).filter(Boolean))).sort()
+    const invalidValues = ['environment', 'unspecified', 'unknown', '']
+    return Array.from(
+      new Set(
+        allEvents
+          .map(e => e.attributes.environment)
+          .filter(env => env && !invalidValues.includes(env.toLowerCase().trim()))
+      )
+    ).sort()
   }, [allEvents])
 
   const uniqueTypes = useMemo(() => {
-    return Array.from(new Set(allEvents.map(e => e.attributes.type))).sort()
+    const invalidValues = ['event', 'unspecified', 'unknown', '']
+    return Array.from(
+      new Set(
+        allEvents
+          .map(e => e.attributes.type)
+          .filter(type => type && !invalidValues.includes(type.toLowerCase().trim()))
+      )
+    ).sort()
   }, [allEvents])
 
   const uniquePriorities = useMemo(() => {
-    return Array.from(new Set(allEvents.map(e => e.attributes.priority))).sort()
+    const invalidValues = ['priority', 'unspecified', 'unknown', '']
+    return Array.from(
+      new Set(
+        allEvents
+          .map(e => e.attributes.priority)
+          .filter(priority => priority && !invalidValues.includes(priority.toLowerCase().trim()))
+      )
+    ).sort()
   }, [allEvents])
 
   const uniqueStatuses = useMemo(() => {
-    return Array.from(new Set(allEvents.map(e => e.attributes.status))).sort()
+    const invalidValues = ['status', 'unspecified', 'unknown', '']
+    return Array.from(
+      new Set(
+        allEvents
+          .map(e => e.attributes.status)
+          .filter(status => status && !invalidValues.includes(status.toLowerCase().trim()))
+      )
+    ).sort()
   }, [allEvents])
 
-  // Calculer la période d'analyse
-  const startDate = startOfDay(subDays(currentDate, selectedDays - 1))
-  const endDate = endOfDay(currentDate)
-
-  // Navigation temporelle
-  const goToPreviousPeriod = () => {
-    setCurrentDate(subDays(currentDate, selectedDays))
+  const handleTimeRangeSelect = (range: TimeRange) => {
+    const { start, end } = range.getValue()
+    setStartDate(start)
+    setEndDate(end)
+    setSelectedTimeRange(range.label)
   }
 
-  const goToNextPeriod = () => {
-    setCurrentDate(addDays(currentDate, selectedDays))
-  }
-
-  const goToToday = () => {
-    setCurrentDate(new Date())
-  }
-
-  const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
-
-  // Filter events
-  const events = useMemo(() => {
-    const hasActiveFilters = selectedEnvironments.length > 0 || selectedTypes.length > 0 || 
-      selectedPriorities.length > 0 || selectedStatuses.length > 0 || selectedServices.length > 0
-
-    if (hasActiveFilters) {
-      console.log('🔍 Filtrage actif:', {
-        environments: selectedEnvironments,
-        types: selectedTypes,
-        priorities: selectedPriorities,
-        statuses: selectedStatuses,
-        services: selectedServices,
-      })
+  const handleCustomDateApply = () => {
+    if (customStartDate && customEndDate) {
+      // Créer les dates et forcer l'heure à minuit pour le début et 23:59:59 pour la fin
+      const start = startOfDay(new Date(customStartDate))
+      const end = endOfDay(new Date(customEndDate))
+      setStartDate(start)
+      setEndDate(end)
+      setSelectedTimeRange('Custom range')
     }
+  }
 
+  const events = useMemo(() => {
     const filtered = allEvents.filter(event => {
-      // Filtre par période
       if (!event.metadata?.createdAt) return false
       const eventDate = new Date(event.metadata.createdAt)
       if (eventDate < startDate || eventDate > endDate) return false
 
-      // Filter by environment
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesTitle = event.title.toLowerCase().includes(query)
+        const matchesService = event.attributes.service.toLowerCase().includes(query)
+        const matchesMessage = event.attributes.message?.toLowerCase().includes(query)
+        if (!matchesTitle && !matchesService && !matchesMessage) return false
+      }
+
       if (selectedEnvironments.length > 0) {
         const eventEnv = String(event.attributes.environment || '').toLowerCase()
         const hasMatch = selectedEnvironments.some(env => env.toLowerCase() === eventEnv)
         if (!hasMatch) return false
       }
 
-      // Filtre par type
       if (selectedTypes.length > 0) {
         const eventType = String(event.attributes.type || '').toLowerCase()
         const hasMatch = selectedTypes.some(type => type.toLowerCase() === eventType)
         if (!hasMatch) return false
       }
 
-      // Filter by priority
       if (selectedPriorities.length > 0) {
         const eventPriority = String(event.attributes.priority || '').toLowerCase()
         const hasMatch = selectedPriorities.some(priority => priority.toLowerCase() === eventPriority)
         if (!hasMatch) return false
       }
 
-      // Filtre par status
       if (selectedStatuses.length > 0) {
         const eventStatus = String(event.attributes.status || '').toLowerCase()
         const hasMatch = selectedStatuses.some(status => status.toLowerCase() === eventStatus)
         if (!hasMatch) return false
       }
 
-      // Filtre par service
       if (selectedServices.length > 0) {
         if (!selectedServices.includes(event.attributes.service)) return false
       }
 
       return true
     })
-
-    if (hasActiveFilters) {
-      console.log('✅ Result:', filtered.length, '/', allEvents.length, 'events')
-    }
     
-    // Sort events by date
     const sorted = [...filtered].sort((a, b) => {
       const dateA = a.metadata?.createdAt ? new Date(a.metadata.createdAt).getTime() : 0
       const dateB = b.metadata?.createdAt ? new Date(b.metadata.createdAt).getTime() : 0
@@ -146,19 +192,13 @@ export default function EventsTimeline() {
     })
     
     return sorted
-  }, [allEvents, startDate, endDate, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
+  }, [allEvents, startDate, endDate, searchQuery, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
 
-  // Fonctions pour gérer les filtres
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
-    console.log('🔄 Toggle filter:', value, 'currently selected:', selected)
     if (selected.includes(value)) {
-      const newSelected = selected.filter(v => v !== value)
-      console.log('➖ Removing:', value, '→', newSelected)
-      setter(newSelected)
+      setter(selected.filter(v => v !== value))
     } else {
-      const newSelected = [...selected, value]
-      console.log('➕ Adding:', value, '→', newSelected)
-      setter(newSelected)
+      setter([...selected, value])
     }
   }
 
@@ -168,353 +208,460 @@ export default function EventsTimeline() {
     setSelectedPriorities([])
     setSelectedStatuses([])
     setSelectedServices([])
+    setSearchQuery('')
   }
 
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
-
-  // Removed unused getStatusIcon function
 
   if (isLoading || catalogLoading) {
     return <div className="text-center py-12">Chargement...</div>
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Events Timeline</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Chronological History ({events.length} event{events.length > 1 ? 's' : ''})
-            {activeFiltersCount > 0 && (
-              <span className="ml-2 text-primary-600 font-medium">
-                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
-              </span>
-            )}
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <Link to="/events/create" className="btn-primary flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Create Event</span>
-          </Link>
-          
-          <button
-            onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-            title={sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
-          >
-            {sortOrder === 'desc' ? (
-              <ArrowDown className="w-4 h-4" />
-            ) : (
-              <ArrowUp className="w-4 h-4" />
-            )}
-            <span className="text-sm">{sortOrder === 'desc' ? 'Newest' : 'Oldest'}</span>
-          </button>
-          
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-              showFilters || activeFiltersCount > 0
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <span className="px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-primary-600 rounded-full font-medium">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Contrôles de navigation temporelle */}
-      <div className="card">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center space-x-3">
-            <button 
-              onClick={goToPreviousPeriod} 
-              className="btn-secondary p-2"
-              title="Previous period"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={goToToday}
-              disabled={isToday}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isToday
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                  : 'btn-secondary'
-              }`}
-              title="Go to today"
-            >
-              Today
-            </button>
-            <button 
-              onClick={goToNextPeriod} 
-              className="btn-secondary p-2"
-              title="Next period"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+    <div className="flex h-screen overflow-hidden">{/* Removed extra padding/borders */}
+      {/* Sidebar Filters - Style Datadog */}
+      {showSidebar && (
+        <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0">
+          {/* Sidebar Header */}
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4" />
+                Filters
+              </h3>
+              {activeFiltersCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
+                  Clear all
+                </Button>
+              )}
+            </div>
+            
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search events..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {format(startDate, 'dd MMM yyyy', { locale: fr })} - {format(endDate, 'dd MMM yyyy', { locale: fr })}
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Period:</label>
-            <select
-              value={selectedDays}
-              onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
-            >
-              <option value={1}>1 day</option>
-              <option value={3}>3 days</option>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-              <option value={60}>60 days</option>
-              <option value={90}>90 days</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {showFilters && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Advanced Filters</h3>
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
-              >
-                <X className="w-4 h-4" />
-                <span>Clear All Filters</span>
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Filtre Type */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Event Type</h4>
-              <div className="space-y-2">
-                {uniqueTypes.map(type => (
-                  <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedTypes.includes(String(type))}
-                      onChange={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEventTypeLabel(type)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filtre Environnement */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</h4>
-              <div className="space-y-2">
-                {uniqueEnvironments.map(env => (
-                  <label key={env} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedEnvironments.includes(String(env))}
-                      onChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{getEnvironmentLabel(env)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filtre Priorité */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</h4>
-              <div className="space-y-2">
-                {uniquePriorities.map(priority => (
-                  <label key={priority} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedPriorities.includes(String(priority))}
-                      onChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{getPriorityLabel(priority)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filtre Status */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h4>
-              <div className="space-y-2">
-                {uniqueStatuses.map(status => (
-                  <label key={status} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedStatuses.includes(String(status))}
-                      onChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{getStatusLabel(status)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filtre Service (depuis le catalogue) */}
-            <div className="md:col-span-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Service (Catalog)
-                {catalogLoading && <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">Loading...</span>}
-              </h4>
-              {catalogServices.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                  {catalogServices.map(service => (
-                    <label key={service} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedServices.includes(service)}
-                        onChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                        className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+          {/* Filters Content */}
+          <ScrollArea className="flex-1 p-3">
+            <div className="space-y-4">
+              {/* Event Type Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
+                  Event Type
+                </h4>
+                <div className="space-y-2">
+                  {uniqueTypes.map(type => (
+                    <label key={type} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedTypes.includes(String(type))}
+                        onCheckedChange={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
                       />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate" title={service}>{service}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getEventTypeLabel(type)}
+                      </span>
                     </label>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services in catalog</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
 
-      <div className="relative">
-        {events.length === 0 ? (
-          <div className="card text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">No events found with selected filters</p>
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-            
-            <div className="space-y-6" key={`timeline-${events.length}-${activeFiltersCount}`}>
-              {events.map((event, index) => {
-                if (index === 0) {
-                  console.log('🎨 Rendering', events.length, 'events in timeline')
-                }
-                const typeColor = getEventTypeColor(event.attributes.type)
-                return (
-              <div key={event.metadata?.id} className="relative flex items-start space-x-4">
-                <div className={`relative z-10 flex items-center justify-center w-16 h-16 bg-white dark:bg-gray-800 border-2 ${typeColor.border} rounded-full`}>
-                  {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
-                </div>
-                
-                <div 
-                  className="flex-1 card cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => setSelectedEvent(event)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center space-x-1 ${typeColor.bg} ${typeColor.text}`}>
-                          {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
-                          <span>{getEventTypeLabel(event.attributes.type)}</span>
-                        </span>
-                        {event.attributes.environment && (
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
-                            {getEnvironmentLabel(event.attributes.environment)}
-                          </span>
-                        )}
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
-                          {getPriorityLabel(event.attributes.priority)}
-                        </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
-                          {getStatusLabel(event.attributes.status)}
-                        </span>
-                        {isEventApproved(event) && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                            <CheckCircle className="w-3 h-3" />
-                            Approved
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words">{event.title}</h3>
-                      </div>
-                      <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
-                        <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 mt-3 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-500 dark:text-gray-400">Service:</span>
-                          <span className="px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded font-mono text-xs font-semibold">
-                            {event.attributes.service}
-                          </span>
-                        </div>
-                        <span className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                          <span>Source:</span>
-                          <SourceIcon source={event.attributes.source} />
-                          <span className="font-medium">{event.attributes.source}</span>
-                        </span>
-                        {event.attributes.owner && (
-                          <span className="text-gray-500 dark:text-gray-400">Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{event.attributes.owner}</span></span>
-                        )}
-                      </div>
+              <Separator />
 
-                      <EventLinks 
-                        links={event.links}
-                        source={event.attributes.source}
-                        slackId={event.metadata?.slackId}
-                        className="mt-3"
+              {/* Environment Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                  Environment
+                </h4>
+                <div className="space-y-2">
+                  {uniqueEnvironments.map(env => (
+                    <label key={env} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedEnvironments.includes(String(env))}
+                        onCheckedChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
                       />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getEnvironmentLabel(env)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Priority Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                  Priority
+                </h4>
+                <div className="space-y-2">
+                  {uniquePriorities.map(priority => (
+                    <label key={priority} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedPriorities.includes(String(priority))}
+                        onCheckedChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getPriorityLabel(priority)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Status Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                  Status
+                </h4>
+                <div className="space-y-2">
+                  {uniqueStatuses.map(status => (
+                    <label key={status} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedStatuses.includes(String(status))}
+                        onCheckedChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getStatusLabel(status)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Service Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+                  Service
+                </h4>
+                {catalogServices.length > 0 ? (
+                  <div className="space-y-3">
+                    {/* Service Search */}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+                      <Input
+                        placeholder="Search services..."
+                        value={serviceSearchQuery}
+                        onChange={(e) => setServiceSearchQuery(e.target.value)}
+                        className="pl-7 h-8 text-xs"
+                      />
+                      {serviceSearchQuery && (
+                        <button
+                          onClick={() => setServiceSearchQuery('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                     
-                    <div className="text-right text-sm text-gray-500 dark:text-gray-400">
-                      {event.metadata?.createdAt && (
-                        <time>
-                          {format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}
-                        </time>
+                    {/* Services List */}
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {filteredCatalogServices.length > 0 ? (
+                        filteredCatalogServices.map(service => (
+                          <label key={service} className="flex items-center space-x-2 cursor-pointer group">
+                            <Checkbox
+                              checked={selectedServices.includes(service)}
+                              onCheckedChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate" title={service}>
+                              {service}
+                            </span>
+                          </label>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">No services found</p>
                       )}
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services</p>
+                )}
               </div>
-            )
-              })}
             </div>
-          </>
-        )}
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="h-9 w-9"
+              >
+                <Filter className="w-4 h-4" />
+              </Button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Events Timeline</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {events.length} event{events.length > 1 ? 's' : ''}
+                  {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''}`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Filters Tags */}
+          {activeFiltersCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {selectedTypes.map(type => (
+                <Badge key={type} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {getEventTypeLabel(type)}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
+                </Badge>
+              ))}
+              {selectedEnvironments.map(env => (
+                <Badge key={env} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {getEnvironmentLabel(env)}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
+                </Badge>
+              ))}
+              {selectedPriorities.map(priority => (
+                <Badge key={priority} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {getPriorityLabel(priority)}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
+                </Badge>
+              ))}
+              {selectedStatuses.map(status => (
+                <Badge key={status} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {getStatusLabel(status)}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
+                </Badge>
+              ))}
+              {selectedServices.map(service => (
+                <Badge key={service} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {service}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(service, selectedServices, setSelectedServices)} />
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Time Controls Bar - Datadog Style */}
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="flex items-center justify-between">
+            {/* Left: Time Range Picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-7 gap-2 text-xs">
+                  <Clock className="w-3 h-3" />
+                  {selectedTimeRange}
+                  <ChevronRight className="w-3 h-3 rotate-90" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="start">
+                <div className="p-3 space-y-3">
+                  {/* Quick Ranges */}
+                  <div>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                      Quick Ranges
+                    </div>
+                    <div className="space-y-1 mt-2">
+                      {timeRanges.map((range) => (
+                        <button
+                          key={range.label}
+                          onClick={() => handleTimeRangeSelect(range)}
+                          className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            selectedTimeRange === range.label
+                              ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium'
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {range.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Custom Range */}
+                  <div>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                      Custom Range
+                    </div>
+                    <div className="space-y-2 mt-2">
+                      <div>
+                        <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">From</label>
+                        <Input
+                          type="date"
+                          value={customStartDate}
+                          onChange={(e) => setCustomStartDate(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">To</label>
+                        <Input
+                          type="date"
+                          value={customEndDate}
+                          onChange={(e) => setCustomEndDate(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={handleCustomDateApply}
+                        disabled={!customStartDate || !customEndDate}
+                        className="w-full h-7 text-xs"
+                      >
+                        Apply Custom Range
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Center: Date Display */}
+            <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+              <Calendar className="w-4 h-4" />
+              <span className="font-medium">
+                {format(startDate, 'MMM dd, HH:mm', { locale: fr })} - {format(endDate, 'MMM dd, HH:mm', { locale: fr })}
+              </span>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center space-x-2">
+              <Link to="/events/create">
+                <Button size="sm" className="h-7 gap-1 text-xs">
+                  <Plus className="w-3 h-3" />
+                  Create Event
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
+                className="h-7 gap-1 text-xs"
+              >
+                {sortOrder === 'desc' ? <ArrowDown className="w-3 h-3" /> : <ArrowUp className="w-3 h-3" />}
+                {sortOrder === 'desc' ? 'Newest first' : 'Oldest first'}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Events List */}
+        <ScrollArea className="flex-1 p-6">
+          {events.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">No events found</p>
+              {activeFiltersCount > 0 && (
+                <Button onClick={clearAllFilters}>Clear All Filters</Button>
+              )}
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+              
+              <div className="space-y-6">
+                {events.map((event) => {
+                  const typeColor = getEventTypeColor(event.attributes.type)
+                  return (
+                    <div key={event.metadata?.id} className="relative flex items-start space-x-4">
+                      <div className={`relative z-10 flex items-center justify-center w-16 h-16 bg-white dark:bg-gray-800 border-2 ${typeColor.border} rounded-full`}>
+                        {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
+                      </div>
+                      
+                      <div 
+                        className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 cursor-pointer hover:shadow-lg hover:border-primary-500 dark:hover:border-primary-500 transition-all"
+                        onClick={() => setSelectedEvent(event)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center space-x-1 ${typeColor.bg} ${typeColor.text}`}>
+                                {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
+                                <span>{getEventTypeLabel(event.attributes.type)}</span>
+                              </span>
+                              {event.attributes.environment && (
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
+                                  {getEnvironmentLabel(event.attributes.environment)}
+                                </span>
+                              )}
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
+                                {getPriorityLabel(event.attributes.priority)}
+                              </span>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
+                                {getStatusLabel(event.attributes.status)}
+                              </span>
+                              {isEventApproved(event) && (
+                                <Badge variant="success" className="gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Approved
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words mb-2">{event.title}</h3>
+                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4 mt-3 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-500 dark:text-gray-400">Service:</span>
+                                <Badge variant="outline" className="font-mono">
+                                  {event.attributes.service}
+                                </Badge>
+                              </div>
+                              <span className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                                <span>Source:</span>
+                                <SourceIcon source={event.attributes.source} />
+                                <span className="font-medium">{event.attributes.source}</span>
+                              </span>
+                              {event.attributes.owner && (
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{event.attributes.owner}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <EventLinks 
+                              links={event.links}
+                              source={event.attributes.source}
+                              slackId={event.metadata?.slackId}
+                              className="mt-3"
+                            />
+                          </div>
+                          
+                          <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                            {event.metadata?.createdAt && (
+                              <time>
+                                {format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}
+                              </time>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </ScrollArea>
       </div>
 
-      {/* Event Details Modal */}
       {selectedEvent && (
         <EventDetailsModal 
           event={selectedEvent}

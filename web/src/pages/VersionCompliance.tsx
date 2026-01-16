@@ -2,8 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { CatalogType, type ProjectCompliance, type DeliverableUsage } from '../types/api'
-import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, TrendingDown, Search, X, Minus } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, CheckCircle, Package, TrendingUp, Search, X, Minus } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Badge } from '../components/ui/badge'
 
 export default function VersionCompliance() {
   const navigate = useNavigate()
@@ -134,7 +137,7 @@ export default function VersionCompliance() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -157,7 +160,7 @@ export default function VersionCompliance() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1.5">
         <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
              style={{
                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
@@ -220,17 +223,17 @@ export default function VersionCompliance() {
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4">
+      <div className="space-y-1.5">
         {/* Search Bar */}
-        <div className="card">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search by project name or deliverable name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="pl-10 pr-10"
             />
             {searchQuery && (
               <button
@@ -244,40 +247,40 @@ export default function VersionCompliance() {
         </div>
 
         {/* Type Filters */}
-        <div className="card">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center space-x-4 flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by type:</span>
-            {deliverableTypes.map((type) => {
-              const typeStr = String(type).toLowerCase()
-              return (
-                <button
-                  key={type}
-                  onClick={() => toggleTypeFilter(typeStr)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                    selectedTypes.includes(typeStr)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
-                  }`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              )
-            })}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-4 flex-wrap gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by type:</span>
+              {deliverableTypes.map((type) => {
+                const typeStr = String(type).toLowerCase()
+                return (
+                  <Badge
+                    key={type}
+                    variant={selectedTypes.includes(typeStr) ? "default" : "outline"}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => toggleTypeFilter(typeStr)}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Badge>
+                )
+              })}
+            </div>
+            
+            {(selectedTypes.length > 0 || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedTypes([])
+                  setSearchQuery('')
+                }}
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear All
+              </Button>
+            )}
           </div>
-          
-          {(selectedTypes.length > 0 || searchQuery) && (
-            <button
-              onClick={() => {
-                setSelectedTypes([])
-                setSearchQuery('')
-              }}
-              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
-            >
-              Clear All Filters
-            </button>
-          )}
-        </div>
         </div>
       </div>
 
@@ -339,10 +342,13 @@ export default function VersionCompliance() {
                         </div>
                       </td>
                       <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                        <Badge 
+                          variant={status.status === 'compliant' ? 'default' : status.status === 'non-compliant' ? 'destructive' : 'secondary'}
+                          className="flex items-center w-fit"
+                        >
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {status.label}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
@@ -374,12 +380,13 @@ export default function VersionCompliance() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleProjectClick(project.projectName)}
-                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
                         >
                           View Details
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   )

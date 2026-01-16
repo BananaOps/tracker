@@ -10,6 +10,8 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 
 export default function RpaUsage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
@@ -47,7 +49,7 @@ export default function RpaUsage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">RPA Usage</h2>
@@ -55,13 +57,15 @@ export default function RpaUsage() {
             Track RPA (Robotic Process Automation) process usage
           </p>
         </div>
-        <Link to="/rpa/create" className="btn-primary flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Create RPA Operation</span>
+        <Link to="/rpa/create">
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Create RPA Operation
+          </Button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
         {/* Total RPA Operations Card */}
         <div className="relative group h-full">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
@@ -159,15 +163,15 @@ export default function RpaUsage() {
                 <div className="flex items-center space-x-2 mb-2 flex-wrap">
                   <FontAwesomeIcon icon={faRobot} className="w-5 h-5 icon-gradient flex-shrink-0" />
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words flex-1 min-w-0">{op.title}</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  <Badge variant={
                     op.attributes.status === 'success' || op.attributes.status === 'done'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      ? 'default'
                       : op.attributes.status === 'failure' || op.attributes.status === 'error'
-                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                  }`}>
+                      ? 'destructive'
+                      : 'secondary'
+                  }>
                     {String(op.attributes.status).charAt(0).toUpperCase() + String(op.attributes.status).slice(1)}
-                  </span>
+                  </Badge>
                 </div>
 
                 <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">

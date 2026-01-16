@@ -8,6 +8,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
+import ServiceAutocomplete from '../components/ServiceAutocomplete'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Checkbox } from '../components/ui/checkbox'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { AlertCircle, GitBranch } from 'lucide-react'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
@@ -62,9 +68,9 @@ export default function CreateDrift() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
       <div className="flex items-center space-x-3">
-        <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 text-yellow-600" />
+        <GitBranch className="w-8 h-8 text-yellow-600" />
         <div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Drift</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a detected configuration drift</p>
@@ -72,8 +78,9 @@ export default function CreateDrift() {
       </div>
 
       {createMutation.isError && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-red-800 dark:text-red-200 font-medium">Error creating drift. Please try again.</p>
+        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>Error creating drift. Please try again.</span>
         </div>
       )}
       
@@ -84,221 +91,205 @@ export default function CreateDrift() {
         />
       )}
 
-      <form onSubmit={handleSubmit} className="card space-y-6">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-          <div className="flex items-start">
-            <FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" />
-            <div>
-              <h3 className="text-sm font-medium text-yellow-800">What is a drift?</h3>
-              <p className="text-sm text-yellow-700 mt-1">
-                A drift is a configuration deviation detected between the expected state and the actual state of a resource.
-                This can be a manual modification, an unplanned update, or a configuration divergence.
-              </p>
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <GitBranch className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">What is a drift?</h3>
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              A drift is a configuration deviation detected between the expected state and the actual state of a resource.
+              This can be a manual modification, an unplanned update, or a configuration divergence.
+            </p>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Drift Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="Ex: Drift detected on load balancer configuration"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Affected Service <span className="text-red-500">*</span>
-              {catalogLoading && <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Loading...)</span>}
-            </label>
-            {catalogServices.length > 0 ? (
-              <select
-                required
-                className="select"
-                value={formData.attributes.service}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  attributes: { ...formData.attributes, service: e.target.value }
-                })}
-              >
-                <option value="">Select a service</option>
-                {catalogServices.map((service: string) => (
-                  <option key={service} value={service}>{service}</option>
-                ))}
-              </select>
-            ) : (
-              <input
+        <Card>
+          <CardHeader>
+            <CardTitle>Drift Information</CardTitle>
+            <CardDescription>Basic information about the configuration drift</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Drift Title <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="title"
                 type="text"
                 required
-                className="input"
-                value={formData.attributes.service}
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Ex: Drift detected on load balancer configuration"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Affected Service <span className="text-red-500">*</span>
+                </label>
+                <ServiceAutocomplete
+                  id="service"
+                  value={formData.attributes.service}
+                  onChange={(value) => setFormData({
+                    ...formData,
+                    attributes: { ...formData.attributes, service: value }
+                  })}
+                  services={catalogServices}
+                  loading={catalogLoading}
+                  required
+                  placeholder="Type to search or select a service"
+                />
+                {catalogServices.length === 0 && !catalogLoading && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    No services in catalog. Add services in the <a href="/catalog/create" className="text-primary-600 hover:underline">Catalog</a> first.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
+                <select
+                  value={formData.attributes.environment}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    attributes: { ...formData.attributes, environment: e.target.value as Environment }
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value={Environment.DEVELOPMENT}>Development</option>
+                  <option value={Environment.INTEGRATION}>Integration</option>
+                  <option value={Environment.UAT}>UAT</option>
+                  <option value={Environment.RECETTE}>Recette</option>
+                  <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                  <option value={Environment.PRODUCTION}>Production</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                <select
+                  value={formData.attributes.priority}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    attributes: { ...formData.attributes, priority: e.target.value as Priority }
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value={Priority.P1}>P1 - Critical (production impact)</option>
+                  <option value={Priority.P2}>P2 - High (fix quickly)</option>
+                  <option value={Priority.P3}>P3 - Medium</option>
+                  <option value={Priority.P4}>P4 - Low</option>
+                  <option value={Priority.P5}>P5 - Very Low</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                <select
+                  value={formData.attributes.status}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    attributes: { ...formData.attributes, status: e.target.value as Status }
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value={Status.OPEN}>Open (detected)</option>
+                  <option value={Status.START}>In Progress (fixing)</option>
+                  <option value={Status.DONE}>Resolved</option>
+                  <option value={Status.CLOSE}>Closed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Drift Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="message"
+                required
+                rows={4}
+                value={formData.attributes.message}
                 onChange={(e) => setFormData({
                   ...formData,
-                  attributes: { ...formData.attributes, service: e.target.value }
+                  attributes: { ...formData.attributes, message: e.target.value }
                 })}
-                placeholder="Ex: load-balancer, database, api-gateway"
+                placeholder="Describe the detected drift: what configuration changed, what is the difference between expected and actual state..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
               />
-            )}
-            {catalogServices.length === 0 && !catalogLoading && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                No services in catalog. Add services in the <a href="/catalog/create" className="text-primary-600 hover:underline">Catalog</a> first.
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="impact"
+                checked={formData.attributes.impact || false}
+                onCheckedChange={(checked) => setFormData({
+                  ...formData,
+                  attributes: { ...formData.attributes, impact: checked as boolean }
+                })}
+              />
+              <label htmlFor="impact" className="text-sm font-normal cursor-pointer text-gray-700 dark:text-gray-300">
+                This drift has an impact on the service
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+              Check if the drift affects service functionality or security
+            </p>
+
+            <div className="space-y-2">
+              <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Owner / Responsible <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="owner"
+                type="text"
+                required
+                value={formData.attributes.owner || ''}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  attributes: { ...formData.attributes, owner: e.target.value }
+                })}
+                placeholder="Ex: team-platform, john.doe"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="ticket" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket URL (optional)</label>
+              <Input
+                id="ticket"
+                type="url"
+                value={formData.links?.ticket || ''}
+                onChange={(e) => setFormData({
+                  ...formData,
+                  links: { ...formData.links, ticket: e.target.value }
+                })}
+                placeholder="https://jira.company.com/browse/DRIFT-123"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Full Jira ticket URL
               </p>
-            )}
-          </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Environment</label>
-            <select
-              className="select"
-              value={formData.attributes.environment}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, environment: e.target.value as Environment }
-              })}
-            >
-              <option value={Environment.DEVELOPMENT}>Development</option>
-              <option value={Environment.INTEGRATION}>Integration</option>
-              <option value={Environment.UAT}>UAT</option>
-              <option value={Environment.RECETTE}>Recette</option>
-              <option value={Environment.PREPRODUCTION}>Preproduction</option>
-              <option value={Environment.PRODUCTION}>Production</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
-            <select
-              className="select"
-              value={formData.attributes.priority}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, priority: e.target.value as Priority }
-              })}
-            >
-              <option value={Priority.P1}>P1 - Critical (production impact)</option>
-              <option value={Priority.P2}>P2 - High (fix quickly)</option>
-              <option value={Priority.P3}>P3 - Medium</option>
-              <option value={Priority.P4}>P4 - Low</option>
-              <option value={Priority.P5}>P5 - Very Low</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-            <select
-              className="select"
-              value={formData.attributes.status}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, status: e.target.value as Status }
-              })}
-            >
-              <option value={Status.OPEN}>Open (detected)</option>
-              <option value={Status.START}>In Progress (fixing)</option>
-              <option value={Status.DONE}>Resolved</option>
-              <option value={Status.CLOSE}>Closed</option>
-            </select>
-          </div>
-        </div>
-
-
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Drift Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            required
-            rows={4}
-            className="input"
-            value={formData.attributes.message}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { ...formData.attributes, message: e.target.value }
-            })}
-            placeholder="Describe the detected drift: what configuration changed, what is the difference between expected and actual state..."
-          />
-        </div>
-
-        <div>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.attributes.impact || false}
-              onChange={(e) => setFormData({
-                ...formData,
-                attributes: { ...formData.attributes, impact: e.target.checked }
-              })}
-              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              This drift has an impact on the service
-            </span>
-          </label>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">
-            Check if the drift affects service functionality or security
-          </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Owner / Responsible <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            className="input"
-            value={formData.attributes.owner || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              attributes: { ...formData.attributes, owner: e.target.value }
-            })}
-            placeholder="Ex: team-platform, john.doe"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ticket URL (optional)</label>
-          <input
-            type="url"
-            className="input"
-            value={formData.links?.ticket || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              links: { ...formData.links, ticket: e.target.value }
-            })}
-            placeholder="https://jira.company.com/browse/DRIFT-123"
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Full Jira ticket URL
-          </p>
-        </div>
-
-        <div className="flex justify-end space-x-3 pt-4 border-t">
-          <button
+        <div className="flex justify-end space-x-3">
+          <Button
             type="button"
+            variant="outline"
             onClick={() => navigate('/drifts')}
-            className="btn-secondary"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             disabled={createMutation.isPending}
-            className="btn-primary flex items-center space-x-2"
           >
-            <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" />
-            <span>{createMutation.isPending ? 'Creating...' : 'Create Drift'}</span>
-          </button>
+            <GitBranch className="w-4 h-4 mr-2" />
+            {createMutation.isPending ? 'Creating...' : 'Create Drift'}
+          </Button>
         </div>
       </form>
     </div>

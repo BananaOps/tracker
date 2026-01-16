@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { SLALevel, CatalogType, Platform, type Catalog } from '../types/api'
-import { ArrowLeft, GitBranch, Search, X, Grid, List, Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { ArrowLeft, GitBranch, Search, X, Grid, List, Maximize2, ZoomIn, ZoomOut, Filter, Server, Zap, Activity, Package } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faDocker } from '@fortawesome/free-brands-svg-icons'
 import {
   ReactFlow,
   Node, 
@@ -12,13 +14,170 @@ import {
   MiniMap,
   MarkerType,
   Position,
-  useReactFlow
+  NodeProps,
+  Handle
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useMemo, useState, useCallback } from 'react'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Badge } from '../components/ui/badge'
+import KubernetesIcon from '../components/icons/KubernetesIcon'
 
 type LayoutType = 'circular' | 'hierarchical' | 'force' | 'grid'
 type ViewMode = 'graph' | 'list'
+
+// Custom Node Component for Dependency Graph (same as CatalogDetail)
+function DependencyNode({ data }: NodeProps) {
+  const { name, platform, platformLabel, slaLevel, depsCount } = data
+  const slaColor = getSLAColor(slaLevel)
+  const platformColor = getPlatformColorHex(platform)
+  
+  return (
+    <div 
+      className="min-w-[120px] min-h-[80px] bg-white dark:bg-gray-800 border-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+      style={{ 
+        borderColor: slaColor,
+        borderTopWidth: '4px',
+        borderTopColor: platformColor
+      }}
+    >
+      {/* Connection Handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ 
+          background: '#6366f1',
+          width: 6,
+          height: 6,
+          border: '2px solid white'
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ 
+          background: '#10b981',
+          width: 6,
+          height: 6,
+          border: '2px solid white'
+        }}
+      />
+      
+      <div className="p-2 flex flex-col items-center justify-center h-full">
+        {/* Platform Icon */}
+        <div className="mb-1 flex items-center justify-center w-8 h-8 rounded-full" 
+             style={{ backgroundColor: `${platformColor}20` }}>
+          {getPlatformIconComponent(platform, 'w-4 h-4')}
+        </div>
+        
+        {/* Service Name */}
+        <div className="text-[10px] font-bold text-gray-900 dark:text-gray-100 text-center mb-1 truncate max-w-full px-1">
+          {name}
+        </div>
+        
+        {/* Deps Count Badge */}
+        {depsCount > 0 && (
+          <div className="text-[8px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+            {depsCount} deps
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Helper function to get platform icon as React component (same as CatalogDetail)
+function getPlatformIconComponent(platform?: Platform, className: string = 'w-4 h-4') {
+  const iconColor = getPlatformColorHex(platform)
+  
+  switch (platform) {
+    case Platform.KUBERNETES:
+      return (
+        <div style={{ color: iconColor }}>
+          <KubernetesIcon className={className} />
+        </div>
+      )
+    case Platform.LAMBDA:
+      return <Zap className={className} style={{ color: iconColor }} />
+    case Platform.EC2:
+      return <Server className={className} style={{ color: iconColor }} />
+    case Platform.ECS:
+    case Platform.FARGATE:
+      return <FontAwesomeIcon icon={faDocker} className={className} style={{ color: iconColor }} />
+    case Platform.RDS:
+    case Platform.DYNAMODB:
+      return <Activity className={className} style={{ color: iconColor }} />
+    case Platform.S3:
+      return <Package className={className} style={{ color: iconColor }} />
+    case Platform.API_GATEWAY:
+      return <GitBranch className={className} style={{ color: iconColor }} />
+    case Platform.CLOUD_RUN:
+      return <Zap className={className} style={{ color: iconColor }} />
+    case Platform.APP_SERVICE:
+      return <Server className={className} style={{ color: iconColor }} />
+    case Platform.STEP_FUNCTIONS:
+      return <GitBranch className={className} style={{ color: iconColor }} />
+    case Platform.EVENT_BRIDGE:
+      return <Zap className={className} style={{ color: iconColor }} />
+    case Platform.CLOUDFRONT:
+      return <Activity className={className} style={{ color: iconColor }} />
+    case Platform.CLOUDWATCH:
+      return <Activity className={className} style={{ color: iconColor }} />
+    case Platform.ON_PREMISE:
+      return <Server className={className} style={{ color: iconColor }} />
+    case Platform.HYBRID:
+      return <GitBranch className={className} style={{ color: iconColor }} />
+    case Platform.MULTI_CLOUD:
+      return <Activity className={className} style={{ color: iconColor }} />
+    default:
+      return <Server className={className} style={{ color: iconColor }} />
+  }
+}
+
+// Helper function for filter badges (smaller icons, no color override)
+function getPlatformIconComponentForFilter(platform?: Platform) {
+  const className = 'w-3 h-3'
+  
+  switch (platform) {
+    case Platform.KUBERNETES:
+      return <KubernetesIcon className={className} />
+    case Platform.LAMBDA:
+      return <Zap className={className} />
+    case Platform.EC2:
+      return <Server className={className} />
+    case Platform.ECS:
+    case Platform.FARGATE:
+      return <FontAwesomeIcon icon={faDocker} className={className} />
+    case Platform.RDS:
+    case Platform.DYNAMODB:
+      return <Activity className={className} />
+    case Platform.S3:
+      return <Package className={className} />
+    case Platform.API_GATEWAY:
+      return <GitBranch className={className} />
+    case Platform.CLOUD_RUN:
+      return <Zap className={className} />
+    case Platform.APP_SERVICE:
+      return <Server className={className} />
+    case Platform.STEP_FUNCTIONS:
+      return <GitBranch className={className} />
+    case Platform.EVENT_BRIDGE:
+      return <Zap className={className} />
+    case Platform.CLOUDFRONT:
+      return <Activity className={className} />
+    case Platform.CLOUDWATCH:
+      return <Activity className={className} />
+    case Platform.ON_PREMISE:
+      return <Server className={className} />
+    case Platform.HYBRID:
+      return <GitBranch className={className} />
+    case Platform.MULTI_CLOUD:
+      return <Activity className={className} />
+    default:
+      return <Server className={className} />
+  }
+}
 
 export default function CatalogDependencies() {
   const navigate = useNavigate()
@@ -271,28 +430,15 @@ export default function CatalogDependencies() {
 
       nodes.push({
         id: catalog.name,
+        type: 'dependencyNode',
         data: { 
-          label: catalog.name,
-          sla: catalog.sla?.level,
-          type: catalog.type,
+          name: catalog.name,
+          slaLevel: catalog.sla?.level,
           platform: catalog.platform,
+          platformLabel: catalog.platform ? getPlatformLabel(catalog.platform) : undefined,
           depsCount: (catalog.dependenciesIn?.length || 0) + (catalog.dependenciesOut?.length || 0)
         },
         position,
-        type: 'default',
-        style: {
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          border: `3px solid ${slaColor}`,
-          borderRadius: '10px',
-          padding: currentSize.padding,
-          fontSize: currentSize.fontSize,
-          fontWeight: '600',
-          boxShadow: `0 0 20px ${slaColor}40`,
-          minWidth: currentSize.minWidth,
-          textAlign: 'center',
-          cursor: 'pointer',
-        },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       })
@@ -350,6 +496,11 @@ export default function CatalogDependencies() {
     return { nodes, edges }
   }, [allCatalogs, searchQuery, selectedSLA, selectedTypes, selectedPlatforms, layoutType, nodeSize])
 
+  // Define custom node types
+  const nodeTypes = useMemo(() => ({
+    dependencyNode: DependencyNode
+  }), [])
+
   // Extract unique values for filters
   const uniqueTypes = useMemo(() => {
     if (!allCatalogs) return []
@@ -400,7 +551,7 @@ export default function CatalogDependencies() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -423,7 +574,7 @@ export default function CatalogDependencies() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
         <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
              style={{
                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
@@ -639,13 +790,15 @@ export default function CatalogDependencies() {
                       <button
                         key={platform}
                         onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1.5 ${
                           selectedPlatforms.includes(platform)
                             ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
                             : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} hover:opacity-80`
                         }`}
                       >
-                        <span>{getPlatformIcon(platform as Platform)}</span>
+                        <span className="flex items-center">
+                          {getPlatformIconComponentForFilter(platform as Platform)}
+                        </span>
                         <span>{getPlatformLabel(platform as Platform)}</span>
                       </button>
                     )
@@ -741,6 +894,7 @@ export default function CatalogDependencies() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            nodeTypes={nodeTypes}
             fitView
             attributionPosition="bottom-left"
             onNodeClick={(_, node) => navigate(`/catalog/${node.id}`)}
@@ -748,18 +902,14 @@ export default function CatalogDependencies() {
             maxZoom={2}
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
           >
-            <Background />
+            <Background color="#e5e7eb" gap={16} />
             <Controls />
             <MiniMap 
-              nodeStrokeColor={(n) => {
-                const slaLevel = n.data?.sla
-                return getSLAColor(slaLevel)
-              }}
               nodeColor={(n) => {
-                const slaLevel = n.data?.sla
-                return getSLAColor(slaLevel) + '40'
+                const slaLevel = n.data?.slaLevel
+                return getSLAColor(slaLevel) + '60'
               }}
-              nodeBorderRadius={2}
+              maskColor="rgba(0, 0, 0, 0.1)"
             />
           </ReactFlow>
         </div>
@@ -1166,6 +1316,49 @@ function getPlatformLabel(platform?: Platform): string {
       return 'Multi-Cloud'
     default:
       return 'Unknown'
+  }
+}
+
+function getPlatformColorHex(platform?: Platform): string {
+  switch (platform) {
+    case Platform.EC2:
+      return '#f97316' // orange
+    case Platform.LAMBDA:
+      return '#eab308' // yellow
+    case Platform.KUBERNETES:
+      return '#3b82f6' // blue
+    case Platform.ECS:
+      return '#6366f1' // indigo
+    case Platform.FARGATE:
+      return '#a855f7' // purple
+    case Platform.CLOUD_RUN:
+      return '#10b981' // green
+    case Platform.APP_SERVICE:
+      return '#06b6d4' // cyan
+    case Platform.STEP_FUNCTIONS:
+      return '#f59e0b' // amber
+    case Platform.EVENT_BRIDGE:
+      return '#ec4899' // pink
+    case Platform.RDS:
+      return '#059669' // emerald
+    case Platform.DYNAMODB:
+      return '#0d9488' // teal
+    case Platform.S3:
+      return '#dc2626' // red
+    case Platform.CLOUDFRONT:
+      return '#7c3aed' // violet
+    case Platform.API_GATEWAY:
+      return '#65a30d' // lime
+    case Platform.CLOUDWATCH:
+      return '#0ea5e9' // sky
+    case Platform.ON_PREMISE:
+      return '#6b7280' // gray
+    case Platform.HYBRID:
+      return '#64748b' // slate
+    case Platform.MULTI_CLOUD:
+      return '#f43f5e' // rose
+    default:
+      return '#94a3b8' // gray-400
   }
 }
 

@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, catalogApi } from '../lib/api'
-import { Lock, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Lock, AlertCircle } from 'lucide-react'
 import { getEnvironmentLabel } from '../lib/eventUtils'
+import ServiceAutocomplete from '../components/ServiceAutocomplete'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Card, CardContent } from '../components/ui/card'
 
 export default function CreateLock() {
   const navigate = useNavigate()
@@ -104,173 +108,152 @@ export default function CreateLock() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate('/locks')}
-          className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg shadow-lg">
-            <Lock className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create Lock</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Lock a service to prevent concurrent deployments
-            </p>
-          </div>
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
+      <div className="flex items-center space-x-3">
+        <Lock className="w-8 h-8 text-orange-600" />
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Lock</h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Lock a service to prevent concurrent deployments
+          </p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
-          <AlertCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Service <span className="text-red-500">*</span>
-          </label>
-          {loadingServices ? (
-            <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-gray-500 dark:text-gray-400">Loading services...</span>
-            </div>
-          ) : services.length > 0 ? (
-            <select
-              value={formData.service}
-              onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              required
-            >
-              <option value="">Select a service</option>
-              {services.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={formData.service}
-                onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                placeholder="ex: api-gateway, user-service"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                required
-              />
-              <p className="text-sm text-amber-600 dark:text-amber-400">
-                No services found in catalog. You can enter the name manually.
-              </p>
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+          <Lock className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-100 mb-1">What is a lock?</h3>
+            <p className="text-sm text-orange-800 dark:text-orange-200">
+              A lock prevents concurrent deployments or operations on a service. Use locks to ensure only one team member can deploy or modify a service at a time, avoiding conflicts and ensuring safe operations.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Locked By <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.who}
-            onChange={(e) => setFormData({ ...formData, who: e.target.value })}
-            placeholder="ex: john.doe, team-platform"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            required
-          />
-        </div>
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Service <span className="text-red-500">*</span>
+                </label>
+                <ServiceAutocomplete
+                  id="service"
+                  value={formData.service}
+                  onChange={(value) => setFormData({ ...formData, service: value })}
+                  services={services}
+                  loading={loadingServices}
+                  required
+                  placeholder="Type to search or select a service"
+                />
+                {services.length === 0 && !loadingServices && (
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    No services found in catalog. You can enter the name manually.
+                  </p>
+                )}
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Environment <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={formData.environment}
-            onChange={(e) => setFormData({ ...formData, environment: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            required
-          >
-            <option value="">Select an environment</option>
-            {environments.map((env) => (
-              <option key={env} value={env}>
-                {getEnvironmentLabel(env)}
-              </option>
-            ))}
-          </select>
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="who" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Locked By <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="who"
+                  type="text"
+                  value={formData.who}
+                  onChange={(e) => setFormData({ ...formData, who: e.target.value })}
+                  placeholder="ex: john.doe, team-platform"
+                  required
+                />
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Resource
-          </label>
-          <select
-            value={formData.resource}
-            onChange={(e) => setFormData({ ...formData, resource: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          >
-            <option value="">Select a resource (optional)</option>
-            {resources.map((res) => (
-              <option key={res} value={res}>
-                {res}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Type of resource to lock (optional)
-          </p>
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Environment <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.environment}
+                  onChange={(e) => setFormData({ ...formData, environment: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                >
+                  <option value="">Select an environment</option>
+                  {environments.map((env) => (
+                    <option key={env} value={env}>
+                      {getEnvironmentLabel(env)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Event ID
-          </label>
-          <input
-            type="text"
-            value={formData.event_id}
-            onChange={(e) => setFormData({ ...formData, event_id: e.target.value })}
-            placeholder="ex: 123e4567-e89b-12d3-a456-426614174000"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          />
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Associated event ID (optional)
-          </p>
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="resource" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Resource</label>
+                <select
+                  value={formData.resource}
+                  onChange={(e) => setFormData({ ...formData, resource: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Select a resource (optional)</option>
+                  {resources.map((res) => (
+                    <option key={res} value={res}>
+                      {res}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Type of resource to lock (optional)
+                </p>
+              </div>
 
-        <div className="flex gap-3 pt-4">
-          <button
-            type="button"
-            onClick={() => navigate('/locks')}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4" />
-                Create Lock
-              </>
-            )}
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
+              <div className="space-y-2">
+                <label htmlFor="event_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Event ID</label>
+                <Input
+                  id="event_id"
+                  type="text"
+                  value={formData.event_id}
+                  onChange={(e) => setFormData({ ...formData, event_id: e.target.value })}
+                  placeholder="ex: 123e4567-e89b-12d3-a456-426614174000"
+                />
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Associated event ID (optional)
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  onClick={() => navigate('/locks')}
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4 mr-2" />
+                      Create Lock
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </div>
+    )
+  }
 

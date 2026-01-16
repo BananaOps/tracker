@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
 import { Lock as LockIcon, Unlock, Plus, RefreshCw, AlertCircle, Eye } from 'lucide-react'
 import { getEnvironmentColor, getEnvironmentLabel } from '../lib/eventUtils'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Badge } from '../components/ui/badge'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -126,7 +129,7 @@ export default function Locks() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Locks</h1>
@@ -135,20 +138,19 @@ export default function Locks() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button
+          <Button
             onClick={loadLocks}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+            variant="outline"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => navigate('/locks/create')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Create Lock
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -159,14 +161,7 @@ export default function Locks() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Indicateur de breakpoint pour test */}
-        <div className="col-span-full text-xs text-gray-500 dark:text-gray-400 text-right mb-4">
-          <span className="lg:hidden">Small screen</span>
-          <span className="hidden lg:block xl:hidden">Large screen (lg)</span>
-          <span className="hidden xl:block 2xl:hidden">Extra large screen (xl)</span>
-          <span className="hidden 2xl:block">2XL screen (2xl)</span>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-1.5">
         {/* Total Locks Card */}
         <div className="relative group h-full">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
@@ -244,13 +239,12 @@ export default function Locks() {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             All services are currently unlocked
           </p>
-          <button
+          <Button
             onClick={() => navigate('/locks/create')}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Create Lock
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -294,9 +288,9 @@ export default function Locks() {
                       </div>
                     </td>
                     <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEnvironmentColor(lock.environment).bg} ${getEnvironmentColor(lock.environment).text}`}>
+                      <Badge variant="secondary">
                         {getEnvironmentLabel(lock.environment)}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -314,35 +308,37 @@ export default function Locks() {
                       </span>
                     </td>
                     <td className="hidden 2xl:table-cell px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      <Badge variant="secondary">
                         {getTimeSince((lock as any).createdAt || lock.created_at)}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {lock.event_id && (
-                          <button
+                          <Button
                             onClick={() => navigate(`/events/timeline?event=${lock.event_id}`)}
-                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-colors"
+                            variant="ghost"
+                            size="sm"
                             title="View linked event"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-4 h-4 mr-1" />
                             View Event
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           onClick={() => handleUnlock(lock)}
                           disabled={unlocking === lock.id}
-                          className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          variant="destructive"
+                          size="sm"
                           title="Unlock service"
                         >
                           {unlocking === lock.id ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
                           ) : (
-                            <Unlock className="w-4 h-4" />
+                            <Unlock className="w-4 h-4 mr-1" />
                           )}
                           Unlock
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -373,7 +369,7 @@ export default function Locks() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Your Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={unlockUser}
                   onChange={(e) => {
@@ -386,9 +382,7 @@ export default function Locks() {
                     }
                   }}
                   placeholder="e.g., john.doe"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                    unlockUserError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
+                  className={unlockUserError ? 'border-red-500' : ''}
                   autoFocus
                 />
                 {unlockUserError && (
@@ -398,29 +392,30 @@ export default function Locks() {
                 )}
               </div>
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={() => setShowUnlockPrompt(false)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                  variant="outline"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleUnlockConfirm}
                   disabled={unlocking === selectedLock.id}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1"
                 >
                   {unlocking === selectedLock.id ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                       Unlocking...
                     </>
                   ) : (
                     <>
-                      <Unlock className="w-4 h-4" />
+                      <Unlock className="w-4 h-4 mr-2" />
                       Unlock
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
