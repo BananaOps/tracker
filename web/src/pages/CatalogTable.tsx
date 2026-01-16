@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
-import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail } from 'lucide-react'
+import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -17,14 +17,31 @@ import {
   faSlack,
   faDiscord,
   faTelegram,
-  faMicrosoft
+  faMicrosoft,
+  faAws,
+  faGoogle,
+  faDigitalOcean
 } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
   faFileCode, 
   faCube,
-  faComments
+  faComments,
+  faServer,
+  faCloud,
+  faDatabase as faDatabaseSolid
 } from '@fortawesome/free-solid-svg-icons'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import KubernetesIcon from '../components/icons/KubernetesIcon'
+import KotlinIcon from '../components/icons/KotlinIcon'
+import TerraformIcon from '../components/icons/TerraformIcon'
+import SlackIcon from '../components/icons/SlackIcon'
+import GrafanaIcon from '../components/icons/GrafanaIcon'
+import { Badge } from '../components/ui/badge'
+import { Checkbox } from '../components/ui/checkbox'
+import { Separator } from '../components/ui/separator'
+import { ScrollArea } from '../components/ui/scroll-area'
 
 export default function CatalogTable() {
   const navigate = useNavigate()
@@ -32,6 +49,10 @@ export default function CatalogTable() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [selectedSLAs, setSelectedSLAs] = useState<string[]>([])
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([])
+  const [ownerSearchQuery, setOwnerSearchQuery] = useState('')
+  const [showSidebar, setShowSidebar] = useState(false) // Fermé par défaut
 
 
   const { data, isLoading } = useQuery({
@@ -55,6 +76,20 @@ export default function CatalogTable() {
   const uniquePlatforms = useMemo<string[]>(() => {
     return Array.from(new Set(allCatalogs.filter((c: Catalog) => c.platform).map((c: Catalog) => String(c.platform).toLowerCase()))).sort() as string[]
   }, [allCatalogs])
+
+  const uniqueSLAs = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.filter((c: Catalog) => c.sla?.level).map((c: Catalog) => String(c.sla!.level).toLowerCase()))).sort() as string[]
+  }, [allCatalogs])
+
+  const uniqueOwners = useMemo<string[]>(() => {
+    return Array.from(new Set(allCatalogs.filter((c: Catalog) => c.owner).map((c: Catalog) => c.owner))).sort() as string[]
+  }, [allCatalogs])
+
+  const filteredOwners = useMemo(() => {
+    if (!ownerSearchQuery.trim()) return uniqueOwners
+    const query = ownerSearchQuery.toLowerCase()
+    return uniqueOwners.filter(owner => owner.toLowerCase().includes(query))
+  }, [uniqueOwners, ownerSearchQuery])
 
   // Filtrer les catalogues
   const catalogs = useMemo(() => {
@@ -87,9 +122,22 @@ export default function CatalogTable() {
         if (!selectedPlatforms.includes(catalogPlatform)) return false
       }
 
+      // Filtre par SLA
+      if (selectedSLAs.length > 0) {
+        if (!catalog.sla?.level) return false
+        const catalogSLA = String(catalog.sla.level).toLowerCase()
+        if (!selectedSLAs.includes(catalogSLA)) return false
+      }
+
+      // Filtre par Owner
+      if (selectedOwners.length > 0) {
+        if (!catalog.owner) return false
+        if (!selectedOwners.includes(catalog.owner)) return false
+      }
+
       return true
     })
-  }, [allCatalogs, searchQuery, selectedTypes, selectedLanguages, selectedPlatforms])
+  }, [allCatalogs, searchQuery, selectedTypes, selectedLanguages, selectedPlatforms, selectedSLAs, selectedOwners])
 
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
     if (selected.includes(value)) {
@@ -104,11 +152,13 @@ export default function CatalogTable() {
     setSelectedTypes([])
     setSelectedLanguages([])
     setSelectedPlatforms([])
+    setSelectedSLAs([])
+    setSelectedOwners([])
   }
 
 
 
-  const activeFiltersCount = selectedTypes.length + selectedLanguages.length + selectedPlatforms.length + (searchQuery ? 1 : 0)
+  const activeFiltersCount = selectedTypes.length + selectedLanguages.length + selectedPlatforms.length + selectedSLAs.length + selectedOwners.length + (searchQuery ? 1 : 0)
 
   const getCatalogTypeLabel = (type: CatalogType | string) => {
     const typeStr = String(type).toLowerCase()
@@ -165,9 +215,9 @@ export default function CatalogTable() {
       case 'golang':
         return <FontAwesomeIcon icon={faGolang} className="w-4 h-4" style={{ color: '#00add8' }} />
       case 'kotlin':
-        return <FontAwesomeIcon icon={faJava} className="w-4 h-4" style={{ color: '#7f52ff' }} />
+        return <KotlinIcon className="w-4 h-4" />
       case 'terraform':
-        return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-purple-700" />
+        return <TerraformIcon className="w-4 h-4" />
       case 'helm':
         return <FontAwesomeIcon icon={faCube} className="w-4 h-4 text-blue-700" />
       case 'yaml':
@@ -180,143 +230,276 @@ export default function CatalogTable() {
   }
 
   if (isLoading) {
-    return <div className="text-center py-12">Chargement...</div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading catalog...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Catalog</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Inventory of modules, libraries and projects ({catalogs.length} of {allCatalogs.length} items)
-            {activeFiltersCount > 0 && (
-              <span className="ml-2 text-primary-600 font-medium">
-                • {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
-              </span>
-            )}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            console.log('Add to Catalog clicked - navigating...')
-            navigate('/catalog/create')
-          }}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add to Catalog
-        </button>
-      </div>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar Filters - Style Datadog */}
+      {showSidebar && (
+        <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 transition-all duration-300">
+          {/* Sidebar Header */}
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4" />
+                Filters
+              </h3>
+              {activeFiltersCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
+                  Clear all
+                </Button>
+              )}
+            </div>
+          </div>
 
-      {/* Filtres rapides */}
-      <div className="card">
-        <div className="space-y-4">
-          {/* Barre de recherche */}
+          {/* Filters Content */}
+          <ScrollArea className="flex-1">
+            <div className="p-3 space-y-4">
+              {/* Type Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Type</h4>
+                <div className="space-y-2">
+                  {uniqueTypes.map((type: string) => (
+                    <label key={type} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedTypes.includes(type)}
+                        onCheckedChange={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getCatalogTypeLabel(type)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Language Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Language</h4>
+                <div className="space-y-2">
+                  {uniqueLanguages.map((lang: string) => (
+                    <label key={lang} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedLanguages.includes(lang)}
+                        onCheckedChange={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
+                      />
+                      <div className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getLanguageIcon(lang)}
+                        <span>{getLanguageLabel(lang)}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Platform Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Platform</h4>
+                <div className="space-y-2">
+                  {uniquePlatforms.map((platform: string) => (
+                    <label key={platform} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedPlatforms.includes(platform)}
+                        onCheckedChange={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                      />
+                      <div className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                        {getPlatformIcon(platform as Platform)}
+                        <span>{getPlatformLabel(platform as Platform)}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* SLA Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">SLA Level</h4>
+                <div className="space-y-2">
+                  {uniqueSLAs.map((sla: string) => (
+                    <label key={sla} className="flex items-center space-x-2 cursor-pointer group">
+                      <Checkbox
+                        checked={selectedSLAs.includes(sla)}
+                        onCheckedChange={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)}
+                      />
+                      <span 
+                        className="text-sm font-medium px-2 py-0.5 rounded"
+                        style={{
+                          backgroundColor: `${getSLAColor(sla as SLALevel)}20`,
+                          color: getSLAColor(sla as SLALevel)
+                        }}
+                      >
+                        {getSLALabel(sla as SLALevel)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Owner Filter */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Owner</h4>
+                {uniqueOwners.length > 0 ? (
+                  <div className="space-y-3">
+                    {/* Owner Search */}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+                      <Input
+                        placeholder="Search owners..."
+                        value={ownerSearchQuery}
+                        onChange={(e) => setOwnerSearchQuery(e.target.value)}
+                        className="pl-7 h-8 text-xs"
+                      />
+                      {ownerSearchQuery && (
+                        <button
+                          onClick={() => setOwnerSearchQuery('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Owners List */}
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {filteredOwners.length > 0 ? (
+                        filteredOwners.map((owner: string) => (
+                          <label key={owner} className="flex items-center space-x-2 cursor-pointer group">
+                            <Checkbox
+                              checked={selectedOwners.includes(owner)}
+                              onCheckedChange={() => toggleFilter(owner, selectedOwners, setSelectedOwners)}
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate" title={owner}>
+                              {owner}
+                            </span>
+                          </label>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">No owners found</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No owners</p>
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="h-9 w-9"
+              >
+                <Filter className="w-4 h-4" />
+              </Button>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Catalog</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {catalogs.length} of {allCatalogs.length} items
+                  {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''}`}
+                </p>
+              </div>
+            </div>
+            
+            <Button onClick={() => navigate('/catalog/create')} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add to Catalog
+            </Button>
+          </div>
+
+          {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
               placeholder="Search by name, description, or owner..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="pl-10"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-
-          {/* Filtres par type et langage */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-4 flex-wrap gap-2">
-              {/* Filtres Type */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueTypes.map((type: string) => (
-                    <button
-                      key={type}
-                      onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                        selectedTypes.includes(type)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
-                      }`}
-                    >
-                      {getCatalogTypeLabel(type)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Filtres Langage */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Language:</span>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueLanguages.map((lang: string) => (
-                    <button
-                      key={lang}
-                      onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
-                        selectedLanguages.includes(lang)
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50'
-                      }`}
-                    >
-                      {getLanguageIcon(lang)}
-                      <span>{getLanguageLabel(lang)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Filtres Platform */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Platform:</span>
-                <div className="flex flex-wrap gap-2">
-                  {uniquePlatforms.map((platform: string) => {
-                    const platformColors = getPlatformColor(platform as Platform)
-                    return (
-                      <button
-                        key={platform}
-                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1 ${
-                          selectedPlatforms.includes(platform)
-                            ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
-                            : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} hover:opacity-80`
-                        }`}
-                      >
-                        {getPlatformIcon(platform as Platform)}
-                        <span>{getPlatformLabel(platform as Platform)}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Bouton Clear All */}
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center space-x-1 font-medium"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X className="w-4 h-4" />
-                <span>Clear All</span>
               </button>
             )}
           </div>
-        </div>
-      </div>
 
-      <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
+          {/* Active Filters Tags */}
+          {activeFiltersCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mt-3">
+              {selectedTypes.map((type: string) => (
+                <Badge key={type} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {getCatalogTypeLabel(type)}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
+                </Badge>
+              ))}
+              {selectedLanguages.map((lang: string) => (
+                <Badge key={lang} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center">
+                  {getLanguageIcon(lang)}
+                  <span>{getLanguageLabel(lang)}</span>
+                  <X className="w-3 h-3" onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)} />
+                </Badge>
+              ))}
+              {selectedPlatforms.map((platform: string) => (
+                <Badge key={platform} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center">
+                  {getPlatformIcon(platform as Platform)}
+                  <span>{getPlatformLabel(platform as Platform)}</span>
+                  <X className="w-3 h-3" onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)} />
+                </Badge>
+              ))}
+              {selectedSLAs.map((sla: string) => (
+                <Badge 
+                  key={sla} 
+                  className="gap-1 cursor-pointer hover:opacity-80 flex items-center"
+                  style={{
+                    backgroundColor: `${getSLAColor(sla as SLALevel)}20`,
+                    color: getSLAColor(sla as SLALevel),
+                    border: `1px solid ${getSLAColor(sla as SLALevel)}40`
+                  }}
+                >
+                  <span>{getSLALabel(sla as SLALevel)}</span>
+                  <X className="w-3 h-3" onClick={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)} />
+                </Badge>
+              ))}
+              {selectedOwners.map((owner: string) => (
+                <Badge key={owner} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                  {owner}
+                  <X className="w-3 h-3" onClick={() => toggleFilter(owner, selectedOwners, setSelectedOwners)} />
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Table Content */}
+        <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
@@ -466,14 +649,18 @@ export default function CatalogTable() {
               ))}
             </tbody>
           </table>
+
+          {catalogs.length === 0 && (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium">No items in catalog</p>
+              {activeFiltersCount > 0 && (
+                <p className="text-xs mt-1">Try adjusting your filters</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
-
-      {catalogs.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          No items in catalog
-        </div>
-      )}
     </div>
   )
 }
@@ -512,43 +699,43 @@ function getSLALabel(level?: SLALevel): string {
 function getPlatformIcon(platform?: Platform) {
   switch (platform) {
     case Platform.EC2:
-      return <Server className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faAws} className="w-3 h-3" style={{ color: '#FF9900' }} />
     case Platform.LAMBDA:
-      return <Zap className="w-3 h-3" />
+      return <Zap className="w-3 h-3 text-yellow-600" />
     case Platform.KUBERNETES:
-      return <Server className="w-3 h-3" />
+      return <KubernetesIcon className="w-3 h-3" />
     case Platform.ECS:
-      return <Package className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faDocker} className="w-3 h-3" style={{ color: '#2496ED' }} />
     case Platform.FARGATE:
-      return <Cloud className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faAws} className="w-3 h-3" style={{ color: '#FF9900' }} />
     case Platform.CLOUD_RUN:
-      return <Cloud className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faGoogle} className="w-3 h-3" style={{ color: '#4285F4' }} />
     case Platform.APP_SERVICE:
-      return <Globe className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faMicrosoft} className="w-3 h-3" style={{ color: '#0078D4' }} />
     case Platform.STEP_FUNCTIONS:
-      return <Zap className="w-3 h-3" />
+      return <Zap className="w-3 h-3 text-orange-600" />
     case Platform.EVENT_BRIDGE:
-      return <Activity className="w-3 h-3" />
+      return <Activity className="w-3 h-3 text-pink-600" />
     case Platform.RDS:
-      return <Database className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faDatabaseSolid} className="w-3 h-3" style={{ color: '#527FFF' }} />
     case Platform.DYNAMODB:
-      return <Database className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faAws} className="w-3 h-3" style={{ color: '#4053D6' }} />
     case Platform.S3:
-      return <HardDrive className="w-3 h-3" />
+      return <HardDrive className="w-3 h-3 text-red-600" />
     case Platform.CLOUDFRONT:
-      return <Globe className="w-3 h-3" />
+      return <Globe className="w-3 h-3 text-violet-600" />
     case Platform.API_GATEWAY:
-      return <Shield className="w-3 h-3" />
+      return <Shield className="w-3 h-3 text-lime-600" />
     case Platform.CLOUDWATCH:
-      return <Activity className="w-3 h-3" />
+      return <Activity className="w-3 h-3 text-sky-600" />
     case Platform.ON_PREMISE:
-      return <Server className="w-3 h-3" />
+      return <Server className="w-3 h-3 text-gray-600" />
     case Platform.HYBRID:
-      return <Cloud className="w-3 h-3" />
+      return <Cloud className="w-3 h-3 text-slate-600" />
     case Platform.MULTI_CLOUD:
-      return <Cloud className="w-3 h-3" />
+      return <FontAwesomeIcon icon={faCloud} className="w-3 h-3" style={{ color: '#E91E63' }} />
     default:
-      return <Server className="w-3 h-3" />
+      return <Server className="w-3 h-3 text-gray-600" />
   }
 }
 
@@ -642,7 +829,7 @@ function getPlatformLabel(platform?: Platform): string {
 function getCommunicationChannelIcon(type?: CommunicationType) {
   switch (type) {
     case CommunicationType.SLACK:
-      return <FontAwesomeIcon icon={faSlack} className="w-5 h-5" />
+      return <SlackIcon className="w-5 h-5" />
     case CommunicationType.TEAMS:
       return <FontAwesomeIcon icon={faMicrosoft} className="w-5 h-5" />
     case CommunicationType.EMAIL:
@@ -700,6 +887,7 @@ function getCommunicationChannelLabel(type?: CommunicationType): string {
 function getDashboardIcon(type?: DashboardType) {
   switch (type) {
     case DashboardType.GRAFANA:
+      return <GrafanaIcon className="w-5 h-5" />
     case DashboardType.PROMETHEUS:
     case DashboardType.KIBANA:
       return <Activity className="w-5 h-5" />

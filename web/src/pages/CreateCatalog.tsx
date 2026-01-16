@@ -346,7 +346,7 @@ export default function CreateCatalog() {
               {/* Version */}
               <div>
                 <label htmlFor="version" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Version
+                  Version *
                 </label>
                 <input
                   type="text"
