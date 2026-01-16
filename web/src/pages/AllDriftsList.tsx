@@ -9,6 +9,9 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faJira } from '@fortawesome/free-brands-svg-icons'
 import { getEnvironmentColor, getEnvironmentLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Badge } from '../components/ui/badge'
 
 export default function AllDriftsList() {
   const navigate = useNavigate()
@@ -291,7 +294,7 @@ export default function AllDriftsList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">All Configuration Drifts</h1>
@@ -300,20 +303,19 @@ export default function AllDriftsList() {
           </p>
         </div>
         <div className="flex gap-3">
-          <button
+          <Button
+            variant="outline"
             onClick={loadDrifts}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => navigate('/drifts/create')}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Create Drift
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -325,31 +327,23 @@ export default function AllDriftsList() {
       )}
 
       {/* Search and Filters */}
-      <div className="space-y-4">
-        {/* Indicateur de breakpoint pour test */}
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          <span className="lg:hidden">Small screen</span>
-          <span className="hidden lg:block xl:hidden">Large screen (lg)</span>
-          <span className="hidden xl:block 2xl:hidden">Extra large screen (xl)</span>
-          <span className="hidden 2xl:block">2XL screen (2xl)</span>
-        </div>
-        
+      <div className="space-y-1.5">
         {/* Search Bar */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search drifts by title, service, or message..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="pl-10"
             />
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -359,12 +353,13 @@ export default function AllDriftsList() {
               Filters
             </button>
             {hasActiveFilters && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Clear All
-              </button>
+              </Button>
             )}
           </div>
 
@@ -437,9 +432,9 @@ export default function AllDriftsList() {
           Showing {filteredDrifts.length} of {drifts.length} drifts
         </span>
         {hasActiveFilters && (
-          <span className="text-blue-600 dark:text-blue-400">
+          <Badge variant="secondary">
             Filters active
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -454,20 +449,19 @@ export default function AllDriftsList() {
             {hasActiveFilters ? 'Try adjusting your search or filters' : 'No configuration drifts have been recorded'}
           </p>
           {hasActiveFilters ? (
-            <button
+            <Button
+              variant="outline"
               onClick={clearFilters}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
             >
               Clear Filters
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={() => navigate('/drifts/create')}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 mr-2" />
               Create Drift
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -530,9 +524,17 @@ export default function AllDriftsList() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(drift.attributes.status)}`}>
+                      <Badge 
+                        variant={
+                          ['done', 'close', 'closed'].includes(String(drift.attributes.status || '').toLowerCase()) 
+                            ? 'default' 
+                            : ['error', 'failed'].includes(String(drift.attributes.status || '').toLowerCase())
+                            ? 'destructive'
+                            : 'secondary'
+                        }
+                      >
                         {getStatusLabel(drift.attributes.status)}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
@@ -542,37 +544,46 @@ export default function AllDriftsList() {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {drift.links?.ticket ? (
-                          <a
-                            href={drift.links.ticket}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`hover:opacity-80 transition-opacity ${
-                              isJiraTicket(drift.links.ticket) 
-                                ? 'text-blue-600 dark:text-blue-400' 
-                                : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                            title={isJiraTicket(drift.links.ticket) ? "View Jira ticket" : "View ticket"}
-                            onClick={(e) => e.stopPropagation()}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
                           >
-                            {isJiraTicket(drift.links.ticket) ? (
-                              <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
-                            ) : (
-                              <ExternalLink className="w-4 h-4" />
-                            )}
-                          </a>
+                            <a
+                              href={drift.links.ticket}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={
+                                isJiraTicket(drift.links.ticket) 
+                                  ? 'text-blue-600 dark:text-blue-400' 
+                                  : 'text-gray-600 dark:text-gray-400'
+                              }
+                              title={isJiraTicket(drift.links.ticket) ? "View Jira ticket" : "View ticket"}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {isJiraTicket(drift.links.ticket) ? (
+                                <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
+                              ) : (
+                                <ExternalLink className="w-4 h-4" />
+                              )}
+                            </a>
+                          </Button>
                         ) : (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
                               handleCreateJiraTicket(drift)
                             }}
-                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                             title="Add Jira ticket"
                           >
                             <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleMarkAsDone(drift)
@@ -581,7 +592,7 @@ export default function AllDriftsList() {
                           title="Mark as done"
                         >
                           <CheckCircle className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -614,12 +625,13 @@ export default function AllDriftsList() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Mark Drift as Done
                 </h3>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowMarkDonePrompt(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
               
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -630,7 +642,7 @@ export default function AllDriftsList() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Your Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={markDoneUser}
                   onChange={(e) => {
@@ -643,9 +655,7 @@ export default function AllDriftsList() {
                     }
                   }}
                   placeholder="e.g., john.doe"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                    markDoneUserError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
+                  className={markDoneUserError ? 'border-red-500' : ''}
                   autoFocus
                 />
                 {markDoneUserError && (
@@ -656,29 +666,30 @@ export default function AllDriftsList() {
               </div>
               
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setShowMarkDonePrompt(false)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleMarkDoneConfirm}
                   disabled={markingDone}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1"
                 >
                   {markingDone ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Marking Done...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircle className="w-4 h-4 mr-2" />
                       Mark as Done
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -701,12 +712,13 @@ export default function AllDriftsList() {
                     Add Jira Ticket
                   </h3>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowCreateTicketPrompt(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
               
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -717,7 +729,7 @@ export default function AllDriftsList() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Jira Ticket URL <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="url"
                   value={ticketUrl}
                   onChange={(e) => {
@@ -730,9 +742,7 @@ export default function AllDriftsList() {
                     }
                   }}
                   placeholder={`${import.meta.env.VITE_JIRA_DOMAIN || 'https://company.atlassian.net'}/browse/DRIFT-123`}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                    ticketUrlError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  }`}
+                  className={ticketUrlError ? 'border-red-500' : ''}
                   autoFocus
                 />
                 {ticketUrlError && (
@@ -758,29 +768,30 @@ export default function AllDriftsList() {
               </div>
               
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setShowCreateTicketPrompt(false)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                  className="flex-1"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleCreateTicketConfirm}
                   disabled={creatingTicket}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1"
                 >
                   {creatingTicket ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Adding...
                     </>
                   ) : (
                     <>
-                      <FontAwesomeIcon icon={faJira} className="w-4 h-4" />
+                      <FontAwesomeIcon icon={faJira} className="w-4 h-4 mr-2" />
                       Add Ticket
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
