@@ -3371,3 +3371,258 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteEventResponseValidationError{}
+
+// Validate checks the field values on AddSlackIdRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *AddSlackIdRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddSlackIdRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddSlackIdRequestMultiError, or nil if none found.
+func (m *AddSlackIdRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddSlackIdRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = AddSlackIdRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for SlackId
+
+	if len(errors) > 0 {
+		return AddSlackIdRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AddSlackIdRequest) _validateUuid(uuid string) error {
+	if matched := _event_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// AddSlackIdRequestMultiError is an error wrapping multiple validation errors
+// returned by AddSlackIdRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AddSlackIdRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddSlackIdRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddSlackIdRequestMultiError) AllErrors() []error { return m }
+
+// AddSlackIdRequestValidationError is the validation error returned by
+// AddSlackIdRequest.Validate if the designated constraints aren't met.
+type AddSlackIdRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddSlackIdRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddSlackIdRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddSlackIdRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddSlackIdRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddSlackIdRequestValidationError) ErrorName() string {
+	return "AddSlackIdRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddSlackIdRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddSlackIdRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddSlackIdRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddSlackIdRequestValidationError{}
+
+// Validate checks the field values on AddSlackIdResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddSlackIdResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddSlackIdResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddSlackIdResponseMultiError, or nil if none found.
+func (m *AddSlackIdResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddSlackIdResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetEvent()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddSlackIdResponseValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddSlackIdResponseValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEvent()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddSlackIdResponseValidationError{
+				field:  "Event",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AddSlackIdResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddSlackIdResponseMultiError is an error wrapping multiple validation errors
+// returned by AddSlackIdResponse.ValidateAll() if the designated constraints
+// aren't met.
+type AddSlackIdResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddSlackIdResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddSlackIdResponseMultiError) AllErrors() []error { return m }
+
+// AddSlackIdResponseValidationError is the validation error returned by
+// AddSlackIdResponse.Validate if the designated constraints aren't met.
+type AddSlackIdResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddSlackIdResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddSlackIdResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddSlackIdResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddSlackIdResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddSlackIdResponseValidationError) ErrorName() string {
+	return "AddSlackIdResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddSlackIdResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddSlackIdResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddSlackIdResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddSlackIdResponseValidationError{}

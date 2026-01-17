@@ -443,6 +443,46 @@
         ]
       }
     },
+    "/api/v1alpha1/event/{id}/slack": {
+      "post": {
+        "summary": "Add a Slack ID to an existing event",
+        "operationId": "EventService_AddSlackId",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1AddSlackIdResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "Event identifier (UUID)",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EventServiceAddSlackIdBody"
+            }
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
     "/api/v1alpha1/events/list": {
       "get": {
         "operationId": "EventService_ListEvents",
@@ -848,6 +888,16 @@
       },
       "title": "Request to append a single changelog entry to an event"
     },
+    "EventServiceAddSlackIdBody": {
+      "type": "object",
+      "properties": {
+        "slack_id": {
+          "type": "string",
+          "title": "Slack message ID to add"
+        }
+      },
+      "title": "Request to add a Slack ID to an existing event"
+    },
     "LockServiceUpdateLockBody": {
       "type": "object",
       "properties": {
@@ -949,6 +999,15 @@
         }
       },
       "title": "Response returns the updated event including its changelog"
+    },
+    "v1alpha1AddSlackIdResponse": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/v1alpha1Event"
+        }
+      },
+      "title": "Response returns the updated event"
     },
     "v1alpha1Catalog": {
       "type": "object",

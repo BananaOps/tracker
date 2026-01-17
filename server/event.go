@@ -651,6 +651,64 @@ func (e *Event) GetEventChangelog(
 	}, nil
 }
 
+func (e *Event) AddSlackId(
+	ctx context.Context,
+	i *v1alpha1.AddSlackIdRequest,
+) (*v1alpha1.AddSlackIdResponse, error) {
+
+	// Retrieve the existing event
+	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, fmt.Errorf("event not found with id %s", i.Id)
+		}
+		return nil, err
+	}
+
+	// Validate the Slack ID
+	if i.SlackId == "" {
+		return nil, fmt.Errorf("slack_id cannot be empty")
+	}
+
+	// Check if Slack ID already exists
+	if eventDatabase.Metadata.SlackId != "" {
+		return nil, fmt.Errorf("event already has a slack_id: %s", eventDatabase.Metadata.SlackId)
+	}
+
+	// Update the Slack ID
+	eventDatabase.Metadata.SlackId = i.SlackId
+
+	// Add changelog entry
+	user := "system"
+	if eventDatabase.Attributes.Owner != "" {
+		user = eventDatabase.Attributes.Owner
+	}
+	addChangelogEntry(
+		eventDatabase,
+		v1alpha1.ChangeType_linked,
+		user,
+		"slack_id",
+		"",
+		i.SlackId,
+		"Slack message linked",
+	)
+
+	// Update the event in the database
+	updatedEvent, err := e.store.Update(ctx, map[string]interface{}{"metadata.id": i.Id}, eventDatabase)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update event with slack_id: %w", err)
+	}
+
+	e.logger.Info("slack_id added to event",
+		"event_id", i.Id,
+		"slack_id", i.SlackId,
+	)
+
+	return &v1alpha1.AddSlackIdResponse{
+		Event: updatedEvent,
+	}, nil
+}
+
 func recordEvent(status string, service string, environment string, duration time.Duration) {
 	// Incrase the counter of events
 	eventCounter.With(prometheus.Labels{"status": status, "service": service, "environment": environment}).Inc()
