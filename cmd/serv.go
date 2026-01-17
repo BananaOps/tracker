@@ -89,8 +89,7 @@ var serv = &cobra.Command{
 		sh := middleware.SwaggerUI(opts, nil)
 
 		// Serve swagger.json
-		//nosec G104 -- HTTP handler errors are handled appropriately
-		mux.HandlePath("GET", "/swagger.json", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		if err := mux.HandlePath("GET", "/swagger.json", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 			// Check if file exists before serving
 			if _, err := os.Stat("generated/openapiv2/apidocs.swagger.json"); err != nil {
 				slog.Error("Swagger JSON file not found", "error", err)
@@ -98,18 +97,20 @@ var serv = &cobra.Command{
 				return
 			}
 			http.ServeFile(w, r, "generated/openapiv2/apidocs.swagger.json")
-		})
+		}); err != nil {
+			slog.Error("Failed to register swagger.json handler", "error", err)
+		}
 
 		// Serve Swagger UI
-		//nosec G104 -- Swagger UI handler manages errors internally
-		mux.HandlePath("GET", "/docs", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		if err := mux.HandlePath("GET", "/docs", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 			// Swagger UI handler already handles errors internally
 			sh.ServeHTTP(w, r)
-		})
+		}); err != nil {
+			slog.Error("Failed to register /docs handler", "error", err)
+		}
 
 		// Serve frontend configuration
-		//nosec G104 -- HTTP handler errors are handled appropriately with logging and error responses
-		mux.HandlePath("GET", "/config.js", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		if err := mux.HandlePath("GET", "/config.js", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
 			jiraDomain := os.Getenv("JIRA_DOMAIN")
 			if jiraDomain == "" {
 				jiraDomain = "your-domain.atlassian.net"
@@ -162,7 +163,9 @@ var serv = &cobra.Command{
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
-		})
+		}); err != nil {
+			slog.Error("Failed to register /config.js handler", "error", err)
+		}
 
 		//define logger for http server error
 		handler := slog.NewJSONHandler(os.Stdout, nil)
