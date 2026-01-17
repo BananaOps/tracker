@@ -25,6 +25,11 @@ export default function CreateEvent() {
 
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
+  // État pour la récurrence
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'1week' | '2weeks' | '4weeks'>('1week')
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('')
+
   // Calculer les dates par défaut
   const now = new Date()
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
@@ -39,7 +44,7 @@ export default function CreateEvent() {
       type: EventType.DEPLOYMENT,
       priority: Priority.P3,
       service: '',
-      status: Status.START,
+      status: Status.OPEN,
       environment: Environment.PRODUCTION,
       owner: '',
       startDate: defaultStartDate,
@@ -81,7 +86,7 @@ export default function CreateEvent() {
     return `❌ Error creating event: ${errorMessage}`
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setShowToast(false)
     
@@ -108,9 +113,55 @@ export default function CreateEvent() {
       },
     }
     
-    // Convertir les enums en nombres pour l'API
-    const apiData = convertEventForAPI(eventData)
-    createMutation.mutate(apiData)
+    // Si récurrence activée, créer plusieurs événements
+    if (isRecurring && recurrenceEndDate && startDateISO) {
+      const events: any[] = []
+      const startDate = new Date(formData.attributes.startDate!)
+      const endDate = new Date(formData.attributes.endDate!)
+      const recurrenceEnd = new Date(recurrenceEndDate)
+      
+      // Calculer l'intervalle en jours
+      const intervalDays = recurrenceFrequency === '1week' ? 7 : recurrenceFrequency === '2weeks' ? 14 : 28
+      
+      let currentStart = new Date(startDate)
+      let currentEnd = new Date(endDate)
+      
+      // Générer les événements récurrents
+      while (currentStart <= recurrenceEnd) {
+        const recurringEvent = {
+          ...eventData,
+          title: `${formData.title} (${currentStart.toLocaleDateString()})`,
+          attributes: {
+            ...eventData.attributes,
+            startDate: currentStart.toISOString(),
+            endDate: currentEnd.toISOString(),
+          },
+        }
+        events.push(convertEventForAPI(recurringEvent))
+        
+        // Avancer à la prochaine occurrence
+        currentStart = new Date(currentStart.getTime() + intervalDays * 24 * 60 * 60 * 1000)
+        currentEnd = new Date(currentEnd.getTime() + intervalDays * 24 * 60 * 60 * 1000)
+      }
+      
+      // Créer tous les événements
+      try {
+        for (const event of events) {
+          await eventsApi.create(event)
+        }
+        queryClient.invalidateQueries({ queryKey: ['events'] })
+        setShowToast(true)
+        setTimeout(() => {
+          navigate(-1)
+        }, 2000)
+      } catch (error) {
+        console.error('Error creating recurring events:', error)
+      }
+    } else {
+      // Créer un seul événement
+      const apiData = convertEventForAPI(eventData)
+      createMutation.mutate(apiData)
+    }
   }
 
   return (
@@ -224,11 +275,15 @@ export default function CreateEvent() {
                   })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
+                  <option value={Status.OPEN}>Open (Planned)</option>
                   <option value={Status.START}>Started</option>
+                  <option value={Status.IN_PROGRESS}>In Progress</option>
                   <option value={Status.SUCCESS}>Success</option>
+                  <option value={Status.DONE}>Done</option>
                   <option value={Status.FAILURE}>Failed</option>
                   <option value={Status.WARNING}>Warning</option>
                   <option value={Status.ERROR}>Error</option>
+                  <option value={Status.CLOSE}>Closed</option>
                 </select>
               </div>
 
@@ -337,6 +392,63 @@ export default function CreateEvent() {
                   })}
                 />
               </div>
+            </div>
+
+            {/* Recurring Events Section */}
+            <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isRecurring"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                  Create recurring event
+                </label>
+              </div>
+
+              {isRecurring && (
+                <div className="space-y-4 pl-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="recurrenceFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Frequency <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="recurrenceFrequency"
+                        value={recurrenceFrequency}
+                        onChange={(e) => setRecurrenceFrequency(e.target.value as '1week' | '2weeks' | '4weeks')}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required={isRecurring}
+                      >
+                        <option value="1week">Every week</option>
+                        <option value="2weeks">Every 2 weeks</option>
+                        <option value="4weeks">Every 4 weeks</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="recurrenceEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Recurrence End Date <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id="recurrenceEndDate"
+                        type="date"
+                        value={recurrenceEndDate}
+                        onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                        required={isRecurring}
+                        min={formData.attributes.startDate?.slice(0, 10)}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    💡 Multiple events will be created automatically based on the selected frequency until the end date.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
