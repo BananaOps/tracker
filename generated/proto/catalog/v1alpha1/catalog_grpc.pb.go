@@ -25,6 +25,7 @@ const (
 	CatalogService_ListCatalogs_FullMethodName         = "/tracker.catalog.v1alpha1.CatalogService/ListCatalogs"
 	CatalogService_GetVersionCompliance_FullMethodName = "/tracker.catalog.v1alpha1.CatalogService/GetVersionCompliance"
 	CatalogService_UpdateVersions_FullMethodName       = "/tracker.catalog.v1alpha1.CatalogService/UpdateVersions"
+	CatalogService_UpdateDependencies_FullMethodName   = "/tracker.catalog.v1alpha1.CatalogService/UpdateDependencies"
 )
 
 // CatalogServiceClient is the client API for CatalogService service.
@@ -39,6 +40,8 @@ type CatalogServiceClient interface {
 	GetVersionCompliance(ctx context.Context, in *GetVersionComplianceRequest, opts ...grpc.CallOption) (*GetVersionComplianceResponse, error)
 	// Version management for deliverables
 	UpdateVersions(ctx context.Context, in *UpdateVersionsRequest, opts ...grpc.CallOption) (*UpdateVersionsResponse, error)
+	// Dependencies management
+	UpdateDependencies(ctx context.Context, in *UpdateDependenciesRequest, opts ...grpc.CallOption) (*UpdateDependenciesResponse, error)
 }
 
 type catalogServiceClient struct {
@@ -109,6 +112,16 @@ func (c *catalogServiceClient) UpdateVersions(ctx context.Context, in *UpdateVer
 	return out, nil
 }
 
+func (c *catalogServiceClient) UpdateDependencies(ctx context.Context, in *UpdateDependenciesRequest, opts ...grpc.CallOption) (*UpdateDependenciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateDependenciesResponse)
+	err := c.cc.Invoke(ctx, CatalogService_UpdateDependencies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CatalogServiceServer is the server API for CatalogService service.
 // All implementations must embed UnimplementedCatalogServiceServer
 // for forward compatibility.
@@ -121,6 +134,8 @@ type CatalogServiceServer interface {
 	GetVersionCompliance(context.Context, *GetVersionComplianceRequest) (*GetVersionComplianceResponse, error)
 	// Version management for deliverables
 	UpdateVersions(context.Context, *UpdateVersionsRequest) (*UpdateVersionsResponse, error)
+	// Dependencies management
+	UpdateDependencies(context.Context, *UpdateDependenciesRequest) (*UpdateDependenciesResponse, error)
 	mustEmbedUnimplementedCatalogServiceServer()
 }
 
@@ -148,6 +163,9 @@ func (UnimplementedCatalogServiceServer) GetVersionCompliance(context.Context, *
 }
 func (UnimplementedCatalogServiceServer) UpdateVersions(context.Context, *UpdateVersionsRequest) (*UpdateVersionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateVersions not implemented")
+}
+func (UnimplementedCatalogServiceServer) UpdateDependencies(context.Context, *UpdateDependenciesRequest) (*UpdateDependenciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDependencies not implemented")
 }
 func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
 func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
@@ -278,6 +296,24 @@ func _CatalogService_UpdateVersions_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CatalogService_UpdateDependencies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDependenciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).UpdateDependencies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_UpdateDependencies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).UpdateDependencies(ctx, req.(*UpdateDependenciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CatalogService_ServiceDesc is the grpc.ServiceDesc for CatalogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -308,6 +344,10 @@ var CatalogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateVersions",
 			Handler:    _CatalogService_UpdateVersions_Handler,
+		},
+		{
+			MethodName: "UpdateDependencies",
+			Handler:    _CatalogService_UpdateDependencies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

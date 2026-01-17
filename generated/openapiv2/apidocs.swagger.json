@@ -156,6 +156,46 @@
         ]
       }
     },
+    "/api/v1alpha1/catalog/{name}/dependencies": {
+      "put": {
+        "summary": "Dependencies management",
+        "operationId": "CatalogService_UpdateDependencies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateDependenciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Service name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CatalogServiceUpdateDependenciesBody"
+            }
+          }
+        ],
+        "tags": [
+          "CatalogService"
+        ]
+      }
+    },
     "/api/v1alpha1/catalog/{name}/versions": {
       "put": {
         "summary": "Version management for deliverables",
@@ -857,6 +897,26 @@
     }
   },
   "definitions": {
+    "CatalogServiceUpdateDependenciesBody": {
+      "type": "object",
+      "properties": {
+        "dependencies_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Upstream dependencies (services this service depends on)"
+        },
+        "dependencies_out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Downstream dependencies (services that depend on this service)"
+        }
+      },
+      "title": "Dependencies management messages"
+    },
     "CatalogServiceUpdateVersionsBody": {
       "type": "object",
       "properties": {
@@ -1900,6 +1960,15 @@
         "count": {
           "type": "string",
           "format": "int64"
+        }
+      }
+    },
+    "v1alpha1UpdateDependenciesResponse": {
+      "type": "object",
+      "properties": {
+        "catalog": {
+          "$ref": "#/definitions/v1alpha1Catalog",
+          "title": "Updated catalog with new dependencies"
         }
       }
     },

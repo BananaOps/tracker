@@ -342,3 +342,49 @@ func (e *Catalog) UpdateVersions(
 		Catalog: updatedCatalog,
 	}, nil
 }
+
+func (e *Catalog) UpdateDependencies(
+	ctx context.Context,
+	i *v1alpha1.UpdateDependenciesRequest,
+) (*v1alpha1.UpdateDependenciesResponse, error) {
+
+	// Validation
+	if i.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+
+	// Get existing catalog
+	existingCatalog, err := e.store.Get(ctx, map[string]interface{}{"name": i.Name})
+	if err != nil {
+		e.logger.Error("catalog not found", "error", err, "name", i.Name)
+		return nil, fmt.Errorf("catalog %s not found: %w", i.Name, err)
+	}
+
+	e.logger.Info("📦 Updating dependencies",
+		"name", i.Name,
+		"dependencies_in_count", len(i.DependenciesIn),
+		"dependencies_out_count", len(i.DependenciesOut),
+	)
+
+	// Update only dependency fields
+	existingCatalog.DependenciesIn = i.DependenciesIn
+	existingCatalog.DependenciesOut = i.DependenciesOut
+	existingCatalog.UpdatedAt = timestamppb.Now()
+
+	// Save updated catalog
+	updatedCatalog, err := e.store.Update(ctx, map[string]interface{}{"name": i.Name}, existingCatalog)
+	if err != nil {
+		e.logger.Error("failed to update catalog dependencies", "error", err, "name", i.Name)
+		return nil, fmt.Errorf("failed to update dependencies for catalog %s: %w", i.Name, err)
+	}
+
+	e.logger.Info("✅ Successfully updated dependencies",
+		"name", updatedCatalog.Name,
+		"dependencies_in", updatedCatalog.DependenciesIn,
+		"dependencies_out", updatedCatalog.DependenciesOut,
+	)
+
+	return &v1alpha1.UpdateDependenciesResponse{
+		Catalog: updatedCatalog,
+	}, nil
+}

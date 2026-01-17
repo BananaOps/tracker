@@ -2770,6 +2770,241 @@ var _ interface {
 	ErrorName() string
 } = UpdateVersionsResponseValidationError{}
 
+// Validate checks the field values on UpdateDependenciesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateDependenciesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateDependenciesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateDependenciesRequestMultiError, or nil if none found.
+func (m *UpdateDependenciesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateDependenciesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return UpdateDependenciesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateDependenciesRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateDependenciesRequest.ValidateAll() if the
+// designated constraints aren't met.
+type UpdateDependenciesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateDependenciesRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateDependenciesRequestMultiError) AllErrors() []error { return m }
+
+// UpdateDependenciesRequestValidationError is the validation error returned by
+// UpdateDependenciesRequest.Validate if the designated constraints aren't met.
+type UpdateDependenciesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateDependenciesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateDependenciesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateDependenciesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateDependenciesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateDependenciesRequestValidationError) ErrorName() string {
+	return "UpdateDependenciesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateDependenciesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateDependenciesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateDependenciesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateDependenciesRequestValidationError{}
+
+// Validate checks the field values on UpdateDependenciesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateDependenciesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateDependenciesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateDependenciesResponseMultiError, or nil if none found.
+func (m *UpdateDependenciesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateDependenciesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetCatalog()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateDependenciesResponseValidationError{
+					field:  "Catalog",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateDependenciesResponseValidationError{
+					field:  "Catalog",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCatalog()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateDependenciesResponseValidationError{
+				field:  "Catalog",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateDependenciesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateDependenciesResponseMultiError is an error wrapping multiple
+// validation errors returned by UpdateDependenciesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type UpdateDependenciesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateDependenciesResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateDependenciesResponseMultiError) AllErrors() []error { return m }
+
+// UpdateDependenciesResponseValidationError is the validation error returned
+// by UpdateDependenciesResponse.Validate if the designated constraints aren't met.
+type UpdateDependenciesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateDependenciesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateDependenciesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateDependenciesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateDependenciesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateDependenciesResponseValidationError) ErrorName() string {
+	return "UpdateDependenciesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateDependenciesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateDependenciesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateDependenciesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateDependenciesResponseValidationError{}
+
 // Validate checks the field values on UsedDeliverable with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

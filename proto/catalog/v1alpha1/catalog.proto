@@ -37,6 +37,14 @@ service CatalogService {
       body: "*"
     };
   }
+
+  // Dependencies management
+  rpc UpdateDependencies(UpdateDependenciesRequest) returns (UpdateDependenciesResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/catalog/{name}/dependencies"
+      body: "*"
+    };
+  }
 }
 
 message Catalog {
@@ -257,6 +265,17 @@ message UpdateVersionsRequest {
 
 message UpdateVersionsResponse {
   Catalog catalog = 1;                      // Updated catalog with new versions
+}
+
+// Dependencies management messages
+message UpdateDependenciesRequest {
+  string name = 1;                          // Service name
+  repeated string dependencies_in = 2;      // Upstream dependencies (services this service depends on)
+  repeated string dependencies_out = 3;     // Downstream dependencies (services that depend on this service)
+}
+
+message UpdateDependenciesResponse {
+  Catalog catalog = 1;                      // Updated catalog with new dependencies
 }
 
 // Used deliverable in a project

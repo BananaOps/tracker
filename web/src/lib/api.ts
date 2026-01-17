@@ -352,6 +352,45 @@ const realCatalogApi = {
     
     return frontendCatalog
   },
+
+  updateDependencies: async (name: string, dependenciesIn: string[], dependenciesOut: string[]) => {
+    console.log('🔧 API: Updating dependencies for service:', name, { dependenciesIn, dependenciesOut })
+    
+    const requestData = {
+      name,
+      dependencies_in: dependenciesIn,
+      dependencies_out: dependenciesOut
+    }
+    
+    console.log('📤 API: Sending dependencies update:', JSON.stringify(requestData, null, 2))
+    
+    const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/dependencies`, requestData)
+    console.log('✅ API: Dependencies update response:', JSON.stringify(data, null, 2))
+    
+    // Convert response back to frontend format
+    const frontendCatalog: Catalog = {
+      ...data.catalog,
+      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
+      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
+      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
+      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
+      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
+      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
+        name: ud.name,
+        type: ud.type,
+        versionUsed: ud.version_used || ud.versionUsed,
+        description: ud.description
+      })) || data.catalog.usedDeliverables,
+      sla: data.catalog.sla ? {
+        level: data.catalog.sla.level,
+        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
+        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
+        description: data.catalog.sla.description
+      } : undefined
+    }
+    
+    return frontendCatalog
+  },
 }
 
 export interface Lock {

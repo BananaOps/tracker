@@ -247,6 +247,51 @@ func local_request_CatalogService_UpdateVersions_0(ctx context.Context, marshale
 	return msg, metadata, err
 }
 
+func request_CatalogService_UpdateDependencies_0(ctx context.Context, marshaler runtime.Marshaler, client CatalogServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateDependenciesRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	msg, err := client.UpdateDependencies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_CatalogService_UpdateDependencies_0(ctx context.Context, marshaler runtime.Marshaler, server CatalogServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq UpdateDependenciesRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	msg, err := server.UpdateDependencies(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterCatalogServiceHandlerServer registers the http handlers for service CatalogService to "mux".
 // UnaryRPC     :call CatalogServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -372,6 +417,26 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 			return
 		}
 		forward_CatalogService_UpdateVersions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPut, pattern_CatalogService_UpdateDependencies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/UpdateDependencies", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}/dependencies"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_CatalogService_UpdateDependencies_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CatalogService_UpdateDependencies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -515,6 +580,23 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 		forward_CatalogService_UpdateVersions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPut, pattern_CatalogService_UpdateDependencies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tracker.catalog.v1alpha1.CatalogService/UpdateDependencies", runtime.WithHTTPPathPattern("/api/v1alpha1/catalog/{name}/dependencies"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_CatalogService_UpdateDependencies_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_CatalogService_UpdateDependencies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
@@ -525,6 +607,7 @@ var (
 	pattern_CatalogService_ListCatalogs_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "catalogs", "list"}, ""))
 	pattern_CatalogService_GetVersionCompliance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1alpha1", "catalog", "version-compliance"}, ""))
 	pattern_CatalogService_UpdateVersions_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1alpha1", "catalog", "name", "versions"}, ""))
+	pattern_CatalogService_UpdateDependencies_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1alpha1", "catalog", "name", "dependencies"}, ""))
 )
 
 var (
@@ -534,4 +617,5 @@ var (
 	forward_CatalogService_ListCatalogs_0         = runtime.ForwardResponseMessage
 	forward_CatalogService_GetVersionCompliance_0 = runtime.ForwardResponseMessage
 	forward_CatalogService_UpdateVersions_0       = runtime.ForwardResponseMessage
+	forward_CatalogService_UpdateDependencies_0   = runtime.ForwardResponseMessage
 )
