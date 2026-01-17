@@ -51,6 +51,14 @@ service EventService {
   rpc GetEventChangelog(GetEventChangelogRequest) returns (GetEventChangelogResponse) {
     option (google.api.http) = {get: "/api/v1alpha1/event/{id}/changelog"};
   }
+
+  // Add a Slack ID to an existing event
+  rpc AddSlackId(AddSlackIdRequest) returns (AddSlackIdResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/event/{id}/slack"
+      body: "*"
+    };
+  }
 }
 
 message EventAttributes {
@@ -204,6 +212,19 @@ message DeleteEventRequest {
 message DeleteEventResponse {
   string id = 1;
   string slack_id = 2;
+}
+
+// Request to add a Slack ID to an existing event
+message AddSlackIdRequest {
+  // Event identifier (UUID)
+  string id = 1 [(validate.rules).string = {uuid: true}];
+  // Slack message ID to add
+  string slack_id = 2;
+}
+
+// Response returns the updated event
+message AddSlackIdResponse {
+  Event event = 1;
 }
 
 enum Type {

@@ -87,6 +87,12 @@ const realEventsApi = {
     const totalCount = (data.totalCount ?? (data as any).TotalCount ?? changelog.length) as number
     return { changelog, totalCount }
   },
+
+  // Add Slack ID to an existing event
+  addSlackId: async (id: string, slackId: string) => {
+    const { data } = await axiosInstance.post<{ event: Event }>(`/event/${id}/slack`, { slack_id: slackId })
+    return data.event
+  },
 }
 
 const realCatalogApi = {

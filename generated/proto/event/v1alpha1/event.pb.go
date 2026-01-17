@@ -1816,6 +1816,106 @@ func (x *DeleteEventResponse) GetSlackId() string {
 	return ""
 }
 
+// Request to add a Slack ID to an existing event
+type AddSlackIdRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Event identifier (UUID)
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Slack message ID to add
+	SlackId       string `protobuf:"bytes,2,opt,name=slack_id,json=slackId,proto3" json:"slack_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddSlackIdRequest) Reset() {
+	*x = AddSlackIdRequest{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddSlackIdRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddSlackIdRequest) ProtoMessage() {}
+
+func (x *AddSlackIdRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddSlackIdRequest.ProtoReflect.Descriptor instead.
+func (*AddSlackIdRequest) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AddSlackIdRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AddSlackIdRequest) GetSlackId() string {
+	if x != nil {
+		return x.SlackId
+	}
+	return ""
+}
+
+// Response returns the updated event
+type AddSlackIdResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Event         *Event                 `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddSlackIdResponse) Reset() {
+	*x = AddSlackIdResponse{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddSlackIdResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddSlackIdResponse) ProtoMessage() {}
+
+func (x *AddSlackIdResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddSlackIdResponse.ProtoReflect.Descriptor instead.
+func (*AddSlackIdResponse) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *AddSlackIdResponse) GetEvent() *Event {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
 var File_proto_event_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
@@ -1939,7 +2039,12 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\bslack_id\x18\x02 \x01(\tR\aslackId\"@\n" +
 	"\x13DeleteEventResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bslack_id\x18\x02 \x01(\tR\aslackId*c\n" +
+	"\bslack_id\x18\x02 \x01(\tR\aslackId\"H\n" +
+	"\x11AddSlackIdRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\x12\x19\n" +
+	"\bslack_id\x18\x02 \x01(\tR\aslackId\"I\n" +
+	"\x12AddSlackIdResponse\x123\n" +
+	"\x05event\x18\x01 \x01(\v2\x1d.tracker.event.v1alpha1.EventR\x05event*c\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -1994,8 +2099,7 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x06linked\x10\a\x12\n" +
 	"\n" +
 	"\x06locked\x10\b\x12\f\n" +
-	"\bunlocked\x10\t2\xa5\n" +
-	"\n" +
+	"\bunlocked\x10\t2\xb6\v\n" +
 	"\fEventService\x12\x86\x01\n" +
 	"\vCreateEvent\x12*.tracker.event.v1alpha1.CreateEventRequest\x1a+.tracker.event.v1alpha1.CreateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1alpha1/event\x12\x86\x01\n" +
 	"\vUpdateEvent\x12*.tracker.event.v1alpha1.UpdateEventRequest\x1a+.tracker.event.v1alpha1.UpdateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1alpha1/event\x12\x89\x01\n" +
@@ -2006,7 +2110,9 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"ListEvents\x12).tracker.event.v1alpha1.ListEventsRequest\x1a*.tracker.event.v1alpha1.ListEventsResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1alpha1/events/list\x12\x8a\x01\n" +
 	"\vTodayEvents\x12*.tracker.event.v1alpha1.TodayEventsRequest\x1a+.tracker.event.v1alpha1.TodayEventsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/events/today\x12\xa7\x01\n" +
 	"\x11AddChangelogEntry\x120.tracker.event.v1alpha1.AddChangelogEntryRequest\x1a1.tracker.event.v1alpha1.AddChangelogEntryResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1alpha1/event/{id}/changelog\x12\xa4\x01\n" +
-	"\x11GetEventChangelog\x120.tracker.event.v1alpha1.GetEventChangelogRequest\x1a1.tracker.event.v1alpha1.GetEventChangelogResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/event/{id}/changelogB\x16Z\x14proto/event/v1alpha1b\x06proto3"
+	"\x11GetEventChangelog\x120.tracker.event.v1alpha1.GetEventChangelogRequest\x1a1.tracker.event.v1alpha1.GetEventChangelogResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/event/{id}/changelog\x12\x8e\x01\n" +
+	"\n" +
+	"AddSlackId\x12).tracker.event.v1alpha1.AddSlackIdRequest\x1a*.tracker.event.v1alpha1.AddSlackIdResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1alpha1/event/{id}/slackB\x16Z\x14proto/event/v1alpha1b\x06proto3"
 
 var (
 	file_proto_event_v1alpha1_event_proto_rawDescOnce sync.Once
@@ -2021,7 +2127,7 @@ func file_proto_event_v1alpha1_event_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_event_v1alpha1_event_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_proto_event_v1alpha1_event_proto_goTypes = []any{
 	(Type)(0),                         // 0: tracker.event.v1alpha1.Type
 	(Priority)(0),                     // 1: tracker.event.v1alpha1.Priority
@@ -2051,21 +2157,23 @@ var file_proto_event_v1alpha1_event_proto_goTypes = []any{
 	(*UpdateEventResponse)(nil),       // 25: tracker.event.v1alpha1.UpdateEventResponse
 	(*DeleteEventRequest)(nil),        // 26: tracker.event.v1alpha1.DeleteEventRequest
 	(*DeleteEventResponse)(nil),       // 27: tracker.event.v1alpha1.DeleteEventResponse
-	(*timestamppb.Timestamp)(nil),     // 28: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),       // 29: google.protobuf.Duration
-	(*wrapperspb.UInt32Value)(nil),    // 30: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),     // 31: google.protobuf.Int32Value
+	(*AddSlackIdRequest)(nil),         // 28: tracker.event.v1alpha1.AddSlackIdRequest
+	(*AddSlackIdResponse)(nil),        // 29: tracker.event.v1alpha1.AddSlackIdResponse
+	(*timestamppb.Timestamp)(nil),     // 30: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),       // 31: google.protobuf.Duration
+	(*wrapperspb.UInt32Value)(nil),    // 32: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),     // 33: google.protobuf.Int32Value
 }
 var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	0,  // 0: tracker.event.v1alpha1.EventAttributes.type:type_name -> tracker.event.v1alpha1.Type
 	1,  // 1: tracker.event.v1alpha1.EventAttributes.priority:type_name -> tracker.event.v1alpha1.Priority
 	2,  // 2: tracker.event.v1alpha1.EventAttributes.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 3: tracker.event.v1alpha1.EventAttributes.environment:type_name -> tracker.event.v1alpha1.Environment
-	28, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
-	28, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
-	28, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
-	29, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
-	28, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
+	30, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
+	30, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
+	30, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
+	31, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
+	30, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 9: tracker.event.v1alpha1.ChangelogEntry.change_type:type_name -> tracker.event.v1alpha1.ChangeType
 	5,  // 10: tracker.event.v1alpha1.Event.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
 	7,  // 11: tracker.event.v1alpha1.Event.links:type_name -> tracker.event.v1alpha1.EventLinks
@@ -2080,43 +2188,46 @@ var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	2,  // 20: tracker.event.v1alpha1.SearchEventsRequest.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 21: tracker.event.v1alpha1.SearchEventsRequest.environment:type_name -> tracker.event.v1alpha1.Environment
 	9,  // 22: tracker.event.v1alpha1.SearchEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	30, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	31, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
+	32, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	33, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 25: tracker.event.v1alpha1.ListEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	30, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	31, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
+	32, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	33, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 28: tracker.event.v1alpha1.TodayEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
 	8,  // 29: tracker.event.v1alpha1.AddChangelogEntryRequest.entry:type_name -> tracker.event.v1alpha1.ChangelogEntry
 	9,  // 30: tracker.event.v1alpha1.AddChangelogEntryResponse.event:type_name -> tracker.event.v1alpha1.Event
-	30, // 31: tracker.event.v1alpha1.GetEventChangelogRequest.per_page:type_name -> google.protobuf.UInt32Value
-	31, // 32: tracker.event.v1alpha1.GetEventChangelogRequest.page:type_name -> google.protobuf.Int32Value
+	32, // 31: tracker.event.v1alpha1.GetEventChangelogRequest.per_page:type_name -> google.protobuf.UInt32Value
+	33, // 32: tracker.event.v1alpha1.GetEventChangelogRequest.page:type_name -> google.protobuf.Int32Value
 	8,  // 33: tracker.event.v1alpha1.GetEventChangelogResponse.changelog:type_name -> tracker.event.v1alpha1.ChangelogEntry
 	5,  // 34: tracker.event.v1alpha1.UpdateEventRequest.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
 	7,  // 35: tracker.event.v1alpha1.UpdateEventRequest.links:type_name -> tracker.event.v1alpha1.EventLinks
 	9,  // 36: tracker.event.v1alpha1.UpdateEventResponse.event:type_name -> tracker.event.v1alpha1.Event
-	10, // 37: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
-	24, // 38: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
-	26, // 39: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
-	12, // 40: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
-	14, // 41: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
-	16, // 42: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
-	18, // 43: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
-	20, // 44: tracker.event.v1alpha1.EventService.AddChangelogEntry:input_type -> tracker.event.v1alpha1.AddChangelogEntryRequest
-	22, // 45: tracker.event.v1alpha1.EventService.GetEventChangelog:input_type -> tracker.event.v1alpha1.GetEventChangelogRequest
-	11, // 46: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
-	25, // 47: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
-	27, // 48: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
-	13, // 49: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
-	15, // 50: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
-	17, // 51: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
-	19, // 52: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
-	21, // 53: tracker.event.v1alpha1.EventService.AddChangelogEntry:output_type -> tracker.event.v1alpha1.AddChangelogEntryResponse
-	23, // 54: tracker.event.v1alpha1.EventService.GetEventChangelog:output_type -> tracker.event.v1alpha1.GetEventChangelogResponse
-	46, // [46:55] is the sub-list for method output_type
-	37, // [37:46] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	9,  // 37: tracker.event.v1alpha1.AddSlackIdResponse.event:type_name -> tracker.event.v1alpha1.Event
+	10, // 38: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
+	24, // 39: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
+	26, // 40: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
+	12, // 41: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
+	14, // 42: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
+	16, // 43: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
+	18, // 44: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
+	20, // 45: tracker.event.v1alpha1.EventService.AddChangelogEntry:input_type -> tracker.event.v1alpha1.AddChangelogEntryRequest
+	22, // 46: tracker.event.v1alpha1.EventService.GetEventChangelog:input_type -> tracker.event.v1alpha1.GetEventChangelogRequest
+	28, // 47: tracker.event.v1alpha1.EventService.AddSlackId:input_type -> tracker.event.v1alpha1.AddSlackIdRequest
+	11, // 48: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
+	25, // 49: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
+	27, // 50: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
+	13, // 51: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
+	15, // 52: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
+	17, // 53: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
+	19, // 54: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
+	21, // 55: tracker.event.v1alpha1.EventService.AddChangelogEntry:output_type -> tracker.event.v1alpha1.AddChangelogEntryResponse
+	23, // 56: tracker.event.v1alpha1.EventService.GetEventChangelog:output_type -> tracker.event.v1alpha1.GetEventChangelogResponse
+	29, // 57: tracker.event.v1alpha1.EventService.AddSlackId:output_type -> tracker.event.v1alpha1.AddSlackIdResponse
+	48, // [48:58] is the sub-list for method output_type
+	38, // [38:48] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_proto_event_v1alpha1_event_proto_init() }
@@ -2130,7 +2241,7 @@ func file_proto_event_v1alpha1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_event_v1alpha1_event_proto_rawDesc), len(file_proto_event_v1alpha1_event_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
