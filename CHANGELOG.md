@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.13.0](https://github.com/BananaOps/tracker/compare/v0.12.0...v0.13.0) (2026-01-17)
+
+
+### Features
+
+* add catalog dependencies endpoint ([3791683](https://github.com/BananaOps/tracker/commit/3791683fd605c842e66552f072528941af981ca2))
+* add slackId to an existing event ([#129](https://github.com/BananaOps/tracker/issues/129)) ([a15cbc0](https://github.com/BananaOps/tracker/commit/a15cbc0da4fdc444fcefc8004c0314b07ec6b381))
+* create recurrent events ([#128](https://github.com/BananaOps/tracker/issues/128)) ([4fc6482](https://github.com/BananaOps/tracker/commit/4fc6482ab482a6aad6dec7d8151354d5d97035a4))
+* **helm/tracker:** add support for gateway API httproute in addition of ingress ([#122](https://github.com/BananaOps/tracker/issues/122)) ([19fe83d](https://github.com/BananaOps/tracker/commit/19fe83d6e517be024ab1bbac894926aea135351b))
+* **helm/tracker:** add support for openshift route object in addition of ingress ([#123](https://github.com/BananaOps/tracker/issues/123)) ([c9319ed](https://github.com/BananaOps/tracker/commit/c9319eddfbd0d871a3d4adec1fba85d5fcfeea78))
+
+
+### Bug Fixes
+
+* **Snyk:** Security upgrade react-router-dom from 6.30.2 to 6.30.3 ([#127](https://github.com/BananaOps/tracker/issues/127)) ([7ee8553](https://github.com/BananaOps/tracker/commit/7ee85535e74e52c67e3bb9a94ae7e787b0c19e56))
+
 ## [0.12.0](https://github.com/BananaOps/tracker/compare/v0.11.0...v0.12.0) (2025-12-23)
 
 
