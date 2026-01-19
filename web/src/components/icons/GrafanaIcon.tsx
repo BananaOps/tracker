@@ -5,7 +5,7 @@ interface GrafanaIconProps {
 export default function GrafanaIcon({ className = "w-4 h-4" }: GrafanaIconProps) {
   return (
     <img 
-      src="/src/assets/grafana.svg" 
+      src="/grafana.svg" 
       alt="Grafana" 
       className={className}
     />
