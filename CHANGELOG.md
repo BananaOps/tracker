@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.0](https://github.com/BananaOps/tracker/compare/v0.13.1...v0.14.0) (2026-01-19)
+
+
+### Features
+
+* add status planned in front ([14abb2e](https://github.com/BananaOps/tracker/commit/14abb2e3b95e7ed3b4500831f5f0df04637474c8))
+
+
+### Bug Fixes
+
+* calender start of week day ([#134](https://github.com/BananaOps/tracker/issues/134)) ([31fed21](https://github.com/BananaOps/tracker/commit/31fed21634e0e0de64a0a05993994a684af6aa6f))
+* icon not available in build tracker ([#132](https://github.com/BananaOps/tracker/issues/132)) ([b86a6f8](https://github.com/BananaOps/tracker/commit/b86a6f88b3b67117b1070b6b47a502c223a71b59))
+* status and shoudlCreateLock function ([8a82e33](https://github.com/BananaOps/tracker/commit/8a82e33041b67eb32cc3aa3054c53ee006861d0a))
+
 ## [0.13.1](https://github.com/BananaOps/tracker/compare/v0.13.0...v0.13.1) (2026-01-19)
 
 
