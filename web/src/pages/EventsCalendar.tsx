@@ -153,6 +153,13 @@ export default function EventsCalendar() {
   }, [allEvents, searchQuery, selectedEnvironments, selectedServices, selectedPriorities, selectedStatuses, selectedTypes, monthStart, monthEnd])
 
   const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd])
+  
+  // Calculer le jour de la semaine du premier jour (0 = dimanche, 1 = lundi, etc.)
+  // On ajuste pour que lundi = 0
+  const firstDayOfWeek = useMemo(() => {
+    const day = monthStart.getDay()
+    return day === 0 ? 6 : day - 1 // Convertir dimanche (0) en 6, et décaler les autres
+  }, [monthStart])
 
   const getEventsForDay = (day: Date) => {
     return events.filter((event: any) => {
@@ -492,10 +499,10 @@ export default function EventsCalendar() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
             {/* Calendar Grid */}
-            <div className="xl:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div className="xl:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {format(currentDate, 'MMMM yyyy', { locale: fr })}
                 </h3>
@@ -509,14 +516,23 @@ export default function EventsCalendar() {
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="grid grid-cols-7 gap-2">
+              <div className="p-4 overflow-y-auto flex-1">
+                {/* En-têtes des jours */}
+                <div className="grid grid-cols-7 gap-2 mb-1">
                   {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-                    <div key={day} className="text-center text-xs font-semibold text-gray-500 dark:text-gray-400 py-2 uppercase tracking-wider">
+                    <div key={day} className="text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {day}
                     </div>
                   ))}
-
+                </div>
+                
+                {/* Grille des jours */}
+                <div className="grid grid-cols-7 auto-rows-fr gap-2 h-[calc(100%-2rem)]">
+                  {/* Cellules vides pour aligner le premier jour */}
+                  {Array.from({ length: firstDayOfWeek }).map((_, index) => (
+                    <div key={`empty-${index}`} />
+                  ))}
+                  
                   {daysInMonth.map(day => {
                     const dayEvents = getEventsForDay(day)
                     const isSelected = selectedDate && isSameDay(day, selectedDate)
@@ -528,38 +544,38 @@ export default function EventsCalendar() {
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
                         className={`
-                          min-h-[80px] p-2 rounded border transition-all relative
+                          min-h-[120px] h-full p-3 rounded border transition-all relative flex flex-col
                           ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
                           ${isCurrentDay ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'}
                           hover:shadow-md
                         `}
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className={`text-sm font-semibold ${isCurrentDay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                          <div className={`text-base font-semibold ${isCurrentDay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
                             {format(day, 'd')}
                           </div>
                           {hasOverlaps && (
                             <div className="relative" title="Overlapping events">
-                              <AlertTriangle className="w-3 h-3 text-orange-500 animate-pulse" />
+                              <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />
                             </div>
                           )}
                         </div>
                         {dayEvents.length > 0 && (
-                          <div className="space-y-1">
-                            {dayEvents.slice(0, 3).map((event: any, idx: number) => {
+                          <div className="space-y-1 flex-1 overflow-y-auto">
+                            {dayEvents.slice(0, 5).map((event: any, idx: number) => {
                               const typeColor = getEventTypeColor(event.attributes.type)
                               return (
                                 <div
                                   key={idx}
-                                  className={`text-xs px-1 py-0.5 rounded truncate flex items-center space-x-1 ${typeColor.bg} ${typeColor.text} border-0`}
+                                  className={`text-xs px-2 py-1 rounded truncate flex items-center space-x-1 ${typeColor.bg} ${typeColor.text} border-0`}
                                 >
-                                  {getEventTypeIcon(event.attributes.type, 'w-2.5 h-2.5 flex-shrink-0')}
+                                  {getEventTypeIcon(event.attributes.type, 'w-3 h-3 flex-shrink-0')}
                                   <span className="truncate">{event.title}</span>
                                 </div>
                               )
                             })}
-                            {dayEvents.length > 3 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">+{dayEvents.length - 3}</div>
+                            {dayEvents.length > 5 && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium px-2">+{dayEvents.length - 5} more</div>
                             )}
                           </div>
                         )}
@@ -571,14 +587,14 @@ export default function EventsCalendar() {
             </div>
 
             {/* Event Details Panel */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
                 </h3>
               </div>
               
-              <ScrollArea className="h-[600px]">
+              <ScrollArea className="flex-1">
                 <div className="p-4">
                   {selectedDayEvents.length > 0 ? (
                     <div className="space-y-4">
