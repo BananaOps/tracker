@@ -76,7 +76,7 @@ func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, us
 func shouldCreateLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
 	// Créer un lock pour les déploiements et opérations qui démarrent
 	return (eventType == v1alpha1.Type_deployment || eventType == v1alpha1.Type_operation) &&
-		status == v1alpha1.Status_start
+		(status == v1alpha1.Status_start || status == v1alpha1.Status_in_progress)
 }
 
 // shouldReleaseLock détermine si un lock doit être libéré pour cet événement

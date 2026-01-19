@@ -633,7 +633,8 @@
               "open",
               "close",
               "done",
-              "in_progress"
+              "in_progress",
+              "planned"
             ],
             "default": "STATUS_UNSPECIFIED"
           },
@@ -993,7 +994,8 @@
         "open",
         "close",
         "done",
-        "in_progress"
+        "in_progress",
+        "planned"
       ],
       "default": "STATUS_UNSPECIFIED"
     },
