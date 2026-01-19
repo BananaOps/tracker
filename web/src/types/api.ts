@@ -48,6 +48,7 @@ export enum Status {
   CLOSE = 'close',
   DONE = 'done',
   IN_PROGRESS = 'in_progress',
+  PLANNED = 'planned',
 }
 
 // Mapping pour la conversion Status string -> number (pour POST)
@@ -64,6 +65,7 @@ export const StatusToNumber: Record<Status, number> = {
   [Status.CLOSE]: 10,
   [Status.DONE]: 11,
   [Status.IN_PROGRESS]: 12,
+  [Status.PLANNED]: 13,
 }
 
 // L'API retourne des strings pour Environment

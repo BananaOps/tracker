@@ -329,6 +329,9 @@ export const getStatusLabel = (status?: Status | string) => {
     case 'done':
     case '11':
       return 'Done'
+    case 'planned':
+    case '13':
+      return 'Planned'
     default:
       return 'Unknown'
   }
@@ -374,6 +377,12 @@ export const getStatusColor = (status?: Status | string) => {
       return {
         bg: 'bg-blue-100',
         text: 'text-blue-800',
+      }
+    case 'planned':
+    case '13':
+      return {
+        bg: 'bg-purple-100',
+        text: 'text-purple-800',
       }
     default:
       return {

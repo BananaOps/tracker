@@ -275,7 +275,8 @@ export default function CreateEvent() {
                   })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value={Status.OPEN}>Open (Planned)</option>
+                  <option value={Status.PLANNED}>Planned</option>
+                  <option value={Status.OPEN}>Open</option>
                   <option value={Status.START}>Started</option>
                   <option value={Status.IN_PROGRESS}>In Progress</option>
                   <option value={Status.SUCCESS}>Success</option>
