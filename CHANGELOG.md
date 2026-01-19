@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/BananaOps/tracker/compare/v0.13.0...v0.13.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* run npm install ([#130](https://github.com/BananaOps/tracker/issues/130)) ([6b2871f](https://github.com/BananaOps/tracker/commit/6b2871f17501b3e9c0489634ea1a97a7f6e3ca23))
+
 ## [0.13.0](https://github.com/BananaOps/tracker/compare/v0.12.0...v0.13.0) (2026-01-17)
 
 
