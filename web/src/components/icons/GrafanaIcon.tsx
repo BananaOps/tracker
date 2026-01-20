@@ -2,7 +2,7 @@ interface GrafanaIconProps {
   className?: string
 }
 
-export default function GrafanaIcon({ className = "w-4 h-4" }: GrafanaIconProps) {
+export function GrafanaIcon({ className = "w-4 h-4" }: GrafanaIconProps) {
   return (
     <img 
       src="/grafana.svg" 
