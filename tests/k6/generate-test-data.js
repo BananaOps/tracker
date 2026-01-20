@@ -16,10 +16,10 @@ const config = {
   environments: ['development', 'integration', 'tnr', 'uat', 'preproduction', 'production'],
   priorities: { p1: 1, p2: 2, p3: 3, p4: 4, p5: 5 },
   statuses: {
-    deployment: ['start', 'success', 'failure'],
+    deployment: ['planned', 'start', 'success', 'failure'],
     incident: ['open', 'close'],
     drift: ['open', 'done', 'warning'],
-    operation: ['start', 'success', 'failure', 'done'],
+    operation: ['planned', 'start', 'success', 'failure', 'done'],
     rpa_usage: ['success', 'failure', 'warning'],
   },
   catalog: {
