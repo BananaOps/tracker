@@ -9,36 +9,28 @@ export const getEventTypeIcon = (type: EventType | string, className: string = '
   // Normaliser le type en string lowercase
   const typeStr = String(type).toLowerCase()
   
-  console.log('🔍 getEventTypeIcon:', type, '→', typeStr)
-  
   switch (typeStr) {
     case 'deployment':
     case '1':
-      console.log('✅ → ROCKET (Déploiement)')
       return <FontAwesomeIcon icon={faRocket} className={`${finalClass} icon-gradient-blue`} />
     
     case 'operation':
     case '2':
-      console.log('✅ → WRENCH (Opération)')
       return <FontAwesomeIcon icon={faWrench} className={`${finalClass} icon-gradient-purple`} />
     
     case 'drift':
     case '3':
-      console.log('✅ → CODE_BRANCH (Drift)')
       return <FontAwesomeIcon icon={faCodeBranch} className={`${finalClass} icon-gradient-yellow`} />
     
     case 'incident':
     case '4':
-      console.log('✅ → FIRE (Incident)')
       return <FontAwesomeIcon icon={faFire} className={`${finalClass} icon-gradient-red`} />
     
     case 'rpa_usage':
     case '5':
-      console.log('✅ → ROBOT (RPA Usage)')
       return <FontAwesomeIcon icon={faRobot} className={`${finalClass} icon-gradient`} />
     
     default:
-      console.warn('⚠️ Type inconnu:', type, typeStr)
       return <FontAwesomeIcon icon={faFire} className={`${finalClass} text-gray-600 dark:text-gray-400`} />
   }
 }

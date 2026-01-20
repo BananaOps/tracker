@@ -9,7 +9,6 @@ const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 // Configuration de l'URL de base de l'API
 const getApiBaseUrl = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1alpha1'
-  console.log('🔗 API Base URL:', apiUrl) // Debug temporaire
   return apiUrl
 }
 
@@ -200,8 +199,6 @@ const realCatalogApi = {
   },
 
   createOrUpdate: async (catalog: Catalog) => {
-    console.log('🌐 API: Sending catalog to backend:', JSON.stringify(catalog, null, 2))
-    
     // Convert to backend format (snake_case for dependencies, simple SLA)
     // IMPORTANT: Exclude version fields - they are managed separately via updateVersions endpoint
     const backendCatalog = {
@@ -273,10 +270,7 @@ const realCatalogApi = {
       // They are managed via separate updateVersions endpoint
     }
     
-    console.log('🔄 API: Converted for backend (no version fields):', JSON.stringify(backendCatalog, null, 2))
-    
     const { data } = await axiosInstance.put<{ catalog: any }>('/catalog', backendCatalog)
-    console.log('✅ API: Received response:', JSON.stringify(data, null, 2))
     
     // Convert response back to frontend format
     const frontendCatalog: Catalog = {
@@ -314,8 +308,6 @@ const realCatalogApi = {
   },
 
   updateVersions: async (name: string, versions: string[], latestVersion?: string, referenceVersion?: string) => {
-    console.log('🔧 API: Updating versions for service:', name, { versions, latestVersion, referenceVersion })
-    
     const requestData = {
       name,
       available_versions: versions,
@@ -323,10 +315,7 @@ const realCatalogApi = {
       reference_version: referenceVersion
     }
     
-    console.log('📤 API: Sending version update:', JSON.stringify(requestData, null, 2))
-    
     const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/versions`, requestData)
-    console.log('✅ API: Version update response:', JSON.stringify(data, null, 2))
     
     // Convert response back to frontend format
     const frontendCatalog: Catalog = {
@@ -354,18 +343,13 @@ const realCatalogApi = {
   },
 
   updateDependencies: async (name: string, dependenciesIn: string[], dependenciesOut: string[]) => {
-    console.log('🔧 API: Updating dependencies for service:', name, { dependenciesIn, dependenciesOut })
-    
     const requestData = {
       name,
       dependencies_in: dependenciesIn,
       dependencies_out: dependenciesOut
     }
     
-    console.log('📤 API: Sending dependencies update:', JSON.stringify(requestData, null, 2))
-    
     const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/dependencies`, requestData)
-    console.log('✅ API: Dependencies update response:', JSON.stringify(data, null, 2))
     
     // Convert response back to frontend format
     const frontendCatalog: Catalog = {

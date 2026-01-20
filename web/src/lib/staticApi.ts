@@ -181,8 +181,6 @@ export const staticCatalogApi = {
 
   updateVersions: async (name: string, versions: string[], latestVersion?: string, referenceVersion?: string) => {
     // Mock version update for static mode
-    console.log('🔧 Static API: Mock updating versions for service:', name, { versions, latestVersion, referenceVersion })
-    
     // In static mode, we just return a mock response
     return {
       name,
