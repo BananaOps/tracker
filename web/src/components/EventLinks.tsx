@@ -1,5 +1,7 @@
 import type { EventLinks as EventLinksType } from '../types/api'
 import { Github, ExternalLink } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faRocket } from '@fortawesome/free-solid-svg-icons'
 import { SlackIcon } from './icons/SlackIcon'
 import { GrafanaIcon } from './icons/GrafanaIcon'
 import { getJiraTicketUrl, getSlackMessageUrl, parseSlackId } from '../config'
@@ -128,11 +130,7 @@ export function SourceIcon({ source, className = 'w-4 h-4' }: SourceIconProps) {
   const sourceLower = source.toLowerCase()
 
   if (sourceLower.includes('tracker')) {
-    return (
-      <div className={className}>
-        <img src="/tracker-icon.svg" alt="Tracker" className="w-full h-full" />
-      </div>
-    )
+    return <FontAwesomeIcon icon={faRocket} className={`${className} text-gray-900 dark:text-gray-100`} />
   }
 
   if (sourceLower.includes('slack')) {
