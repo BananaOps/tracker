@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/BananaOps/tracker/compare/v0.14.0...v0.14.1) (2026-01-21)
+
+
+### Bug Fixes
+
+* correct event update ([#138](https://github.com/BananaOps/tracker/issues/138)) ([fbc82b1](https://github.com/BananaOps/tracker/commit/fbc82b1f9aada2443fc4e21871034b1a4ba88c36))
+* correct perfomance ([#136](https://github.com/BananaOps/tracker/issues/136)) ([3dabed4](https://github.com/BananaOps/tracker/commit/3dabed4833900ca89c01f8bac87c40f1a516bb1e))
+
 ## [0.14.0](https://github.com/BananaOps/tracker/compare/v0.13.1...v0.14.0) (2026-01-19)
 
 
