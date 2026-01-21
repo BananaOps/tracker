@@ -74,6 +74,8 @@ message Catalog {
   repeated DashboardLink dashboard_links = 20;
   // Vulnerability summary for security monitoring
   VulnerabilitySummary vulnerability_summary = 21;
+  // Infrastructure resources used by this service
+  repeated InfrastructureResource infrastructure_resources = 22;
 }
 
 message CreateUpdateCatalogRequest {
@@ -99,6 +101,8 @@ message CreateUpdateCatalogRequest {
   repeated DashboardLink dashboard_links = 17;
   // Vulnerability summary for security monitoring
   VulnerabilitySummary vulnerability_summary = 18;
+  // Infrastructure resources used by this service
+  repeated InfrastructureResource infrastructure_resources = 19;
   // Note: Version management (available_versions, latest_version, reference_version) 
   // is handled separately via UpdateVersions endpoint
 }
@@ -284,6 +288,60 @@ message UsedDeliverable {
   Type type = 2;                            // Type of deliverable (package, chart, container, module)
   string version_used = 3;                  // Version currently used in this project
   string description = 4;                   // Optional description or usage context
+}
+
+// Infrastructure resource (database, storage, API gateway, etc.)
+message InfrastructureResource {
+  string id = 1;                            // Unique identifier for the resource
+  string name = 2;                          // Display name (e.g., "users-db", "assets-bucket")
+  InfrastructureType type = 3;              // Type of infrastructure resource
+  string description = 4;                   // Optional description
+  string provider = 5;                      // Cloud provider (AWS, Azure, GCP, Scaleway, etc.)
+  string region = 6;                        // Region/location
+  string endpoint = 7;                      // Connection endpoint or URL
+  map<string, string> metadata = 8;         // Additional metadata (size, tier, etc.)
+  repeated string connected_services = 9;   // Services that use this resource
+}
+
+enum InfrastructureType {
+  INFRASTRUCTURE_TYPE_UNSPECIFIED = 0;
+  // Databases
+  database_rds = 1;                         // AWS RDS / Azure SQL / GCP Cloud SQL
+  database_dynamodb = 2;                    // AWS DynamoDB / Azure Cosmos DB
+  database_mongodb = 3;                     // MongoDB Atlas / DocumentDB
+  database_postgresql = 4;                  // PostgreSQL
+  database_mysql = 5;                       // MySQL / MariaDB
+  database_redis = 6;                       // Redis / ElastiCache
+  database_elasticsearch = 7;               // Elasticsearch / OpenSearch
+  // Storage
+  storage_s3 = 10;                          // AWS S3 / Azure Blob / GCP Cloud Storage
+  storage_efs = 11;                         // AWS EFS / Azure Files / GCP Filestore
+  storage_ebs = 12;                         // AWS EBS / Azure Disk
+  // Networking
+  network_load_balancer = 20;               // Load Balancer (ALB, NLB, etc.)
+  network_api_gateway = 21;                 // API Gateway
+  network_cdn = 22;                         // CloudFront / Azure CDN / GCP CDN
+  network_vpc = 23;                         // VPC / Virtual Network
+  network_nat_gateway = 24;                 // NAT Gateway
+  // Messaging & Queues
+  messaging_sqs = 30;                       // AWS SQS / Azure Queue / GCP Pub/Sub
+  messaging_sns = 31;                       // AWS SNS / Azure Service Bus
+  messaging_kafka = 32;                     // Kafka / MSK / Event Hubs
+  messaging_rabbitmq = 33;                  // RabbitMQ / Amazon MQ
+  // Caching
+  cache_redis = 40;                         // Redis / ElastiCache
+  cache_memcached = 41;                     // Memcached
+  cache_cloudfront = 42;                    // CloudFront cache
+  // Security
+  security_waf = 50;                        // WAF (Web Application Firewall)
+  security_secrets_manager = 51;            // Secrets Manager / Key Vault
+  security_kms = 52;                        // KMS / Key Management
+  // Monitoring
+  monitoring_cloudwatch = 60;               // CloudWatch / Azure Monitor
+  monitoring_prometheus = 61;               // Prometheus
+  monitoring_grafana = 62;                  // Grafana
+  // Other
+  other_custom = 99;                        // Custom infrastructure resource
 }
 
 // Communication channel for a service

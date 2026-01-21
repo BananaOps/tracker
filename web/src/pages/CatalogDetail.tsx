@@ -45,6 +45,61 @@ import { useMemo, useState } from 'react'
 import DeliverableVersions from '../components/VersionManager'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
+import InfrastructureResourceManager from '../components/InfrastructureResourceManager'
+import type { InfrastructureResource } from '../types/api'
+
+// Custom Node Component for Infrastructure Resources
+function InfrastructureNode({ data }: NodeProps) {
+  const { name, type, provider, description } = data
+  const color = getInfrastructureColor(type)
+  
+  return (
+    <div 
+      className="min-w-[140px] min-h-[85px] bg-white dark:bg-gray-800 border-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+      style={{ 
+        borderColor: color,
+        borderTopWidth: '4px',
+        borderTopColor: color
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ 
+          background: color,
+          width: 8,
+          height: 8,
+          border: '2px solid white'
+        }}
+      />
+      
+      <div className="p-3 flex flex-col items-center justify-center h-full">
+        <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-full" 
+             style={{ backgroundColor: `${color}20` }}>
+          {getInfrastructureIconComponent(type, 'w-5 h-5', color)}
+        </div>
+        
+        <div className="text-xs font-bold text-gray-900 dark:text-gray-100 text-center mb-1 truncate max-w-full px-1">
+          {name}
+        </div>
+        
+        {provider && (
+          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center truncate max-w-full px-1">
+            {provider}
+          </div>
+        )}
+        
+        <div className="mt-1 px-2 py-0.5 text-[9px] font-medium rounded-full"
+             style={{ 
+               backgroundColor: `${color}20`,
+               color: color
+             }}>
+          Infrastructure
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Custom Node Component for Dependency Graph
 function DependencyNode({ data }: NodeProps) {
@@ -260,6 +315,19 @@ export default function CatalogDetail() {
     updateServiceMutation.mutate(updatedService)
   }
 
+  const handleUpdateInfrastructureResources = (infrastructureResources: InfrastructureResource[]) => {
+    if (!service) return
+    
+    console.log('🔧 Updating infrastructure resources:', infrastructureResources)
+    
+    const updatedService = {
+      ...service,
+      infrastructureResources
+    }
+    
+    updateServiceMutation.mutate(updatedService)
+  }
+
   // Build dependency graph
   const { nodes, edges } = useMemo(() => {
     if (!service || !allCatalogs) return { nodes: [], edges: [] }
@@ -359,12 +427,49 @@ export default function CatalogDetail() {
       })
     })
 
+    // Infrastructure Resources (below the service)
+    service.infrastructureResources?.forEach((resource, index) => {
+      const infraId = `infra-${resource.id}`
+      const color = getInfrastructureColor(resource.type)
+      
+      nodes.push({
+        id: infraId,
+        type: 'infrastructureNode',
+        data: {
+          name: resource.name,
+          type: resource.type,
+          provider: resource.provider,
+          description: resource.description
+        },
+        position: { x: 300 + (index * 180), y: 500 },
+        sourcePosition: Position.Top,
+        targetPosition: Position.Top,
+      })
+
+      edges.push({
+        id: `${service.name}-${infraId}`,
+        source: service.name,
+        target: infraId,
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: color, strokeWidth: 2, strokeDasharray: '5,5' },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: color,
+        },
+        label: 'uses',
+        labelStyle: { fontSize: 10, fill: '#6b7280' },
+        labelBgStyle: { fill: '#f9fafb', fillOpacity: 0.9 },
+      })
+    })
+
     return { nodes, edges }
   }, [service, allCatalogs])
 
   // Define custom node types
   const nodeTypes = useMemo(() => ({
-    dependencyNode: DependencyNode
+    dependencyNode: DependencyNode,
+    infrastructureNode: InfrastructureNode
   }), [])
 
   if (!service) {
@@ -835,6 +940,14 @@ export default function CatalogDetail() {
           />
         </div>
       )}
+
+      {/* Infrastructure Resources Management */}
+      <div className="grid grid-cols-1 gap-1.5">
+        <InfrastructureResourceManager
+          resources={service.infrastructureResources || []}
+          onChange={handleUpdateInfrastructureResources}
+        />
+      </div>
 
       {/* Dependencies Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
@@ -1451,3 +1564,40 @@ function getDashboardLinkStyles(type?: import('../types/api').DashboardType): { 
 
 
 
+
+// Helper functions for Infrastructure Resources
+function getInfrastructureColor(type: string): string {
+  if (type.startsWith('database_')) {
+    return '#3b82f6' // blue
+  } else if (type.startsWith('storage_')) {
+    return '#10b981' // green
+  } else if (type.startsWith('network_')) {
+    return '#a855f7' // purple
+  } else if (type.startsWith('messaging_') || type.startsWith('cache_')) {
+    return '#f97316' // orange
+  } else if (type.startsWith('security_')) {
+    return '#ef4444' // red
+  } else if (type.startsWith('monitoring_')) {
+    return '#6366f1' // indigo
+  }
+  return '#6b7280' // gray
+}
+
+function getInfrastructureIconComponent(type: string, className: string, color: string) {
+  if (type.startsWith('database_')) {
+    return <Activity className={className} style={{ color }} />
+  } else if (type.startsWith('storage_')) {
+    return <Package className={className} style={{ color }} />
+  } else if (type.startsWith('network_')) {
+    return <GitBranch className={className} style={{ color }} />
+  } else if (type.startsWith('messaging_')) {
+    return <Mail className={className} style={{ color }} />
+  } else if (type.startsWith('cache_')) {
+    return <Zap className={className} style={{ color }} />
+  } else if (type.startsWith('security_')) {
+    return <AlertTriangle className={className} style={{ color }} />
+  } else if (type.startsWith('monitoring_')) {
+    return <Activity className={className} style={{ color }} />
+  }
+  return <Server className={className} style={{ color }} />
+}
