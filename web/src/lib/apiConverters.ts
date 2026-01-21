@@ -54,6 +54,24 @@ export const NumberToEnvironment: Record<number, Environment> = {
  * L'API attend des nombres pour les POST/PUT mais renvoie des nombres pour les GET
  */
 export function convertEventForAPI(event: CreateEventRequest): any {
+  // Convertir les dates en format protobuf Timestamp si elles existent
+  const convertDate = (dateStr: string | undefined) => {
+    if (!dateStr) return undefined
+    
+    // Si c'est déjà au format ISO complet, le garder
+    if (dateStr.includes('T') && (dateStr.includes('Z') || dateStr.includes('+'))) {
+      return dateStr
+    }
+    
+    // Sinon, convertir en ISO complet
+    try {
+      return new Date(dateStr).toISOString()
+    } catch (e) {
+      console.error('Error converting date:', dateStr, e)
+      return undefined
+    }
+  }
+
   return {
     ...event,
     attributes: {
@@ -64,6 +82,8 @@ export function convertEventForAPI(event: CreateEventRequest): any {
       environment: event.attributes.environment 
         ? EnvironmentToNumber[event.attributes.environment]
         : undefined,
+      startDate: convertDate(event.attributes.startDate),
+      endDate: convertDate(event.attributes.endDate),
     },
   }
 }

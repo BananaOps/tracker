@@ -667,10 +667,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       type="datetime-local"
                       className="input text-sm"
                       value={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate).toISOString().slice(0, 16) : ''}
-                      onChange={(e) => setEditedEvent({
-                        ...editedEvent,
-                        attributes: { ...editedEvent.attributes, startDate: e.target.value }
-                      })}
+                      onChange={(e) => {
+                        // Convertir la valeur datetime-local en ISO 8601 avec timezone
+                        const isoDate = e.target.value ? new Date(e.target.value).toISOString() : ''
+                        setEditedEvent({
+                          ...editedEvent,
+                          attributes: { ...editedEvent.attributes, startDate: isoDate }
+                        })
+                      }}
                     />
                   ) : (
                     <p className="text-gray-900 dark:text-gray-100">
@@ -688,10 +692,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       type="datetime-local"
                       className="input text-sm"
                       value={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate).toISOString().slice(0, 16) : ''}
-                      onChange={(e) => setEditedEvent({
-                        ...editedEvent,
-                        attributes: { ...editedEvent.attributes, endDate: e.target.value }
-                      })}
+                      onChange={(e) => {
+                        // Convertir la valeur datetime-local en ISO 8601 avec timezone
+                        const isoDate = e.target.value ? new Date(e.target.value).toISOString() : ''
+                        setEditedEvent({
+                          ...editedEvent,
+                          attributes: { ...editedEvent.attributes, endDate: isoDate }
+                        })
+                      }}
                     />
                   ) : (
                     <p className="text-gray-900 dark:text-gray-100">
