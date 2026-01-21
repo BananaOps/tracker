@@ -23,7 +23,6 @@ export default function Locks() {
       setLoading(true)
       setError(null)
       const data = await locksApi.list()
-      console.log('Locks data:', data)
       setLocks(data.locks || [])
     } catch (err) {
       setError('Erreur lors du chargement des locks')

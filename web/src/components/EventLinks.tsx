@@ -1,7 +1,9 @@
 import type { EventLinks as EventLinksType } from '../types/api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGithub, faSlack, faJira } from '@fortawesome/free-brands-svg-icons'
-import { faRocket } from '@fortawesome/free-solid-svg-icons'
+import { faGithub, faJira } from '@fortawesome/free-brands-svg-icons'
+import { faRocket, faTicket, faExternalLink } from '@fortawesome/free-solid-svg-icons'
+import { SlackIcon } from './icons/SlackIcon'
+import { GrafanaIcon } from './icons/GrafanaIcon'
 import { getJiraTicketUrl, getSlackMessageUrl, parseSlackId } from '../config'
 
 interface EventLinksProps {
@@ -14,13 +16,7 @@ interface EventLinksProps {
 export default function EventLinks({ links, slackId, className = '' }: EventLinksProps) {
   const hasLinks = links?.pullRequestLink || links?.ticket || slackId
   
-  // Debug
-  console.log('EventLinks - links:', links)
-  console.log('EventLinks - ticket:', links?.ticket)
-  console.log('EventLinks - pullRequestLink:', links?.pullRequestLink)
-  
   if (!hasLinks) {
-    console.log('EventLinks - No links to display')
     return null
   }
 
@@ -35,7 +31,7 @@ export default function EventLinks({ links, slackId, className = '' }: EventLink
           className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           title={`Voir la Pull Request: ${links.pullRequestLink}`}
         >
-          <FontAwesomeIcon icon={faGithub} className="w-4 h-4 text-gray-800 dark:text-gray-300" />
+          <FontAwesomeIcon icon={faGithub} className="w-4 h-4" />
           <span>PR #{extractPRNumber(links.pullRequestLink)}</span>
         </a>
       )}
@@ -44,6 +40,10 @@ export default function EventLinks({ links, slackId, className = '' }: EventLink
       {links?.ticket && (() => {
         const ticketId = extractTicketId(links.ticket)
         const ticketUrl = getJiraTicketUrl(links.ticket)
+        // Détecter si c'est un lien Jira/Atlassian
+        const isJiraLink = ticketUrl.toLowerCase().includes('atlassian') || ticketUrl.toLowerCase().includes('jira')
+        const icon = isJiraLink ? faJira : faTicket
+        
         return (
           <a
             href={ticketUrl}
@@ -52,7 +52,7 @@ export default function EventLinks({ links, slackId, className = '' }: EventLink
             className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             title={`View ticket: ${ticketId}`}
           >
-            <FontAwesomeIcon icon={faJira} className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <FontAwesomeIcon icon={icon} className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{ticketId}</span>
           </a>
         )
@@ -71,7 +71,7 @@ export default function EventLinks({ links, slackId, className = '' }: EventLink
               className="inline-flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
               title="View in Slack"
             >
-              <FontAwesomeIcon icon={faSlack} className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <SlackIcon className="w-4 h-4" />
               <span>Slack</span>
             </a>
           )
@@ -134,20 +134,20 @@ export function SourceIcon({ source, className = 'w-4 h-4' }: SourceIconProps) {
   const sourceLower = source.toLowerCase()
 
   if (sourceLower.includes('tracker')) {
-    return <FontAwesomeIcon icon={faRocket} className={`${className} icon-gradient`} />
+    return <FontAwesomeIcon icon={faRocket} className={`${className} text-gray-900 dark:text-gray-100`} />
   }
 
   if (sourceLower.includes('slack')) {
-    return <FontAwesomeIcon icon={faSlack} className={`${className} text-purple-600 dark:text-purple-400`} />
+    return <SlackIcon className={className} />
   }
 
   if (sourceLower.includes('github')) {
-    return <FontAwesomeIcon icon={faGithub} className={`${className} text-gray-800 dark:text-gray-300`} />
+    return <FontAwesomeIcon icon={faGithub} className={className} />
   }
 
-  if (sourceLower.includes('jira')) {
-    return <FontAwesomeIcon icon={faJira} className={`${className} text-blue-600 dark:text-blue-400`} />
+  if (sourceLower.includes('grafana')) {
+    return <GrafanaIcon className={className} />
   }
 
-  return null
+  return <FontAwesomeIcon icon={faExternalLink} className={className} />
 }

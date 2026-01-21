@@ -52,7 +52,6 @@ export default function AllDriftsList() {
         type: EventType.DRIFT as unknown as number,
       }
 
-      console.log('Loading all drifts:', searchParams)
       const data = await eventsApi.search(searchParams)
       
       setDrifts(data.events || [])

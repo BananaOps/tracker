@@ -23,11 +23,11 @@ import {
   faCube,
   faComments
 } from '@fortawesome/free-solid-svg-icons'
-import KubernetesIcon from '../components/icons/KubernetesIcon'
-import KotlinIcon from '../components/icons/KotlinIcon'
-import TerraformIcon from '../components/icons/TerraformIcon'
-import SlackIcon from '../components/icons/SlackIcon'
-import GrafanaIcon from '../components/icons/GrafanaIcon'
+import { KubernetesIcon } from '../components/icons/KubernetesIcon'
+import { KotlinIcon } from '../components/icons/KotlinIcon'
+import { TerraformIcon } from '../components/icons/TerraformIcon'
+import { SlackIcon } from '../components/icons/SlackIcon'
+import { GrafanaIcon } from '../components/icons/GrafanaIcon'
 import {
   ReactFlow,
   Node, 

@@ -40,7 +40,6 @@ export default function DriftsList() {
         type: EventType.DRIFT as unknown as number,
       }
 
-      console.log('Loading all drifts with filters:', searchParams)
       const data = await eventsApi.search(searchParams)
       
       // Filter out completed/failed drifts - show everything except failed, done, closed

@@ -490,7 +490,7 @@ export default function EventsCalendar() {
         </div>
 
         {/* Calendar Content */}
-        <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+        <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -499,9 +499,9 @@ export default function EventsCalendar() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Calendar Grid */}
-            <div className="xl:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
+            <div className="xl:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden max-h-[calc(100vh-12rem)]">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {format(currentDate, 'MMMM yyyy', { locale: fr })}
@@ -587,14 +587,14 @@ export default function EventsCalendar() {
             </div>
 
             {/* Event Details Panel */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden max-h-[calc(100vh-12rem)]">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
                 </h3>
               </div>
               
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 overflow-y-auto">
                 <div className="p-4">
                   {selectedDayEvents.length > 0 ? (
                     <div className="space-y-4">

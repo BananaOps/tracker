@@ -4,8 +4,12 @@ import { getMetadata } from '../lib/staticApi'
 
 export default function StaticModeBanner() {
   const [lastUpdate, setLastUpdate] = useState<string>('')
+  const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 
   useEffect(() => {
+    // Only fetch metadata if we're in static mode
+    if (!isStaticMode) return
+    
     const fetchMetadata = async () => {
       try {
         const metadata = await getMetadata()
@@ -15,9 +19,7 @@ export default function StaticModeBanner() {
       }
     }
     fetchMetadata()
-  }, [])
-
-  const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
+  }, [isStaticMode])
   
   if (!isStaticMode) return null
 

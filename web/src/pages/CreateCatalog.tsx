@@ -82,8 +82,10 @@ export default function CreateCatalog() {
     e.preventDefault()
     if (!formData.name || !formData.owner) return
     
-    // Debug: Log the data being sent
-    console.log('📤 Sending catalog data:', JSON.stringify(formData, null, 2))
+    // Debug: Log the data being sent in development only
+    if (import.meta.env.DEV) {
+      console.log('📤 Sending catalog data:', JSON.stringify(formData, null, 2))
+    }
     
     createUpdateMutation.mutate(formData as Catalog)
   }
