@@ -125,7 +125,7 @@ const realCatalogApi = {
         infoCount: catalog.vulnerability_summary.info_count || catalog.vulnerability_summary.infoCount || 0,
         totalCount: catalog.vulnerability_summary.total_count || catalog.vulnerability_summary.totalCount || 0,
         lastUpdated: catalog.vulnerability_summary.last_updated || catalog.vulnerability_summary.lastUpdated,
-        sources: catalog.vulnerability_summary.sources?.map(source => ({
+        sources: catalog.vulnerability_summary.sources?.map((source: any) => ({
           name: source.name,
           type: source.type,
           url: source.url,
@@ -145,7 +145,18 @@ const realCatalogApi = {
         uptimePercentage: catalog.sla.uptimePercentage?.value,
         responseTimeMs: catalog.sla.responseTimeMs?.value,
         description: catalog.sla.description
-      } : undefined
+      } : undefined,
+      infrastructureResources: (catalog.infrastructure_resources || catalog.infrastructureResources)?.map((resource: any) => ({
+        id: resource.id,
+        name: resource.name,
+        type: resource.type,
+        description: resource.description,
+        provider: resource.provider,
+        region: resource.region,
+        endpoint: resource.endpoint,
+        metadata: resource.metadata,
+        connectedServices: resource.connected_services || resource.connectedServices
+      })) || []
     }))
     
     return {
@@ -192,7 +203,18 @@ const realCatalogApi = {
         uptimePercentage: data.catalog.sla.uptimePercentage?.value,
         responseTimeMs: data.catalog.sla.responseTimeMs?.value,
         description: data.catalog.sla.description
-      } : undefined
+      } : undefined,
+      infrastructureResources: (data.catalog.infrastructure_resources || data.catalog.infrastructureResources)?.map((resource: any) => ({
+        id: resource.id,
+        name: resource.name,
+        type: resource.type,
+        description: resource.description,
+        provider: resource.provider,
+        region: resource.region,
+        endpoint: resource.endpoint,
+        metadata: resource.metadata,
+        connectedServices: resource.connected_services || resource.connectedServices
+      })) || []
     }
     
     return frontendCatalog
@@ -265,7 +287,19 @@ const realCatalogApi = {
           scan_version: source.scanVersion,
           description: source.description
         })) || []
-      } : undefined
+      } : undefined,
+      // Convert infrastructure resources to snake_case
+      infrastructure_resources: catalog.infrastructureResources?.map(resource => ({
+        id: resource.id,
+        name: resource.name,
+        type: resource.type,
+        description: resource.description,
+        provider: resource.provider,
+        region: resource.region,
+        endpoint: resource.endpoint,
+        metadata: resource.metadata,
+        connected_services: resource.connectedServices
+      })) || []
       // Note: availableVersions, latestVersion, referenceVersion are NOT sent here
       // They are managed via separate updateVersions endpoint
     }
@@ -291,7 +325,18 @@ const realCatalogApi = {
         uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
         responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
         description: data.catalog.sla.description
-      } : undefined
+      } : undefined,
+      infrastructureResources: (data.catalog.infrastructure_resources || data.catalog.infrastructureResources)?.map((resource: any) => ({
+        id: resource.id,
+        name: resource.name,
+        type: resource.type,
+        description: resource.description,
+        provider: resource.provider,
+        region: resource.region,
+        endpoint: resource.endpoint,
+        metadata: resource.metadata,
+        connectedServices: resource.connected_services || resource.connectedServices
+      })) || []
     }
     
     return frontendCatalog

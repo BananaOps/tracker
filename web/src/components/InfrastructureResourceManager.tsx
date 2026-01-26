@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { Plus, Database, HardDrive, Network, MessageSquare, Shield, Activity, X, Edit2, Save } from 'lucide-react'
 import { Button } from './ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 import { Input } from './ui/input'
-import { Label } from './ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { Textarea } from './ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import type { InfrastructureResource, InfrastructureType } from '../types/api'
 
@@ -158,138 +154,170 @@ export default function InfrastructureResourceManager({ resources, onChange }: I
         )}
       </CardContent>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingResource ? 'Edit Infrastructure Resource' : 'Add Infrastructure Resource'}
-            </DialogTitle>
-            <DialogDescription>
-              Define a database, storage, load balancer, or other infrastructure component
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Resource Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g., users-db, assets-bucket"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value as InfrastructureType })}
+      {/* Custom Modal */}
+      {showDialog && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={() => setShowDialog(false)}
+          />
+          
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {editingResource ? 'Edit Infrastructure Resource' : 'Add Infrastructure Resource'}
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Define a database, storage, load balancer, or other infrastructure component
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDialog(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="database_postgresql">PostgreSQL Database</SelectItem>
-                    <SelectItem value="database_mysql">MySQL Database</SelectItem>
-                    <SelectItem value="database_mongodb">MongoDB</SelectItem>
-                    <SelectItem value="database_redis">Redis Cache</SelectItem>
-                    <SelectItem value="database_rds">RDS Database</SelectItem>
-                    <SelectItem value="database_dynamodb">DynamoDB</SelectItem>
-                    <SelectItem value="database_elasticsearch">Elasticsearch</SelectItem>
-                    <SelectItem value="storage_s3">S3 / Object Storage</SelectItem>
-                    <SelectItem value="storage_efs">EFS / File Storage</SelectItem>
-                    <SelectItem value="storage_ebs">EBS / Block Storage</SelectItem>
-                    <SelectItem value="network_load_balancer">Load Balancer</SelectItem>
-                    <SelectItem value="network_api_gateway">API Gateway</SelectItem>
-                    <SelectItem value="network_cdn">CDN</SelectItem>
-                    <SelectItem value="network_vpc">VPC / Virtual Network</SelectItem>
-                    <SelectItem value="network_nat_gateway">NAT Gateway</SelectItem>
-                    <SelectItem value="messaging_sqs">SQS / Queue</SelectItem>
-                    <SelectItem value="messaging_sns">SNS / Notification</SelectItem>
-                    <SelectItem value="messaging_kafka">Kafka</SelectItem>
-                    <SelectItem value="messaging_rabbitmq">RabbitMQ</SelectItem>
-                    <SelectItem value="cache_redis">Redis Cache</SelectItem>
-                    <SelectItem value="cache_memcached">Memcached</SelectItem>
-                    <SelectItem value="security_waf">WAF</SelectItem>
-                    <SelectItem value="security_secrets_manager">Secrets Manager</SelectItem>
-                    <SelectItem value="security_kms">KMS / Key Management</SelectItem>
-                    <SelectItem value="monitoring_cloudwatch">CloudWatch</SelectItem>
-                    <SelectItem value="monitoring_prometheus">Prometheus</SelectItem>
-                    <SelectItem value="monitoring_grafana">Grafana</SelectItem>
-                    <SelectItem value="other_custom">Custom Resource</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe the purpose and usage of this resource"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="provider">Cloud Provider</Label>
-                <Select
-                  value={formData.provider}
-                  onValueChange={(value) => setFormData({ ...formData, provider: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="AWS">AWS</SelectItem>
-                    <SelectItem value="Azure">Azure</SelectItem>
-                    <SelectItem value="GCP">Google Cloud</SelectItem>
-                    <SelectItem value="Scaleway">Scaleway</SelectItem>
-                    <SelectItem value="DigitalOcean">DigitalOcean</SelectItem>
-                    <SelectItem value="On-Premise">On-Premise</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <X className="w-6 h-6" />
+                </button>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Input
-                  id="region"
-                  placeholder="e.g., us-east-1, eu-west-1"
-                  value={formData.region}
-                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                />
-              </div>
-            </div>
+              {/* Content */}
+              <div className="px-6 py-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Resource Name *
+                      </label>
+                      <Input
+                        id="name"
+                        placeholder="e.g., users-db, assets-bucket"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                    </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endpoint">Endpoint / URL</Label>
-              <Input
-                id="endpoint"
-                placeholder="e.g., db.example.com:5432, https://bucket.s3.amazonaws.com"
-                value={formData.endpoint}
-                onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
-              />
+                    <div className="space-y-2">
+                      <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Type *
+                      </label>
+                      <select
+                        id="type"
+                        value={formData.type}
+                        onChange={(e) => setFormData({ ...formData, type: e.target.value as InfrastructureType })}
+                        className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
+                      >
+                        <option value="database_postgresql">PostgreSQL Database</option>
+                        <option value="database_mysql">MySQL Database</option>
+                        <option value="database_mongodb">MongoDB</option>
+                        <option value="database_redis">Redis Cache</option>
+                        <option value="database_rds">RDS Database</option>
+                        <option value="database_dynamodb">DynamoDB</option>
+                        <option value="database_elasticsearch">Elasticsearch</option>
+                        <option value="storage_s3">S3 / Object Storage</option>
+                        <option value="storage_efs">EFS / File Storage</option>
+                        <option value="storage_ebs">EBS / Block Storage</option>
+                        <option value="network_load_balancer">Load Balancer</option>
+                        <option value="network_api_gateway">API Gateway</option>
+                        <option value="network_cdn">CDN</option>
+                        <option value="network_vpc">VPC / Virtual Network</option>
+                        <option value="network_nat_gateway">NAT Gateway</option>
+                        <option value="messaging_sqs">SQS / Queue</option>
+                        <option value="messaging_sns">SNS / Notification</option>
+                        <option value="messaging_kafka">Kafka</option>
+                        <option value="messaging_rabbitmq">RabbitMQ</option>
+                        <option value="cache_redis">Redis Cache</option>
+                        <option value="cache_memcached">Memcached</option>
+                        <option value="security_waf">WAF</option>
+                        <option value="security_secrets_manager">Secrets Manager</option>
+                        <option value="security_kms">KMS / Key Management</option>
+                        <option value="monitoring_cloudwatch">CloudWatch</option>
+                        <option value="monitoring_prometheus">Prometheus</option>
+                        <option value="monitoring_grafana">Grafana</option>
+                        <option value="other_custom">Custom Resource</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      placeholder="Describe the purpose and usage of this resource"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={2}
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="provider" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Cloud Provider
+                      </label>
+                      <select
+                        id="provider"
+                        value={formData.provider}
+                        onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                        className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-sm"
+                      >
+                        <option value="AWS">AWS</option>
+                        <option value="Azure">Azure</option>
+                        <option value="GCP">Google Cloud</option>
+                        <option value="Scaleway">Scaleway</option>
+                        <option value="DigitalOcean">DigitalOcean</option>
+                        <option value="On-Premise">On-Premise</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="region" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Region
+                      </label>
+                      <Input
+                        id="region"
+                        placeholder="e.g., us-east-1, eu-west-1"
+                        value={formData.region}
+                        onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="endpoint" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Endpoint / URL
+                    </label>
+                    <Input
+                      id="endpoint"
+                      placeholder="e.g., db.example.com:5432, https://bucket.s3.amazonaws.com"
+                      value={formData.endpoint}
+                      onChange={(e) => setFormData({ ...formData, endpoint: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={!formData.name || !formData.type}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {editingResource ? 'Update' : 'Add'} Resource
+                </Button>
+              </div>
             </div>
           </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={!formData.name || !formData.type}>
-              <Save className="w-4 h-4 mr-2" />
-              {editingResource ? 'Update' : 'Add'} Resource
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </Card>
   )
 }
