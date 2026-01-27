@@ -49,59 +49,182 @@ import VulnerabilityManager from '../components/VulnerabilityManager'
 import InfrastructureResourceManager from '../components/InfrastructureResourceManager'
 import type { InfrastructureResource } from '../types/api'
 
-// AWS Official Colors
-// Database: #C925D1 (violet/rose)
-// Storage: #7AA116 (vert)
-// Network: #8C4FFF (violet)
-// Compute: #ED7100 (orange)
-// Messaging: #E7157B (rose)
-// Security: #DD344C (rouge)
+// Provider Colors
+// AWS: Database: #C925D1, Storage: #7AA116, Network: #8C4FFF, Compute: #ED7100, Messaging: #E7157B, Security: #DD344C
+// GCP: #4285F4 (blue), #34A853 (green), #FBBC04 (yellow), #EA4335 (red)
+// Azure: #0078D4 (blue), #50E6FF (cyan), #773ADC (purple)
 
-// Quick add infrastructure resource types with AWS icon paths
-const QUICK_ADD_RESOURCES = [
-  // Databases - AWS Color: #C925D1 (violet/rose)
-  { type: 'database_rds', label: 'RDS', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
-  { type: 'database_dynamodb', label: 'DynamoDB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-DynamoDB_32.svg' },
-  { type: 'database_elasticache', label: 'ElastiCache', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-ElastiCache_32.svg' },
-  { type: 'database_neptune', label: 'Neptune', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Neptune_32.svg' },
-  { type: 'database_keyspaces', label: 'Keyspaces', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Keyspaces_32.svg' },
-  { type: 'database_timestream', label: 'Timestream', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Timestream_32.svg' },
-  { type: 'database_memorydb', label: 'MemoryDB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-MemoryDB_32.svg' },
-  { type: 'database_oracle', label: 'Oracle DB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg' },
-  { type: 'database_dms', label: 'DMS', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg' },
-  // Storage - AWS Color: #7AA116 (vert)
-  { type: 'storage_s3', label: 'S3', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg' },
-  { type: 'storage_efs', label: 'EFS', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-EFS_32.svg' },
-  { type: 'storage_ebs', label: 'EBS', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg' },
-  { type: 'storage_file_cache', label: 'File Cache', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-File-Cache_32.svg' },
-  { type: 'storage_backup', label: 'Backup', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_AWS-Backup_32.svg' },
-  // Network - AWS Color: #8C4FFF (violet)
-  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Elastic-Load-Balancing_32.svg' },
-  { type: 'network_cloudfront', label: 'CloudFront', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Amazon-CloudFront_32.svg' },
-  { type: 'network_route53', label: 'Route 53', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Amazon-Route-53_32.svg' },
-  { type: 'network_transit_gateway', label: 'Transit Gateway', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Transit-Gateway_32.svg' },
-  { type: 'network_privatelink', label: 'PrivateLink', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-PrivateLink_32.svg' },
-  { type: 'network_client_vpn', label: 'Client VPN', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Client-VPN_32.svg' },
-  { type: 'network_site_to_site_vpn', label: 'Site-to-Site VPN', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg' },
-  // Compute - AWS Color: #ED7100 (orange)
-  { type: 'compute_ecs', label: 'ECS', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg' },
-  { type: 'compute_eks', label: 'EKS', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg' },
-  { type: 'compute_fargate', label: 'Fargate', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_AWS-Fargate_32.svg' },
-  { type: 'compute_ecr', label: 'ECR', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg' },
-  // Messaging - AWS Color: #E7157B (rose)
-  { type: 'messaging_sqs', label: 'SQS', icon: MessageSquare, color: '#E7157B', awsIcon: '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg' },
-  { type: 'messaging_msk', label: 'MSK (Kafka)', icon: MessageSquare, color: '#E7157B', awsIcon: '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg' },
-  // Security - AWS Color: #DD344C (rouge)
-  { type: 'security_secrets_manager', label: 'Secrets Manager', icon: Shield, color: '#DD344C', awsIcon: '/aws_icons/Arch_AWS-Secrets-Manager_32.svg' },
-  { type: 'security_kms', label: 'KMS', icon: Shield, color: '#DD344C', awsIcon: '/aws_icons/Arch_AWS-Key-Management-Service_32.svg' },
+// Provider-specific resource configurations
+type ProviderResources = {
+  type: string
+  label: string
+  icon: typeof Database
+  color: string
+  providerIcon: string | null
+}
+
+const AWS_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_rds', label: 'RDS', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
+  { type: 'database_dynamodb', label: 'DynamoDB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-DynamoDB_32.svg' },
+  { type: 'database_elasticache', label: 'ElastiCache', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-ElastiCache_32.svg' },
+  { type: 'database_neptune', label: 'Neptune', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Neptune_32.svg' },
+  { type: 'database_keyspaces', label: 'Keyspaces', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Keyspaces_32.svg' },
+  { type: 'database_timestream', label: 'Timestream', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Timestream_32.svg' },
+  { type: 'database_memorydb', label: 'MemoryDB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-MemoryDB_32.svg' },
+  { type: 'database_oracle', label: 'Oracle DB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg' },
+  { type: 'database_dms', label: 'DMS', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg' },
+  // Storage
+  { type: 'storage_s3', label: 'S3', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg' },
+  { type: 'storage_efs', label: 'EFS', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-EFS_32.svg' },
+  { type: 'storage_ebs', label: 'EBS', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg' },
+  { type: 'storage_file_cache', label: 'File Cache', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-File-Cache_32.svg' },
+  { type: 'storage_backup', label: 'Backup', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_AWS-Backup_32.svg' },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Elastic-Load-Balancing_32.svg' },
+  { type: 'network_cloudfront', label: 'CloudFront', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Amazon-CloudFront_32.svg' },
+  { type: 'network_route53', label: 'Route 53', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Amazon-Route-53_32.svg' },
+  { type: 'network_transit_gateway', label: 'Transit Gateway', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Transit-Gateway_32.svg' },
+  { type: 'network_privatelink', label: 'PrivateLink', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-PrivateLink_32.svg' },
+  { type: 'network_client_vpn', label: 'Client VPN', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Client-VPN_32.svg' },
+  { type: 'network_site_to_site_vpn', label: 'Site-to-Site VPN', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg' },
+  // Compute
+  { type: 'compute_ecs', label: 'ECS', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg' },
+  { type: 'compute_eks', label: 'EKS', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg' },
+  { type: 'compute_fargate', label: 'Fargate', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_AWS-Fargate_32.svg' },
+  { type: 'compute_ecr', label: 'ECR', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg' },
+  // Messaging
+  { type: 'messaging_sqs', label: 'SQS', icon: MessageSquare, color: '#E7157B', providerIcon: '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg' },
+  { type: 'messaging_msk', label: 'MSK (Kafka)', icon: MessageSquare, color: '#E7157B', providerIcon: '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg' },
+  // Security
+  { type: 'security_secrets_manager', label: 'Secrets Manager', icon: Shield, color: '#DD344C', providerIcon: '/aws_icons/Arch_AWS-Secrets-Manager_32.svg' },
+  { type: 'security_kms', label: 'KMS', icon: Shield, color: '#DD344C', providerIcon: '/aws_icons/Arch_AWS-Key-Management-Service_32.svg' },
   // Other
-  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', awsIcon: null },
-] as const
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
 
-// Helper function to render resource icon (AWS or fallback)
-function renderResourceIcon(resource: typeof QUICK_ADD_RESOURCES[number], provider: string, className: string = 'w-4 h-4') {
-  if (provider === 'AWS' && resource.awsIcon) {
-    return <img src={resource.awsIcon} alt={resource.label} className={className} style={{ width: '20px', height: '20px' }} />
+const GCP_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_cloud_sql', label: 'Cloud SQL', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/cloud-sql.svg' },
+  { type: 'database_cloud_spanner', label: 'Cloud Spanner', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/cloud-spanner.svg' },
+  { type: 'database_bigquery', label: 'BigQuery', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/bigquery.svg' },
+  { type: 'database_alloydb', label: 'AlloyDB', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/alloydb.svg' },
+  // Storage
+  { type: 'storage_cloud_storage', label: 'Cloud Storage', icon: HardDrive, color: '#34A853', providerIcon: '/gcp_icons/cloud-storage.svg' },
+  // Compute
+  { type: 'compute_gke', label: 'GKE', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/gke.svg' },
+  { type: 'compute_cloud_run', label: 'Cloud Run', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/cloud-run.svg' },
+  { type: 'compute_compute_engine', label: 'Compute Engine', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/compute-engine.svg' },
+  // AI/ML
+  { type: 'ai_vertex_ai', label: 'Vertex AI', icon: Cloud, color: '#FBBC04', providerIcon: '/gcp_icons/vertex-ai.svg' },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+const AZURE_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_sql_database', label: 'SQL Database', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/sql-database.svg' },
+  { type: 'database_cosmos_db', label: 'Cosmos DB', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/cosmos-db.svg' },
+  { type: 'database_redis_cache', label: 'Redis Cache', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/redis-cache.svg' },
+  // Storage
+  { type: 'storage_storage_account', label: 'Storage Account', icon: HardDrive, color: '#0078D4', providerIcon: '/azure_icons/storage-account.svg' },
+  // Compute
+  { type: 'compute_aks', label: 'AKS', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/aks.svg' },
+  { type: 'compute_app_service', label: 'App Service', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/app-service.svg' },
+  { type: 'compute_functions', label: 'Functions', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/functions.svg' },
+  { type: 'compute_virtual_machine', label: 'Virtual Machine', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/virtual-machine.svg' },
+  { type: 'compute_container_instances', label: 'Container Instances', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/container-instances.svg' },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#773ADC', providerIcon: '/azure_icons/load-balancer.svg' },
+  { type: 'network_front_door', label: 'Front Door', icon: Network, color: '#773ADC', providerIcon: '/azure_icons/front-door.svg' },
+  // Messaging
+  { type: 'messaging_service_bus', label: 'Service Bus', icon: MessageSquare, color: '#50E6FF', providerIcon: '/azure_icons/service-bus.svg' },
+  // Security
+  { type: 'security_key_vault', label: 'Key Vault', icon: Shield, color: '#DD344C', providerIcon: '/azure_icons/key-vault.svg' },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// Scaleway - Generic cloud resources with Scaleway branding colors
+const SCALEWAY_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_managed_db', label: 'Managed Database', icon: Database, color: '#4F0599', providerIcon: null },
+  { type: 'database_redis', label: 'Redis', icon: Database, color: '#4F0599', providerIcon: null },
+  { type: 'database_serverless_db', label: 'Serverless DB', icon: Database, color: '#4F0599', providerIcon: null },
+  // Storage
+  { type: 'storage_object_storage', label: 'Object Storage', icon: HardDrive, color: '#4F0599', providerIcon: null },
+  { type: 'storage_block_storage', label: 'Block Storage', icon: HardDrive, color: '#4F0599', providerIcon: null },
+  // Compute
+  { type: 'compute_instance', label: 'Instance', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_kapsule', label: 'Kapsule (K8s)', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_serverless_container', label: 'Serverless Container', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_serverless_function', label: 'Serverless Function', icon: Server, color: '#4F0599', providerIcon: null },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#4F0599', providerIcon: null },
+  { type: 'network_vpc', label: 'VPC', icon: Network, color: '#4F0599', providerIcon: null },
+  // Messaging
+  { type: 'messaging_queues', label: 'Messaging Queues', icon: MessageSquare, color: '#4F0599', providerIcon: null },
+  // Security
+  { type: 'security_secret_manager', label: 'Secret Manager', icon: Shield, color: '#4F0599', providerIcon: null },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// On-Premise - Generic infrastructure resources
+const ONPREMISE_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_postgresql', label: 'PostgreSQL', icon: Database, color: '#336791', providerIcon: null },
+  { type: 'database_mysql', label: 'MySQL', icon: Database, color: '#4479A1', providerIcon: null },
+  { type: 'database_mongodb', label: 'MongoDB', icon: Database, color: '#47A248', providerIcon: null },
+  { type: 'database_redis', label: 'Redis', icon: Database, color: '#DC382D', providerIcon: null },
+  { type: 'database_elasticsearch', label: 'Elasticsearch', icon: Database, color: '#005571', providerIcon: null },
+  // Storage
+  { type: 'storage_nfs', label: 'NFS Storage', icon: HardDrive, color: '#6b7280', providerIcon: null },
+  { type: 'storage_san', label: 'SAN Storage', icon: HardDrive, color: '#6b7280', providerIcon: null },
+  { type: 'storage_minio', label: 'MinIO', icon: HardDrive, color: '#C72C48', providerIcon: null },
+  // Compute
+  { type: 'compute_vm', label: 'Virtual Machine', icon: Server, color: '#6b7280', providerIcon: null },
+  { type: 'compute_kubernetes', label: 'Kubernetes', icon: Server, color: '#326CE5', providerIcon: null },
+  { type: 'compute_docker', label: 'Docker', icon: Server, color: '#2496ED', providerIcon: null },
+  { type: 'compute_bare_metal', label: 'Bare Metal', icon: Server, color: '#6b7280', providerIcon: null },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#6b7280', providerIcon: null },
+  { type: 'network_firewall', label: 'Firewall', icon: Network, color: '#6b7280', providerIcon: null },
+  { type: 'network_vpn', label: 'VPN', icon: Network, color: '#6b7280', providerIcon: null },
+  // Messaging
+  { type: 'messaging_rabbitmq', label: 'RabbitMQ', icon: MessageSquare, color: '#FF6600', providerIcon: null },
+  { type: 'messaging_kafka', label: 'Kafka', icon: MessageSquare, color: '#231F20', providerIcon: null },
+  // Security
+  { type: 'security_vault', label: 'Vault', icon: Shield, color: '#000000', providerIcon: null },
+  { type: 'security_ldap', label: 'LDAP', icon: Shield, color: '#6b7280', providerIcon: null },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// Get resources based on provider
+function getResourcesForProvider(provider: string): ProviderResources[] {
+  switch (provider) {
+    case 'GCP':
+      return GCP_RESOURCES
+    case 'Azure':
+      return AZURE_RESOURCES
+    case 'Scaleway':
+      return SCALEWAY_RESOURCES
+    case 'On-Premise':
+      return ONPREMISE_RESOURCES
+    case 'AWS':
+    default:
+      return AWS_RESOURCES
+  }
+}
+
+// Legacy QUICK_ADD_RESOURCES for backward compatibility
+const QUICK_ADD_RESOURCES = AWS_RESOURCES
+
+// Helper function to render resource icon based on provider
+function renderResourceIcon(resource: ProviderResources, provider: string, className: string = 'w-4 h-4') {
+  if (resource.providerIcon) {
+    return <img src={resource.providerIcon} alt={resource.label} className={className} style={{ width: '20px', height: '20px' }} />
   }
   const IconComponent = resource.icon
   return <IconComponent className={className} style={{ color: resource.color }} />
@@ -471,7 +594,7 @@ export default function CatalogDetail() {
     if (!resourceType) return
     
     // Open modal to enter custom name
-    const resourceConfig = QUICK_ADD_RESOURCES.find(r => r.type === resourceType)
+    const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === resourceType)
     setNewResourceType(resourceType)
     setNewResourceName(resourceConfig?.label || resourceType)
     setShowAddResourceModal(true)
@@ -967,7 +1090,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Databases</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('database_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('database_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -994,7 +1117,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Storage</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('storage_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('storage_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1021,7 +1144,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Network</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('network_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('network_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1048,7 +1171,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Compute</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('compute_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('compute_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1075,7 +1198,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Messaging</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('messaging_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('messaging_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1102,7 +1225,7 @@ export default function CatalogDetail() {
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Security</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('security_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('security_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1125,11 +1248,40 @@ export default function CatalogDetail() {
               </div>
             </div>
             
+            {/* AI/ML (only show if provider has AI resources) */}
+            {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('ai_')).length > 0 && (
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">AI / ML</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('ai_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            )}
+
             {/* Other */}
             <div className="mb-3">
               <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Other</div>
               <div className="space-y-1">
-                {QUICK_ADD_RESOURCES.filter(r => r.type.startsWith('other_')).map((resource) => (
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('other_')).map((resource) => (
                     <div
                       key={resource.type}
                       draggable
@@ -1160,7 +1312,7 @@ export default function CatalogDetail() {
                 </div>
                 <div className="space-y-1.5">
                   {pendingResources.map((resource) => {
-                    const resourceConfig = QUICK_ADD_RESOURCES.find(r => r.type === resource.type)
+                    const resourceConfig = getResourcesForProvider(resource.provider || 'AWS').find(r => r.type === resource.type)
                     const color = resourceConfig?.color || '#64748b'
                     return (
                       <div
@@ -1598,7 +1750,7 @@ export default function CatalogDetail() {
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
                     {(() => {
-                      const resourceConfig = QUICK_ADD_RESOURCES.find(r => r.type === newResourceType)
+                      const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)
                       const IconComponent = resourceConfig?.icon || Database
                       return <IconComponent className="w-5 h-5" style={{ color: resourceConfig?.color || '#6366f1' }} />
                     })()}
@@ -1608,7 +1760,7 @@ export default function CatalogDetail() {
                       Add Infrastructure Resource
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {QUICK_ADD_RESOURCES.find(r => r.type === newResourceType)?.label} ({selectedProvider})
+                      {getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)?.label} ({selectedProvider})
                     </p>
                   </div>
                 </div>
@@ -1674,7 +1826,7 @@ export default function CatalogDetail() {
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                     {(() => {
-                      const resourceConfig = QUICK_ADD_RESOURCES.find(r => r.type === editingResource.type)
+                      const resourceConfig = getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)
                       const IconComponent = resourceConfig?.icon || Database
                       return <IconComponent className="w-5 h-5" style={{ color: resourceConfig?.color || '#3b82f6' }} />
                     })()}
@@ -1684,7 +1836,7 @@ export default function CatalogDetail() {
                       Edit Infrastructure Resource
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {QUICK_ADD_RESOURCES.find(r => r.type === editingResource.type)?.label}
+                      {getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)?.label || editingResource.type}
                     </p>
                   </div>
                 </div>
@@ -2407,9 +2559,76 @@ const AWS_ICON_MAP: Record<string, string> = {
   'other_dms': '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg',
 }
 
+// GCP Icon mapping for infrastructure types
+const GCP_ICON_MAP: Record<string, string> = {
+  // Databases
+  'database_cloud_sql': '/gcp_icons/cloud-sql.svg',
+  'database_cloud_spanner': '/gcp_icons/cloud-spanner.svg',
+  'database_bigquery': '/gcp_icons/bigquery.svg',
+  'database_alloydb': '/gcp_icons/alloydb.svg',
+  // Storage
+  'storage_cloud_storage': '/gcp_icons/cloud-storage.svg',
+  // Compute
+  'compute_gke': '/gcp_icons/gke.svg',
+  'compute_cloud_run': '/gcp_icons/cloud-run.svg',
+  'compute_compute_engine': '/gcp_icons/compute-engine.svg',
+  // AI/ML
+  'ai_vertex_ai': '/gcp_icons/vertex-ai.svg',
+}
+
+// Azure Icon mapping for infrastructure types
+const AZURE_ICON_MAP: Record<string, string> = {
+  // Databases
+  'database_sql_database': '/azure_icons/sql-database.svg',
+  'database_cosmos_db': '/azure_icons/cosmos-db.svg',
+  'database_redis_cache': '/azure_icons/redis-cache.svg',
+  // Storage
+  'storage_storage_account': '/azure_icons/storage-account.svg',
+  // Compute
+  'compute_aks': '/azure_icons/aks.svg',
+  'compute_app_service': '/azure_icons/app-service.svg',
+  'compute_functions': '/azure_icons/functions.svg',
+  'compute_virtual_machine': '/azure_icons/virtual-machine.svg',
+  'compute_container_instances': '/azure_icons/container-instances.svg',
+  // Network
+  'network_load_balancer': '/azure_icons/load-balancer.svg',
+  'network_front_door': '/azure_icons/front-door.svg',
+  // Messaging
+  'messaging_service_bus': '/azure_icons/service-bus.svg',
+  // Security
+  'security_key_vault': '/azure_icons/key-vault.svg',
+}
+
+// Get icon map based on provider
+function getIconMapForProvider(provider?: string): Record<string, string> {
+  switch (provider) {
+    case 'GCP':
+      return GCP_ICON_MAP
+    case 'Azure':
+      return AZURE_ICON_MAP
+    case 'AWS':
+    default:
+      return AWS_ICON_MAP
+  }
+}
+
 function getInfrastructureIconComponent(type: string, className: string, color: string, provider?: string) {
-  // Use AWS icons when provider is AWS
-  if (provider === 'AWS' && AWS_ICON_MAP[type]) {
+  const iconMap = getIconMapForProvider(provider)
+  
+  // Use provider-specific icons when available
+  if (iconMap[type]) {
+    return (
+      <img 
+        src={iconMap[type]} 
+        alt={type} 
+        className={className}
+        style={{ width: '24px', height: '24px' }}
+      />
+    )
+  }
+  
+  // Fallback to AWS icons for backward compatibility
+  if (AWS_ICON_MAP[type]) {
     return (
       <img 
         src={AWS_ICON_MAP[type]} 
@@ -2435,6 +2654,8 @@ function getInfrastructureIconComponent(type: string, className: string, color: 
     return <AlertTriangle className={className} style={{ color }} />
   } else if (type.startsWith('monitoring_')) {
     return <Activity className={className} style={{ color }} />
+  } else if (type.startsWith('ai_')) {
+    return <Cloud className={className} style={{ color }} />
   }
   return <Server className={className} style={{ color }} />
 }
