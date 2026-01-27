@@ -1,0 +1,97 @@
+{
+  "name": "auth-service",
+  "type": "project",
+  "languages": "golang",
+  "owner": "platform-team",
+  "version": "2.1.0",
+  "description": "Authentication and authorization service",
+  "repository": "https://github.com/company/auth-service",
+  "platform": "kubernetes",
+  "sla": {
+    "level": "critical",
+    "uptime_percentage": 99.99,
+    "response_time_ms": 100,
+    "description": "Mission-critical authentication service"
+  },
+  "infrastructure_resources": [
+    {
+      "id": "infra-1",
+      "name": "users-db",
+      "type": "database_postgresql",
+      "description": "Primary PostgreSQL database for user data",
+      "provider": "AWS",
+      "region": "us-east-1",
+      "endpoint": "users-db.cluster-abc123.us-east-1.rds.amazonaws.com:5432",
+      "metadata": {
+        "instance_type": "db.r5.xlarge",
+        "storage": "500GB",
+        "multi_az": "true",
+        "backup_retention": "7 days"
+      }
+    },
+    {
+      "id": "infra-2",
+      "name": "sessions-cache",
+      "type": "cache_redis",
+      "description": "Redis cache for user sessions",
+      "provider": "AWS",
+      "region": "us-east-1",
+      "endpoint": "sessions-cache.abc123.cache.amazonaws.com:6379",
+      "metadata": {
+        "node_type": "cache.r5.large",
+        "num_nodes": "3",
+        "engine_version": "7.0"
+      }
+    },
+    {
+      "id": "infra-3",
+      "name": "auth-secrets",
+      "type": "security_secrets_manager",
+      "description": "Secrets Manager for API keys and credentials",
+      "provider": "AWS",
+      "region": "us-east-1",
+      "endpoint": "secretsmanager.us-east-1.amazonaws.com",
+      "metadata": {
+        "rotation_enabled": "true",
+        "rotation_days": "30"
+      }
+    },
+    {
+      "id": "infra-4",
+      "name": "auth-lb",
+      "type": "network_load_balancer",
+      "description": "Application Load Balancer for auth service",
+      "provider": "AWS",
+      "region": "us-east-1",
+      "endpoint": "auth-lb-123456789.us-east-1.elb.amazonaws.com",
+      "metadata": {
+        "type": "application",
+        "scheme": "internet-facing",
+        "ssl_policy": "ELBSecurityPolicy-TLS-1-2-2017-01"
+      }
+    },
+    {
+      "id": "infra-5",
+      "name": "audit-logs-bucket",
+      "type": "storage_s3",
+      "description": "S3 bucket for audit logs",
+      "provider": "AWS",
+      "region": "us-east-1",
+      "endpoint": "s3://audit-logs-auth-service",
+      "metadata": {
+        "versioning": "enabled",
+        "encryption": "AES256",
+        "lifecycle_policy": "90 days to Glacier"
+      }
+    }
+  ],
+  "dependencies_in": [
+    "user-profile-service",
+    "notification-service"
+  ],
+  "dependencies_out": [
+    "api-gateway",
+    "mobile-app",
+    "web-app"
+  ]
+}

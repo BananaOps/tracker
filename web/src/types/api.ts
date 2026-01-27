@@ -316,6 +316,49 @@ export interface VulnerabilitySource {
   description?: string
 }
 
+export type InfrastructureType = 
+  | 'database_rds'
+  | 'database_dynamodb'
+  | 'database_mongodb'
+  | 'database_postgresql'
+  | 'database_mysql'
+  | 'database_redis'
+  | 'database_elasticsearch'
+  | 'storage_s3'
+  | 'storage_efs'
+  | 'storage_ebs'
+  | 'network_load_balancer'
+  | 'network_api_gateway'
+  | 'network_cdn'
+  | 'network_vpc'
+  | 'network_nat_gateway'
+  | 'messaging_sqs'
+  | 'messaging_sns'
+  | 'messaging_kafka'
+  | 'messaging_rabbitmq'
+  | 'cache_redis'
+  | 'cache_memcached'
+  | 'cache_cloudfront'
+  | 'security_waf'
+  | 'security_secrets_manager'
+  | 'security_kms'
+  | 'monitoring_cloudwatch'
+  | 'monitoring_prometheus'
+  | 'monitoring_grafana'
+  | 'other_custom'
+
+export interface InfrastructureResource {
+  id: string
+  name: string
+  type: InfrastructureType
+  description?: string
+  provider?: string
+  region?: string
+  endpoint?: string
+  metadata?: Record<string, string>
+  connectedServices?: string[]
+}
+
 export interface Catalog {
   name: string
   type: CatalogType
@@ -338,6 +381,7 @@ export interface Catalog {
   communicationChannels?: CommunicationChannel[]
   dashboardLinks?: DashboardLink[]
   vulnerabilitySummary?: VulnerabilitySummary
+  infrastructureResources?: InfrastructureResource[]
 }
 
 export interface ListEventsResponse {

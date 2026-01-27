@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap } from 'lucide-react'
+import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary, type InfrastructureType } from '../types/api'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -41,10 +41,247 @@ import {
   Handle
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback, useRef, DragEvent } from 'react'
+import { Button } from '../components/ui/button'
 import DeliverableVersions from '../components/VersionManager'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
+import InfrastructureResourceManager from '../components/InfrastructureResourceManager'
+import type { InfrastructureResource } from '../types/api'
+
+// Provider Colors
+// AWS: Database: #C925D1, Storage: #7AA116, Network: #8C4FFF, Compute: #ED7100, Messaging: #E7157B, Security: #DD344C
+// GCP: #4285F4 (blue), #34A853 (green), #FBBC04 (yellow), #EA4335 (red)
+// Azure: #0078D4 (blue), #50E6FF (cyan), #773ADC (purple)
+
+// Provider-specific resource configurations
+type ProviderResources = {
+  type: string
+  label: string
+  icon: typeof Database
+  color: string
+  providerIcon: string | null
+}
+
+const AWS_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_rds', label: 'RDS', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
+  { type: 'database_dynamodb', label: 'DynamoDB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-DynamoDB_32.svg' },
+  { type: 'database_elasticache', label: 'ElastiCache', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-ElastiCache_32.svg' },
+  { type: 'database_neptune', label: 'Neptune', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Neptune_32.svg' },
+  { type: 'database_keyspaces', label: 'Keyspaces', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Keyspaces_32.svg' },
+  { type: 'database_timestream', label: 'Timestream', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-Timestream_32.svg' },
+  { type: 'database_memorydb', label: 'MemoryDB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Amazon-MemoryDB_32.svg' },
+  { type: 'database_oracle', label: 'Oracle DB', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg' },
+  { type: 'database_dms', label: 'DMS', icon: Database, color: '#C925D1', providerIcon: '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg' },
+  // Storage
+  { type: 'storage_s3', label: 'S3', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg' },
+  { type: 'storage_efs', label: 'EFS', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-EFS_32.svg' },
+  { type: 'storage_ebs', label: 'EBS', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg' },
+  { type: 'storage_file_cache', label: 'File Cache', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_Amazon-File-Cache_32.svg' },
+  { type: 'storage_backup', label: 'Backup', icon: HardDrive, color: '#7AA116', providerIcon: '/aws_icons/Arch_AWS-Backup_32.svg' },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Elastic-Load-Balancing_32.svg' },
+  { type: 'network_cloudfront', label: 'CloudFront', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Amazon-CloudFront_32.svg' },
+  { type: 'network_route53', label: 'Route 53', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_Amazon-Route-53_32.svg' },
+  { type: 'network_transit_gateway', label: 'Transit Gateway', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Transit-Gateway_32.svg' },
+  { type: 'network_privatelink', label: 'PrivateLink', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-PrivateLink_32.svg' },
+  { type: 'network_client_vpn', label: 'Client VPN', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Client-VPN_32.svg' },
+  { type: 'network_site_to_site_vpn', label: 'Site-to-Site VPN', icon: Network, color: '#8C4FFF', providerIcon: '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg' },
+  // Compute
+  { type: 'compute_ecs', label: 'ECS', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg' },
+  { type: 'compute_eks', label: 'EKS', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg' },
+  { type: 'compute_fargate', label: 'Fargate', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_AWS-Fargate_32.svg' },
+  { type: 'compute_ecr', label: 'ECR', icon: Server, color: '#ED7100', providerIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg' },
+  // Messaging
+  { type: 'messaging_sqs', label: 'SQS', icon: MessageSquare, color: '#E7157B', providerIcon: '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg' },
+  { type: 'messaging_msk', label: 'MSK (Kafka)', icon: MessageSquare, color: '#E7157B', providerIcon: '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg' },
+  // Security
+  { type: 'security_secrets_manager', label: 'Secrets Manager', icon: Shield, color: '#DD344C', providerIcon: '/aws_icons/Arch_AWS-Secrets-Manager_32.svg' },
+  { type: 'security_kms', label: 'KMS', icon: Shield, color: '#DD344C', providerIcon: '/aws_icons/Arch_AWS-Key-Management-Service_32.svg' },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+const GCP_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_cloud_sql', label: 'Cloud SQL', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/cloud-sql.svg' },
+  { type: 'database_cloud_spanner', label: 'Cloud Spanner', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/cloud-spanner.svg' },
+  { type: 'database_bigquery', label: 'BigQuery', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/bigquery.svg' },
+  { type: 'database_alloydb', label: 'AlloyDB', icon: Database, color: '#4285F4', providerIcon: '/gcp_icons/alloydb.svg' },
+  // Storage
+  { type: 'storage_cloud_storage', label: 'Cloud Storage', icon: HardDrive, color: '#34A853', providerIcon: '/gcp_icons/cloud-storage.svg' },
+  // Compute
+  { type: 'compute_gke', label: 'GKE', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/gke.svg' },
+  { type: 'compute_cloud_run', label: 'Cloud Run', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/cloud-run.svg' },
+  { type: 'compute_compute_engine', label: 'Compute Engine', icon: Server, color: '#4285F4', providerIcon: '/gcp_icons/compute-engine.svg' },
+  // AI/ML
+  { type: 'ai_vertex_ai', label: 'Vertex AI', icon: Cloud, color: '#FBBC04', providerIcon: '/gcp_icons/vertex-ai.svg' },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+const AZURE_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_sql_database', label: 'SQL Database', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/sql-database.svg' },
+  { type: 'database_cosmos_db', label: 'Cosmos DB', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/cosmos-db.svg' },
+  { type: 'database_redis_cache', label: 'Redis Cache', icon: Database, color: '#0078D4', providerIcon: '/azure_icons/redis-cache.svg' },
+  // Storage
+  { type: 'storage_storage_account', label: 'Storage Account', icon: HardDrive, color: '#0078D4', providerIcon: '/azure_icons/storage-account.svg' },
+  // Compute
+  { type: 'compute_aks', label: 'AKS', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/aks.svg' },
+  { type: 'compute_app_service', label: 'App Service', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/app-service.svg' },
+  { type: 'compute_functions', label: 'Functions', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/functions.svg' },
+  { type: 'compute_virtual_machine', label: 'Virtual Machine', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/virtual-machine.svg' },
+  { type: 'compute_container_instances', label: 'Container Instances', icon: Server, color: '#0078D4', providerIcon: '/azure_icons/container-instances.svg' },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#773ADC', providerIcon: '/azure_icons/load-balancer.svg' },
+  { type: 'network_front_door', label: 'Front Door', icon: Network, color: '#773ADC', providerIcon: '/azure_icons/front-door.svg' },
+  // Messaging
+  { type: 'messaging_service_bus', label: 'Service Bus', icon: MessageSquare, color: '#50E6FF', providerIcon: '/azure_icons/service-bus.svg' },
+  // Security
+  { type: 'security_key_vault', label: 'Key Vault', icon: Shield, color: '#DD344C', providerIcon: '/azure_icons/key-vault.svg' },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// Scaleway - Generic cloud resources with Scaleway branding colors
+const SCALEWAY_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_managed_db', label: 'Managed Database', icon: Database, color: '#4F0599', providerIcon: null },
+  { type: 'database_redis', label: 'Redis', icon: Database, color: '#4F0599', providerIcon: null },
+  { type: 'database_serverless_db', label: 'Serverless DB', icon: Database, color: '#4F0599', providerIcon: null },
+  // Storage
+  { type: 'storage_object_storage', label: 'Object Storage', icon: HardDrive, color: '#4F0599', providerIcon: null },
+  { type: 'storage_block_storage', label: 'Block Storage', icon: HardDrive, color: '#4F0599', providerIcon: null },
+  // Compute
+  { type: 'compute_instance', label: 'Instance', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_kapsule', label: 'Kapsule (K8s)', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_serverless_container', label: 'Serverless Container', icon: Server, color: '#4F0599', providerIcon: null },
+  { type: 'compute_serverless_function', label: 'Serverless Function', icon: Server, color: '#4F0599', providerIcon: null },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#4F0599', providerIcon: null },
+  { type: 'network_vpc', label: 'VPC', icon: Network, color: '#4F0599', providerIcon: null },
+  // Messaging
+  { type: 'messaging_queues', label: 'Messaging Queues', icon: MessageSquare, color: '#4F0599', providerIcon: null },
+  // Security
+  { type: 'security_secret_manager', label: 'Secret Manager', icon: Shield, color: '#4F0599', providerIcon: null },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// On-Premise - Generic infrastructure resources
+const ONPREMISE_RESOURCES: ProviderResources[] = [
+  // Databases
+  { type: 'database_postgresql', label: 'PostgreSQL', icon: Database, color: '#336791', providerIcon: null },
+  { type: 'database_mysql', label: 'MySQL', icon: Database, color: '#4479A1', providerIcon: null },
+  { type: 'database_mongodb', label: 'MongoDB', icon: Database, color: '#47A248', providerIcon: null },
+  { type: 'database_redis', label: 'Redis', icon: Database, color: '#DC382D', providerIcon: null },
+  { type: 'database_elasticsearch', label: 'Elasticsearch', icon: Database, color: '#005571', providerIcon: null },
+  // Storage
+  { type: 'storage_nfs', label: 'NFS Storage', icon: HardDrive, color: '#6b7280', providerIcon: null },
+  { type: 'storage_san', label: 'SAN Storage', icon: HardDrive, color: '#6b7280', providerIcon: null },
+  { type: 'storage_minio', label: 'MinIO', icon: HardDrive, color: '#C72C48', providerIcon: null },
+  // Compute
+  { type: 'compute_vm', label: 'Virtual Machine', icon: Server, color: '#6b7280', providerIcon: null },
+  { type: 'compute_kubernetes', label: 'Kubernetes', icon: Server, color: '#326CE5', providerIcon: null },
+  { type: 'compute_docker', label: 'Docker', icon: Server, color: '#2496ED', providerIcon: null },
+  { type: 'compute_bare_metal', label: 'Bare Metal', icon: Server, color: '#6b7280', providerIcon: null },
+  // Network
+  { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#6b7280', providerIcon: null },
+  { type: 'network_firewall', label: 'Firewall', icon: Network, color: '#6b7280', providerIcon: null },
+  { type: 'network_vpn', label: 'VPN', icon: Network, color: '#6b7280', providerIcon: null },
+  // Messaging
+  { type: 'messaging_rabbitmq', label: 'RabbitMQ', icon: MessageSquare, color: '#FF6600', providerIcon: null },
+  { type: 'messaging_kafka', label: 'Kafka', icon: MessageSquare, color: '#231F20', providerIcon: null },
+  // Security
+  { type: 'security_vault', label: 'Vault', icon: Shield, color: '#000000', providerIcon: null },
+  { type: 'security_ldap', label: 'LDAP', icon: Shield, color: '#6b7280', providerIcon: null },
+  // Other
+  { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', providerIcon: null },
+]
+
+// Get resources based on provider
+function getResourcesForProvider(provider: string): ProviderResources[] {
+  switch (provider) {
+    case 'GCP':
+      return GCP_RESOURCES
+    case 'Azure':
+      return AZURE_RESOURCES
+    case 'Scaleway':
+      return SCALEWAY_RESOURCES
+    case 'On-Premise':
+      return ONPREMISE_RESOURCES
+    case 'AWS':
+    default:
+      return AWS_RESOURCES
+  }
+}
+
+// Legacy QUICK_ADD_RESOURCES for backward compatibility
+const QUICK_ADD_RESOURCES = AWS_RESOURCES
+
+// Helper function to render resource icon based on provider
+function renderResourceIcon(resource: ProviderResources, provider: string, className: string = 'w-4 h-4') {
+  if (resource.providerIcon) {
+    return <img src={resource.providerIcon} alt={resource.label} className={className} style={{ width: '20px', height: '20px' }} />
+  }
+  const IconComponent = resource.icon
+  return <IconComponent className={className} style={{ color: resource.color }} />
+}
+
+// Custom Node Component for Infrastructure Resources
+function InfrastructureNode({ data }: NodeProps) {
+  const { name, type, provider, description } = data
+  const color = getInfrastructureColor(type)
+  
+  return (
+    <div 
+      className="min-w-[140px] min-h-[85px] bg-white dark:bg-gray-800 border-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+      style={{ 
+        borderColor: color,
+        borderTopWidth: '4px',
+        borderTopColor: color
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ 
+          background: color,
+          width: 8,
+          height: 8,
+          border: '2px solid white'
+        }}
+      />
+      
+      <div className="p-3 flex flex-col items-center justify-center h-full">
+        <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-full" 
+             style={{ backgroundColor: `${color}20` }}>
+          {getInfrastructureIconComponent(type, 'w-5 h-5', color, provider)}
+        </div>
+        
+        <div className="text-xs font-bold text-gray-900 dark:text-gray-100 text-center mb-1 truncate max-w-full px-1">
+          {name}
+        </div>
+        
+        {provider && (
+          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center truncate max-w-full px-1">
+            {provider}
+          </div>
+        )}
+        
+        <div className="mt-1 px-2 py-0.5 text-[9px] font-medium rounded-full"
+             style={{ 
+               backgroundColor: `${color}20`,
+               color: color
+             }}>
+          Infrastructure
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Custom Node Component for Dependency Graph
 function DependencyNode({ data }: NodeProps) {
@@ -167,6 +404,27 @@ export default function CatalogDetail() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  
+  // Edit mode for infrastructure resources
+  const [isEditingGraph, setIsEditingGraph] = useState(false)
+  const [pendingResources, setPendingResources] = useState<InfrastructureResource[]>([])
+  
+  // Add resource modal state
+  const [showAddResourceModal, setShowAddResourceModal] = useState(false)
+  const [newResourceType, setNewResourceType] = useState<string | null>(null)
+  const [newResourceName, setNewResourceName] = useState('')
+  
+  // Edit resource modal state
+  const [showEditResourceModal, setShowEditResourceModal] = useState(false)
+  const [editingResource, setEditingResource] = useState<InfrastructureResource | null>(null)
+  const [editResourceName, setEditResourceName] = useState('')
+  const [editResourceProvider, setEditResourceProvider] = useState('')
+  const [editResourceDescription, setEditResourceDescription] = useState('')
+  
+  // Drag & drop infrastructure resource states
+  const [selectedProvider, setSelectedProvider] = useState('AWS')
+  const [draggingResource, setDraggingResource] = useState<string | null>(null)
+  const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
   const { data: allCatalogs } = useQuery({
     queryKey: ['catalog', 'list'],
@@ -196,6 +454,7 @@ export default function CatalogDetail() {
   const updateServiceMutation = useMutation({
     mutationFn: (updatedService: Catalog) => catalogApi.createOrUpdate(updatedService),
     onSuccess: () => {
+      // Invalidate both catalog queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['catalog'] })
     },
   })
@@ -259,6 +518,170 @@ export default function CatalogDetail() {
     
     updateServiceMutation.mutate(updatedService)
   }
+
+  const handleUpdateInfrastructureResources = (infrastructureResources: InfrastructureResource[]) => {
+    if (!service) return
+    
+    console.log('🔧 Updating infrastructure resources:', infrastructureResources)
+    
+    const updatedService = {
+      ...service,
+      infrastructureResources
+    }
+    
+    updateServiceMutation.mutate(updatedService)
+  }
+
+  // Start editing graph - copy current resources to pending
+  const startEditingGraph = useCallback(() => {
+    setPendingResources(service?.infrastructureResources || [])
+    setIsEditingGraph(true)
+  }, [service?.infrastructureResources])
+
+  // Cancel editing - discard changes
+  const cancelEditingGraph = useCallback(() => {
+    setPendingResources([])
+    setIsEditingGraph(false)
+  }, [])
+
+  // Save pending resources to backend
+  const saveGraphChanges = useCallback(() => {
+    if (!service) return
+    
+    const updatedService = {
+      ...service,
+      infrastructureResources: pendingResources
+    }
+    
+    console.log('🔧 Saving infrastructure resources:', pendingResources)
+    updateServiceMutation.mutate(updatedService, {
+      onSuccess: () => {
+        setIsEditingGraph(false)
+        setPendingResources([])
+      }
+    })
+  }, [service, pendingResources, updateServiceMutation])
+
+  // Remove a pending resource
+  const removePendingResource = useCallback((resourceId: string) => {
+    setPendingResources(prev => prev.filter(r => r.id !== resourceId))
+  }, [])
+
+  // Drag & Drop handlers
+  const onDragStart = useCallback((event: DragEvent<HTMLDivElement>, resourceType: string) => {
+    if (!isEditingGraph) return
+    event.dataTransfer.setData('application/reactflow', resourceType)
+    event.dataTransfer.effectAllowed = 'move'
+    setDraggingResource(resourceType)
+  }, [isEditingGraph])
+
+  const onDragEnd = useCallback(() => {
+    setDraggingResource(null)
+  }, [])
+
+  const onDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!isEditingGraph) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }, [isEditingGraph])
+
+  const onDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    
+    if (!isEditingGraph) return
+    
+    const resourceType = event.dataTransfer.getData('application/reactflow')
+    if (!resourceType) return
+    
+    // Open modal to enter custom name
+    const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === resourceType)
+    setNewResourceType(resourceType)
+    setNewResourceName(resourceConfig?.label || resourceType)
+    setShowAddResourceModal(true)
+    setDraggingResource(null)
+  }, [isEditingGraph])
+
+  // Confirm adding the new resource with custom name
+  const confirmAddResource = useCallback(() => {
+    if (!newResourceType || !newResourceName.trim()) return
+    
+    const newResource: InfrastructureResource = {
+      id: `infra-${Date.now()}`,
+      name: newResourceName.trim(),
+      type: newResourceType as InfrastructureType,
+      description: '',
+      provider: selectedProvider,
+      region: '',
+      endpoint: '',
+      metadata: {},
+      connectedServices: []
+    }
+    
+    // Add to pending resources (not saved yet)
+    setPendingResources(prev => [...prev, newResource])
+    console.log('🔧 Added pending infrastructure resource:', newResource)
+    
+    // Reset modal state
+    setShowAddResourceModal(false)
+    setNewResourceType(null)
+    setNewResourceName('')
+  }, [newResourceType, newResourceName, selectedProvider])
+
+  // Cancel adding resource
+  const cancelAddResource = useCallback(() => {
+    setShowAddResourceModal(false)
+    setNewResourceType(null)
+    setNewResourceName('')
+  }, [])
+
+  // Open edit modal for a resource
+  const openEditResourceModal = useCallback((resource: InfrastructureResource) => {
+    setEditingResource(resource)
+    setEditResourceName(resource.name)
+    setEditResourceProvider(resource.provider || selectedProvider)
+    setEditResourceDescription(resource.description || '')
+    setShowEditResourceModal(true)
+  }, [selectedProvider])
+
+  // Confirm editing the resource
+  const confirmEditResource = useCallback(() => {
+    if (!editingResource || !editResourceName.trim()) return
+    
+    setPendingResources(prev => prev.map(r => 
+      r.id === editingResource.id 
+        ? { 
+            ...r, 
+            name: editResourceName.trim(),
+            provider: editResourceProvider,
+            description: editResourceDescription
+          }
+        : r
+    ))
+    
+    // Reset modal state
+    setShowEditResourceModal(false)
+    setEditingResource(null)
+    setEditResourceName('')
+    setEditResourceProvider('')
+    setEditResourceDescription('')
+  }, [editingResource, editResourceName, editResourceProvider, editResourceDescription])
+
+  // Cancel editing resource
+  const cancelEditResource = useCallback(() => {
+    setShowEditResourceModal(false)
+    setEditingResource(null)
+    setEditResourceName('')
+    setEditResourceProvider('')
+    setEditResourceDescription('')
+  }, [])
+
+  // Delete a pending resource
+  const deletePendingResource = useCallback((resourceId: string) => {
+    setPendingResources(prev => prev.filter(r => r.id !== resourceId))
+  }, [])
+
+  // Get resources to display (pending if editing, otherwise from service)
+  const displayedResources = isEditingGraph ? pendingResources : (service?.infrastructureResources || [])
 
   // Build dependency graph
   const { nodes, edges } = useMemo(() => {
@@ -359,12 +782,49 @@ export default function CatalogDetail() {
       })
     })
 
+    // Infrastructure Resources (below the service) - use displayedResources for edit mode
+    displayedResources.forEach((resource, index) => {
+      const infraId = `infra-${resource.id}`
+      const color = getInfrastructureColor(resource.type)
+      
+      nodes.push({
+        id: infraId,
+        type: 'infrastructureNode',
+        data: {
+          name: resource.name,
+          type: resource.type,
+          provider: resource.provider,
+          description: resource.description
+        },
+        position: { x: 300 + (index * 180), y: 500 },
+        sourcePosition: Position.Top,
+        targetPosition: Position.Top,
+      })
+
+      edges.push({
+        id: `${service.name}-${infraId}`,
+        source: service.name,
+        target: infraId,
+        type: 'smoothstep',
+        animated: false,
+        style: { stroke: color, strokeWidth: 2, strokeDasharray: '5,5' },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: color,
+        },
+        label: 'uses',
+        labelStyle: { fontSize: 10, fill: '#6b7280' },
+        labelBgStyle: { fill: '#f9fafb', fillOpacity: 0.9 },
+      })
+    })
+
     return { nodes, edges }
-  }, [service, allCatalogs])
+  }, [service, allCatalogs, displayedResources])
 
   // Define custom node types
   const nodeTypes = useMemo(() => ({
-    dependencyNode: DependencyNode
+    dependencyNode: DependencyNode,
+    infrastructureNode: InfrastructureNode
   }), [])
 
   if (!service) {
@@ -506,13 +966,66 @@ export default function CatalogDetail() {
         </div>
       </div>
 
-      {/* Dependency Graph */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" style={{ height: '600px' }}>
+      {/* Dependency Graph with Drag & Drop */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative" style={{ height: '650px' }}>
         <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-            <GitBranch className="w-5 h-5" />
-            <span>Dependency Graph</span>
-          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                <GitBranch className="w-5 h-5" />
+                <span>Dependency Graph</span>
+                {isEditingGraph && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
+                    Editing
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {isEditingGraph 
+                  ? 'Drag & drop resources from the palette, then click Save to apply changes'
+                  : 'Click Edit to add infrastructure resources to the graph'
+                }
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              {isEditingGraph ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={cancelEditingGraph}
+                    className="flex items-center space-x-1"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Cancel</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={saveGraphChanges}
+                    disabled={updateServiceMutation.isPending}
+                    className="flex items-center space-x-1 bg-green-600 hover:bg-green-700"
+                  >
+                    {updateServiceMutation.isPending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    <span>Save</span>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={startEditingGraph}
+                  className="flex items-center space-x-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Edit</span>
+                </Button>
+              )}
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: '#6366f1' }}></div>
@@ -538,33 +1051,363 @@ export default function CatalogDetail() {
               <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#22c55e' }}></div>
               <span>Low SLA</span>
             </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#f59e0b', opacity: 0.8 }}></div>
+              <span>Infrastructure</span>
+            </div>
           </div>
         </div>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          attributionPosition="bottom-left"
-          minZoom={0.5}
-          maxZoom={1.5}
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-            animated: true,
-          }}
-        >
-          <Background color="#e5e7eb" gap={16} />
-          <Controls />
-          <MiniMap 
-            nodeColor={(node) => {
-              if (node.data.isCurrent) return '#6366f1'
-              if (node.data.type === 'upstream') return '#3b82f6'
-              if (node.data.type === 'downstream') return '#10b981'
-              return '#94a3b8'
-            }}
-            maskColor="rgba(0, 0, 0, 0.1)"
-          />
-        </ReactFlow>
+        
+        <div className="flex h-[calc(100%-130px)]">
+          {/* Left Sidebar - Resource Palette (only visible in edit mode) */}
+          {isEditingGraph && (
+          <div className="w-56 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 overflow-y-auto">
+            <div className="mb-3">
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                Cloud Provider
+              </label>
+              <select
+                value={selectedProvider}
+                onChange={(e) => setSelectedProvider(e.target.value)}
+                disabled={!isEditingGraph}
+                className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
+              >
+                <option value="AWS">AWS</option>
+                <option value="Azure">Azure</option>
+                <option value="GCP">Google Cloud</option>
+                <option value="Scaleway">Scaleway</option>
+                <option value="On-Premise">On-Premise</option>
+              </select>
+            </div>
+            
+            <div className="mb-2">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                Drag to add
+              </span>
+            </div>
+            
+            {/* Databases */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Databases</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('database_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Storage */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Storage</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('storage_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Network */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Network</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('network_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Compute */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Compute</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('compute_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Messaging */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Messaging</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('messaging_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Security */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Security</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('security_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* AI/ML (only show if provider has AI resources) */}
+            {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('ai_')).length > 0 && (
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">AI / ML</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('ai_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+            )}
+
+            {/* Other */}
+            <div className="mb-3">
+              <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">Other</div>
+              <div className="space-y-1">
+                {getResourcesForProvider(selectedProvider).filter(r => r.type.startsWith('other_')).map((resource) => (
+                    <div
+                      key={resource.type}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, resource.type)}
+                      onDragEnd={onDragEnd}
+                      className={`flex items-center space-x-2 p-2 text-xs font-medium rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all ${
+                        draggingResource === resource.type 
+                          ? 'opacity-50 scale-95' 
+                          : 'hover:shadow-md'
+                      }`}
+                      style={{ 
+                        borderColor: resource.color, 
+                        backgroundColor: `${resource.color}15`,
+                      }}
+                    >
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
+                    </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Added Resources - Editable List */}
+            {pendingResources.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">
+                  Added Resources ({pendingResources.length})
+                </div>
+                <div className="space-y-1.5">
+                  {pendingResources.map((resource) => {
+                    const resourceConfig = getResourcesForProvider(resource.provider || 'AWS').find(r => r.type === resource.type)
+                    const color = resourceConfig?.color || '#64748b'
+                    return (
+                      <div
+                        key={resource.id}
+                        className="flex items-center justify-between p-2 text-xs rounded-lg border-2 group"
+                        style={{ 
+                          borderColor: color, 
+                          backgroundColor: `${color}15`,
+                        }}
+                      >
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          {resourceConfig ? renderResourceIcon(resourceConfig, resource.provider || 'AWS', 'w-5 h-5 flex-shrink-0') : <Cloud className="w-5 h-5 flex-shrink-0" style={{ color: '#64748b' }} />}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
+                              {resource.name}
+                            </div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                              {resource.provider}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditResourceModal(resource)}
+                            className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded transition-colors"
+                            title="Edit resource"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => deletePendingResource(resource.id)}
+                            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
+                            title="Delete resource"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          )}
+          
+          {/* ReactFlow Graph - Drop Zone */}
+          <div 
+            ref={reactFlowWrapper}
+            className={`flex-1 relative transition-all duration-200 ${
+              draggingResource 
+                ? 'bg-indigo-50/50 dark:bg-indigo-900/10 ring-2 ring-inset ring-indigo-300 dark:ring-indigo-700' 
+                : ''
+            }`}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+          >
+            {/* Drop indicator */}
+            {draggingResource && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-pulse">
+                  <Plus className="w-5 h-5" />
+                  <span className="font-medium">Drop here to add resource</span>
+                </div>
+              </div>
+            )}
+            
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              fitView
+              attributionPosition="bottom-left"
+              minZoom={0.5}
+              maxZoom={1.5}
+              defaultEdgeOptions={{
+                type: 'smoothstep',
+                animated: true,
+              }}
+            >
+              <Background color="#e5e7eb" gap={16} />
+              <Controls />
+              <MiniMap 
+                nodeColor={(node) => {
+                  if (node.data.isCurrent) return '#6366f1'
+                  if (node.data.type === 'upstream') return '#3b82f6'
+                  if (node.data.type === 'downstream') return '#10b981'
+                  if (node.id.startsWith('infra-')) return '#f59e0b'
+                  return '#94a3b8'
+                }}
+                maskColor="rgba(0, 0, 0, 0.1)"
+              />
+            </ReactFlow>
+          </div>
+        </div>
       </div>
 
       {/* Details */}
@@ -836,6 +1679,14 @@ export default function CatalogDetail() {
         </div>
       )}
 
+      {/* Infrastructure Resources Management */}
+      <div className="grid grid-cols-1 gap-1.5">
+        <InfrastructureResourceManager
+          resources={service.infrastructureResources || []}
+          onChange={handleUpdateInfrastructureResources}
+        />
+      </div>
+
       {/* Dependencies Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
         {/* Upstream Dependencies */}
@@ -888,6 +1739,187 @@ export default function CatalogDetail() {
           </div>
         )}
       </div>
+
+      {/* Add Resource Modal */}
+      {showAddResourceModal && newResourceType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                    {(() => {
+                      const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)
+                      const IconComponent = resourceConfig?.icon || Database
+                      return <IconComponent className="w-5 h-5" style={{ color: resourceConfig?.color || '#6366f1' }} />
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Add Infrastructure Resource
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)?.label} ({selectedProvider})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={cancelAddResource}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Resource Name
+                </label>
+                <input
+                  type="text"
+                  value={newResourceName}
+                  onChange={(e) => setNewResourceName(e.target.value)}
+                  placeholder="e.g., users-database, cache-redis"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmAddResource()
+                    if (e.key === 'Escape') cancelAddResource()
+                  }}
+                />
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Give a meaningful name to identify this resource in your architecture
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={cancelAddResource}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <Button
+                  onClick={confirmAddResource}
+                  disabled={!newResourceName.trim()}
+                  className="flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Resource</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Resource Modal */}
+      {showEditResourceModal && editingResource && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                    {(() => {
+                      const resourceConfig = getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)
+                      const IconComponent = resourceConfig?.icon || Database
+                      return <IconComponent className="w-5 h-5" style={{ color: resourceConfig?.color || '#3b82f6' }} />
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Edit Infrastructure Resource
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)?.label || editingResource.type}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={cancelEditResource}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Resource Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editResourceName}
+                    onChange={(e) => setEditResourceName(e.target.value)}
+                    placeholder="e.g., users-database, cache-redis"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmEditResource()
+                      if (e.key === 'Escape') cancelEditResource()
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Cloud Provider
+                  </label>
+                  <select
+                    value={editResourceProvider}
+                    onChange={(e) => setEditResourceProvider(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="AWS">AWS</option>
+                    <option value="Azure">Azure</option>
+                    <option value="GCP">Google Cloud</option>
+                    <option value="Scaleway">Scaleway</option>
+                    <option value="On-Premise">On-Premise</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    value={editResourceDescription}
+                    onChange={(e) => setEditResourceDescription(e.target.value)}
+                    placeholder="Brief description of this resource..."
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={cancelEditResource}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <Button
+                  onClick={confirmEditResource}
+                  disabled={!editResourceName.trim()}
+                  className="flex items-center space-x-2"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -1451,3 +2483,179 @@ function getDashboardLinkStyles(type?: import('../types/api').DashboardType): { 
 
 
 
+
+// Helper functions for Infrastructure Resources
+// AWS Official Colors
+function getInfrastructureColor(type: string): string {
+  if (type.startsWith('database_')) {
+    return '#C925D1' // AWS Database - violet/rose
+  } else if (type.startsWith('storage_')) {
+    return '#7AA116' // AWS Storage - vert
+  } else if (type.startsWith('network_')) {
+    return '#8C4FFF' // AWS Network - violet
+  } else if (type.startsWith('compute_')) {
+    return '#ED7100' // AWS Compute - orange
+  } else if (type.startsWith('messaging_') || type.startsWith('cache_')) {
+    return '#E7157B' // AWS Messaging - rose
+  } else if (type.startsWith('security_')) {
+    return '#DD344C' // AWS Security - rouge
+  } else if (type.startsWith('monitoring_')) {
+    return '#6366f1' // indigo
+  }
+  return '#6b7280' // gray
+}
+
+// AWS Icon mapping for infrastructure types
+const AWS_ICON_MAP: Record<string, string> = {
+  // Databases
+  'database_rds': '/aws_icons/Arch_Amazon-RDS_32.svg',
+  'database_dynamodb': '/aws_icons/Arch_Amazon-DynamoDB_32.svg',
+  'database_elasticache': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
+  'database_neptune': '/aws_icons/Arch_Amazon-Neptune_32.svg',
+  'database_keyspaces': '/aws_icons/Arch_Amazon-Keyspaces_32.svg',
+  'database_timestream': '/aws_icons/Arch_Amazon-Timestream_32.svg',
+  'database_memorydb': '/aws_icons/Arch_Amazon-MemoryDB_32.svg',
+  'database_oracle': '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg',
+  'database_dms': '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg',
+  // Legacy database mappings (for backward compatibility)
+  'database_postgresql': '/aws_icons/Arch_Amazon-RDS_32.svg',
+  'database_mysql': '/aws_icons/Arch_Amazon-RDS_32.svg',
+  'database_redis': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
+  'database_mongodb': '/aws_icons/Arch_Amazon-DynamoDB_32.svg',
+  'database_elasticsearch': '/aws_icons/Arch_Amazon-Neptune_32.svg',
+  // Storage
+  'storage_s3': '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg',
+  'storage_efs': '/aws_icons/Arch_Amazon-EFS_32.svg',
+  'storage_ebs': '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg',
+  'storage_file_cache': '/aws_icons/Arch_Amazon-File-Cache_32.svg',
+  'storage_backup': '/aws_icons/Arch_AWS-Backup_32.svg',
+  // Network
+  'network_load_balancer': '/aws_icons/Arch_Elastic-Load-Balancing_32.svg',
+  'network_cloudfront': '/aws_icons/Arch_Amazon-CloudFront_32.svg',
+  'network_route53': '/aws_icons/Arch_Amazon-Route-53_32.svg',
+  'network_transit_gateway': '/aws_icons/Arch_AWS-Transit-Gateway_32.svg',
+  'network_privatelink': '/aws_icons/Arch_AWS-PrivateLink_32.svg',
+  'network_client_vpn': '/aws_icons/Arch_AWS-Client-VPN_32.svg',
+  'network_site_to_site_vpn': '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg',
+  // Legacy network mappings (for backward compatibility)
+  'network_api_gateway': '/aws_icons/Arch_Amazon-Route-53_32.svg',
+  'network_vpc': '/aws_icons/Arch_AWS-Transit-Gateway_32.svg',
+  // Compute
+  'compute_ecs': '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg',
+  'compute_eks': '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg',
+  'compute_fargate': '/aws_icons/Arch_AWS-Fargate_32.svg',
+  'compute_ecr': '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg',
+  // Messaging
+  'messaging_sqs': '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg',
+  'messaging_msk': '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg',
+  // Security
+  'security_secrets_manager': '/aws_icons/Arch_AWS-Secrets-Manager_32.svg',
+  'security_kms': '/aws_icons/Arch_AWS-Key-Management-Service_32.svg',
+  // Cache (legacy)
+  'cache_elasticache': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
+  'cache_memorydb': '/aws_icons/Arch_Amazon-MemoryDB_32.svg',
+  // Other (legacy)
+  'other_backup': '/aws_icons/Arch_AWS-Backup_32.svg',
+  'other_dms': '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg',
+}
+
+// GCP Icon mapping for infrastructure types
+const GCP_ICON_MAP: Record<string, string> = {
+  // Databases
+  'database_cloud_sql': '/gcp_icons/cloud-sql.svg',
+  'database_cloud_spanner': '/gcp_icons/cloud-spanner.svg',
+  'database_bigquery': '/gcp_icons/bigquery.svg',
+  'database_alloydb': '/gcp_icons/alloydb.svg',
+  // Storage
+  'storage_cloud_storage': '/gcp_icons/cloud-storage.svg',
+  // Compute
+  'compute_gke': '/gcp_icons/gke.svg',
+  'compute_cloud_run': '/gcp_icons/cloud-run.svg',
+  'compute_compute_engine': '/gcp_icons/compute-engine.svg',
+  // AI/ML
+  'ai_vertex_ai': '/gcp_icons/vertex-ai.svg',
+}
+
+// Azure Icon mapping for infrastructure types
+const AZURE_ICON_MAP: Record<string, string> = {
+  // Databases
+  'database_sql_database': '/azure_icons/sql-database.svg',
+  'database_cosmos_db': '/azure_icons/cosmos-db.svg',
+  'database_redis_cache': '/azure_icons/redis-cache.svg',
+  // Storage
+  'storage_storage_account': '/azure_icons/storage-account.svg',
+  // Compute
+  'compute_aks': '/azure_icons/aks.svg',
+  'compute_app_service': '/azure_icons/app-service.svg',
+  'compute_functions': '/azure_icons/functions.svg',
+  'compute_virtual_machine': '/azure_icons/virtual-machine.svg',
+  'compute_container_instances': '/azure_icons/container-instances.svg',
+  // Network
+  'network_load_balancer': '/azure_icons/load-balancer.svg',
+  'network_front_door': '/azure_icons/front-door.svg',
+  // Messaging
+  'messaging_service_bus': '/azure_icons/service-bus.svg',
+  // Security
+  'security_key_vault': '/azure_icons/key-vault.svg',
+}
+
+// Get icon map based on provider
+function getIconMapForProvider(provider?: string): Record<string, string> {
+  switch (provider) {
+    case 'GCP':
+      return GCP_ICON_MAP
+    case 'Azure':
+      return AZURE_ICON_MAP
+    case 'AWS':
+    default:
+      return AWS_ICON_MAP
+  }
+}
+
+function getInfrastructureIconComponent(type: string, className: string, color: string, provider?: string) {
+  const iconMap = getIconMapForProvider(provider)
+  
+  // Use provider-specific icons when available
+  if (iconMap[type]) {
+    return (
+      <img 
+        src={iconMap[type]} 
+        alt={type} 
+        className={className}
+        style={{ width: '24px', height: '24px' }}
+      />
+    )
+  }
+  
+  // Fallback to AWS icons for backward compatibility
+  if (AWS_ICON_MAP[type]) {
+    return (
+      <img 
+        src={AWS_ICON_MAP[type]} 
+        alt={type} 
+        className={className}
+        style={{ width: '24px', height: '24px' }}
+      />
+    )
+  }
+  
+  // Fallback to Lucide icons
+  if (type.startsWith('database_')) {
+    return <Activity className={className} style={{ color }} />
+  } else if (type.startsWith('storage_')) {
+    return <Package className={className} style={{ color }} />
+  } else if (type.startsWith('network_')) {
+    return <GitBranch className={className} style={{ color }} />
+  } else if (type.startsWith('messaging_')) {
+    return <Mail className={className} style={{ color }} />
+  } else if (type.startsWith('cache_')) {
+    return <Zap className={className} style={{ color }} />
+  } else if (type.startsWith('security_')) {
+    return <AlertTriangle className={className} style={{ color }} />
+  } else if (type.startsWith('monitoring_')) {
+    return <Activity className={className} style={{ color }} />
+  } else if (type.startsWith('ai_')) {
+    return <Cloud className={className} style={{ color }} />
+  }
+  return <Server className={className} style={{ color }} />
+}

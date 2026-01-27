@@ -1168,6 +1168,14 @@
         "vulnerability_summary": {
           "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
           "title": "Vulnerability summary for security monitoring"
+        },
+        "infrastructure_resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1InfrastructureResource"
+          },
+          "title": "Infrastructure resources used by this service"
         }
       }
     },
@@ -1411,8 +1419,16 @@
         },
         "vulnerability_summary": {
           "$ref": "#/definitions/v1alpha1VulnerabilitySummary",
-          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
           "title": "Vulnerability summary for security monitoring"
+        },
+        "infrastructure_resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1InfrastructureResource"
+          },
+          "description": "Note: Version management (available_versions, latest_version, reference_version) \n is handled separately via UpdateVersions endpoint",
+          "title": "Infrastructure resources used by this service"
         }
       }
     },
@@ -1722,6 +1738,92 @@
           "$ref": "#/definitions/v1alpha1ComplianceSummary"
         }
       }
+    },
+    "v1alpha1InfrastructureResource": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Unique identifier for the resource"
+        },
+        "name": {
+          "type": "string",
+          "title": "Display name (e.g., \"users-db\", \"assets-bucket\")"
+        },
+        "type": {
+          "$ref": "#/definitions/v1alpha1InfrastructureType",
+          "title": "Type of infrastructure resource"
+        },
+        "description": {
+          "type": "string",
+          "title": "Optional description"
+        },
+        "provider": {
+          "type": "string",
+          "title": "Cloud provider (AWS, Azure, GCP, Scaleway, etc.)"
+        },
+        "region": {
+          "type": "string",
+          "title": "Region/location"
+        },
+        "endpoint": {
+          "type": "string",
+          "title": "Connection endpoint or URL"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Additional metadata (size, tier, etc.)"
+        },
+        "connected_services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Services that use this resource"
+        }
+      },
+      "title": "Infrastructure resource (database, storage, API gateway, etc.)"
+    },
+    "v1alpha1InfrastructureType": {
+      "type": "string",
+      "enum": [
+        "INFRASTRUCTURE_TYPE_UNSPECIFIED",
+        "database_rds",
+        "database_dynamodb",
+        "database_mongodb",
+        "database_postgresql",
+        "database_mysql",
+        "database_redis",
+        "database_elasticsearch",
+        "storage_s3",
+        "storage_efs",
+        "storage_ebs",
+        "network_load_balancer",
+        "network_api_gateway",
+        "network_cdn",
+        "network_vpc",
+        "network_nat_gateway",
+        "messaging_sqs",
+        "messaging_sns",
+        "messaging_kafka",
+        "messaging_rabbitmq",
+        "cache_redis",
+        "cache_memcached",
+        "cache_cloudfront",
+        "security_waf",
+        "security_secrets_manager",
+        "security_kms",
+        "monitoring_cloudwatch",
+        "monitoring_prometheus",
+        "monitoring_grafana",
+        "other_custom"
+      ],
+      "default": "INFRASTRUCTURE_TYPE_UNSPECIFIED",
+      "description": "AWS RDS / Azure SQL / GCP Cloud SQL\n - database_dynamodb: AWS DynamoDB / Azure Cosmos DB\n - database_mongodb: MongoDB Atlas / DocumentDB\n - database_postgresql: PostgreSQL\n - database_mysql: MySQL / MariaDB\n - database_redis: Redis / ElastiCache\n - database_elasticsearch: Elasticsearch / OpenSearch\n - storage_s3: Storage\n\nAWS S3 / Azure Blob / GCP Cloud Storage\n - storage_efs: AWS EFS / Azure Files / GCP Filestore\n - storage_ebs: AWS EBS / Azure Disk\n - network_load_balancer: Networking\n\nLoad Balancer (ALB, NLB, etc.)\n - network_api_gateway: API Gateway\n - network_cdn: CloudFront / Azure CDN / GCP CDN\n - network_vpc: VPC / Virtual Network\n - network_nat_gateway: NAT Gateway\n - messaging_sqs: Messaging \u0026 Queues\n\nAWS SQS / Azure Queue / GCP Pub/Sub\n - messaging_sns: AWS SNS / Azure Service Bus\n - messaging_kafka: Kafka / MSK / Event Hubs\n - messaging_rabbitmq: RabbitMQ / Amazon MQ\n - cache_redis: Caching\n\nRedis / ElastiCache\n - cache_memcached: Memcached\n - cache_cloudfront: CloudFront cache\n - security_waf: Security\n\nWAF (Web Application Firewall)\n - security_secrets_manager: Secrets Manager / Key Vault\n - security_kms: KMS / Key Management\n - monitoring_cloudwatch: Monitoring\n\nCloudWatch / Azure Monitor\n - monitoring_prometheus: Prometheus\n - monitoring_grafana: Grafana\n - other_custom: Other\n\nCustom infrastructure resource",
+      "title": "- database_rds: Databases"
     },
     "v1alpha1Languages": {
       "type": "string",
