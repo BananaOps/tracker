@@ -54,36 +54,46 @@ import type { InfrastructureResource } from '../types/api'
 // Storage: #7AA116 (vert)
 // Network: #8C4FFF (violet)
 // Compute: #ED7100 (orange)
+// Messaging: #E7157B (rose)
+// Security: #DD344C (rouge)
 
 // Quick add infrastructure resource types with AWS icon paths
 const QUICK_ADD_RESOURCES = [
   // Databases - AWS Color: #C925D1 (violet/rose)
-  { type: 'database_postgresql', label: 'PostgreSQL', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
-  { type: 'database_mysql', label: 'MySQL', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
-  { type: 'database_mongodb', label: 'MongoDB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-DynamoDB_32.svg' },
-  { type: 'database_redis', label: 'Redis', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-ElastiCache_32.svg' },
   { type: 'database_rds', label: 'RDS', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-RDS_32.svg' },
   { type: 'database_dynamodb', label: 'DynamoDB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-DynamoDB_32.svg' },
+  { type: 'database_elasticache', label: 'ElastiCache', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-ElastiCache_32.svg' },
+  { type: 'database_neptune', label: 'Neptune', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Neptune_32.svg' },
+  { type: 'database_keyspaces', label: 'Keyspaces', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Keyspaces_32.svg' },
+  { type: 'database_timestream', label: 'Timestream', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-Timestream_32.svg' },
+  { type: 'database_memorydb', label: 'MemoryDB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Amazon-MemoryDB_32.svg' },
+  { type: 'database_oracle', label: 'Oracle DB', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg' },
+  { type: 'database_dms', label: 'DMS', icon: Database, color: '#C925D1', awsIcon: '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg' },
   // Storage - AWS Color: #7AA116 (vert)
   { type: 'storage_s3', label: 'S3', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg' },
   { type: 'storage_efs', label: 'EFS', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-EFS_32.svg' },
   { type: 'storage_ebs', label: 'EBS', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg' },
+  { type: 'storage_file_cache', label: 'File Cache', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_Amazon-File-Cache_32.svg' },
+  { type: 'storage_backup', label: 'Backup', icon: HardDrive, color: '#7AA116', awsIcon: '/aws_icons/Arch_AWS-Backup_32.svg' },
   // Network - AWS Color: #8C4FFF (violet)
   { type: 'network_load_balancer', label: 'Load Balancer', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Elastic-Load-Balancing_32.svg' },
-  { type: 'network_api_gateway', label: 'API Gateway', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Amazon-Route-53_32.svg' },
   { type: 'network_cloudfront', label: 'CloudFront', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Amazon-CloudFront_32.svg' },
   { type: 'network_route53', label: 'Route 53', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_Amazon-Route-53_32.svg' },
+  { type: 'network_transit_gateway', label: 'Transit Gateway', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Transit-Gateway_32.svg' },
+  { type: 'network_privatelink', label: 'PrivateLink', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-PrivateLink_32.svg' },
+  { type: 'network_client_vpn', label: 'Client VPN', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Client-VPN_32.svg' },
+  { type: 'network_site_to_site_vpn', label: 'Site-to-Site VPN', icon: Network, color: '#8C4FFF', awsIcon: '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg' },
   // Compute - AWS Color: #ED7100 (orange)
   { type: 'compute_ecs', label: 'ECS', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg' },
   { type: 'compute_eks', label: 'EKS', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg' },
   { type: 'compute_fargate', label: 'Fargate', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_AWS-Fargate_32.svg' },
   { type: 'compute_ecr', label: 'ECR', icon: Server, color: '#ED7100', awsIcon: '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg' },
   // Messaging - AWS Color: #E7157B (rose)
-  { type: 'messaging_sqs', label: 'SQS', icon: MessageSquare, color: '#E7157B', awsIcon: null },
-  { type: 'messaging_kafka', label: 'Kafka', icon: MessageSquare, color: '#E7157B', awsIcon: null },
+  { type: 'messaging_sqs', label: 'SQS', icon: MessageSquare, color: '#E7157B', awsIcon: '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg' },
+  { type: 'messaging_msk', label: 'MSK (Kafka)', icon: MessageSquare, color: '#E7157B', awsIcon: '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg' },
   // Security - AWS Color: #DD344C (rouge)
-  { type: 'security_secrets_manager', label: 'Secrets Manager', icon: Shield, color: '#DD344C', awsIcon: null },
-  { type: 'security_kms', label: 'KMS', icon: Shield, color: '#DD344C', awsIcon: null },
+  { type: 'security_secrets_manager', label: 'Secrets Manager', icon: Shield, color: '#DD344C', awsIcon: '/aws_icons/Arch_AWS-Secrets-Manager_32.svg' },
+  { type: 'security_kms', label: 'KMS', icon: Shield, color: '#DD344C', awsIcon: '/aws_icons/Arch_AWS-Key-Management-Service_32.svg' },
   // Other
   { type: 'other_custom', label: 'Custom', icon: Cloud, color: '#64748b', awsIcon: null },
 ] as const
@@ -2348,6 +2358,14 @@ const AWS_ICON_MAP: Record<string, string> = {
   // Databases
   'database_rds': '/aws_icons/Arch_Amazon-RDS_32.svg',
   'database_dynamodb': '/aws_icons/Arch_Amazon-DynamoDB_32.svg',
+  'database_elasticache': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
+  'database_neptune': '/aws_icons/Arch_Amazon-Neptune_32.svg',
+  'database_keyspaces': '/aws_icons/Arch_Amazon-Keyspaces_32.svg',
+  'database_timestream': '/aws_icons/Arch_Amazon-Timestream_32.svg',
+  'database_memorydb': '/aws_icons/Arch_Amazon-MemoryDB_32.svg',
+  'database_oracle': '/aws_icons/Arch_Oracle-Database-at-AWS_32.svg',
+  'database_dms': '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg',
+  // Legacy database mappings (for backward compatibility)
   'database_postgresql': '/aws_icons/Arch_Amazon-RDS_32.svg',
   'database_mysql': '/aws_icons/Arch_Amazon-RDS_32.svg',
   'database_redis': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
@@ -2357,21 +2375,34 @@ const AWS_ICON_MAP: Record<string, string> = {
   'storage_s3': '/aws_icons/Arch_Amazon-Simple-Storage-Service_32.svg',
   'storage_efs': '/aws_icons/Arch_Amazon-EFS_32.svg',
   'storage_ebs': '/aws_icons/Arch_Amazon-Elastic-Block-Store_32.svg',
+  'storage_file_cache': '/aws_icons/Arch_Amazon-File-Cache_32.svg',
+  'storage_backup': '/aws_icons/Arch_AWS-Backup_32.svg',
   // Network
   'network_load_balancer': '/aws_icons/Arch_Elastic-Load-Balancing_32.svg',
-  'network_api_gateway': '/aws_icons/Arch_Amazon-Route-53_32.svg',
   'network_cloudfront': '/aws_icons/Arch_Amazon-CloudFront_32.svg',
   'network_route53': '/aws_icons/Arch_Amazon-Route-53_32.svg',
+  'network_transit_gateway': '/aws_icons/Arch_AWS-Transit-Gateway_32.svg',
+  'network_privatelink': '/aws_icons/Arch_AWS-PrivateLink_32.svg',
+  'network_client_vpn': '/aws_icons/Arch_AWS-Client-VPN_32.svg',
+  'network_site_to_site_vpn': '/aws_icons/Arch_AWS-Site-to-Site-VPN_32.svg',
+  // Legacy network mappings (for backward compatibility)
+  'network_api_gateway': '/aws_icons/Arch_Amazon-Route-53_32.svg',
   'network_vpc': '/aws_icons/Arch_AWS-Transit-Gateway_32.svg',
   // Compute
   'compute_ecs': '/aws_icons/Arch_Amazon-Elastic-Container-Service_32.svg',
   'compute_eks': '/aws_icons/Arch_Amazon-Elastic-Kubernetes-Service_32.svg',
   'compute_fargate': '/aws_icons/Arch_AWS-Fargate_32.svg',
   'compute_ecr': '/aws_icons/Arch_Amazon-Elastic-Container-Registry_32.svg',
-  // Cache
+  // Messaging
+  'messaging_sqs': '/aws_icons/Arch_Amazon-Simple-Queue-Service_32.svg',
+  'messaging_msk': '/aws_icons/Arch_Amazon-Managed-Streaming-for-Apache-Kafka_32.svg',
+  // Security
+  'security_secrets_manager': '/aws_icons/Arch_AWS-Secrets-Manager_32.svg',
+  'security_kms': '/aws_icons/Arch_AWS-Key-Management-Service_32.svg',
+  // Cache (legacy)
   'cache_elasticache': '/aws_icons/Arch_Amazon-ElastiCache_32.svg',
   'cache_memorydb': '/aws_icons/Arch_Amazon-MemoryDB_32.svg',
-  // Other
+  // Other (legacy)
   'other_backup': '/aws_icons/Arch_AWS-Backup_32.svg',
   'other_dms': '/aws_icons/Arch_AWS-Database-Migration-Service_32.svg',
 }
