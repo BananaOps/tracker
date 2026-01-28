@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { catalogApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary, type InfrastructureType } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check } from 'lucide-react'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
+import { catalogApi, eventsApi } from '../lib/api'
+import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary, type InfrastructureType, type Event, Status } from '../types/api'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Calendar, Rocket, RefreshCw } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -43,6 +43,8 @@ import {
 import 'reactflow/dist/style.css'
 import { useMemo, useState, useCallback, useRef, DragEvent } from 'react'
 import { Button } from '../components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { Badge } from '../components/ui/badge'
 import DeliverableVersions from '../components/VersionManager'
 import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
@@ -402,8 +404,21 @@ function getPlatformIconComponent(platform?: Platform, className: string = 'w-5 
 export default function CatalogDetail() {
   const { serviceName } = useParams<{ serviceName: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  // Determine active tab from URL
+  const activeTab = location.pathname.endsWith('/events') ? 'deployments' : 'overview'
+
+  // Handle tab change with URL navigation
+  const handleTabChange = (value: string) => {
+    if (value === 'deployments') {
+      navigate(`/catalog/${serviceName}/events`)
+    } else {
+      navigate(`/catalog/${serviceName}`)
+    }
+  }
   
   // Edit mode for infrastructure resources
   const [isEditingGraph, setIsEditingGraph] = useState(false)
@@ -426,9 +441,32 @@ export default function CatalogDetail() {
   const [draggingResource, setDraggingResource] = useState<string | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
+  // Deployments tab state
+  const [deploymentTimeRange, setDeploymentTimeRange] = useState<'7d' | '14d' | '30d'>('7d')
+
+  // Helper function to calculate start date based on time range
+  const getStartDate = useCallback((range: '7d' | '14d' | '30d'): string => {
+    const now = new Date()
+    const days = range === '7d' ? 7 : range === '14d' ? 14 : 30
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+    return startDate.toISOString()
+  }, [])
+
   const { data: allCatalogs } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
+  })
+
+  // Fetch deployments for this service
+  const { data: deploymentsData, isLoading: deploymentsLoading, refetch: refetchDeployments } = useQuery({
+    queryKey: ['deployments', serviceName, deploymentTimeRange],
+    queryFn: () => eventsApi.search({
+      service: serviceName,
+      type: 1, // deployment
+      startDate: getStartDate(deploymentTimeRange),
+      endDate: new Date().toISOString()
+    }),
+    enabled: !!serviceName,
   })
 
   const deleteMutation = useMutation({
@@ -880,6 +918,27 @@ export default function CatalogDetail() {
           </button>
         </div>
       </div>
+
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1">
+          <TabsTrigger value="overview" className="flex items-center space-x-2 data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-700 dark:data-[state=active]:bg-indigo-900/30 dark:data-[state=active]:text-indigo-300">
+            <Package className="w-4 h-4" />
+            <span>Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="deployments" className="flex items-center space-x-2 data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-700 dark:data-[state=active]:bg-indigo-900/30 dark:data-[state=active]:text-indigo-300">
+            <Rocket className="w-4 h-4" />
+            <span>Deployments</span>
+            {deploymentsData?.events && deploymentsData.events.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {deploymentsData.events.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab Content */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
 
       {/* Service Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-1.5">
@@ -1740,6 +1799,215 @@ export default function CatalogDetail() {
         )}
       </div>
 
+        </TabsContent>
+
+        {/* Deployments Tab Content */}
+        <TabsContent value="deployments" className="space-y-6 mt-6">
+          {/* Time Range Filter */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={deploymentTimeRange === '7d' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setDeploymentTimeRange('7d')}
+                  >
+                    7 days
+                  </Button>
+                  <Button
+                    variant={deploymentTimeRange === '14d' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setDeploymentTimeRange('14d')}
+                  >
+                    14 days
+                  </Button>
+                  <Button
+                    variant={deploymentTimeRange === '30d' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setDeploymentTimeRange('30d')}
+                  >
+                    30 days
+                  </Button>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetchDeployments()}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Refresh</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Deployments Stats */}
+          {deploymentsData?.events && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Rocket className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {deploymentsData.events.length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Deployments</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {deploymentsData.events.filter(e => e.attributes.status === Status.SUCCESS).length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Successful</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      {deploymentsData.events.filter(e => e.attributes.status === Status.FAILURE || e.attributes.status === Status.ERROR).length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Failed</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {deploymentsData.events.filter(e => e.attributes.status === Status.IN_PROGRESS || e.attributes.status === Status.START).length}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">In Progress</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Deployments Table */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                <Rocket className="w-5 h-5" />
+                <span>Deployment History</span>
+              </h3>
+            </div>
+            
+            {deploymentsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : deploymentsData?.events && deploymentsData.events.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Title
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Environment
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Owner
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    {deploymentsData.events.map((deployment) => (
+                      <tr 
+                        key={deployment.metadata?.id} 
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                        onClick={() => navigate(`/events/${deployment.metadata?.id}`)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-3">
+                            <Rocket className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {deployment.title}
+                              </div>
+                              {deployment.attributes.message && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                  {deployment.attributes.message}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge 
+                            variant="secondary"
+                            className={`${getStatusColor(deployment.attributes.status)}`}
+                          >
+                            {deployment.attributes.status}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {deployment.attributes.environment ? (
+                            <Badge variant="outline" className="capitalize">
+                              {deployment.attributes.environment}
+                            </Badge>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {deployment.metadata?.createdAt ? (
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatDate(deployment.metadata.createdAt)}</span>
+                            </div>
+                          ) : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {deployment.attributes.owner || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Rocket className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No deployments found</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  No deployments recorded for this service in the last {deploymentTimeRange === '7d' ? '7' : deploymentTimeRange === '14d' ? '14' : '30'} days
+                </p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+
       {/* Add Resource Modal */}
       {showAddResourceModal && newResourceType && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -2481,7 +2749,48 @@ function getDashboardLinkStyles(type?: import('../types/api').DashboardType): { 
   }
 }
 
+// Helper function to format date for deployments
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
 
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Helper function to get status color classes for deployments
+function getStatusColor(status?: Status): string {
+  switch (status) {
+    case Status.SUCCESS:
+    case Status.DONE:
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+    case Status.FAILURE:
+    case Status.ERROR:
+      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+    case Status.WARNING:
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+    case Status.IN_PROGRESS:
+    case Status.START:
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+    case Status.PLANNED:
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+  }
+}
 
 
 // Helper functions for Infrastructure Resources
