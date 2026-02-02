@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/BananaOps/tracker/compare/v0.14.1...v0.15.0) (2026-02-02)
+
+
+### Features
+
+* add api stats ([#142](https://github.com/BananaOps/tracker/issues/142)) ([06d28ef](https://github.com/BananaOps/tracker/commit/06d28efaf581843ac7a22640ee5298fadef79503))
+* add new option graphdeps ([#139](https://github.com/BananaOps/tracker/issues/139)) ([31b7c61](https://github.com/BananaOps/tracker/commit/31b7c610751e037582bb3d10614f201152d82356))
+
 ## [0.14.1](https://github.com/BananaOps/tracker/compare/v0.14.0...v0.14.1) (2026-01-21)
 
 
