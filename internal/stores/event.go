@@ -99,6 +99,65 @@ func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interfa
 	return
 }
 
+// CountWithFilter counts events matching the given filter
+func (c *EventStoreClient) CountWithFilter(ctx context.Context, filter bson.D) (int64, error) {
+	return c.collection.CountDocuments(ctx, filter)
+}
+
+// MonthlyStatsResult represents a single month's statistics
+type MonthlyStatsResult struct {
+	Year    int32  `bson:"year"`
+	Month   int32  `bson:"month"`
+	Service string `bson:"service,omitempty"`
+	Count   int64  `bson:"count"`
+}
+
+// AggregateByMonth aggregates events by month with optional service grouping
+func (c *EventStoreClient) AggregateByMonth(ctx context.Context, matchFilter bson.D, groupByService bool) ([]MonthlyStatsResult, error) {
+	// Build the group stage
+	groupID := bson.D{
+		{Key: "year", Value: bson.D{{Key: "$year", Value: bson.D{{Key: "$toDate", Value: bson.D{{Key: "$multiply", Value: bson.A{"$metadata.createdat.seconds", 1000}}}}}}}},
+		{Key: "month", Value: bson.D{{Key: "$month", Value: bson.D{{Key: "$toDate", Value: bson.D{{Key: "$multiply", Value: bson.A{"$metadata.createdat.seconds", 1000}}}}}}}},
+	}
+
+	if groupByService {
+		groupID = append(groupID, bson.E{Key: "service", Value: "$attributes.service"})
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: matchFilter}},
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: groupID},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}}},
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "year", Value: "$_id.year"},
+			{Key: "month", Value: "$_id.month"},
+			{Key: "service", Value: "$_id.service"},
+			{Key: "count", Value: 1},
+		}}},
+		{{Key: "$sort", Value: bson.D{
+			{Key: "year", Value: 1},
+			{Key: "month", Value: 1},
+			{Key: "service", Value: 1},
+		}}},
+	}
+
+	cursor, err := c.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []MonthlyStatsResult
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 /*
 // Fonction pour construire dynamiquement bson.D en fonction des champs non vides
 func buildBsonUpdate(event *v1alpha1.Event) bson.D {

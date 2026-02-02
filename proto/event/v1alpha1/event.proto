@@ -59,6 +59,16 @@ service EventService {
       body: "*"
     };
   }
+
+  // Get event statistics count with filters
+  rpc GetEventStats(GetEventStatsRequest) returns (GetEventStatsResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/events/stats"};
+  }
+
+  // Get event statistics aggregated by month
+  rpc GetEventStatsByMonth(GetEventStatsByMonthRequest) returns (GetEventStatsByMonthResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/events/stats/monthly"};
+  }
 }
 
 message EventAttributes {
@@ -285,4 +295,61 @@ enum ChangeType {
   linked = 7;
   locked = 8;
   unlocked = 9;
+}
+
+// Request for event statistics count
+message GetEventStatsRequest {
+  // Required: start date for the period (format: 2006-01-02 or ISO8601)
+  string start_date = 1 [(validate.rules).string.min_len = 1];
+  // Required: end date for the period (format: 2006-01-02 or ISO8601)
+  string end_date = 2 [(validate.rules).string.min_len = 1];
+  // Optional filters
+  repeated Environment environments = 3;
+  google.protobuf.BoolValue impact = 4;
+  repeated Priority priorities = 5;
+  repeated Type types = 6;
+  repeated Status statuses = 7;
+  string source = 8;
+  string service = 9;
+}
+
+// Response for event statistics count
+message GetEventStatsResponse {
+  uint64 total_count = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+// Request for event statistics by month
+message GetEventStatsByMonthRequest {
+  // Required: start date for the period (format: 2006-01-02 or ISO8601)
+  string start_date = 1 [(validate.rules).string.min_len = 1];
+  // Required: end date for the period (format: 2006-01-02 or ISO8601)
+  string end_date = 2 [(validate.rules).string.min_len = 1];
+  // Optional filters
+  repeated Environment environments = 3;
+  google.protobuf.BoolValue impact = 4;
+  repeated Priority priorities = 5;
+  repeated Type types = 6;
+  repeated Status statuses = 7;
+  string source = 8;
+  string service = 9;
+  // Group by service in addition to month
+  bool group_by_service = 10;
+}
+
+// Monthly statistics entry
+message MonthlyStats {
+  int32 year = 1;
+  int32 month = 2;
+  uint64 count = 3;
+  string service = 4;  // Only populated if group_by_service is true
+}
+
+// Response for event statistics by month
+message GetEventStatsByMonthResponse {
+  repeated MonthlyStats stats = 1;
+  uint64 total_count = 2;
+  string start_date = 3;
+  string end_date = 4;
 }

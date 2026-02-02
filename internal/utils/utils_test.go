@@ -161,3 +161,162 @@ func TestCatchPullRequestIdError(t *testing.T) {
 		assert.Error(t, e)
 	}
 }
+
+
+func TestCreateStatsFilter(t *testing.T) {
+	testCases := []struct {
+		name           string
+		filter         *StatsFilter
+		expectError    bool
+		expectedFields int // Number of expected fields in the filter
+	}{
+		{
+			name: "OK - Only required dates",
+			filter: &StatsFilter{
+				StartDate: "2025-01-01",
+				EndDate:   "2025-12-31",
+			},
+			expectError:    false,
+			expectedFields: 1, // Only date filter
+		},
+		{
+			name: "OK - With environments filter",
+			filter: &StatsFilter{
+				StartDate:    "2025-01-01",
+				EndDate:      "2025-12-31",
+				Environments: []int32{7}, // production
+			},
+			expectError:    false,
+			expectedFields: 2,
+		},
+		{
+			name: "OK - With all filters",
+			filter: &StatsFilter{
+				StartDate:    "2025-01-01",
+				EndDate:      "2025-12-31",
+				Environments: []int32{7},
+				Priorities:   []int32{1, 2},
+				Types:        []int32{1},
+				Statuses:     []int32{3},
+				Source:       "slack",
+				Service:      "auth-service",
+			},
+			expectError:    false,
+			expectedFields: 7,
+		},
+		{
+			name: "OK - With impact filter true",
+			filter: &StatsFilter{
+				StartDate: "2025-01-01",
+				EndDate:   "2025-12-31",
+				Impact:    boolPtr(true),
+			},
+			expectError:    false,
+			expectedFields: 2,
+		},
+		{
+			name: "OK - With impact filter false",
+			filter: &StatsFilter{
+				StartDate: "2025-01-01",
+				EndDate:   "2025-12-31",
+				Impact:    boolPtr(false),
+			},
+			expectError:    false,
+			expectedFields: 2,
+		},
+		{
+			name: "ERROR - Missing start_date",
+			filter: &StatsFilter{
+				EndDate: "2025-12-31",
+			},
+			expectError: true,
+		},
+		{
+			name: "ERROR - Missing end_date",
+			filter: &StatsFilter{
+				StartDate: "2025-01-01",
+			},
+			expectError: true,
+		},
+		{
+			name: "ERROR - Missing both dates",
+			filter: &StatsFilter{
+				Environments: []int32{7},
+			},
+			expectError: true,
+		},
+		{
+			name: "ERROR - Invalid start_date format",
+			filter: &StatsFilter{
+				StartDate: "invalid-date",
+				EndDate:   "2025-12-31",
+			},
+			expectError: true,
+		},
+		{
+			name: "ERROR - Invalid end_date format",
+			filter: &StatsFilter{
+				StartDate: "2025-01-01",
+				EndDate:   "invalid-date",
+			},
+			expectError: true,
+		},
+		{
+			name: "ERROR - Inverted dates",
+			filter: &StatsFilter{
+				StartDate: "2025-12-31",
+				EndDate:   "2025-01-01",
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := CreateStatsFilter(tc.filter)
+
+			if tc.expectError {
+				assert.Error(t, err)
+				assert.Nil(t, result)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+				assert.Len(t, result, tc.expectedFields)
+			}
+		})
+	}
+}
+
+func TestCreateStatsFilterDateRange(t *testing.T) {
+	filter := &StatsFilter{
+		StartDate: "2025-01-01",
+		EndDate:   "2025-12-31",
+	}
+
+	result, err := CreateStatsFilter(filter)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+
+	// Verify the date filter is correctly set
+	// The filter should contain metadata.createdat.seconds with $gte and $lte
+	assert.Len(t, result, 1)
+	assert.Equal(t, "metadata.createdat.seconds", result[0].Key)
+}
+
+func TestCreateStatsFilterMultipleEnvironments(t *testing.T) {
+	filter := &StatsFilter{
+		StartDate:    "2025-01-01",
+		EndDate:      "2025-12-31",
+		Environments: []int32{6, 7}, // preproduction and production
+	}
+
+	result, err := CreateStatsFilter(filter)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+}
+
+// Helper function to create bool pointer
+func boolPtr(b bool) *bool {
+	return &b
+}

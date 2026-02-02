@@ -717,6 +717,181 @@ func recordEvent(status string, service string, environment string, duration tim
 	eventDuration.With(prometheus.Labels{"status": status, "service": service, "environment": environment}).Observe(duration.Seconds())
 }
 
+func (e *Event) GetEventStats(
+	ctx context.Context,
+	i *v1alpha1.GetEventStatsRequest,
+) (*v1alpha1.GetEventStatsResponse, error) {
+
+	// Build filter from request
+	statsFilter := &utils.StatsFilter{
+		StartDate: i.StartDate,
+		EndDate:   i.EndDate,
+		Source:    i.Source,
+		Service:   i.Service,
+	}
+
+	// Convert environments
+	if len(i.Environments) > 0 {
+		statsFilter.Environments = make([]int32, len(i.Environments))
+		for idx, env := range i.Environments {
+			statsFilter.Environments[idx] = int32(env)
+		}
+	}
+
+	// Convert impact
+	if i.Impact != nil {
+		impact := i.Impact.Value
+		statsFilter.Impact = &impact
+	}
+
+	// Convert priorities
+	if len(i.Priorities) > 0 {
+		statsFilter.Priorities = make([]int32, len(i.Priorities))
+		for idx, p := range i.Priorities {
+			statsFilter.Priorities[idx] = int32(p)
+		}
+	}
+
+	// Convert types
+	if len(i.Types) > 0 {
+		statsFilter.Types = make([]int32, len(i.Types))
+		for idx, t := range i.Types {
+			statsFilter.Types[idx] = int32(t)
+		}
+	}
+
+	// Convert statuses
+	if len(i.Statuses) > 0 {
+		statsFilter.Statuses = make([]int32, len(i.Statuses))
+		for idx, s := range i.Statuses {
+			statsFilter.Statuses[idx] = int32(s)
+		}
+	}
+
+	filter, err := utils.CreateStatsFilter(statsFilter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stats filter: %w", err)
+	}
+
+	count, err := e.store.CountWithFilter(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count events: %w", err)
+	}
+
+	// Safe conversion: count is always >= 0
+	var totalCount uint64
+	if count >= 0 {
+		totalCount = uint64(count) // #nosec G115
+	}
+
+	e.logger.Info("event stats retrieved",
+		"start_date", i.StartDate,
+		"end_date", i.EndDate,
+		"count", totalCount,
+	)
+
+	return &v1alpha1.GetEventStatsResponse{
+		TotalCount: totalCount,
+		StartDate:  i.StartDate,
+		EndDate:    i.EndDate,
+	}, nil
+}
+
+func (e *Event) GetEventStatsByMonth(
+	ctx context.Context,
+	i *v1alpha1.GetEventStatsByMonthRequest,
+) (*v1alpha1.GetEventStatsByMonthResponse, error) {
+
+	// Build filter from request
+	statsFilter := &utils.StatsFilter{
+		StartDate: i.StartDate,
+		EndDate:   i.EndDate,
+		Source:    i.Source,
+		Service:   i.Service,
+	}
+
+	// Convert environments
+	if len(i.Environments) > 0 {
+		statsFilter.Environments = make([]int32, len(i.Environments))
+		for idx, env := range i.Environments {
+			statsFilter.Environments[idx] = int32(env)
+		}
+	}
+
+	// Convert impact
+	if i.Impact != nil {
+		impact := i.Impact.Value
+		statsFilter.Impact = &impact
+	}
+
+	// Convert priorities
+	if len(i.Priorities) > 0 {
+		statsFilter.Priorities = make([]int32, len(i.Priorities))
+		for idx, p := range i.Priorities {
+			statsFilter.Priorities[idx] = int32(p)
+		}
+	}
+
+	// Convert types
+	if len(i.Types) > 0 {
+		statsFilter.Types = make([]int32, len(i.Types))
+		for idx, t := range i.Types {
+			statsFilter.Types[idx] = int32(t)
+		}
+	}
+
+	// Convert statuses
+	if len(i.Statuses) > 0 {
+		statsFilter.Statuses = make([]int32, len(i.Statuses))
+		for idx, s := range i.Statuses {
+			statsFilter.Statuses[idx] = int32(s)
+		}
+	}
+
+	filter, err := utils.CreateStatsFilter(statsFilter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stats filter: %w", err)
+	}
+
+	results, err := e.store.AggregateByMonth(ctx, filter, i.GroupByService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate events by month: %w", err)
+	}
+
+	// Convert results to proto
+	stats := make([]*v1alpha1.MonthlyStats, len(results))
+	var totalCount uint64
+	for idx, r := range results {
+		// Safe conversion: r.Count is always >= 0
+		var count uint64
+		if r.Count >= 0 {
+			count = uint64(r.Count) // #nosec G115
+		}
+		stats[idx] = &v1alpha1.MonthlyStats{
+			Year:    r.Year,
+			Month:   r.Month,
+			Count:   count,
+			Service: r.Service,
+		}
+		totalCount += count
+	}
+
+	e.logger.Info("event stats by month retrieved",
+		"start_date", i.StartDate,
+		"end_date", i.EndDate,
+		"months_count", len(stats),
+		"total_count", totalCount,
+		"group_by_service", i.GroupByService,
+	)
+
+	return &v1alpha1.GetEventStatsByMonthResponse{
+		Stats:      stats,
+		TotalCount: totalCount,
+		StartDate:  i.StartDate,
+		EndDate:    i.EndDate,
+	}, nil
+}
+
 func init() {
 	// Enregistrer les métriques
 	prometheus.MustRegister(eventCounter)

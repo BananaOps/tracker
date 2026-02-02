@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EventService_CreateEvent_FullMethodName       = "/tracker.event.v1alpha1.EventService/CreateEvent"
-	EventService_UpdateEvent_FullMethodName       = "/tracker.event.v1alpha1.EventService/UpdateEvent"
-	EventService_DeleteEvents_FullMethodName      = "/tracker.event.v1alpha1.EventService/DeleteEvents"
-	EventService_GetEvent_FullMethodName          = "/tracker.event.v1alpha1.EventService/GetEvent"
-	EventService_SearchEvents_FullMethodName      = "/tracker.event.v1alpha1.EventService/SearchEvents"
-	EventService_ListEvents_FullMethodName        = "/tracker.event.v1alpha1.EventService/ListEvents"
-	EventService_TodayEvents_FullMethodName       = "/tracker.event.v1alpha1.EventService/TodayEvents"
-	EventService_AddChangelogEntry_FullMethodName = "/tracker.event.v1alpha1.EventService/AddChangelogEntry"
-	EventService_GetEventChangelog_FullMethodName = "/tracker.event.v1alpha1.EventService/GetEventChangelog"
-	EventService_AddSlackId_FullMethodName        = "/tracker.event.v1alpha1.EventService/AddSlackId"
+	EventService_CreateEvent_FullMethodName          = "/tracker.event.v1alpha1.EventService/CreateEvent"
+	EventService_UpdateEvent_FullMethodName          = "/tracker.event.v1alpha1.EventService/UpdateEvent"
+	EventService_DeleteEvents_FullMethodName         = "/tracker.event.v1alpha1.EventService/DeleteEvents"
+	EventService_GetEvent_FullMethodName             = "/tracker.event.v1alpha1.EventService/GetEvent"
+	EventService_SearchEvents_FullMethodName         = "/tracker.event.v1alpha1.EventService/SearchEvents"
+	EventService_ListEvents_FullMethodName           = "/tracker.event.v1alpha1.EventService/ListEvents"
+	EventService_TodayEvents_FullMethodName          = "/tracker.event.v1alpha1.EventService/TodayEvents"
+	EventService_AddChangelogEntry_FullMethodName    = "/tracker.event.v1alpha1.EventService/AddChangelogEntry"
+	EventService_GetEventChangelog_FullMethodName    = "/tracker.event.v1alpha1.EventService/GetEventChangelog"
+	EventService_AddSlackId_FullMethodName           = "/tracker.event.v1alpha1.EventService/AddSlackId"
+	EventService_GetEventStats_FullMethodName        = "/tracker.event.v1alpha1.EventService/GetEventStats"
+	EventService_GetEventStatsByMonth_FullMethodName = "/tracker.event.v1alpha1.EventService/GetEventStatsByMonth"
 )
 
 // EventServiceClient is the client API for EventService service.
@@ -48,6 +50,10 @@ type EventServiceClient interface {
 	GetEventChangelog(ctx context.Context, in *GetEventChangelogRequest, opts ...grpc.CallOption) (*GetEventChangelogResponse, error)
 	// Add a Slack ID to an existing event
 	AddSlackId(ctx context.Context, in *AddSlackIdRequest, opts ...grpc.CallOption) (*AddSlackIdResponse, error)
+	// Get event statistics count with filters
+	GetEventStats(ctx context.Context, in *GetEventStatsRequest, opts ...grpc.CallOption) (*GetEventStatsResponse, error)
+	// Get event statistics aggregated by month
+	GetEventStatsByMonth(ctx context.Context, in *GetEventStatsByMonthRequest, opts ...grpc.CallOption) (*GetEventStatsByMonthResponse, error)
 }
 
 type eventServiceClient struct {
@@ -158,6 +164,26 @@ func (c *eventServiceClient) AddSlackId(ctx context.Context, in *AddSlackIdReque
 	return out, nil
 }
 
+func (c *eventServiceClient) GetEventStats(ctx context.Context, in *GetEventStatsRequest, opts ...grpc.CallOption) (*GetEventStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEventStatsResponse)
+	err := c.cc.Invoke(ctx, EventService_GetEventStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) GetEventStatsByMonth(ctx context.Context, in *GetEventStatsByMonthRequest, opts ...grpc.CallOption) (*GetEventStatsByMonthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEventStatsByMonthResponse)
+	err := c.cc.Invoke(ctx, EventService_GetEventStatsByMonth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventServiceServer is the server API for EventService service.
 // All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility.
@@ -175,6 +201,10 @@ type EventServiceServer interface {
 	GetEventChangelog(context.Context, *GetEventChangelogRequest) (*GetEventChangelogResponse, error)
 	// Add a Slack ID to an existing event
 	AddSlackId(context.Context, *AddSlackIdRequest) (*AddSlackIdResponse, error)
+	// Get event statistics count with filters
+	GetEventStats(context.Context, *GetEventStatsRequest) (*GetEventStatsResponse, error)
+	// Get event statistics aggregated by month
+	GetEventStatsByMonth(context.Context, *GetEventStatsByMonthRequest) (*GetEventStatsByMonthResponse, error)
 	mustEmbedUnimplementedEventServiceServer()
 }
 
@@ -214,6 +244,12 @@ func (UnimplementedEventServiceServer) GetEventChangelog(context.Context, *GetEv
 }
 func (UnimplementedEventServiceServer) AddSlackId(context.Context, *AddSlackIdRequest) (*AddSlackIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddSlackId not implemented")
+}
+func (UnimplementedEventServiceServer) GetEventStats(context.Context, *GetEventStatsRequest) (*GetEventStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEventStats not implemented")
+}
+func (UnimplementedEventServiceServer) GetEventStatsByMonth(context.Context, *GetEventStatsByMonthRequest) (*GetEventStatsByMonthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEventStatsByMonth not implemented")
 }
 func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 func (UnimplementedEventServiceServer) testEmbeddedByValue()                      {}
@@ -416,6 +452,42 @@ func _EventService_AddSlackId_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_GetEventStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEventStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetEventStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetEventStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetEventStats(ctx, req.(*GetEventStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_GetEventStatsByMonth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEventStatsByMonthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).GetEventStatsByMonth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EventService_GetEventStatsByMonth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).GetEventStatsByMonth(ctx, req.(*GetEventStatsByMonthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -462,6 +534,14 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddSlackId",
 			Handler:    _EventService_AddSlackId_Handler,
+		},
+		{
+			MethodName: "GetEventStats",
+			Handler:    _EventService_GetEventStats_Handler,
+		},
+		{
+			MethodName: "GetEventStatsByMonth",
+			Handler:    _EventService_GetEventStatsByMonth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
