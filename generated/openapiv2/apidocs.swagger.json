@@ -35,7 +35,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -63,7 +63,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -91,7 +91,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -124,7 +124,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -170,7 +170,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -210,7 +210,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -249,7 +249,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -287,7 +287,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -317,7 +317,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -349,7 +349,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -377,7 +377,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -414,7 +414,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -457,7 +457,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -497,7 +497,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -536,7 +536,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -574,7 +574,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -692,6 +692,295 @@
         ]
       }
     },
+    "/api/v1alpha1/events/stats": {
+      "get": {
+        "summary": "Get event statistics count with filters",
+        "operationId": "EventService_GetEventStats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetEventStatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "start_date",
+            "description": "Required: start date for the period (format: 2006-01-02 or ISO8601)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "end_date",
+            "description": "Required: end date for the period (format: 2006-01-02 or ISO8601)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "environments",
+            "description": "Optional filters",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ENVIRONMENT_UNSPECIFIED",
+                "development",
+                "integration",
+                "TNR",
+                "UAT",
+                "recette",
+                "preproduction",
+                "production",
+                "mco"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "impact",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "priorities",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PRIORITY_UNSPECIFIED",
+                "P1",
+                "P2",
+                "P3",
+                "P4",
+                "P5"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TYPE_UNSPECIFIED",
+                "deployment",
+                "operation",
+                "drift",
+                "incident",
+                "rpa_usage"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STATUS_UNSPECIFIED",
+                "start",
+                "failure",
+                "success",
+                "warning",
+                "error",
+                "snapshot",
+                "user_update",
+                "recommandation",
+                "open",
+                "close",
+                "done",
+                "in_progress",
+                "planned"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
+    "/api/v1alpha1/events/stats/monthly": {
+      "get": {
+        "summary": "Get event statistics aggregated by month",
+        "operationId": "EventService_GetEventStatsByMonth",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetEventStatsByMonthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "start_date",
+            "description": "Required: start date for the period (format: 2006-01-02 or ISO8601)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "end_date",
+            "description": "Required: end date for the period (format: 2006-01-02 or ISO8601)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "environments",
+            "description": "Optional filters",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ENVIRONMENT_UNSPECIFIED",
+                "development",
+                "integration",
+                "TNR",
+                "UAT",
+                "recette",
+                "preproduction",
+                "production",
+                "mco"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "impact",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "priorities",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PRIORITY_UNSPECIFIED",
+                "P1",
+                "P2",
+                "P3",
+                "P4",
+                "P5"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TYPE_UNSPECIFIED",
+                "deployment",
+                "operation",
+                "drift",
+                "incident",
+                "rpa_usage"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "statuses",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STATUS_UNSPECIFIED",
+                "start",
+                "failure",
+                "success",
+                "warning",
+                "error",
+                "snapshot",
+                "user_update",
+                "recommandation",
+                "open",
+                "close",
+                "done",
+                "in_progress",
+                "planned"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "service",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "group_by_service",
+            "description": "Group by service in addition to month",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "EventService"
+        ]
+      }
+    },
     "/api/v1alpha1/events/today": {
       "get": {
         "operationId": "EventService_TodayEvents",
@@ -705,7 +994,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -743,7 +1032,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -775,7 +1064,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -803,7 +1092,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -841,7 +1130,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -879,7 +1168,7 @@
           "default": {
             "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
+              "$ref": "#/definitions/googleRpcStatus"
             }
           }
         },
@@ -979,7 +1268,7 @@
         }
       }
     },
-    "eventv1alpha1Status": {
+    "eventV1alpha1Status": {
       "type": "string",
       "enum": [
         "STATUS_UNSPECIFIED",
@@ -999,7 +1288,7 @@
       ],
       "default": "STATUS_UNSPECIFIED"
     },
-    "googlerpcStatus": {
+    "googleRpcStatus": {
       "type": "object",
       "properties": {
         "code": {
@@ -1027,7 +1316,7 @@
       },
       "additionalProperties": {}
     },
-    "trackercatalogv1alpha1Type": {
+    "trackerCatalogV1alpha1Type": {
       "type": "string",
       "enum": [
         "TYPE_UNSPECIFIED",
@@ -1041,7 +1330,7 @@
       ],
       "default": "TYPE_UNSPECIFIED"
     },
-    "trackereventv1alpha1Type": {
+    "trackerEventV1alpha1Type": {
       "type": "string",
       "enum": [
         "TYPE_UNSPECIFIED",
@@ -1078,7 +1367,7 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+          "$ref": "#/definitions/trackerCatalogV1alpha1Type"
         },
         "languages": {
           "$ref": "#/definitions/v1alpha1Languages"
@@ -1346,7 +1635,7 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+          "$ref": "#/definitions/trackerCatalogV1alpha1Type"
         },
         "languages": {
           "$ref": "#/definitions/v1alpha1Languages"
@@ -1508,7 +1797,7 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+          "$ref": "#/definitions/trackerCatalogV1alpha1Type"
         },
         "projects_using": {
           "type": "integer",
@@ -1533,7 +1822,7 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/trackercatalogv1alpha1Type"
+          "$ref": "#/definitions/trackerCatalogV1alpha1Type"
         },
         "current_version": {
           "type": "string",
@@ -1606,7 +1895,7 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/trackereventv1alpha1Type"
+          "$ref": "#/definitions/trackerEventV1alpha1Type"
         },
         "priority": {
           "$ref": "#/definitions/v1alpha1Priority"
@@ -1618,7 +1907,7 @@
           "type": "string"
         },
         "status": {
-          "$ref": "#/definitions/eventv1alpha1Status"
+          "$ref": "#/definitions/eventV1alpha1Status"
         },
         "environment": {
           "$ref": "#/definitions/v1alpha1Environment"
@@ -1715,6 +2004,45 @@
           "$ref": "#/definitions/v1alpha1Event"
         }
       }
+    },
+    "v1alpha1GetEventStatsByMonthResponse": {
+      "type": "object",
+      "properties": {
+        "stats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1MonthlyStats"
+          }
+        },
+        "total_count": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        }
+      },
+      "title": "Response for event statistics by month"
+    },
+    "v1alpha1GetEventStatsResponse": {
+      "type": "object",
+      "properties": {
+        "total_count": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        }
+      },
+      "title": "Response for event statistics count"
     },
     "v1alpha1GetLockResponse": {
       "type": "object",
@@ -1924,6 +2252,28 @@
         }
       }
     },
+    "v1alpha1MonthlyStats": {
+      "type": "object",
+      "properties": {
+        "year": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "month": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "count": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "service": {
+          "type": "string",
+          "title": "Only populated if group_by_service is true"
+        }
+      },
+      "title": "Monthly statistics entry"
+    },
     "v1alpha1Platform": {
       "type": "string",
       "enum": [
@@ -2129,7 +2479,7 @@
           "title": "Name of the deliverable (package, chart, container, module)"
         },
         "type": {
-          "$ref": "#/definitions/trackercatalogv1alpha1Type",
+          "$ref": "#/definitions/trackerCatalogV1alpha1Type",
           "title": "Type of deliverable (package, chart, container, module)"
         },
         "version_used": {

@@ -1919,6 +1919,438 @@ func (x *AddSlackIdResponse) GetEvent() *Event {
 	return nil
 }
 
+// Request for event statistics count
+type GetEventStatsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required: start date for the period (format: 2006-01-02 or ISO8601)
+	StartDate string `protobuf:"bytes,1,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	// Required: end date for the period (format: 2006-01-02 or ISO8601)
+	EndDate string `protobuf:"bytes,2,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	// Optional filters
+	Environments  []Environment         `protobuf:"varint,3,rep,packed,name=environments,proto3,enum=tracker.event.v1alpha1.Environment" json:"environments,omitempty"`
+	Impact        *wrapperspb.BoolValue `protobuf:"bytes,4,opt,name=impact,proto3" json:"impact,omitempty"`
+	Priorities    []Priority            `protobuf:"varint,5,rep,packed,name=priorities,proto3,enum=tracker.event.v1alpha1.Priority" json:"priorities,omitempty"`
+	Types         []Type                `protobuf:"varint,6,rep,packed,name=types,proto3,enum=tracker.event.v1alpha1.Type" json:"types,omitempty"`
+	Statuses      []Status              `protobuf:"varint,7,rep,packed,name=statuses,proto3,enum=tracker.event.v1alpha1.Status" json:"statuses,omitempty"`
+	Source        string                `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
+	Service       string                `protobuf:"bytes,9,opt,name=service,proto3" json:"service,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEventStatsRequest) Reset() {
+	*x = GetEventStatsRequest{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventStatsRequest) ProtoMessage() {}
+
+func (x *GetEventStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetEventStatsRequest) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetEventStatsRequest) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsRequest) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsRequest) GetEnvironments() []Environment {
+	if x != nil {
+		return x.Environments
+	}
+	return nil
+}
+
+func (x *GetEventStatsRequest) GetImpact() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.Impact
+	}
+	return nil
+}
+
+func (x *GetEventStatsRequest) GetPriorities() []Priority {
+	if x != nil {
+		return x.Priorities
+	}
+	return nil
+}
+
+func (x *GetEventStatsRequest) GetTypes() []Type {
+	if x != nil {
+		return x.Types
+	}
+	return nil
+}
+
+func (x *GetEventStatsRequest) GetStatuses() []Status {
+	if x != nil {
+		return x.Statuses
+	}
+	return nil
+}
+
+func (x *GetEventStatsRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *GetEventStatsRequest) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+// Response for event statistics count
+type GetEventStatsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TotalCount    uint64                 `protobuf:"varint,1,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	StartDate     string                 `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate       string                 `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEventStatsResponse) Reset() {
+	*x = GetEventStatsResponse{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventStatsResponse) ProtoMessage() {}
+
+func (x *GetEventStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetEventStatsResponse) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetEventStatsResponse) GetTotalCount() uint64 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *GetEventStatsResponse) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsResponse) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+// Request for event statistics by month
+type GetEventStatsByMonthRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Required: start date for the period (format: 2006-01-02 or ISO8601)
+	StartDate string `protobuf:"bytes,1,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	// Required: end date for the period (format: 2006-01-02 or ISO8601)
+	EndDate string `protobuf:"bytes,2,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	// Optional filters
+	Environments []Environment         `protobuf:"varint,3,rep,packed,name=environments,proto3,enum=tracker.event.v1alpha1.Environment" json:"environments,omitempty"`
+	Impact       *wrapperspb.BoolValue `protobuf:"bytes,4,opt,name=impact,proto3" json:"impact,omitempty"`
+	Priorities   []Priority            `protobuf:"varint,5,rep,packed,name=priorities,proto3,enum=tracker.event.v1alpha1.Priority" json:"priorities,omitempty"`
+	Types        []Type                `protobuf:"varint,6,rep,packed,name=types,proto3,enum=tracker.event.v1alpha1.Type" json:"types,omitempty"`
+	Statuses     []Status              `protobuf:"varint,7,rep,packed,name=statuses,proto3,enum=tracker.event.v1alpha1.Status" json:"statuses,omitempty"`
+	Source       string                `protobuf:"bytes,8,opt,name=source,proto3" json:"source,omitempty"`
+	Service      string                `protobuf:"bytes,9,opt,name=service,proto3" json:"service,omitempty"`
+	// Group by service in addition to month
+	GroupByService bool `protobuf:"varint,10,opt,name=group_by_service,json=groupByService,proto3" json:"group_by_service,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetEventStatsByMonthRequest) Reset() {
+	*x = GetEventStatsByMonthRequest{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventStatsByMonthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventStatsByMonthRequest) ProtoMessage() {}
+
+func (x *GetEventStatsByMonthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventStatsByMonthRequest.ProtoReflect.Descriptor instead.
+func (*GetEventStatsByMonthRequest) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetEventStatsByMonthRequest) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsByMonthRequest) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsByMonthRequest) GetEnvironments() []Environment {
+	if x != nil {
+		return x.Environments
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthRequest) GetImpact() *wrapperspb.BoolValue {
+	if x != nil {
+		return x.Impact
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthRequest) GetPriorities() []Priority {
+	if x != nil {
+		return x.Priorities
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthRequest) GetTypes() []Type {
+	if x != nil {
+		return x.Types
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthRequest) GetStatuses() []Status {
+	if x != nil {
+		return x.Statuses
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthRequest) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *GetEventStatsByMonthRequest) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *GetEventStatsByMonthRequest) GetGroupByService() bool {
+	if x != nil {
+		return x.GroupByService
+	}
+	return false
+}
+
+// Monthly statistics entry
+type MonthlyStats struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Year          int32                  `protobuf:"varint,1,opt,name=year,proto3" json:"year,omitempty"`
+	Month         int32                  `protobuf:"varint,2,opt,name=month,proto3" json:"month,omitempty"`
+	Count         uint64                 `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"`
+	Service       string                 `protobuf:"bytes,4,opt,name=service,proto3" json:"service,omitempty"` // Only populated if group_by_service is true
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MonthlyStats) Reset() {
+	*x = MonthlyStats{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MonthlyStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MonthlyStats) ProtoMessage() {}
+
+func (x *MonthlyStats) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MonthlyStats.ProtoReflect.Descriptor instead.
+func (*MonthlyStats) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *MonthlyStats) GetYear() int32 {
+	if x != nil {
+		return x.Year
+	}
+	return 0
+}
+
+func (x *MonthlyStats) GetMonth() int32 {
+	if x != nil {
+		return x.Month
+	}
+	return 0
+}
+
+func (x *MonthlyStats) GetCount() uint64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+func (x *MonthlyStats) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+// Response for event statistics by month
+type GetEventStatsByMonthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stats         []*MonthlyStats        `protobuf:"bytes,1,rep,name=stats,proto3" json:"stats,omitempty"`
+	TotalCount    uint64                 `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	StartDate     string                 `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate       string                 `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetEventStatsByMonthResponse) Reset() {
+	*x = GetEventStatsByMonthResponse{}
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEventStatsByMonthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEventStatsByMonthResponse) ProtoMessage() {}
+
+func (x *GetEventStatsByMonthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_event_v1alpha1_event_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEventStatsByMonthResponse.ProtoReflect.Descriptor instead.
+func (*GetEventStatsByMonthResponse) Descriptor() ([]byte, []int) {
+	return file_proto_event_v1alpha1_event_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetEventStatsByMonthResponse) GetStats() []*MonthlyStats {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
+func (x *GetEventStatsByMonthResponse) GetTotalCount() uint64 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+func (x *GetEventStatsByMonthResponse) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *GetEventStatsByMonthResponse) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
 var File_proto_event_v1alpha1_event_proto protoreflect.FileDescriptor
 
 const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
@@ -2047,7 +2479,53 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\x02id\x12\x19\n" +
 	"\bslack_id\x18\x02 \x01(\tR\aslackId\"I\n" +
 	"\x12AddSlackIdResponse\x123\n" +
-	"\x05event\x18\x01 \x01(\v2\x1d.tracker.event.v1alpha1.EventR\x05event*c\n" +
+	"\x05event\x18\x01 \x01(\v2\x1d.tracker.event.v1alpha1.EventR\x05event\"\xc3\x03\n" +
+	"\x14GetEventStatsRequest\x12&\n" +
+	"\n" +
+	"start_date\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\tstartDate\x12\"\n" +
+	"\bend_date\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aendDate\x12G\n" +
+	"\fenvironments\x18\x03 \x03(\x0e2#.tracker.event.v1alpha1.EnvironmentR\fenvironments\x122\n" +
+	"\x06impact\x18\x04 \x01(\v2\x1a.google.protobuf.BoolValueR\x06impact\x12@\n" +
+	"\n" +
+	"priorities\x18\x05 \x03(\x0e2 .tracker.event.v1alpha1.PriorityR\n" +
+	"priorities\x122\n" +
+	"\x05types\x18\x06 \x03(\x0e2\x1c.tracker.event.v1alpha1.TypeR\x05types\x12:\n" +
+	"\bstatuses\x18\a \x03(\x0e2\x1e.tracker.event.v1alpha1.StatusR\bstatuses\x12\x16\n" +
+	"\x06source\x18\b \x01(\tR\x06source\x12\x18\n" +
+	"\aservice\x18\t \x01(\tR\aservice\"r\n" +
+	"\x15GetEventStatsResponse\x12\x1f\n" +
+	"\vtotal_count\x18\x01 \x01(\x04R\n" +
+	"totalCount\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x02 \x01(\tR\tstartDate\x12\x19\n" +
+	"\bend_date\x18\x03 \x01(\tR\aendDate\"\xf4\x03\n" +
+	"\x1bGetEventStatsByMonthRequest\x12&\n" +
+	"\n" +
+	"start_date\x18\x01 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\tstartDate\x12\"\n" +
+	"\bend_date\x18\x02 \x01(\tB\a\xfaB\x04r\x02\x10\x01R\aendDate\x12G\n" +
+	"\fenvironments\x18\x03 \x03(\x0e2#.tracker.event.v1alpha1.EnvironmentR\fenvironments\x122\n" +
+	"\x06impact\x18\x04 \x01(\v2\x1a.google.protobuf.BoolValueR\x06impact\x12@\n" +
+	"\n" +
+	"priorities\x18\x05 \x03(\x0e2 .tracker.event.v1alpha1.PriorityR\n" +
+	"priorities\x122\n" +
+	"\x05types\x18\x06 \x03(\x0e2\x1c.tracker.event.v1alpha1.TypeR\x05types\x12:\n" +
+	"\bstatuses\x18\a \x03(\x0e2\x1e.tracker.event.v1alpha1.StatusR\bstatuses\x12\x16\n" +
+	"\x06source\x18\b \x01(\tR\x06source\x12\x18\n" +
+	"\aservice\x18\t \x01(\tR\aservice\x12(\n" +
+	"\x10group_by_service\x18\n" +
+	" \x01(\bR\x0egroupByService\"h\n" +
+	"\fMonthlyStats\x12\x12\n" +
+	"\x04year\x18\x01 \x01(\x05R\x04year\x12\x14\n" +
+	"\x05month\x18\x02 \x01(\x05R\x05month\x12\x14\n" +
+	"\x05count\x18\x03 \x01(\x04R\x05count\x12\x18\n" +
+	"\aservice\x18\x04 \x01(\tR\aservice\"\xb5\x01\n" +
+	"\x1cGetEventStatsByMonthResponse\x12:\n" +
+	"\x05stats\x18\x01 \x03(\v2$.tracker.event.v1alpha1.MonthlyStatsR\x05stats\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x04R\n" +
+	"totalCount\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x03 \x01(\tR\tstartDate\x12\x19\n" +
+	"\bend_date\x18\x04 \x01(\tR\aendDate*c\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -2103,7 +2581,7 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x06linked\x10\a\x12\n" +
 	"\n" +
 	"\x06locked\x10\b\x12\f\n" +
-	"\bunlocked\x10\t2\xb6\v\n" +
+	"\bunlocked\x10\t2\xf9\r\n" +
 	"\fEventService\x12\x86\x01\n" +
 	"\vCreateEvent\x12*.tracker.event.v1alpha1.CreateEventRequest\x1a+.tracker.event.v1alpha1.CreateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1alpha1/event\x12\x86\x01\n" +
 	"\vUpdateEvent\x12*.tracker.event.v1alpha1.UpdateEventRequest\x1a+.tracker.event.v1alpha1.UpdateEventResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1alpha1/event\x12\x89\x01\n" +
@@ -2116,7 +2594,9 @@ const file_proto_event_v1alpha1_event_proto_rawDesc = "" +
 	"\x11AddChangelogEntry\x120.tracker.event.v1alpha1.AddChangelogEntryRequest\x1a1.tracker.event.v1alpha1.AddChangelogEntryResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1alpha1/event/{id}/changelog\x12\xa4\x01\n" +
 	"\x11GetEventChangelog\x120.tracker.event.v1alpha1.GetEventChangelogRequest\x1a1.tracker.event.v1alpha1.GetEventChangelogResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/event/{id}/changelog\x12\x8e\x01\n" +
 	"\n" +
-	"AddSlackId\x12).tracker.event.v1alpha1.AddSlackIdRequest\x1a*.tracker.event.v1alpha1.AddSlackIdResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1alpha1/event/{id}/slackB\x16Z\x14proto/event/v1alpha1b\x06proto3"
+	"AddSlackId\x12).tracker.event.v1alpha1.AddSlackIdRequest\x1a*.tracker.event.v1alpha1.AddSlackIdResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1alpha1/event/{id}/slack\x12\x90\x01\n" +
+	"\rGetEventStats\x12,.tracker.event.v1alpha1.GetEventStatsRequest\x1a-.tracker.event.v1alpha1.GetEventStatsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1alpha1/events/stats\x12\xad\x01\n" +
+	"\x14GetEventStatsByMonth\x123.tracker.event.v1alpha1.GetEventStatsByMonthRequest\x1a4.tracker.event.v1alpha1.GetEventStatsByMonthResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1alpha1/events/stats/monthlyB\x16Z\x14proto/event/v1alpha1b\x06proto3"
 
 var (
 	file_proto_event_v1alpha1_event_proto_rawDescOnce sync.Once
@@ -2131,53 +2611,59 @@ func file_proto_event_v1alpha1_event_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_event_v1alpha1_event_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_proto_event_v1alpha1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_proto_event_v1alpha1_event_proto_goTypes = []any{
-	(Type)(0),                         // 0: tracker.event.v1alpha1.Type
-	(Priority)(0),                     // 1: tracker.event.v1alpha1.Priority
-	(Status)(0),                       // 2: tracker.event.v1alpha1.Status
-	(Environment)(0),                  // 3: tracker.event.v1alpha1.Environment
-	(ChangeType)(0),                   // 4: tracker.event.v1alpha1.ChangeType
-	(*EventAttributes)(nil),           // 5: tracker.event.v1alpha1.EventAttributes
-	(*EventMetadata)(nil),             // 6: tracker.event.v1alpha1.EventMetadata
-	(*EventLinks)(nil),                // 7: tracker.event.v1alpha1.EventLinks
-	(*ChangelogEntry)(nil),            // 8: tracker.event.v1alpha1.ChangelogEntry
-	(*Event)(nil),                     // 9: tracker.event.v1alpha1.Event
-	(*CreateEventRequest)(nil),        // 10: tracker.event.v1alpha1.CreateEventRequest
-	(*CreateEventResponse)(nil),       // 11: tracker.event.v1alpha1.CreateEventResponse
-	(*GetEventRequest)(nil),           // 12: tracker.event.v1alpha1.GetEventRequest
-	(*GetEventResponse)(nil),          // 13: tracker.event.v1alpha1.GetEventResponse
-	(*SearchEventsRequest)(nil),       // 14: tracker.event.v1alpha1.SearchEventsRequest
-	(*SearchEventsResponse)(nil),      // 15: tracker.event.v1alpha1.SearchEventsResponse
-	(*ListEventsRequest)(nil),         // 16: tracker.event.v1alpha1.ListEventsRequest
-	(*ListEventsResponse)(nil),        // 17: tracker.event.v1alpha1.ListEventsResponse
-	(*TodayEventsRequest)(nil),        // 18: tracker.event.v1alpha1.TodayEventsRequest
-	(*TodayEventsResponse)(nil),       // 19: tracker.event.v1alpha1.TodayEventsResponse
-	(*AddChangelogEntryRequest)(nil),  // 20: tracker.event.v1alpha1.AddChangelogEntryRequest
-	(*AddChangelogEntryResponse)(nil), // 21: tracker.event.v1alpha1.AddChangelogEntryResponse
-	(*GetEventChangelogRequest)(nil),  // 22: tracker.event.v1alpha1.GetEventChangelogRequest
-	(*GetEventChangelogResponse)(nil), // 23: tracker.event.v1alpha1.GetEventChangelogResponse
-	(*UpdateEventRequest)(nil),        // 24: tracker.event.v1alpha1.UpdateEventRequest
-	(*UpdateEventResponse)(nil),       // 25: tracker.event.v1alpha1.UpdateEventResponse
-	(*DeleteEventRequest)(nil),        // 26: tracker.event.v1alpha1.DeleteEventRequest
-	(*DeleteEventResponse)(nil),       // 27: tracker.event.v1alpha1.DeleteEventResponse
-	(*AddSlackIdRequest)(nil),         // 28: tracker.event.v1alpha1.AddSlackIdRequest
-	(*AddSlackIdResponse)(nil),        // 29: tracker.event.v1alpha1.AddSlackIdResponse
-	(*timestamppb.Timestamp)(nil),     // 30: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),       // 31: google.protobuf.Duration
-	(*wrapperspb.UInt32Value)(nil),    // 32: google.protobuf.UInt32Value
-	(*wrapperspb.Int32Value)(nil),     // 33: google.protobuf.Int32Value
+	(Type)(0),                            // 0: tracker.event.v1alpha1.Type
+	(Priority)(0),                        // 1: tracker.event.v1alpha1.Priority
+	(Status)(0),                          // 2: tracker.event.v1alpha1.Status
+	(Environment)(0),                     // 3: tracker.event.v1alpha1.Environment
+	(ChangeType)(0),                      // 4: tracker.event.v1alpha1.ChangeType
+	(*EventAttributes)(nil),              // 5: tracker.event.v1alpha1.EventAttributes
+	(*EventMetadata)(nil),                // 6: tracker.event.v1alpha1.EventMetadata
+	(*EventLinks)(nil),                   // 7: tracker.event.v1alpha1.EventLinks
+	(*ChangelogEntry)(nil),               // 8: tracker.event.v1alpha1.ChangelogEntry
+	(*Event)(nil),                        // 9: tracker.event.v1alpha1.Event
+	(*CreateEventRequest)(nil),           // 10: tracker.event.v1alpha1.CreateEventRequest
+	(*CreateEventResponse)(nil),          // 11: tracker.event.v1alpha1.CreateEventResponse
+	(*GetEventRequest)(nil),              // 12: tracker.event.v1alpha1.GetEventRequest
+	(*GetEventResponse)(nil),             // 13: tracker.event.v1alpha1.GetEventResponse
+	(*SearchEventsRequest)(nil),          // 14: tracker.event.v1alpha1.SearchEventsRequest
+	(*SearchEventsResponse)(nil),         // 15: tracker.event.v1alpha1.SearchEventsResponse
+	(*ListEventsRequest)(nil),            // 16: tracker.event.v1alpha1.ListEventsRequest
+	(*ListEventsResponse)(nil),           // 17: tracker.event.v1alpha1.ListEventsResponse
+	(*TodayEventsRequest)(nil),           // 18: tracker.event.v1alpha1.TodayEventsRequest
+	(*TodayEventsResponse)(nil),          // 19: tracker.event.v1alpha1.TodayEventsResponse
+	(*AddChangelogEntryRequest)(nil),     // 20: tracker.event.v1alpha1.AddChangelogEntryRequest
+	(*AddChangelogEntryResponse)(nil),    // 21: tracker.event.v1alpha1.AddChangelogEntryResponse
+	(*GetEventChangelogRequest)(nil),     // 22: tracker.event.v1alpha1.GetEventChangelogRequest
+	(*GetEventChangelogResponse)(nil),    // 23: tracker.event.v1alpha1.GetEventChangelogResponse
+	(*UpdateEventRequest)(nil),           // 24: tracker.event.v1alpha1.UpdateEventRequest
+	(*UpdateEventResponse)(nil),          // 25: tracker.event.v1alpha1.UpdateEventResponse
+	(*DeleteEventRequest)(nil),           // 26: tracker.event.v1alpha1.DeleteEventRequest
+	(*DeleteEventResponse)(nil),          // 27: tracker.event.v1alpha1.DeleteEventResponse
+	(*AddSlackIdRequest)(nil),            // 28: tracker.event.v1alpha1.AddSlackIdRequest
+	(*AddSlackIdResponse)(nil),           // 29: tracker.event.v1alpha1.AddSlackIdResponse
+	(*GetEventStatsRequest)(nil),         // 30: tracker.event.v1alpha1.GetEventStatsRequest
+	(*GetEventStatsResponse)(nil),        // 31: tracker.event.v1alpha1.GetEventStatsResponse
+	(*GetEventStatsByMonthRequest)(nil),  // 32: tracker.event.v1alpha1.GetEventStatsByMonthRequest
+	(*MonthlyStats)(nil),                 // 33: tracker.event.v1alpha1.MonthlyStats
+	(*GetEventStatsByMonthResponse)(nil), // 34: tracker.event.v1alpha1.GetEventStatsByMonthResponse
+	(*timestamppb.Timestamp)(nil),        // 35: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),          // 36: google.protobuf.Duration
+	(*wrapperspb.UInt32Value)(nil),       // 37: google.protobuf.UInt32Value
+	(*wrapperspb.Int32Value)(nil),        // 38: google.protobuf.Int32Value
+	(*wrapperspb.BoolValue)(nil),         // 39: google.protobuf.BoolValue
 }
 var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	0,  // 0: tracker.event.v1alpha1.EventAttributes.type:type_name -> tracker.event.v1alpha1.Type
 	1,  // 1: tracker.event.v1alpha1.EventAttributes.priority:type_name -> tracker.event.v1alpha1.Priority
 	2,  // 2: tracker.event.v1alpha1.EventAttributes.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 3: tracker.event.v1alpha1.EventAttributes.environment:type_name -> tracker.event.v1alpha1.Environment
-	30, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
-	30, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
-	30, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
-	31, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
-	30, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
+	35, // 4: tracker.event.v1alpha1.EventAttributes.start_date:type_name -> google.protobuf.Timestamp
+	35, // 5: tracker.event.v1alpha1.EventAttributes.end_date:type_name -> google.protobuf.Timestamp
+	35, // 6: tracker.event.v1alpha1.EventMetadata.created_at:type_name -> google.protobuf.Timestamp
+	36, // 7: tracker.event.v1alpha1.EventMetadata.duration:type_name -> google.protobuf.Duration
+	35, // 8: tracker.event.v1alpha1.ChangelogEntry.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 9: tracker.event.v1alpha1.ChangelogEntry.change_type:type_name -> tracker.event.v1alpha1.ChangeType
 	5,  // 10: tracker.event.v1alpha1.Event.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
 	7,  // 11: tracker.event.v1alpha1.Event.links:type_name -> tracker.event.v1alpha1.EventLinks
@@ -2192,46 +2678,61 @@ var file_proto_event_v1alpha1_event_proto_depIdxs = []int32{
 	2,  // 20: tracker.event.v1alpha1.SearchEventsRequest.status:type_name -> tracker.event.v1alpha1.Status
 	3,  // 21: tracker.event.v1alpha1.SearchEventsRequest.environment:type_name -> tracker.event.v1alpha1.Environment
 	9,  // 22: tracker.event.v1alpha1.SearchEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	32, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	33, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
+	37, // 23: tracker.event.v1alpha1.ListEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	38, // 24: tracker.event.v1alpha1.ListEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 25: tracker.event.v1alpha1.ListEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
-	32, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
-	33, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
+	37, // 26: tracker.event.v1alpha1.TodayEventsRequest.per_page:type_name -> google.protobuf.UInt32Value
+	38, // 27: tracker.event.v1alpha1.TodayEventsRequest.page:type_name -> google.protobuf.Int32Value
 	9,  // 28: tracker.event.v1alpha1.TodayEventsResponse.events:type_name -> tracker.event.v1alpha1.Event
 	8,  // 29: tracker.event.v1alpha1.AddChangelogEntryRequest.entry:type_name -> tracker.event.v1alpha1.ChangelogEntry
 	9,  // 30: tracker.event.v1alpha1.AddChangelogEntryResponse.event:type_name -> tracker.event.v1alpha1.Event
-	32, // 31: tracker.event.v1alpha1.GetEventChangelogRequest.per_page:type_name -> google.protobuf.UInt32Value
-	33, // 32: tracker.event.v1alpha1.GetEventChangelogRequest.page:type_name -> google.protobuf.Int32Value
+	37, // 31: tracker.event.v1alpha1.GetEventChangelogRequest.per_page:type_name -> google.protobuf.UInt32Value
+	38, // 32: tracker.event.v1alpha1.GetEventChangelogRequest.page:type_name -> google.protobuf.Int32Value
 	8,  // 33: tracker.event.v1alpha1.GetEventChangelogResponse.changelog:type_name -> tracker.event.v1alpha1.ChangelogEntry
 	5,  // 34: tracker.event.v1alpha1.UpdateEventRequest.attributes:type_name -> tracker.event.v1alpha1.EventAttributes
 	7,  // 35: tracker.event.v1alpha1.UpdateEventRequest.links:type_name -> tracker.event.v1alpha1.EventLinks
 	9,  // 36: tracker.event.v1alpha1.UpdateEventResponse.event:type_name -> tracker.event.v1alpha1.Event
 	9,  // 37: tracker.event.v1alpha1.AddSlackIdResponse.event:type_name -> tracker.event.v1alpha1.Event
-	10, // 38: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
-	24, // 39: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
-	26, // 40: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
-	12, // 41: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
-	14, // 42: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
-	16, // 43: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
-	18, // 44: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
-	20, // 45: tracker.event.v1alpha1.EventService.AddChangelogEntry:input_type -> tracker.event.v1alpha1.AddChangelogEntryRequest
-	22, // 46: tracker.event.v1alpha1.EventService.GetEventChangelog:input_type -> tracker.event.v1alpha1.GetEventChangelogRequest
-	28, // 47: tracker.event.v1alpha1.EventService.AddSlackId:input_type -> tracker.event.v1alpha1.AddSlackIdRequest
-	11, // 48: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
-	25, // 49: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
-	27, // 50: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
-	13, // 51: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
-	15, // 52: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
-	17, // 53: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
-	19, // 54: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
-	21, // 55: tracker.event.v1alpha1.EventService.AddChangelogEntry:output_type -> tracker.event.v1alpha1.AddChangelogEntryResponse
-	23, // 56: tracker.event.v1alpha1.EventService.GetEventChangelog:output_type -> tracker.event.v1alpha1.GetEventChangelogResponse
-	29, // 57: tracker.event.v1alpha1.EventService.AddSlackId:output_type -> tracker.event.v1alpha1.AddSlackIdResponse
-	48, // [48:58] is the sub-list for method output_type
-	38, // [38:48] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	3,  // 38: tracker.event.v1alpha1.GetEventStatsRequest.environments:type_name -> tracker.event.v1alpha1.Environment
+	39, // 39: tracker.event.v1alpha1.GetEventStatsRequest.impact:type_name -> google.protobuf.BoolValue
+	1,  // 40: tracker.event.v1alpha1.GetEventStatsRequest.priorities:type_name -> tracker.event.v1alpha1.Priority
+	0,  // 41: tracker.event.v1alpha1.GetEventStatsRequest.types:type_name -> tracker.event.v1alpha1.Type
+	2,  // 42: tracker.event.v1alpha1.GetEventStatsRequest.statuses:type_name -> tracker.event.v1alpha1.Status
+	3,  // 43: tracker.event.v1alpha1.GetEventStatsByMonthRequest.environments:type_name -> tracker.event.v1alpha1.Environment
+	39, // 44: tracker.event.v1alpha1.GetEventStatsByMonthRequest.impact:type_name -> google.protobuf.BoolValue
+	1,  // 45: tracker.event.v1alpha1.GetEventStatsByMonthRequest.priorities:type_name -> tracker.event.v1alpha1.Priority
+	0,  // 46: tracker.event.v1alpha1.GetEventStatsByMonthRequest.types:type_name -> tracker.event.v1alpha1.Type
+	2,  // 47: tracker.event.v1alpha1.GetEventStatsByMonthRequest.statuses:type_name -> tracker.event.v1alpha1.Status
+	33, // 48: tracker.event.v1alpha1.GetEventStatsByMonthResponse.stats:type_name -> tracker.event.v1alpha1.MonthlyStats
+	10, // 49: tracker.event.v1alpha1.EventService.CreateEvent:input_type -> tracker.event.v1alpha1.CreateEventRequest
+	24, // 50: tracker.event.v1alpha1.EventService.UpdateEvent:input_type -> tracker.event.v1alpha1.UpdateEventRequest
+	26, // 51: tracker.event.v1alpha1.EventService.DeleteEvents:input_type -> tracker.event.v1alpha1.DeleteEventRequest
+	12, // 52: tracker.event.v1alpha1.EventService.GetEvent:input_type -> tracker.event.v1alpha1.GetEventRequest
+	14, // 53: tracker.event.v1alpha1.EventService.SearchEvents:input_type -> tracker.event.v1alpha1.SearchEventsRequest
+	16, // 54: tracker.event.v1alpha1.EventService.ListEvents:input_type -> tracker.event.v1alpha1.ListEventsRequest
+	18, // 55: tracker.event.v1alpha1.EventService.TodayEvents:input_type -> tracker.event.v1alpha1.TodayEventsRequest
+	20, // 56: tracker.event.v1alpha1.EventService.AddChangelogEntry:input_type -> tracker.event.v1alpha1.AddChangelogEntryRequest
+	22, // 57: tracker.event.v1alpha1.EventService.GetEventChangelog:input_type -> tracker.event.v1alpha1.GetEventChangelogRequest
+	28, // 58: tracker.event.v1alpha1.EventService.AddSlackId:input_type -> tracker.event.v1alpha1.AddSlackIdRequest
+	30, // 59: tracker.event.v1alpha1.EventService.GetEventStats:input_type -> tracker.event.v1alpha1.GetEventStatsRequest
+	32, // 60: tracker.event.v1alpha1.EventService.GetEventStatsByMonth:input_type -> tracker.event.v1alpha1.GetEventStatsByMonthRequest
+	11, // 61: tracker.event.v1alpha1.EventService.CreateEvent:output_type -> tracker.event.v1alpha1.CreateEventResponse
+	25, // 62: tracker.event.v1alpha1.EventService.UpdateEvent:output_type -> tracker.event.v1alpha1.UpdateEventResponse
+	27, // 63: tracker.event.v1alpha1.EventService.DeleteEvents:output_type -> tracker.event.v1alpha1.DeleteEventResponse
+	13, // 64: tracker.event.v1alpha1.EventService.GetEvent:output_type -> tracker.event.v1alpha1.GetEventResponse
+	15, // 65: tracker.event.v1alpha1.EventService.SearchEvents:output_type -> tracker.event.v1alpha1.SearchEventsResponse
+	17, // 66: tracker.event.v1alpha1.EventService.ListEvents:output_type -> tracker.event.v1alpha1.ListEventsResponse
+	19, // 67: tracker.event.v1alpha1.EventService.TodayEvents:output_type -> tracker.event.v1alpha1.TodayEventsResponse
+	21, // 68: tracker.event.v1alpha1.EventService.AddChangelogEntry:output_type -> tracker.event.v1alpha1.AddChangelogEntryResponse
+	23, // 69: tracker.event.v1alpha1.EventService.GetEventChangelog:output_type -> tracker.event.v1alpha1.GetEventChangelogResponse
+	29, // 70: tracker.event.v1alpha1.EventService.AddSlackId:output_type -> tracker.event.v1alpha1.AddSlackIdResponse
+	31, // 71: tracker.event.v1alpha1.EventService.GetEventStats:output_type -> tracker.event.v1alpha1.GetEventStatsResponse
+	34, // 72: tracker.event.v1alpha1.EventService.GetEventStatsByMonth:output_type -> tracker.event.v1alpha1.GetEventStatsByMonthResponse
+	61, // [61:73] is the sub-list for method output_type
+	49, // [49:61] is the sub-list for method input_type
+	49, // [49:49] is the sub-list for extension type_name
+	49, // [49:49] is the sub-list for extension extendee
+	0,  // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_proto_event_v1alpha1_event_proto_init() }
@@ -2245,7 +2746,7 @@ func file_proto_event_v1alpha1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_event_v1alpha1_event_proto_rawDesc), len(file_proto_event_v1alpha1_event_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   25,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

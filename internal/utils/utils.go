@@ -7,10 +7,9 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, error) {
@@ -132,4 +131,80 @@ func DecodeEscapedChars(encodedStr string) (string, error) {
 		return "", err // Retourne une erreur si le décodage échoue
 	}
 	return decodedStr, nil
+}
+
+// StatsFilter represents the filter parameters for event statistics
+type StatsFilter struct {
+	StartDate    string
+	EndDate      string
+	Environments []int32
+	Impact       *bool
+	Priorities   []int32
+	Types        []int32
+	Statuses     []int32
+	Source       string
+	Service      string
+}
+
+// CreateStatsFilter builds a bson.D filter for event statistics queries
+func CreateStatsFilter(f *StatsFilter) (bson.D, error) {
+	filter := bson.D{}
+
+	// Parse and validate dates (required)
+	if f.StartDate == "" || f.EndDate == "" {
+		return nil, errors.New("start_date and end_date are required")
+	}
+
+	start, err := parseDate(f.StartDate)
+	if err != nil {
+		return nil, fmt.Errorf("invalid start_date: %w", err)
+	}
+	end, err := parseDate(f.EndDate)
+	if err != nil {
+		return nil, fmt.Errorf("invalid end_date: %w", err)
+	}
+
+	if err = checkDateInverted(start, end); err != nil {
+		return nil, err
+	}
+
+	// Filter by created_at timestamp
+	filter = append(filter, bson.E{
+		Key: "metadata.createdat.seconds",
+		Value: bson.D{
+			{Key: "$gte", Value: start.Unix()},
+			{Key: "$lte", Value: end.Unix()},
+		},
+	})
+
+	// Optional filters
+	if len(f.Environments) > 0 {
+		filter = append(filter, bson.E{Key: "attributes.environment", Value: bson.D{{Key: "$in", Value: f.Environments}}})
+	}
+
+	if f.Impact != nil {
+		filter = append(filter, bson.E{Key: "attributes.impact", Value: *f.Impact})
+	}
+
+	if len(f.Priorities) > 0 {
+		filter = append(filter, bson.E{Key: "attributes.priority", Value: bson.D{{Key: "$in", Value: f.Priorities}}})
+	}
+
+	if len(f.Types) > 0 {
+		filter = append(filter, bson.E{Key: "attributes.type", Value: bson.D{{Key: "$in", Value: f.Types}}})
+	}
+
+	if len(f.Statuses) > 0 {
+		filter = append(filter, bson.E{Key: "attributes.status", Value: bson.D{{Key: "$in", Value: f.Statuses}}})
+	}
+
+	if f.Source != "" {
+		filter = append(filter, bson.E{Key: "attributes.source", Value: f.Source})
+	}
+
+	if f.Service != "" {
+		filter = append(filter, bson.E{Key: "attributes.service", Value: f.Service})
+	}
+
+	return filter, nil
 }

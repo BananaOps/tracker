@@ -3626,3 +3626,678 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AddSlackIdResponseValidationError{}
+
+// Validate checks the field values on GetEventStatsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventStatsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventStatsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventStatsRequestMultiError, or nil if none found.
+func (m *GetEventStatsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventStatsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetStartDate()) < 1 {
+		err := GetEventStatsRequestValidationError{
+			field:  "StartDate",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetEndDate()) < 1 {
+		err := GetEventStatsRequestValidationError{
+			field:  "EndDate",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetImpact()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventStatsRequestValidationError{
+					field:  "Impact",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventStatsRequestValidationError{
+					field:  "Impact",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetImpact()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventStatsRequestValidationError{
+				field:  "Impact",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Source
+
+	// no validation rules for Service
+
+	if len(errors) > 0 {
+		return GetEventStatsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventStatsRequestMultiError is an error wrapping multiple validation
+// errors returned by GetEventStatsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetEventStatsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventStatsRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventStatsRequestMultiError) AllErrors() []error { return m }
+
+// GetEventStatsRequestValidationError is the validation error returned by
+// GetEventStatsRequest.Validate if the designated constraints aren't met.
+type GetEventStatsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventStatsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventStatsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventStatsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventStatsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventStatsRequestValidationError) ErrorName() string {
+	return "GetEventStatsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventStatsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventStatsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventStatsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventStatsRequestValidationError{}
+
+// Validate checks the field values on GetEventStatsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventStatsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventStatsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventStatsResponseMultiError, or nil if none found.
+func (m *GetEventStatsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventStatsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TotalCount
+
+	// no validation rules for StartDate
+
+	// no validation rules for EndDate
+
+	if len(errors) > 0 {
+		return GetEventStatsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventStatsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetEventStatsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetEventStatsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventStatsResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventStatsResponseMultiError) AllErrors() []error { return m }
+
+// GetEventStatsResponseValidationError is the validation error returned by
+// GetEventStatsResponse.Validate if the designated constraints aren't met.
+type GetEventStatsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventStatsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventStatsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventStatsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventStatsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventStatsResponseValidationError) ErrorName() string {
+	return "GetEventStatsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventStatsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventStatsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventStatsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventStatsResponseValidationError{}
+
+// Validate checks the field values on GetEventStatsByMonthRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventStatsByMonthRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventStatsByMonthRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventStatsByMonthRequestMultiError, or nil if none found.
+func (m *GetEventStatsByMonthRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventStatsByMonthRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetStartDate()) < 1 {
+		err := GetEventStatsByMonthRequestValidationError{
+			field:  "StartDate",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetEndDate()) < 1 {
+		err := GetEventStatsByMonthRequestValidationError{
+			field:  "EndDate",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetImpact()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventStatsByMonthRequestValidationError{
+					field:  "Impact",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventStatsByMonthRequestValidationError{
+					field:  "Impact",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetImpact()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventStatsByMonthRequestValidationError{
+				field:  "Impact",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Source
+
+	// no validation rules for Service
+
+	// no validation rules for GroupByService
+
+	if len(errors) > 0 {
+		return GetEventStatsByMonthRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventStatsByMonthRequestMultiError is an error wrapping multiple
+// validation errors returned by GetEventStatsByMonthRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetEventStatsByMonthRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventStatsByMonthRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventStatsByMonthRequestMultiError) AllErrors() []error { return m }
+
+// GetEventStatsByMonthRequestValidationError is the validation error returned
+// by GetEventStatsByMonthRequest.Validate if the designated constraints
+// aren't met.
+type GetEventStatsByMonthRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventStatsByMonthRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventStatsByMonthRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventStatsByMonthRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventStatsByMonthRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventStatsByMonthRequestValidationError) ErrorName() string {
+	return "GetEventStatsByMonthRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventStatsByMonthRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventStatsByMonthRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventStatsByMonthRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventStatsByMonthRequestValidationError{}
+
+// Validate checks the field values on MonthlyStats with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MonthlyStats) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MonthlyStats with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MonthlyStatsMultiError, or
+// nil if none found.
+func (m *MonthlyStats) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MonthlyStats) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Year
+
+	// no validation rules for Month
+
+	// no validation rules for Count
+
+	// no validation rules for Service
+
+	if len(errors) > 0 {
+		return MonthlyStatsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MonthlyStatsMultiError is an error wrapping multiple validation errors
+// returned by MonthlyStats.ValidateAll() if the designated constraints aren't met.
+type MonthlyStatsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MonthlyStatsMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MonthlyStatsMultiError) AllErrors() []error { return m }
+
+// MonthlyStatsValidationError is the validation error returned by
+// MonthlyStats.Validate if the designated constraints aren't met.
+type MonthlyStatsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MonthlyStatsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MonthlyStatsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MonthlyStatsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MonthlyStatsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MonthlyStatsValidationError) ErrorName() string { return "MonthlyStatsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MonthlyStatsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMonthlyStats.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MonthlyStatsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MonthlyStatsValidationError{}
+
+// Validate checks the field values on GetEventStatsByMonthResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetEventStatsByMonthResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventStatsByMonthResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventStatsByMonthResponseMultiError, or nil if none found.
+func (m *GetEventStatsByMonthResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventStatsByMonthResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetStats() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetEventStatsByMonthResponseValidationError{
+						field:  fmt.Sprintf("Stats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetEventStatsByMonthResponseValidationError{
+						field:  fmt.Sprintf("Stats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetEventStatsByMonthResponseValidationError{
+					field:  fmt.Sprintf("Stats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for TotalCount
+
+	// no validation rules for StartDate
+
+	// no validation rules for EndDate
+
+	if len(errors) > 0 {
+		return GetEventStatsByMonthResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventStatsByMonthResponseMultiError is an error wrapping multiple
+// validation errors returned by GetEventStatsByMonthResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetEventStatsByMonthResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventStatsByMonthResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventStatsByMonthResponseMultiError) AllErrors() []error { return m }
+
+// GetEventStatsByMonthResponseValidationError is the validation error returned
+// by GetEventStatsByMonthResponse.Validate if the designated constraints
+// aren't met.
+type GetEventStatsByMonthResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventStatsByMonthResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventStatsByMonthResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventStatsByMonthResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventStatsByMonthResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventStatsByMonthResponseValidationError) ErrorName() string {
+	return "GetEventStatsByMonthResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventStatsByMonthResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventStatsByMonthResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventStatsByMonthResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventStatsByMonthResponseValidationError{}
