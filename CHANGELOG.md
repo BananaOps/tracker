@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/BananaOps/tracker/compare/v0.16.0...v0.16.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* upgrade npm lock ([#147](https://github.com/BananaOps/tracker/issues/147)) ([f5155ca](https://github.com/BananaOps/tracker/commit/f5155cad2c7c2231285e40c513c216d179ae01d6))
+
 ## [0.16.0](https://github.com/BananaOps/tracker/compare/v0.15.0...v0.16.0) (2026-03-03)
 
 
