@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/BananaOps/tracker/compare/v0.15.0...v0.16.0) (2026-03-03)
+
+
+### Features
+
+* add catalog service event page and event page ([#141](https://github.com/BananaOps/tracker/issues/141)) ([0564348](https://github.com/BananaOps/tracker/commit/056434816cd28741086c46de89420c1b21d14900))
+
+
+### Bug Fixes
+
+* **Snyk:** Security upgrade glob from 11.1.0 to 12.0.0 ([#143](https://github.com/BananaOps/tracker/issues/143)) ([d5d733b](https://github.com/BananaOps/tracker/commit/d5d733b49ad206befbe6e9240f67aa3c2af4ef33))
+
 ## [0.15.0](https://github.com/BananaOps/tracker/compare/v0.14.1...v0.15.0) (2026-02-02)
 
 
