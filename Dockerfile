@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
 
 WORKDIR /app/web
 
@@ -16,7 +16,11 @@ COPY web/ ./
 RUN npm run build
 
 # Stage 2: Build backend
-FROM golang:1.25.4-alpine AS backend-builder
+FROM --platform=$BUILDPLATFORM golang:1.25.4-alpine AS backend-builder
+
+# Build arguments for cross-compilation
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -36,8 +40,8 @@ COPY . .
 # Copy frontend build from previous stage
 COPY --from=frontend-builder /app/web/dist ./web/dist
 
-# Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o tracker .
+# Build the Go application for target platform
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-w -s" -o tracker .
 
 # Stage 3: Final runtime image
 FROM alpine:latest
