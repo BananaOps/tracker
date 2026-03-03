@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/BananaOps/tracker/compare/v0.16.1...v0.16.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* update dockerfile multiarch ([#149](https://github.com/BananaOps/tracker/issues/149)) ([e590702](https://github.com/BananaOps/tracker/commit/e5907021e9fe09e977487dd4e4b967051a0d4aec))
+
 ## [0.16.1](https://github.com/BananaOps/tracker/compare/v0.16.0...v0.16.1) (2026-03-03)
 
 
