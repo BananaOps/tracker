@@ -6,6 +6,7 @@ import EventsStreamline from './pages/EventsStreamline'
 import EventsCalendar from './pages/EventsCalendar'
 import EventsOverlaps from './pages/EventsOverlaps'
 import CreateEvent from './pages/CreateEvent'
+import EventDetail from './pages/EventDetail'
 import Documentation from './pages/Documentation'
 import CatalogTable from './pages/CatalogTable'
 import CreateCatalog from './pages/CreateCatalog'
@@ -39,6 +40,7 @@ function App() {
           <Route path="events/calendar" element={<EventsCalendar />} />
           <Route path="events/overlaps" element={<EventsOverlaps />} />
           <Route path="events/create" element={<CreateEvent />} />
+          <Route path="events/:eventId" element={<EventDetail />} />
           <Route path="docs" element={<Documentation />} />
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />
@@ -46,6 +48,7 @@ function App() {
           <Route path="catalog/dependencies" element={<CatalogDependencies />} />
           <Route path="catalog/version-compliance" element={<VersionCompliance />} />
           <Route path="catalog/:serviceName" element={<CatalogDetail />} />
+          <Route path="catalog/:serviceName/events" element={<CatalogDetail />} />
           <Route path="drifts" element={<DriftsList />} />
           <Route path="drifts/all" element={<AllDriftsList />} />
           <Route path="drifts/create" element={<CreateDrift />} />
