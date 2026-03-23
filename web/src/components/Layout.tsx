@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight, Link as LinkIcon } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
 import DemoBanner from './DemoBanner'
 import Footer from './Footer'
+import LinksSearch from './LinksSearch'
 import { getSlackEventsChannelUrl } from '../config'
 
 const navigation = [
@@ -40,6 +41,7 @@ const navigation = [
   },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
   { name: 'Locks', href: '/locks', icon: Lock },
+  { name: 'Links', href: '/links', icon: LinkIcon },
   { name: 'Docs', href: '/docs', icon: BookOpen },
 ]
 
@@ -244,6 +246,9 @@ export default function Layout() {
           )}
           <div className="flex justify-center">
             <ThemeToggle compact={isCollapsed} />
+          </div>
+          <div className="flex justify-center">
+            <LinksSearch collapsed={isCollapsed} />
           </div>
         </div>
       </aside>
