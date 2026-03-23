@@ -224,7 +224,10 @@ export default function Links() {
             <button onClick={openAdd} className="text-indigo-500 hover:underline">
               Add your first link
             </button>
-            {' '}or configure Homer integration
+            {' '}or{' '}
+            <a href="https://github.com/BananaOps/tracker/blob/main/docs/LINKS.md" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">
+              configure Homer integration
+            </a>
           </p>
         </div>
       )}
