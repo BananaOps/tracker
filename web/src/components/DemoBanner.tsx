@@ -1,15 +1,5 @@
 import { Coffee, Heart } from 'lucide-react'
 
-// Déclaration du type pour la config globale
-declare global {
-  interface Window {
-    TRACKER_CONFIG?: {
-      demoMode?: boolean
-      buyMeCoffeeUrl?: string
-    }
-  }
-}
-
 export default function DemoBanner() {
   // Vérifier si le mode démo est activé (runtime config ou env var)
   const isDemoMode = 

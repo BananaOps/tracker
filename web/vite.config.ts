@@ -4,7 +4,8 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  
+  const homerUrl = env.VITE_HOMER_URL || ''
+
   return {
     plugins: [react()],
     base: env.VITE_BASE_URL || '/',
@@ -20,6 +21,16 @@ export default defineConfig(({ mode }) => {
           target: 'http://localhost:8080',
           changeOrigin: true,
         },
+        // In dev, proxy Homer config.yml directly to avoid CORS + no backend needed
+        ...(homerUrl
+          ? {
+              '/homer-proxy': {
+                target: homerUrl,
+                changeOrigin: true,
+                rewrite: (p: string) => p.replace(/^\/homer-proxy/, ''),
+              },
+            }
+          : {}),
       },
     },
     build: {

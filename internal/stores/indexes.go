@@ -30,6 +30,11 @@ func EnsureIndexes(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
+	// Index pour la collection links
+	if err := ensureLinksIndexes(ctx, db, logger); err != nil {
+		return err
+	}
+
 	logger.Info("All database indexes ensured successfully")
 	return nil
 }
@@ -168,6 +173,23 @@ func ensureCatalogIndexes(ctx context.Context, db *mongo.Database, logger *slog.
 	}
 
 	return createIndexes(ctx, collection, indexes, logger, "catalogs")
+}
+
+func ensureLinksIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
+	collection := db.Collection("links")
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "group", Value: 1}},
+			Options: options.Index().SetName("idx_links_group"),
+		},
+		{
+			Keys:    bson.D{{Key: "created_at", Value: -1}},
+			Options: options.Index().SetName("idx_links_created_at"),
+		},
+	}
+
+	return createIndexes(ctx, collection, indexes, logger, "links")
 }
 
 func createIndexes(ctx context.Context, collection *mongo.Collection, indexes []mongo.IndexModel, logger *slog.Logger, collectionName string) error {

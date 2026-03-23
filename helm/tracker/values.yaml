@@ -25,6 +25,10 @@ env:
     workspace: "your-workspace"
     # Slack channel ID for deployment events (e.g., C01234ABCDE)
     eventsChannel: ""
+  homer:
+    # URL of your Homer dashboard to import links from (optional)
+    # Example: http://homer.example.com
+    url: ""
 
 image:
   repository: bananaops/tracker

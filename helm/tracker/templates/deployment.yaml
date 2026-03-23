@@ -75,6 +75,10 @@ spec:
             - name: SLACK_EVENTS_CHANNEL
               value: {{ .Values.env.slack.eventsChannel | quote }}
             {{- end }}
+            {{- if .Values.env.homer.url }}
+            - name: HOMER_URL
+              value: {{ .Values.env.homer.url | quote }}
+            {{- end }}
           command:
             - ./tracker
             - serv

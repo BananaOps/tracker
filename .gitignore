@@ -46,6 +46,10 @@ web/node_modules/
 web/.env
 web/.env.local
 
+# Environment files (may contain secrets)
+.env
+.env.local
+
 # Coverage reports
 coverage.out
 *.coverprofile

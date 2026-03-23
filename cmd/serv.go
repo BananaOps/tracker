@@ -84,6 +84,12 @@ var serv = &cobra.Command{
 			panic(err)
 		}
 
+		// Register Homer proxy endpoint
+		server.RegisterHomerHandler(mux, os.Getenv("HOMER_URL"))
+
+		// Register custom links CRUD endpoints
+		server.RegisterLinksHandler(mux)
+
 		// Setup Swagger documentation with go-swagger
 		opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.json"}
 		sh := middleware.SwaggerUI(opts, nil)
@@ -135,12 +141,15 @@ var serv = &cobra.Command{
 				buyMeCoffeeURL = "https://buymeacoffee.com/jplanckeel"
 			}
 
+			homerURL := os.Getenv("HOMER_URL")
+
 			// Escape values to prevent XSS injection
 			jiraDomain = html.EscapeString(jiraDomain)
 			jiraProjectKey = html.EscapeString(jiraProjectKey)
 			slackWorkspace = html.EscapeString(slackWorkspace)
 			slackEventsChannel = html.EscapeString(slackEventsChannel)
 			buyMeCoffeeURL = html.EscapeString(buyMeCoffeeURL)
+			homerURL = html.EscapeString(homerURL)
 
 			w.Header().Set("Content-Type", "application/javascript")
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -156,8 +165,9 @@ var serv = &cobra.Command{
     eventsChannel: "%s"
   },
   demoMode: %s,
-  buyMeCoffeeUrl: "%s"
-};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL)
+  buyMeCoffeeUrl: "%s",
+  homerUrl: "%s"
+};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL, homerURL)
 			if err != nil {
 				slog.Error("Failed to write config.js response", "error", err)
 				http.Error(w, "Internal server error", http.StatusInternalServerError)

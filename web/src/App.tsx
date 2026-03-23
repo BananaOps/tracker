@@ -22,6 +22,7 @@ import Locks from './pages/Locks'
 import CreateLock from './pages/CreateLock'
 import Insights from './pages/Insights'
 import ThemeTest from './pages/ThemeTest'
+import Links from './pages/Links'
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path="locks" element={<Locks />} />
           <Route path="locks/create" element={<CreateLock />} />
           <Route path="insights" element={<Insights />} />
+          <Route path="links" element={<Links />} />
           <Route path="theme-test" element={<ThemeTest />} />
         </Route>
       </Routes>
