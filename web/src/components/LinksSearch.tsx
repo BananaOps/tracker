@@ -179,8 +179,8 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
         setOpen(false)
       }
     }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    document.addEventListener('keydown', handler, true)
+    return () => document.removeEventListener('keydown', handler, true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
