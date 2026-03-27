@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit2, Save, History, Lock, Unlock, CheckCircle, X, ExternalLink, Rocket, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Edit2, Save, History, Lock, Unlock, CheckCircle, X, ExternalLink, Rocket, AlertTriangle, GitBranch, ChevronDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { eventsApi, locksApi } from '../lib/api'
+import { eventsApi, locksApi, catalogApi } from '../lib/api'
 import type { Event } from '../types/api'
 import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
@@ -45,7 +45,15 @@ export default function EventDetail() {
     return convertEventFromAPI(event)
   }, [event])
 
-  const [editedEvent, setEditedEvent] = useState<Event | null>(null)
+  // Fetch catalog entry for the event's service to get downstream dependencies
+  const { data: serviceCatalog } = useQuery({
+    queryKey: ['catalog', event?.attributes?.service],
+    queryFn: () => catalogApi.get(event!.attributes.service),
+    enabled: !!event?.attributes?.service,
+    staleTime: 60_000,
+  })
+
+  const downstreamServices = useMemo(() => serviceCatalog?.dependenciesIn ?? [], [serviceCatalog])
 
   // Update editedEvent when normalizedEvent changes
   useEffect(() => {
@@ -411,6 +419,37 @@ export default function EventDetail() {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Links</h4>
                   <EventLinks links={editedEvent.links} />
+                </div>
+              )}
+
+              {/* Downstream Impact */}
+              {downstreamServices.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <GitBranch className="w-4 h-4 text-orange-500" />
+                    Downstream Impact
+                    <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+                      — services that depend on <span className="font-medium text-gray-600 dark:text-gray-300">{editedEvent.attributes.service}</span>
+                    </span>
+                    <span className="ml-auto text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-medium">
+                      {downstreamServices.length} service{downstreamServices.length > 1 ? 's' : ''}
+                    </span>
+                  </h4>
+                  <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-lg p-3">
+                    <div className="flex flex-wrap gap-2">
+                      {downstreamServices.map(svc => (
+                        <Link
+                          key={svc}
+                          to={`/catalog/${svc}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                        >
+                          <GitBranch className="w-3 h-3" />
+                          {svc}
+                          <ExternalLink className="w-3 h-3 opacity-50" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

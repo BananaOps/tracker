@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend-builder
 
 WORKDIR /app/web
 
@@ -16,7 +16,7 @@ COPY web/ ./
 RUN npm run build
 
 # Stage 2: Build backend
-FROM --platform=$BUILDPLATFORM golang:1.25.4-alpine AS backend-builder
+FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine AS backend-builder
 
 # Build arguments for cross-compilation
 ARG TARGETOS

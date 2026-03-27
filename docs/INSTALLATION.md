@@ -5,7 +5,7 @@ This guide covers all methods to install and run Tracker.
 ## Prerequisites
 
 - **Docker** (recommended) or
-- **Go 1.25+** and **Node.js 23+** (for source installation)
+- **Go 1.26+** and **Node.js 24+** (for source installation)
 - **MongoDB 7** or compatible database
 
 ## Quick Start with Docker

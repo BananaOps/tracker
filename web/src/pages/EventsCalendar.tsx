@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Filter, X, Plus, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Filter, X, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks from '../components/EventLinks'
@@ -176,67 +176,7 @@ export default function EventsCalendar() {
     })
   }
 
-  // Fonction pour détecter les chevauchements d'événements
-  const detectOverlaps = (dayEvents: Event[]) => {
-    if (dayEvents.length < 2) return false
-    
-    for (let i = 0; i < dayEvents.length; i++) {
-      for (let j = i + 1; j < dayEvents.length; j++) {
-        const event1 = dayEvents[i]
-        const event2 = dayEvents[j]
-        
-        const start1Str = event1.attributes.startDate || event1.metadata?.createdAt
-        const start2Str = event2.attributes.startDate || event2.metadata?.createdAt
-        if (!start1Str || !start2Str) continue
-        
-        const start1 = new Date(start1Str)
-        const end1 = event1.attributes.endDate ? new Date(event1.attributes.endDate) : start1
-        const start2 = new Date(start2Str)
-        const end2 = event2.attributes.endDate ? new Date(event2.attributes.endDate) : start2
-        
-        // Vérifier si les périodes se chevauchent
-        if (start1 <= end2 && start2 <= end1) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
   const selectedDayEvents = selectedDate ? getEventsForDay(selectedDate) : []
-  
-  // Détecter quels événements se chevauchent pour le jour sélectionné
-  const getOverlappingEventsForDay = (dayEvents: Event[]) => {
-    const overlappingIds = new Set<string>()
-    const overlappingPairs: Array<{ event1: Event; event2: Event }> = []
-    
-    for (let i = 0; i < dayEvents.length; i++) {
-      for (let j = i + 1; j < dayEvents.length; j++) {
-        const event1 = dayEvents[i]
-        const event2 = dayEvents[j]
-        
-        const start1Str = event1.attributes.startDate || event1.metadata?.createdAt
-        const start2Str = event2.attributes.startDate || event2.metadata?.createdAt
-        if (!start1Str || !start2Str) continue
-        
-        const start1 = new Date(start1Str)
-        const end1 = event1.attributes.endDate ? new Date(event1.attributes.endDate) : start1
-        const start2 = new Date(start2Str)
-        const end2 = event2.attributes.endDate ? new Date(event2.attributes.endDate) : start2
-        
-        // Vérifier si les périodes se chevauchent
-        if (start1 <= end2 && start2 <= end1) {
-          if (event1.metadata?.id) overlappingIds.add(event1.metadata.id)
-          if (event2.metadata?.id) overlappingIds.add(event2.metadata.id)
-          overlappingPairs.push({ event1, event2 })
-        }
-      }
-    }
-    
-    return { overlappingIds, overlappingPairs }
-  }
-  
-  const { overlappingIds, overlappingPairs } = getOverlappingEventsForDay(selectedDayEvents)
 
   const previousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
@@ -268,7 +208,7 @@ export default function EventsCalendar() {
     selectedPriorities.length + selectedStatuses.length + selectedTypes.length
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex flex-1 min-h-0 overflow-hidden">
       {/* Sidebar Filters - Style Datadog */}
       {showSidebar && (
         <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 transition-all duration-300">
@@ -490,7 +430,7 @@ export default function EventsCalendar() {
         </div>
 
         {/* Calendar Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+        <div className="flex-1 overflow-hidden p-6 bg-gray-50 dark:bg-gray-900 flex flex-col">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -499,9 +439,9 @@ export default function EventsCalendar() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Calendar Grid */}
-            <div className="xl:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden max-h-[calc(100vh-12rem)]">
+            <div className="flex gap-6 flex-1 min-h-0">
+            {/* Calendar Grid - fixed size, no scroll */}
+            <div className="flex-[2] shrink-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {format(currentDate, 'MMMM yyyy', { locale: fr })}
@@ -516,7 +456,7 @@ export default function EventsCalendar() {
                 </div>
               </div>
 
-              <div className="p-4 overflow-y-auto flex-1">
+              <div className="p-4 flex-1 flex flex-col">
                 {/* En-têtes des jours */}
                 <div className="grid grid-cols-7 gap-2 mb-1">
                   {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
@@ -527,7 +467,7 @@ export default function EventsCalendar() {
                 </div>
                 
                 {/* Grille des jours */}
-                <div className="grid grid-cols-7 auto-rows-fr gap-2 h-[calc(100%-2rem)]">
+                <div className="grid grid-cols-7 auto-rows-fr gap-2 flex-1">
                   {/* Cellules vides pour aligner le premier jour */}
                   {Array.from({ length: firstDayOfWeek }).map((_, index) => (
                     <div key={`empty-${index}`} />
@@ -537,14 +477,13 @@ export default function EventsCalendar() {
                     const dayEvents = getEventsForDay(day)
                     const isSelected = selectedDate && isSameDay(day, selectedDate)
                     const isCurrentDay = isToday(day)
-                    const hasOverlaps = detectOverlaps(dayEvents)
 
                     return (
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
                         className={`
-                          min-h-[120px] h-full p-3 rounded border transition-all relative flex flex-col
+                          min-h-0 p-2 rounded border transition-all relative flex flex-col overflow-hidden
                           ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
                           ${isCurrentDay ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'}
                           hover:shadow-md
@@ -554,11 +493,6 @@ export default function EventsCalendar() {
                           <div className={`text-base font-semibold ${isCurrentDay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
                             {format(day, 'd')}
                           </div>
-                          {hasOverlaps && (
-                            <div className="relative" title="Overlapping events">
-                              <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />
-                            </div>
-                          )}
                         </div>
                         {dayEvents.length > 0 && (
                           <div className="space-y-1 flex-1 overflow-y-auto">
@@ -586,8 +520,8 @@ export default function EventsCalendar() {
               </div>
             </div>
 
-            {/* Event Details Panel */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden max-h-[calc(100vh-12rem)]">
+            {/* Event Details Panel - scrollable */}
+            <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden min-h-0">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
@@ -598,48 +532,6 @@ export default function EventsCalendar() {
                 <div className="p-4">
                   {selectedDayEvents.length > 0 ? (
                     <div className="space-y-4">
-                      {/* Alerte de chevauchements */}
-                      {overlappingPairs.length > 0 && (
-                        <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-500 rounded-lg p-3">
-                          <div className="flex items-start space-x-2 mb-2">
-                            <div className="relative flex-shrink-0 mt-0.5">
-                              <AlertTriangle className="w-5 h-5 text-orange-600 animate-pulse" />
-                              <div className="absolute inset-0 animate-ping">
-                                <AlertTriangle className="w-5 h-5 text-orange-600 opacity-75" />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100 mb-1">
-                                {overlappingPairs.length} Overlap{overlappingPairs.length > 1 ? 's' : ''} Detected
-                              </h4>
-                              <p className="text-xs text-orange-800 dark:text-orange-200 mb-2">
-                                The following events have overlapping time periods:
-                              </p>
-                              <div className="space-y-1">
-                                {overlappingPairs.map((pair, idx) => {
-                                  const start1 = new Date(pair.event1.attributes.startDate || pair.event1.metadata?.createdAt || '')
-                                  const end1 = pair.event1.attributes.endDate ? new Date(pair.event1.attributes.endDate) : start1
-                                  const start2 = new Date(pair.event2.attributes.startDate || pair.event2.metadata?.createdAt || '')
-                                  const end2 = pair.event2.attributes.endDate ? new Date(pair.event2.attributes.endDate) : start2
-                                  
-                                  return (
-                                    <div key={idx} className="text-xs bg-white dark:bg-gray-800 rounded p-2 border border-orange-200 dark:border-orange-700">
-                                      <div className="font-medium text-orange-900 dark:text-orange-100 mb-1">
-                                        ⚠️ {pair.event1.title} ↔ {pair.event2.title}
-                                      </div>
-                                      <div className="text-gray-600 dark:text-gray-400 space-y-0.5">
-                                        <div>• {pair.event1.title}: {format(start1, 'HH:mm')} - {format(end1, 'HH:mm')}</div>
-                                        <div>• {pair.event2.title}: {format(start2, 'HH:mm')} - {format(end2, 'HH:mm')}</div>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
                       {/* Liste des événements */}
                       <div className="space-y-3">
                         {selectedDayEvents.map((event: any) => {
@@ -647,7 +539,6 @@ export default function EventsCalendar() {
                           const envColor = getEnvironmentColor(event.attributes.environment)
                           const priorityColor = getPriorityColor(event.attributes.priority)
                           const statusColor = getStatusColor(event.attributes.status)
-                          const isOverlapping = event.metadata?.id && overlappingIds.has(event.metadata.id)
                           const startDateStr = event.attributes.startDate || event.metadata?.createdAt
                           const startDate = startDateStr ? new Date(startDateStr) : null
                           const endDate = event.attributes.endDate ? new Date(event.attributes.endDate) : startDate
@@ -655,19 +546,10 @@ export default function EventsCalendar() {
                           return (
                             <div 
                               key={event.metadata?.id} 
-                              className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                                isOverlapping 
-                                  ? 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30' 
-                                  : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
-                              }`}
+                              className="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
                               onClick={() => setSelectedEvent(event)}
                             >
                               <div className="flex items-center flex-wrap gap-2 mb-2">
-                                {isOverlapping && (
-                                  <div className="relative flex-shrink-0">
-                                    <AlertTriangle className="w-4 h-4 text-orange-600 animate-pulse" />
-                                  </div>
-                                )}
                                 {getEventTypeIcon(event.attributes.type, 'w-4 h-4 flex-shrink-0')}
                                 <Badge className={`${typeColor.bg} ${typeColor.text} border-0`}>
                                   {getEventTypeLabel(event.attributes.type)}

@@ -55,7 +55,7 @@ Interface web moderne pour Tracker, construite avec React, TypeScript et Vite.
 
 ## 🛠️ Technologies
 
-- **React 18** - Framework UI
+- **React 19** - Framework UI
 - **TypeScript** - Typage statique
 - **Vite** - Build tool rapide
 - **TailwindCSS** - Styling

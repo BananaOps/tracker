@@ -1,6 +1,6 @@
 module github.com/bananaops/tracker
 
-go 1.25.4
+go 1.26.1
 
 require (
 	github.com/go-openapi/runtime v0.29.2

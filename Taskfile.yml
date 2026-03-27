@@ -94,9 +94,9 @@ tasks:
       - ./bin/{{.APP_NAME}} serv
 
   dev:backend:
-    desc: Run backend with hot-reload (requires air)
+    desc: Run backend in development mode
     cmds:
-      - air
+      - go run . serv
 
   dev:frontend:
     desc: Run frontend dev server
@@ -200,7 +200,6 @@ tasks:
     cmds:
       - go install github.com/bufbuild/buf/cmd/buf@latest
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-      - go install github.com/cosmtrek/air@latest
 
   install:frontend:
     desc: Install frontend dependencies
