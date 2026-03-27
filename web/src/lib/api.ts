@@ -171,6 +171,8 @@ const realCatalogApi = {
     // Convert response from protobuf wrapper format
     const frontendCatalog: Catalog = {
       ...data.catalog,
+      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
+      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
       availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
       latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
       referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,

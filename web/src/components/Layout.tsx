@@ -254,8 +254,8 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <div className={`flex-1 ${isCollapsed ? 'ml-16' : 'ml-64'} flex flex-col min-h-screen transition-all duration-300`}>
-        <main className="flex-1 pb-12">
+      <div className={`flex-1 ${isCollapsed ? 'ml-16' : 'ml-64'} flex flex-col h-screen overflow-hidden transition-all duration-300`}>
+        <main className="flex-1 flex flex-col overflow-hidden">
           <Outlet />
         </main>
       </div>

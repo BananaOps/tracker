@@ -29,8 +29,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
-  <img src="https://img.shields.io/badge/React-23+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/React-19+-61DAFB?style=flat&logo=react&logoColor=black" alt="React">
   <img src="https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/gRPC-1.71+-4285F4?style=flat&logo=grpc&logoColor=white" alt="gRPC">
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white" alt="Docker">
@@ -369,14 +369,14 @@ curl -X POST http://localhost:8080/api/v1alpha1/event \
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Language**: Go 1.25.4+
+- **Language**: Go 1.26.2+
 - **API**: gRPC + REST (grpc-gateway)
 - **Database**: MongoDB / FeretDB (with automatic index optimization)
 - **Metrics**: Prometheus
 - **Logging**: Structured JSON logs
 
 ### Frontend
-- **Framework**: React 23
+- **Framework**: React 19
 - **Language**: TypeScript 5
 - **Build**: Vite
 - **Styling**: Tailwind CSS

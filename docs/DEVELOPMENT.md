@@ -4,7 +4,7 @@ This guide helps you set up a development environment for Tracker and contribute
 
 ## Prerequisites
 
-- **Go 1.25+** - [Install Go](https://go.dev/doc/install)
+- **Go 1.26+** - [Install Go](https://go.dev/doc/install)
 - **Node.js 23+** and **npm** - [Install Node.js](https://nodejs.org/)
 - **MongoDB 7+** - [Install MongoDB](https://www.mongodb.com/docs/manual/installation/)
 - **Protocol Buffers Compiler** - [Install buf](https://buf.build/docs/cli/quickstart/)
