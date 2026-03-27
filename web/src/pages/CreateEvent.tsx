@@ -374,10 +374,18 @@ export default function CreateEvent() {
                   id="startDate"
                   type="datetime-local"
                   value={formData.attributes.startDate || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, startDate: e.target.value }
-                  })}
+                  onChange={(e) => {
+                    const newStartDate = e.target.value
+                    const currentEndDate = formData.attributes.endDate
+                    // If endDate is before the new startDate, adjust endDate to match startDate
+                    const updatedEndDate = (currentEndDate && newStartDate && newStartDate > currentEndDate)
+                      ? newStartDate
+                      : currentEndDate
+                    setFormData({
+                      ...formData,
+                      attributes: { ...formData.attributes, startDate: newStartDate, endDate: updatedEndDate }
+                    })
+                  }}
                 />
               </div>
 
@@ -387,6 +395,7 @@ export default function CreateEvent() {
                   id="endDate"
                   type="datetime-local"
                   value={formData.attributes.endDate || ''}
+                  min={formData.attributes.startDate || undefined}
                   onChange={(e) => setFormData({
                     ...formData,
                     attributes: { ...formData.attributes, endDate: e.target.value }
