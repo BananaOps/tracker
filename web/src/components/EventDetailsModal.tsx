@@ -670,9 +670,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       onChange={(e) => {
                         // Convertir la valeur datetime-local en ISO 8601 avec timezone
                         const isoDate = e.target.value ? new Date(e.target.value).toISOString() : ''
+                        const currentEndDate = editedEvent.attributes.endDate
+                        // If endDate is before the new startDate, adjust endDate to match startDate
+                        const updatedEndDate = (currentEndDate && isoDate && new Date(isoDate) > new Date(currentEndDate))
+                          ? isoDate
+                          : currentEndDate
                         setEditedEvent({
                           ...editedEvent,
-                          attributes: { ...editedEvent.attributes, startDate: isoDate }
+                          attributes: { ...editedEvent.attributes, startDate: isoDate, endDate: updatedEndDate }
                         })
                       }}
                     />
@@ -692,6 +697,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       type="datetime-local"
                       className="input text-sm"
                       value={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate).toISOString().slice(0, 16) : ''}
+                      min={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate).toISOString().slice(0, 16) : undefined}
                       onChange={(e) => {
                         // Convertir la valeur datetime-local en ISO 8601 avec timezone
                         const isoDate = e.target.value ? new Date(e.target.value).toISOString() : ''
