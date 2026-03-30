@@ -285,7 +285,7 @@ export default function Dashboard() {
                 <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Overlaps</span>
                 <AlertTriangle className="w-4 h-4" style={{ color: overlapsCount > 0 ? '#fb923c' : T.success }} />
               </div>
-              <div className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif", color: overlapsCount > 0 ? '#fb923c' : 'white' }}>
+              <div className="text-4xl font-black text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif", color: overlapsCount > 0 ? '#fb923c' : undefined }}>
                 {String(overlapsCount).padStart(2, '0')}
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -300,8 +300,8 @@ export default function Dashboard() {
           {/* ── Main HUD: Chart + Health Distribution ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Event Velocity Chart */}
-            <div className="lg:col-span-2 p-8 rounded-2xl relative" style={{ background: T.surface }}>
-              <div className="flex items-center justify-between mb-6">
+            <div className="lg:col-span-2 p-6 pb-3 rounded-2xl relative flex flex-col" style={{ background: T.surface }}>
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Velocity</h3>
                   <p className="text-sm" style={{ color: T.onSurfaceVar }}>Events per hour — 24h window</p>
@@ -314,7 +314,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="h-56 flex items-end gap-1.5 px-1 relative" style={{ borderBottom: `1px solid ${a('outlineVar', 0.12)}`, borderLeft: `1px solid ${a('outlineVar', 0.12)}` }}>
+              <div className="flex-1 min-h-0 flex items-end gap-1.5 px-1 relative" style={{ borderBottom: `1px solid ${a('outlineVar', 0.12)}`, borderLeft: `1px solid ${a('outlineVar', 0.12)}` }}>
                 {/* Grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
                   {[0, 1, 2, 3].map(i => <div key={i} className="w-full h-px bg-hud-on-surface" />)}
@@ -347,7 +347,7 @@ export default function Dashboard() {
                 })}
               </div>
               {/* Hour labels */}
-              <div className="flex gap-1.5 px-1 mt-1.5">
+              <div className="flex gap-1.5 px-1 mt-1">
                 {chartBars.map((bar, i) => (
                   <div key={i} className="flex-1 text-center text-[9px] font-mono" style={{ color: T.outline }}>
                     {bar.label}
@@ -470,7 +470,7 @@ export default function Dashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr style={{ background: a('surfaceHigh', 0.31) }}>
-                    {['Event ID', 'Title', 'Source Type', 'Service', 'Environment', 'Priority', 'Status', 'Timestamp', ''].map((h, i) => (
+                    {['Event ID', 'Title', 'Type', 'Service', 'Environment', 'Priority', 'Status', 'Timestamp', ''].map((h, i) => (
                       <th
                         key={h || i}
                         className={`px-6 py-4 text-[10px] uppercase tracking-widest font-bold ${i === 8 ? 'text-right' : ''}`}
