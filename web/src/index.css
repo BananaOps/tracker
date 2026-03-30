@@ -3,19 +3,69 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  /* ── HUD Theme: CSS Custom Properties ── */
+  :root {
+    --hud-bg: 250 250 250;
+    --hud-surface: 255 255 255;
+    --hud-surface-low: 243 244 246;
+    --hud-surface-high: 229 231 235;
+    --hud-surface-highest: 209 213 219;
+    --hud-primary: 124 58 237;
+    --hud-primary-dim: 109 40 217;
+    --hud-secondary: 139 92 246;
+    --hud-tertiary: 6 182 212;
+    --hud-on-surface: 17 24 39;
+    --hud-on-surface-var: 107 114 128;
+    --hud-outline: 156 163 175;
+    --hud-outline-var: 209 213 219;
+    --hud-success: 16 185 129;
+    --hud-error: 239 68 68;
+    --hud-warning: 245 158 11;
+    --hud-sidebar-bg: 255 255 255;
+    --hud-sidebar-border: 229 231 235;
+    --hud-sidebar-active: 243 232 255;
+    --hud-sidebar-text: 75 85 99;
+    --hud-sidebar-text-active: 124 58 237;
+    --hud-header-bg: 255 255 255;
   }
-  
+
+  .dark {
+    --hud-bg: 6 14 32;
+    --hud-surface: 15 25 48;
+    --hud-surface-low: 9 19 40;
+    --hud-surface-high: 20 31 56;
+    --hud-surface-highest: 25 37 64;
+    --hud-primary: 189 157 255;
+    --hud-primary-dim: 138 76 252;
+    --hud-secondary: 161 159 249;
+    --hud-tertiary: 140 231 255;
+    --hud-on-surface: 222 229 255;
+    --hud-on-surface-var: 163 170 196;
+    --hud-outline: 109 117 140;
+    --hud-outline-var: 64 72 93;
+    --hud-success: 52 211 153;
+    --hud-error: 255 110 132;
+    --hud-warning: 251 191 36;
+    --hud-sidebar-bg: 8 15 35;
+    --hud-sidebar-border: 64 72 93;
+    --hud-sidebar-active: 25 37 64;
+    --hud-sidebar-text: 163 170 196;
+    --hud-sidebar-text-active: 189 157 255;
+    --hud-header-bg: 8 15 35;
+  }
+
+  body {
+    background-color: rgb(var(--hud-bg));
+    color: rgb(var(--hud-on-surface));
+  }
+
   /* Fix calendar icon color in dark mode for datetime-local inputs */
   input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
-  
   input[type="date"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
-  
   input[type="time"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
@@ -23,71 +73,82 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors dark:bg-primary-500 dark:hover:bg-primary-600;
+    @apply px-4 py-2 rounded-lg transition-colors font-medium;
+    background-color: rgb(var(--hud-primary));
+    color: white;
   }
-  
+  .btn-primary:hover {
+    background-color: rgb(var(--hud-primary-dim));
+  }
+
   .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+    @apply px-4 py-2 rounded-lg transition-colors font-medium;
+    background-color: rgb(var(--hud-surface-high));
+    color: rgb(var(--hud-on-surface));
   }
-  
+  .btn-secondary:hover {
+    background-color: rgb(var(--hud-surface-highest));
+  }
+
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700;
+    @apply rounded-lg shadow-sm p-6 border;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var) / 0.3);
   }
-  
+
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400;
+    @apply w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 border;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var));
+    color: rgb(var(--hud-on-surface));
+    --tw-ring-color: rgb(var(--hud-primary) / 0.5);
   }
-  
+
   .select {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100;
+    @apply w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 border;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var));
+    color: rgb(var(--hud-on-surface));
+    --tw-ring-color: rgb(var(--hud-primary) / 0.5);
   }
 }
 
 @layer utilities {
   @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
-  
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
-  
-  /* Gradient text for icons */
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
   .icon-gradient {
     background: linear-gradient(135deg, #a855f7 0%, #2563eb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
   .icon-gradient-blue {
     background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
   .icon-gradient-purple {
     background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
   .icon-gradient-yellow {
     background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
   .icon-gradient-red {
     background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
     -webkit-background-clip: text;

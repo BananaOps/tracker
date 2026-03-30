@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
-import { Plus, TrendingUp, CheckCircle, AlertTriangle, Zap, MoreVertical, Filter, ArrowRight, BarChart3, Clock, Rocket, AlertOctagon, Settings, Wrench, Bot } from 'lucide-react'
+import { Plus, TrendingUp, CheckCircle, AlertTriangle, Zap, MoreVertical, Filter, ArrowRight, BarChart3, Clock, Rocket, AlertOctagon, Settings, Wrench, Bot, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Status, Priority } from '../types/api'
 import type { Event } from '../types/api'
@@ -13,26 +13,35 @@ import {
 } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-const T = {
-  bg:             '#060e20',
-  surfaceLow:     '#091328',
-  surface:        '#0f1930',
-  surfaceHigh:    '#141f38',
-  surfaceHighest: '#192540',
-  primary:        '#bd9dff',
-  primaryDim:     '#8a4cfc',
-  secondary:      '#a19ff9',
-  tertiary:       '#8ce7ff',
-  tertiaryDim:    '#40ceed',
-  onSurface:      '#dee5ff',
-  onSurfaceVar:   '#a3aac4',
-  outline:        '#6d758c',
-  outlineVar:     '#40485d',
-  success:        '#34d399',
-  error:          '#ff6e84',
-  errorDim:       '#d73357',
+// ─── Design Tokens (CSS variable references for light/dark) ──────────────────
+// Helper: produce rgb(.../ alpha) from a CSS var reference
+function alpha(cssVar: string, a: number) {
+  // cssVar is like "var(--hud-primary)" — extract the var name
+  const match = cssVar.match(/var\(([^)]+)\)/)
+  if (match) return `rgb(${match[1].replace('var(', '').replace(')', '')} / ${a})`
+  return cssVar
 }
+// Shorthand refs to CSS vars (raw var names for alpha helper)
+const V = {
+  bg:             '--hud-bg',
+  surfaceLow:     '--hud-surface-low',
+  surface:        '--hud-surface',
+  surfaceHigh:    '--hud-surface-high',
+  surfaceHighest: '--hud-surface-highest',
+  primary:        '--hud-primary',
+  primaryDim:     '--hud-primary-dim',
+  secondary:      '--hud-secondary',
+  tertiary:       '--hud-tertiary',
+  onSurface:      '--hud-on-surface',
+  onSurfaceVar:   '--hud-on-surface-var',
+  outline:        '--hud-outline',
+  outlineVar:     '--hud-outline-var',
+  success:        '--hud-success',
+  error:          '--hud-error',
+}
+// Resolved color strings
+const T = Object.fromEntries(Object.entries(V).map(([k, v]) => [k, `rgb(var(${v}))`])) as Record<keyof typeof V, string>
+const a = (key: keyof typeof V, opacity: number) => `rgb(var(${V[key]}) / ${opacity})`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
@@ -72,7 +81,7 @@ function EventTypeIcon({ type, color }: { type: string; color: string }) {
 
 function getEventTypeIconColor(type: string) {
   const t = String(type).toLowerCase()
-  if (t === 'deployment' || t === '1') return T.tertiaryDim
+  if (t === 'deployment' || t === '1') return T.tertiary
   if (t === 'incident' || t === '4') return T.error
   if (t === 'drift' || t === '3') return T.onSurfaceVar
   return T.primary
@@ -92,6 +101,7 @@ function getEnvBadgeColor(env?: string): { color: string; bg: string; border: st
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [streamFilters, setStreamFilters] = useState<{ type?: string; status?: string; env?: string }>({})
 
   const { data: todayEvents } = useQuery({
     queryKey: ['events', 'today'],
@@ -128,6 +138,44 @@ export default function Dashboard() {
     }
     return count
   }, [events])
+
+  // Filtered events for the stream table
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => {
+      if (streamFilters.type && String(e.attributes.type).toLowerCase() !== streamFilters.type) return false
+      if (streamFilters.status) {
+        const s = String(e.attributes.status).toLowerCase()
+        const statusMap: Record<string, string[]> = {
+          success: ['success', '3', 'done', '11'],
+          failure: ['failure', '2', 'error', '5'],
+          running: ['start', '1', 'in_progress', '12'],
+          warning: ['warning', '4'],
+          open: ['open', '9'],
+          closed: ['close', '10'],
+          planned: ['planned', '13'],
+        }
+        const allowed = statusMap[streamFilters.status]
+        if (allowed && !allowed.includes(s)) return false
+      }
+      if (streamFilters.env) {
+        const v = String(e.attributes.environment).toLowerCase()
+        const envMap: Record<string, string[]> = {
+          production: ['production', '7'],
+          preproduction: ['preproduction', '6'],
+          uat: ['uat', '4', 'recette', '5', 'tnr', '3'],
+          development: ['development', '1', 'integration', '2'],
+        }
+        const allowed = envMap[streamFilters.env] || [streamFilters.env]
+        if (!allowed.includes(v)) return false
+      }
+      return true
+    })
+  }, [events, streamFilters])
+
+  const hasStreamFilters = !!(streamFilters.type || streamFilters.status || streamFilters.env)
+  const toggleFilter = (key: 'type' | 'status' | 'env', value: string) => {
+    setStreamFilters(prev => prev[key] === value ? { ...prev, [key]: undefined } : { ...prev, [key]: value })
+  }
 
   // Environment distribution for donut
   const envDistribution = useMemo(() => {
@@ -184,15 +232,15 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Total Events */}
             <div className="p-6 rounded-xl relative overflow-hidden group" style={{ background: T.surfaceLow }}>
-              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: `${T.primary}08` }} />
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: a('primary', 0.03) }} />
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Total Events</span>
                 <BarChart3 className="w-4 h-4" style={{ color: T.primary }} />
               </div>
-              <div className="text-4xl font-black text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+              <div className="text-4xl font-black text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                 {stats.total.toLocaleString()}
               </div>
-              <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: T.tertiaryDim }}>
+              <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: T.tertiary }}>
                 <TrendingUp className="w-3 h-3" />
                 <span>{stats.inProgress} in progress</span>
               </div>
@@ -200,12 +248,12 @@ export default function Dashboard() {
 
             {/* Success Rate */}
             <div className="p-6 rounded-xl relative overflow-hidden group" style={{ background: T.surfaceLow }}>
-              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: `${T.tertiaryDim}08` }} />
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: a('tertiary', 0.03) }} />
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Success Rate (%)</span>
-                <CheckCircle className="w-4 h-4" style={{ color: T.tertiaryDim }} />
+                <CheckCircle className="w-4 h-4" style={{ color: T.tertiary }} />
               </div>
-              <div className="text-4xl font-black text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+              <div className="text-4xl font-black text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                 {stats.successRate}{stats.successRate !== '—' ? '%' : ''}
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -216,12 +264,12 @@ export default function Dashboard() {
 
             {/* Critical Failures */}
             <div className="p-6 rounded-xl relative overflow-hidden group" style={{ background: T.surfaceLow }}>
-              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: `${T.error}08` }} />
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: a('error', 0.03) }} />
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Critical Failures</span>
                 <AlertTriangle className="w-4 h-4" style={{ color: T.error }} />
               </div>
-              <div className="text-4xl font-black text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+              <div className="text-4xl font-black text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                 {String(stats.failure).padStart(2, '0')}
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: T.error }}>
@@ -232,7 +280,7 @@ export default function Dashboard() {
 
             {/* Overlaps */}
             <div className="p-6 rounded-xl relative overflow-hidden group" style={{ background: T.surfaceLow, borderLeft: `2px solid ${overlapsCount > 0 ? '#fb923c' : T.success}` }}>
-              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: `${overlapsCount > 0 ? '#fb923c' : T.success}08` }} />
+              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl transition-colors" style={{ background: overlapsCount > 0 ? 'rgba(251,146,60,0.03)' : a('success', 0.03) }} />
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Overlaps</span>
                 <AlertTriangle className="w-4 h-4" style={{ color: overlapsCount > 0 ? '#fb923c' : T.success }} />
@@ -255,7 +303,7 @@ export default function Dashboard() {
             <div className="lg:col-span-2 p-8 rounded-2xl relative" style={{ background: T.surface }}>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Velocity</h3>
+                  <h3 className="text-xl font-bold text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Velocity</h3>
                   <p className="text-sm" style={{ color: T.onSurfaceVar }}>Events per hour — 24h window</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -266,21 +314,22 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="h-56 flex items-end gap-1.5 px-1 relative" style={{ borderBottom: `1px solid ${T.outlineVar}20`, borderLeft: `1px solid ${T.outlineVar}20` }}>
+              <div className="h-56 flex items-end gap-1.5 px-1 relative" style={{ borderBottom: `1px solid ${a('outlineVar', 0.12)}`, borderLeft: `1px solid ${a('outlineVar', 0.12)}` }}>
                 {/* Grid lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
-                  {[0, 1, 2, 3].map(i => <div key={i} className="w-full h-px bg-white" />)}
+                  {[0, 1, 2, 3].map(i => <div key={i} className="w-full h-px bg-hud-on-surface" />)}
                 </div>
                 {/* Bars */}
                 {chartBars.map((bar, i) => {
                   const intensity = bar.count > 0 ? Math.min(1, bar.count / Math.max(...chartBars.map(b => b.count), 1)) : 0
-                  const barColor = intensity > 0.7 ? T.primary : intensity > 0.3 ? T.tertiaryDim : `${T.primary}90`
+                  const barVar = intensity > 0.7 ? 'primary' as const : intensity > 0.3 ? 'tertiary' as const : 'primary' as const
+                  const barColor = intensity > 0.7 ? T.primary : intensity > 0.3 ? T.tertiary : a('primary', 0.56)
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center justify-end h-full gap-1 group relative">
                       {/* Tooltip */}
                       <div
                         className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded text-[10px] font-mono font-bold whitespace-nowrap z-10"
-                        style={{ background: T.surfaceHighest, color: T.onSurface, border: `1px solid ${T.outlineVar}` }}
+                        style={{ background: T.surfaceHighest, color: T.onSurface, border: `1px solid ${a('outlineVar', 0.5)}` }}
                       >
                         {bar.count} event{bar.count !== 1 ? 's' : ''}
                       </div>
@@ -289,8 +338,8 @@ export default function Dashboard() {
                         style={{
                           height: `${bar.pct}%`,
                           background: bar.count === 0
-                            ? `${T.outlineVar}30`
-                            : `linear-gradient(to top, ${barColor}20, ${barColor})`,
+                            ? a('outlineVar', 0.19)
+                            : `linear-gradient(to top, ${a(barVar, 0.12)}, ${barColor})`,
                         }}
                       />
                     </div>
@@ -310,7 +359,7 @@ export default function Dashboard() {
             {/* Health Distribution */}
             <div className="p-8 rounded-2xl flex flex-col justify-between" style={{ background: T.surface }}>
               <div>
-                <h3 className="text-xl font-bold text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Environment Breakdown</h3>
+                <h3 className="text-xl font-bold text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Environment Breakdown</h3>
                 <p className="text-sm" style={{ color: T.onSurfaceVar }}>Event distribution by environment today</p>
               </div>
 
@@ -329,7 +378,7 @@ export default function Dashboard() {
                   ))}
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black text-white">{envDistribution.total}</span>
+                  <span className="text-3xl font-black text-hud-on-surface">{envDistribution.total}</span>
                   <span className="text-[10px] uppercase" style={{ color: T.outline }}>Events</span>
                 </div>
               </div>
@@ -350,30 +399,77 @@ export default function Dashboard() {
 
           {/* ── Live Activity Stream ── */}
           <div className="rounded-2xl overflow-hidden" style={{ background: T.surface }}>
-            <div className="px-8 py-6 flex items-center justify-between" style={{ borderBottom: `1px solid ${T.outlineVar}10` }}>
-              <div>
-                <h3 className="text-xl font-bold text-white" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Live Activity Stream</h3>
-                <p className="text-sm" style={{ color: T.onSurfaceVar }}>Global execution log</p>
+            <div className="px-8 py-6" style={{ borderBottom: `1px solid ${a('outlineVar', 0.06)}` }}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-hud-on-surface" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Live Activity Stream</h3>
+                  <p className="text-sm" style={{ color: T.onSurfaceVar }}>Global execution log</p>
+                </div>
+                {hasStreamFilters && (
+                  <button
+                    onClick={() => setStreamFilters({})}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                    style={{ color: T.onSurfaceVar, background: a('outlineVar', 0.1) }}
+                  >
+                    <X className="w-3 h-3" /> Clear
+                  </button>
+                )}
               </div>
-              <Link
-                to="/events/timeline"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all"
-                style={{
-                  background: `${T.primary}10`,
-                  color: T.primary,
-                  border: `1px solid ${T.primary}20`,
-                  fontFamily: "'Space Grotesk',sans-serif",
-                }}
-              >
-                <Filter className="w-4 h-4" />
-                Filter Stream
-              </Link>
+              {/* Quick filters — single scrollable row */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: T.onSurfaceVar }}>Type</span>
+                {['deployment', 'operation', 'drift', 'incident'].map(t => (
+                  <button key={t} onClick={() => toggleFilter('type', t)}
+                    className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                    style={{
+                      background: streamFilters.type === t ? a('primary', 0.15) : 'transparent',
+                      color: streamFilters.type === t ? T.primary : T.onSurfaceVar,
+                      border: `1px solid ${streamFilters.type === t ? a('primary', 0.4) : a('outline', 0.2)}`,
+                    }}
+                  >{getEventTypeLabel(t)}</button>
+                ))}
+                <span className="w-px h-4 shrink-0" style={{ background: a('outline', 0.3) }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: T.onSurfaceVar }}>Status</span>
+                {[
+                  { k: 'success', l: 'Success', c: '#34d399' },
+                  { k: 'failure', l: 'Failed', c: '#ff6e84' },
+                  { k: 'running', l: 'In Progress', c: '#40ceed' },
+                  { k: 'warning', l: 'Warning', c: '#fbbf24' },
+                  { k: 'open', l: 'Open', c: '#a78bfa' },
+                  { k: 'planned', l: 'Planned', c: '#60a5fa' },
+                ].map(({ k, l, c }) => (
+                  <button key={k} onClick={() => toggleFilter('status', k)}
+                    className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                    style={{
+                      background: streamFilters.status === k ? `${c}20` : 'transparent',
+                      color: streamFilters.status === k ? c : T.onSurfaceVar,
+                      border: `1px solid ${streamFilters.status === k ? `${c}50` : a('outline', 0.2)}`,
+                    }}
+                  >{l}</button>
+                ))}
+                <span className="w-px h-4 shrink-0" style={{ background: a('outline', 0.3) }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ color: T.onSurfaceVar }}>Env</span>
+                {[
+                  { k: 'production', l: 'Prod', c: '#f87171' },
+                  { k: 'preproduction', l: 'Preprod', c: '#fb923c' },
+                  { k: 'development', l: 'Dev', c: '#4ade80' },
+                ].map(({ k, l, c }) => (
+                  <button key={k} onClick={() => toggleFilter('env', k)}
+                    className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                    style={{
+                      background: streamFilters.env === k ? `${c}20` : 'transparent',
+                      color: streamFilters.env === k ? c : T.onSurfaceVar,
+                      border: `1px solid ${streamFilters.env === k ? `${c}50` : a('outline', 0.2)}`,
+                    }}
+                  >{l}</button>
+                ))}
+              </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr style={{ background: `${T.surfaceHigh}50` }}>
+                  <tr style={{ background: a('surfaceHigh', 0.31) }}>
                     {['Event ID', 'Title', 'Source Type', 'Service', 'Environment', 'Priority', 'Status', 'Timestamp', ''].map((h, i) => (
                       <th
                         key={h || i}
@@ -386,20 +482,20 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {events.length === 0 && (
+                  {filteredEvents.length === 0 && (
                     <tr>
                       <td colSpan={9} className="px-8 py-12 text-center text-sm" style={{ color: T.outline }}>
-                        No events today.
+                        {hasStreamFilters ? 'No events match the current filters.' : 'No events today.'}
                       </td>
                     </tr>
                   )}
-                  {events.slice(0, 6).map((event) => (
+                  {filteredEvents.slice(0, 8).map((event) => (
                     <tr
                       key={event.metadata?.id}
                       className="cursor-pointer transition-colors"
-                      style={{ borderBottom: `1px solid ${T.outlineVar}08` }}
+                      style={{ borderBottom: `1px solid ${a('outlineVar', 0.03)}` }}
                       onClick={() => setSelectedEvent(event)}
-                      onMouseEnter={e => (e.currentTarget.style.background = `${T.primary}08`)}
+                      onMouseEnter={e => (e.currentTarget.style.background = a('primary', 0.03))}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <td className="px-6 py-5 font-mono text-sm" style={{ color: T.primary }}>
@@ -432,13 +528,26 @@ export default function Dashboard() {
                         })() : <span className="text-sm" style={{ color: T.outline }}>—</span>}
                       </td>
                       <td className="px-6 py-5">
-                        <span className="text-[10px] font-bold font-mono" style={{
-                          color: event.attributes.priority === Priority.P1 ? T.error
-                            : event.attributes.priority === Priority.P2 ? '#fb923c'
-                            : T.onSurfaceVar
-                        }}>
-                          {getPriorityLabel(event.attributes.priority)}
-                        </span>
+                        {(() => {
+                          const p = event.attributes.priority
+                          const isP1 = p === Priority.P1
+                          const isP2 = p === Priority.P2
+                          const isP3 = p === Priority.P3
+                          const c = isP1 ? '#ef4444' : isP2 ? '#fb923c' : isP3 ? '#fbbf24' : '#6b7280'
+                          return (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold font-mono uppercase rounded-full"
+                              style={{
+                                background: `${c}15`,
+                                color: c,
+                                border: `1px solid ${c}30`,
+                              }}
+                            >
+                              {isP1 && <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: c }} />}
+                              {getPriorityLabel(p)}
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td className="px-6 py-5">
                         <StatusBadge status={event.attributes.status} />
