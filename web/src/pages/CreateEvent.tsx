@@ -47,6 +47,10 @@ export default function CreateEvent() {
     links: {},
   })
 
+  // Find downstream dependencies for the selected service
+  const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
+  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
+
   const createMutation = useMutation({
     mutationFn: eventsApi.create,
     onSuccess: () => {
@@ -414,6 +418,29 @@ export default function CreateEvent() {
                   </label>
                 </div>
               </section>
+
+              {/* Section: Downstream Impact */}
+              {formData.attributes.service && (
+                <section className="p-6 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.error}` }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <i className="fa-solid fa-diagram-project text-sm" style={{ color: hud.error }} />
+                    <h4 className="text-xs uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Downstream Services</h4>
+                  </div>
+                  {downstreamServices.length > 0 ? (
+                    <ul className="space-y-2">
+                      {downstreamServices.map((svc) => (
+                        <li key={svc} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                          style={{ background: 'rgb(var(--hud-surface-low))' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ background: hud.error }} />
+                          {svc}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs" style={{ color: hud.onSurfaceVar }}>No downstream dependencies found.</p>
+                  )}
+                </section>
+              )}
             </div>
           </div>
 
