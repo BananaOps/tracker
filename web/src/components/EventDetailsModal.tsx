@@ -482,7 +482,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 </button>
                 <button onClick={handleApprove} disabled={approvingEvent || isApproved}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg disabled:opacity-50"
-                  style={{ background: hud.primary, color: '#1a0050', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
+                  style={{ background: hud.primary, color: '#ffffff', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
                   <CheckCircle className="w-4 h-4" /> {isApproved ? 'Approved' : 'Approve'}
                 </button>
                 <button onClick={existingLock ? handleUnlock : handleLock} disabled={lockingService || checkingLock}

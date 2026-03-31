@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
-import { Package, BookOpen, Search, X, Plus, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
+import { Package, BookOpen, Search, X, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -31,17 +31,11 @@ import {
   faCloud,
   faDatabase as faDatabaseSolid
 } from '@fortawesome/free-solid-svg-icons'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
 import { KubernetesIcon } from '../components/icons/KubernetesIcon'
 import { KotlinIcon } from '../components/icons/KotlinIcon'
 import { TerraformIcon } from '../components/icons/TerraformIcon'
 import { SlackIcon } from '../components/icons/SlackIcon'
 import { GrafanaIcon } from '../components/icons/GrafanaIcon'
-import { Badge } from '../components/ui/badge'
-import { Checkbox } from '../components/ui/checkbox'
-import { Separator } from '../components/ui/separator'
-import { ScrollArea } from '../components/ui/scroll-area'
 
 export default function CatalogTable() {
   const navigate = useNavigate()
@@ -229,51 +223,93 @@ export default function CatalogTable() {
     }
   }
 
+  // ─── HUD Design Tokens ──────────────────────────────────────────────────────
+  const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
+  const T = {
+    bg:           'rgb(var(--hud-bg))',
+    surface:      'rgb(var(--hud-surface))',
+    surfaceLow:   'rgb(var(--hud-surface-low))',
+    surfaceHigh:  'rgb(var(--hud-surface-high))',
+    primary:      'rgb(var(--hud-primary))',
+    tertiary:     'rgb(var(--hud-tertiary))',
+    error:        'rgb(var(--hud-error))',
+    success:      'rgb(var(--hud-success))',
+    onSurface:    'rgb(var(--hud-on-surface))',
+    onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
+    outlineVar:   'rgb(var(--hud-outline-var))',
+  }
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" style={{ background: T.bg }}>
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading catalog...</p>
+          <div
+            className="w-12 h-12 rounded-full animate-spin mx-auto mb-4"
+            style={{ border: `3px solid ${a('primary', 0.2)}`, borderTopColor: T.primary }}
+          />
+          <p className="text-sm" style={{ color: T.onSurfaceVar }}>Loading catalog...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar Filters - Style Datadog */}
+    <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
+      {/* Sidebar Filters */}
       {showSidebar && (
-        <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0 transition-all duration-300">
+        <div
+          className="w-64 flex flex-col shrink-0 transition-all duration-300"
+          style={{ background: T.surface, borderRight: `1px solid ${a('outline-var', 0.15)}` }}
+        >
           {/* Sidebar Header */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <div className="p-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+            <div className="flex items-center justify-between">
+              <h3
+                className="text-sm font-bold flex items-center gap-2 uppercase tracking-widest"
+                style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}
+              >
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
               </h3>
               {activeFiltersCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs px-2 py-1 rounded-lg transition-all"
+                  style={{ color: T.primary, background: a('primary', 0.1) }}
+                >
                   Clear all
-                </Button>
+                </button>
               )}
             </div>
           </div>
 
           {/* Filters Content */}
-          <ScrollArea className="flex-1">
-            <div className="p-3 space-y-4">
+          <div className="flex-1 overflow-auto">
+            <div className="p-4 space-y-5">
+
               {/* Type Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Type</h4>
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: T.onSurfaceVar }}>Type</p>
                 <div className="space-y-2">
                   {uniqueTypes.map((type: string) => (
-                    <label key={type} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedTypes.includes(type)}
-                        onCheckedChange={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                    <label key={type} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        style={{
+                          background: selectedTypes.includes(type) ? T.primary : 'transparent',
+                          border: `1.5px solid ${selectedTypes.includes(type) ? T.primary : a('outline-var', 0.4)}`,
+                        }}
+                        onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                      >
+                        {selectedTypes.includes(type) && (
+                          <span className="text-white text-[10px] font-bold leading-none">✓</span>
+                        )}
+                      </div>
+                      <span
+                        className="text-sm"
+                        style={{ color: selectedTypes.includes(type) ? T.onSurface : T.onSurfaceVar }}
+                        onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                      >
                         {getCatalogTypeLabel(type)}
                       </span>
                     </label>
@@ -281,19 +317,31 @@ export default function CatalogTable() {
                 </div>
               </div>
 
-              <Separator />
+              <div style={{ borderTop: `1px solid ${a('outline-var', 0.15)}` }} />
 
               {/* Language Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Language</h4>
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: T.onSurfaceVar }}>Language</p>
                 <div className="space-y-2">
                   {uniqueLanguages.map((lang: string) => (
-                    <label key={lang} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedLanguages.includes(lang)}
-                        onCheckedChange={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
-                      />
-                      <div className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                    <label key={lang} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        style={{
+                          background: selectedLanguages.includes(lang) ? T.primary : 'transparent',
+                          border: `1.5px solid ${selectedLanguages.includes(lang) ? T.primary : a('outline-var', 0.4)}`,
+                        }}
+                        onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
+                      >
+                        {selectedLanguages.includes(lang) && (
+                          <span className="text-white text-[10px] font-bold leading-none">✓</span>
+                        )}
+                      </div>
+                      <div
+                        className="flex items-center gap-1.5 text-sm"
+                        style={{ color: selectedLanguages.includes(lang) ? T.onSurface : T.onSurfaceVar }}
+                        onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)}
+                      >
                         {getLanguageIcon(lang)}
                         <span>{getLanguageLabel(lang)}</span>
                       </div>
@@ -302,19 +350,31 @@ export default function CatalogTable() {
                 </div>
               </div>
 
-              <Separator />
+              <div style={{ borderTop: `1px solid ${a('outline-var', 0.15)}` }} />
 
               {/* Platform Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Platform</h4>
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: T.onSurfaceVar }}>Platform</p>
                 <div className="space-y-2">
                   {uniquePlatforms.map((platform: string) => (
-                    <label key={platform} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedPlatforms.includes(platform)}
-                        onCheckedChange={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
-                      />
-                      <div className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+                    <label key={platform} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        style={{
+                          background: selectedPlatforms.includes(platform) ? T.primary : 'transparent',
+                          border: `1.5px solid ${selectedPlatforms.includes(platform) ? T.primary : a('outline-var', 0.4)}`,
+                        }}
+                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                      >
+                        {selectedPlatforms.includes(platform) && (
+                          <span className="text-white text-[10px] font-bold leading-none">✓</span>
+                        )}
+                      </div>
+                      <div
+                        className="flex items-center gap-1.5 text-sm"
+                        style={{ color: selectedPlatforms.includes(platform) ? T.onSurface : T.onSurfaceVar }}
+                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                      >
                         {getPlatformIcon(platform as Platform)}
                         <span>{getPlatformLabel(platform as Platform)}</span>
                       </div>
@@ -323,24 +383,33 @@ export default function CatalogTable() {
                 </div>
               </div>
 
-              <Separator />
+              <div style={{ borderTop: `1px solid ${a('outline-var', 0.15)}` }} />
 
               {/* SLA Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">SLA Level</h4>
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: T.onSurfaceVar }}>SLA Level</p>
                 <div className="space-y-2">
                   {uniqueSLAs.map((sla: string) => (
-                    <label key={sla} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedSLAs.includes(sla)}
-                        onCheckedChange={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)}
-                      />
-                      <span 
-                        className="text-sm font-medium px-2 py-0.5 rounded"
+                    <label key={sla} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
                         style={{
-                          backgroundColor: `${getSLAColor(sla as SLALevel)}20`,
-                          color: getSLAColor(sla as SLALevel)
+                          background: selectedSLAs.includes(sla) ? T.primary : 'transparent',
+                          border: `1.5px solid ${selectedSLAs.includes(sla) ? T.primary : a('outline-var', 0.4)}`,
                         }}
+                        onClick={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)}
+                      >
+                        {selectedSLAs.includes(sla) && (
+                          <span className="text-white text-[10px] font-bold leading-none">✓</span>
+                        )}
+                      </div>
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: `${getSLAColor(sla as SLALevel)}20`,
+                          color: getSLAColor(sla as SLALevel),
+                        }}
+                        onClick={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)}
                       >
                         {getSLALabel(sla as SLALevel)}
                       </span>
@@ -349,254 +418,313 @@ export default function CatalogTable() {
                 </div>
               </div>
 
-              <Separator />
+              <div style={{ borderTop: `1px solid ${a('outline-var', 0.15)}` }} />
 
               {/* Owner Filter */}
               <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Owner</h4>
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>Owner</p>
                 {uniqueOwners.length > 0 ? (
                   <div className="space-y-3">
                     {/* Owner Search */}
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-                      <Input
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: T.onSurfaceVar }} />
+                      <input
                         placeholder="Search owners..."
                         value={ownerSearchQuery}
                         onChange={(e) => setOwnerSearchQuery(e.target.value)}
-                        className="pl-7 h-8 text-xs"
+                        className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg outline-none"
+                        style={{
+                          background: a('outline-var', 0.07),
+                          border: `1px solid ${a('outline-var', 0.2)}`,
+                          color: T.onSurface,
+                        }}
                       />
                       {ownerSearchQuery && (
                         <button
                           onClick={() => setOwnerSearchQuery('')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          className="absolute right-2 top-1/2 -translate-y-1/2"
+                          style={{ color: T.onSurfaceVar }}
                         >
                           <X className="w-3 h-3" />
                         </button>
                       )}
                     </div>
-                    
                     {/* Owners List */}
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {filteredOwners.length > 0 ? (
                         filteredOwners.map((owner: string) => (
-                          <label key={owner} className="flex items-center space-x-2 cursor-pointer group">
-                            <Checkbox
-                              checked={selectedOwners.includes(owner)}
-                              onCheckedChange={() => toggleFilter(owner, selectedOwners, setSelectedOwners)}
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate" title={owner}>
+                          <label key={owner} className="flex items-center gap-2 cursor-pointer">
+                            <div
+                              className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                              style={{
+                                background: selectedOwners.includes(owner) ? T.primary : 'transparent',
+                                border: `1.5px solid ${selectedOwners.includes(owner) ? T.primary : a('outline-var', 0.4)}`,
+                              }}
+                              onClick={() => toggleFilter(owner, selectedOwners, setSelectedOwners)}
+                            >
+                              {selectedOwners.includes(owner) && (
+                                <span className="text-white text-[10px] font-bold leading-none">✓</span>
+                              )}
+                            </div>
+                            <span
+                              className="text-sm truncate"
+                              title={owner}
+                              style={{ color: selectedOwners.includes(owner) ? T.onSurface : T.onSurfaceVar }}
+                              onClick={() => toggleFilter(owner, selectedOwners, setSelectedOwners)}
+                            >
                               {owner}
                             </span>
                           </label>
                         ))
                       ) : (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">No owners found</p>
+                        <p className="text-xs italic" style={{ color: T.onSurfaceVar }}>No owners found</p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No owners</p>
+                  <p className="text-sm italic" style={{ color: T.onSurfaceVar }}>No owners</p>
                 )}
               </div>
+
             </div>
-          </ScrollArea>
+          </div>
         </div>
       )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div
+          className="p-4"
+          style={{ background: T.surface, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="icon"
+            <div className="flex items-center gap-3">
+              <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="h-9 w-9"
+                className="h-9 w-9 flex items-center justify-center rounded-lg transition-all"
+                style={{
+                  background: showSidebar ? a('primary', 0.12) : a('outline-var', 0.08),
+                  color: showSidebar ? T.primary : T.onSurfaceVar,
+                  border: `1px solid ${showSidebar ? a('primary', 0.25) : a('outline-var', 0.3)}`,
+                }}
               >
                 <Filter className="w-4 h-4" />
-              </Button>
+              </button>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Catalog</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h2
+                  className="text-2xl font-bold"
+                  style={{ color: T.onSurface, fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  Catalog
+                </h2>
+                <p className="text-sm" style={{ color: T.onSurfaceVar }}>
                   {catalogs.length} of {allCatalogs.length} items
                   {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''}`}
                 </p>
               </div>
             </div>
-            
-            <Button onClick={() => navigate('/catalog/create')} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add to Catalog
-            </Button>
           </div>
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: T.onSurfaceVar }} />
+            <input
               placeholder="Search by name, description, or owner..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-sm"
+              style={{
+                background: a('outline-var', 0.06),
+                border: `1px solid ${a('outline-var', 0.2)}`,
+                color: T.onSurface,
+              }}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: T.onSurfaceVar }}
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* Active Filters Tags */}
+          {/* Active Filter Pills */}
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 flex-wrap mt-3">
               {selectedTypes.map((type: string) => (
-                <Badge key={type} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span
+                  key={type}
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition-all"
+                  style={{ background: a('primary', 0.12), color: T.primary }}
+                >
                   {getCatalogTypeLabel(type)}
                   <X className="w-3 h-3" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
-                </Badge>
+                </span>
               ))}
               {selectedLanguages.map((lang: string) => (
-                <Badge key={lang} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center">
+                <span
+                  key={lang}
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition-all"
+                  style={{ background: a('primary', 0.12), color: T.primary }}
+                >
                   {getLanguageIcon(lang)}
                   <span>{getLanguageLabel(lang)}</span>
                   <X className="w-3 h-3" onClick={() => toggleFilter(lang, selectedLanguages, setSelectedLanguages)} />
-                </Badge>
+                </span>
               ))}
               {selectedPlatforms.map((platform: string) => (
-                <Badge key={platform} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center">
+                <span
+                  key={platform}
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition-all"
+                  style={{ background: a('primary', 0.12), color: T.primary }}
+                >
                   {getPlatformIcon(platform as Platform)}
                   <span>{getPlatformLabel(platform as Platform)}</span>
                   <X className="w-3 h-3" onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)} />
-                </Badge>
+                </span>
               ))}
               {selectedSLAs.map((sla: string) => (
-                <Badge 
-                  key={sla} 
-                  className="gap-1 cursor-pointer hover:opacity-80 flex items-center"
+                <span
+                  key={sla}
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition-all"
                   style={{
-                    backgroundColor: `${getSLAColor(sla as SLALevel)}20`,
+                    background: `${getSLAColor(sla as SLALevel)}20`,
                     color: getSLAColor(sla as SLALevel),
-                    border: `1px solid ${getSLAColor(sla as SLALevel)}40`
+                    border: `1px solid ${getSLAColor(sla as SLALevel)}40`,
                   }}
                 >
                   <span>{getSLALabel(sla as SLALevel)}</span>
                   <X className="w-3 h-3" onClick={() => toggleFilter(sla, selectedSLAs, setSelectedSLAs)} />
-                </Badge>
+                </span>
               ))}
               {selectedOwners.map((owner: string) => (
-                <Badge key={owner} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span
+                  key={owner}
+                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full cursor-pointer transition-all"
+                  style={{ background: a('primary', 0.12), color: T.primary }}
+                >
                   {owner}
                   <X className="w-3 h-3" onClick={() => toggleFilter(owner, selectedOwners, setSelectedOwners)} />
-                </Badge>
+                </span>
               ))}
             </div>
           )}
         </div>
 
         {/* Table Content */}
-        <div className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Language
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Platform
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SLA
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Version
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Owner
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Links
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {catalogs.map((catalog: Catalog) => (
-                <tr 
-                  key={catalog.name} 
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700 dark:bg-gray-800 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/catalog/${catalog.name}`)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Package className="w-5 h-5 text-gray-400 mr-2" />
-                      <span 
-                        className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px]" 
-                        title={catalog.name}
+        <div className="flex-1 overflow-auto p-6" style={{ background: T.bg }}>
+          <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.15)}` }}>
+            <table className="min-w-full">
+              <thead>
+                <tr style={{ background: T.surfaceHigh }}>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Language
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Platform
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    SLA
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Version
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Owner
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
+                    Links
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {catalogs.map((catalog: Catalog, i: number) => (
+                  <tr
+                    key={catalog.name}
+                    className="cursor-pointer transition-colors group"
+                    style={{ borderTop: i > 0 ? `1px solid ${a('outline-var', 0.12)}` : undefined }}
+                    onMouseEnter={e => (e.currentTarget.style.background = T.surfaceLow)}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    onClick={() => navigate(`/catalog/${catalog.name}`)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 shrink-0" style={{ color: T.onSurfaceVar }} />
+                        <span
+                          className="text-sm font-semibold truncate max-w-[200px]"
+                          title={catalog.name}
+                          style={{ color: T.onSurface }}
+                        >
+                          {catalog.name.length > 25 ? `${catalog.name.substring(0, 25)}...` : catalog.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className="px-2.5 py-1 text-xs font-bold rounded-full"
+                        style={{ background: a('primary', 0.12), color: T.primary }}
                       >
-                        {catalog.name.length > 25 ? `${catalog.name.substring(0, 25)}...` : catalog.name}
+                        {getCatalogTypeLabel(catalog.type)}
                       </span>
-                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                      {getCatalogTypeLabel(catalog.type)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 flex items-center space-x-1 w-fit">
+                    <span
+                      className="px-2.5 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1.5"
+                      style={{ background: a('outline-var', 0.1), color: T.onSurface }}
+                    >
                       {getLanguageIcon(catalog.languages)}
                       <span>{getLanguageLabel(catalog.languages)}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {catalog.platform ? (
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center space-x-1 w-fit ${getPlatformColor(catalog.platform).bg} ${getPlatformColor(catalog.platform).text} ${getPlatformColor(catalog.platform).darkBg} ${getPlatformColor(catalog.platform).darkText}`}>
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1 ${getPlatformColor(catalog.platform).bg} ${getPlatformColor(catalog.platform).text} ${getPlatformColor(catalog.platform).darkBg} ${getPlatformColor(catalog.platform).darkText}`}>
                         {getPlatformIcon(catalog.platform)}
                         <span>{getPlatformLabel(catalog.platform)}</span>
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">-</span>
+                      <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {catalog.sla ? (
-                      <span 
-                        className="px-2 py-1 text-xs font-medium rounded-full"
+                      <span
+                        className="px-2.5 py-1 text-xs font-bold rounded-full"
                         style={{
-                          backgroundColor: `${getSLAColor(catalog.sla.level)}20`,
-                          color: getSLAColor(catalog.sla.level)
+                          background: `${getSLAColor(catalog.sla.level)}20`,
+                          color: getSLAColor(catalog.sla.level),
                         }}
                       >
                         {getSLALabel(catalog.sla.level)}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400">-</span>
+                      <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: T.onSurface }}>
                     {catalog.version}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: T.onSurface }}>
                     {catalog.owner}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex space-x-3">
+                    <div className="flex gap-3 items-center">
                       {catalog.repository && (
                         <a
                           href={catalog.repository}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+                          className="transition-colors"
+                          style={{ color: T.onSurfaceVar }}
                           title="Repository"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -608,7 +736,8 @@ export default function CatalogTable() {
                           href={catalog.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+                          className="transition-colors"
+                          style={{ color: T.onSurfaceVar }}
                           title="Documentation"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -651,14 +780,15 @@ export default function CatalogTable() {
           </table>
 
           {catalogs.length === 0 && (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm font-medium">No items in catalog</p>
+            <div className="text-center py-16">
+              <Package className="w-12 h-12 mx-auto mb-3" style={{ color: a('on-surface-var', 0.3) }} />
+              <p className="text-sm font-semibold" style={{ color: T.onSurface }}>No items in catalog</p>
               {activeFiltersCount > 0 && (
-                <p className="text-xs mt-1">Try adjusting your filters</p>
+                <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>Try adjusting your filters</p>
               )}
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

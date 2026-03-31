@@ -14,7 +14,6 @@ import CatalogDetail from './pages/CatalogDetail'
 import CatalogDependencies from './pages/CatalogDependencies'
 import VersionCompliance from './pages/VersionCompliance'
 import DriftsList from './pages/DriftsList'
-import AllDriftsList from './pages/AllDriftsList'
 import RpaUsage from './pages/RpaUsage'
 import CreateDrift from './pages/CreateDrift'
 import CreateRpaOperation from './pages/CreateRpaOperation'
@@ -51,7 +50,7 @@ function App() {
           <Route path="catalog/:serviceName" element={<CatalogDetail />} />
           <Route path="catalog/:serviceName/events" element={<CatalogDetail />} />
           <Route path="drifts" element={<DriftsList />} />
-          <Route path="drifts/all" element={<AllDriftsList />} />
+          <Route path="drifts/all" element={<Navigate to="/drifts" replace />} />
           <Route path="drifts/create" element={<CreateDrift />} />
           <Route path="rpa" element={<RpaUsage />} />
           <Route path="rpa/create" element={<CreateRpaOperation />} />

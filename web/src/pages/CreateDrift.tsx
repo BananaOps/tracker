@@ -9,18 +9,13 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Checkbox } from '../components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
-import { AlertCircle, GitBranch } from 'lucide-react'
+import { AlertCircle, GitBranch, Link2, Ticket, Plus } from 'lucide-react'
 
 export default function CreateDrift() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
 
-  // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['catalogs', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
@@ -49,9 +44,7 @@ export default function CreateDrift() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setShowToast(true)
-      setTimeout(() => {
-        navigate('/drifts')
-      }, 2000)
+      setTimeout(() => { navigate('/drifts') }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating drift:', error)
@@ -61,237 +54,244 @@ export default function CreateDrift() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setShowToast(false)
-    
-    // Convertir les enums en nombres pour l'API
-    const apiData = convertEventForAPI(formData)
-    createMutation.mutate(apiData)
+    createMutation.mutate(convertEventForAPI(formData))
   }
 
+  // ── Design tokens ──────────────────────────────────────────────────────────
+  const ha = (v: string, a: number) => `rgb(var(--hud-${v}) / ${a})`
+  const hud = {
+    surface:        'rgb(var(--hud-surface))',
+    surfaceHigh:    'rgb(var(--hud-surface-high))',
+    surfaceHighest: 'rgb(var(--hud-surface-highest))',
+    primary:        'rgb(var(--hud-primary))',
+    primaryDim:     'rgb(var(--hud-primary-dim))',
+    tertiary:       'rgb(var(--hud-tertiary))',
+    onSurface:      'rgb(var(--hud-on-surface))',
+    onSurfaceVar:   'rgb(var(--hud-on-surface-var))',
+    error:          'rgb(var(--hud-error))',
+    success:        'rgb(var(--hud-success))',
+  }
+
+  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-none"
+  const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
+  const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
+
+  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+    <div className="flex items-center gap-3 mb-8">
+      <span style={{ color: color || hud.primary }}>{icon}</span>
+      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+    </div>
+  )
+
+  // Downstream services
+  const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
+  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
+
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
-      <div className="flex items-center space-x-3">
-        <GitBranch className="w-8 h-8 text-yellow-600" />
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Drift</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a detected configuration drift</p>
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create a Drift
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Register a configuration deviation detected between the expected and actual state of a resource.
+          </p>
         </div>
+
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating drift. Please try again.</p>
+          </div>
+        )}
+
+        {showToast && <Toast message="Drift created successfully!" onClose={() => setShowToast(false)} />}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+            {/* ── Left Column ── */}
+            <div className="md:col-span-8 space-y-8">
+
+              {/* Drift Information */}
+              <section className="p-8 rounded-xl overflow-visible relative z-10" style={{ background: hud.surface }}>
+                <SectionHeader icon={<FontAwesomeIcon icon={faCodeBranch} className="w-5 h-5" />} title="Drift Information" />
+                <div className="space-y-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Drift Title <span style={{ color: hud.error }}>*</span></label>
+                    <input type="text" required value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g.: Drift detected on load balancer configuration"
+                      className={inputCls} style={inputStyle} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="relative z-10">
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Affected Service <span style={{ color: hud.error }}>*</span></label>
+                      <ServiceAutocomplete
+                        id="service"
+                        value={formData.attributes.service}
+                        onChange={(value) => setFormData({ ...formData, attributes: { ...formData.attributes, service: value } })}
+                        services={catalogServices}
+                        loading={catalogLoading}
+                        required
+                        placeholder="Search for a service..."
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
+                      <select value={formData.attributes.environment}
+                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
+                        className={inputCls + ' appearance-none'} style={inputStyle}>
+                        <option value={Environment.PRODUCTION}>Production</option>
+                        <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                        <option value={Environment.UAT}>UAT</option>
+                        <option value={Environment.RECETTE}>Recette</option>
+                        <option value={Environment.INTEGRATION}>Integration</option>
+                        <option value={Environment.DEVELOPMENT}>Development</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
+                      <select value={formData.attributes.priority}
+                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, priority: e.target.value as Priority } })}
+                        className={inputCls + ' appearance-none'} style={inputStyle}>
+                        <option value={Priority.P1}>P1 - Critical</option>
+                        <option value={Priority.P2}>P2 - High</option>
+                        <option value={Priority.P3}>P3 - Medium</option>
+                        <option value={Priority.P4}>P4 - Low</option>
+                        <option value={Priority.P5}>P5 - Very Low</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Status</label>
+                      <select value={formData.attributes.status}
+                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
+                        className={inputCls + ' appearance-none'} style={inputStyle}>
+                        <option value={Status.OPEN}>Open (detected)</option>
+                        <option value={Status.START}>In Progress (fixing)</option>
+                        <option value={Status.DONE}>Resolved</option>
+                        <option value={Status.CLOSE}>Closed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Description <span style={{ color: hud.error }}>*</span></label>
+                    <textarea required rows={4} value={formData.attributes.message}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, message: e.target.value } })}
+                      placeholder="Describe the detected drift: what configuration changed, expected vs actual state..."
+                      className={inputCls + ' resize-none'} style={inputStyle} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Owner <span style={{ color: hud.error }}>*</span></label>
+                    <input type="text" required value={formData.attributes.owner || ''}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, owner: e.target.value } })}
+                      placeholder="e.g.: team-platform, john.doe"
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                </div>
+              </section>
+
+              {/* Resources */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
+                <SectionHeader icon={<Link2 className="w-5 h-5" />} title="Resources" />
+                <div>
+                  <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Ticket Jira</label>
+                  <div className="relative">
+                    <Ticket className="absolute left-3 top-3 w-4 h-4" style={{ color: hud.onSurfaceVar }} />
+                    <input type="url" value={formData.links?.ticket || ''}
+                      onChange={(e) => setFormData({ ...formData, links: { ...formData.links, ticket: e.target.value } })}
+                      placeholder="e.g.: https://jira.company.com/browse/DRIFT-123"
+                      className={inputCls + ' pl-10'} style={inputStyle} />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* ── Right Column ── */}
+            <div className="md:col-span-4 space-y-8">
+
+              {/* Impact Detection */}
+              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <i className="fa-solid fa-meteor text-7xl" />
+                </div>
+                <div className="flex flex-col items-center text-center py-2">
+                  <i className="fa-solid fa-meteor text-4xl mb-4 transition-colors duration-300"
+                    style={{ color: formData.attributes.impact ? hud.error : hud.success }} />
+                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Impact Detection</h4>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={formData.attributes.impact || false}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: e.target.checked } })}
+                      className="sr-only peer" />
+                    <div className="relative w-14 h-7 rounded-full peer transition-colors"
+                      style={{ background: formData.attributes.impact ? hud.error : hud.surfaceHighest }}>
+                      <div className="absolute top-0.5 left-[4px] bg-white rounded-full h-6 w-6 transition-transform"
+                        style={{ transform: formData.attributes.impact ? 'translateX(100%)' : 'translateX(0)' }} />
+                    </div>
+                    <span className="ms-3 text-sm font-medium" style={{ color: hud.onSurfaceVar }}>Impact detected</span>
+                  </label>
+                </div>
+              </section>
+
+              {/* Downstream Services */}
+              {formData.attributes.service && (
+                <section className="p-6 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.error}` }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <i className="fa-solid fa-diagram-project text-sm" style={{ color: hud.error }} />
+                    <h4 className="text-xs uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Downstream Services</h4>
+                  </div>
+                  {downstreamServices.length > 0 ? (
+                    <ul className="space-y-2">
+                      {downstreamServices.map((svc) => (
+                        <li key={svc} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                          style={{ background: 'rgb(var(--hud-surface-low))' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ background: hud.error }} />
+                          {svc}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs" style={{ color: hud.onSurfaceVar }}>No downstream dependencies found.</p>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
+            <button type="button" onClick={() => navigate('/drifts')}
+              className="px-8 py-3 font-bold transition-colors hover:opacity-80"
+              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={createMutation.isPending}
+              className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+              style={{
+                background: `linear-gradient(135deg, ${hud.primary}, ${hud.primaryDim})`,
+                color: 'white',
+                fontFamily: "'Space Grotesk', sans-serif",
+                boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
+              }}>
+              <GitBranch className="w-4 h-4" />
+              {createMutation.isPending ? 'Creating...' : 'Create Drift'}
+            </button>
+          </div>
+        </form>
       </div>
 
-      {createMutation.isError && (
-        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>Error creating drift. Please try again.</span>
-        </div>
-      )}
-      
-      {showToast && (
-        <Toast 
-          message="Drift created successfully!"
-          onClose={() => setShowToast(false)}
-        />
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-          <GitBranch className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">What is a drift?</h3>
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              A drift is a configuration deviation detected between the expected state and the actual state of a resource.
-              This can be a manual modification, an unplanned update, or a configuration divergence.
-            </p>
-          </div>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Drift Information</CardTitle>
-            <CardDescription>Basic information about the configuration drift</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Drift Title <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="title"
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ex: Drift detected on load balancer configuration"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Affected Service <span className="text-red-500">*</span>
-                </label>
-                <ServiceAutocomplete
-                  id="service"
-                  value={formData.attributes.service}
-                  onChange={(value) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, service: value }
-                  })}
-                  services={catalogServices}
-                  loading={catalogLoading}
-                  required
-                  placeholder="Type to search or select a service"
-                />
-                {catalogServices.length === 0 && !catalogLoading && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    No services in catalog. Add services in the <a href="/catalog/create" className="text-primary-600 hover:underline">Catalog</a> first.
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
-                <select
-                  value={formData.attributes.environment}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, environment: e.target.value as Environment }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Environment.DEVELOPMENT}>Development</option>
-                  <option value={Environment.INTEGRATION}>Integration</option>
-                  <option value={Environment.UAT}>UAT</option>
-                  <option value={Environment.RECETTE}>Recette</option>
-                  <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                  <option value={Environment.PRODUCTION}>Production</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
-                <select
-                  value={formData.attributes.priority}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, priority: e.target.value as Priority }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Priority.P1}>P1 - Critical (production impact)</option>
-                  <option value={Priority.P2}>P2 - High (fix quickly)</option>
-                  <option value={Priority.P3}>P3 - Medium</option>
-                  <option value={Priority.P4}>P4 - Low</option>
-                  <option value={Priority.P5}>P5 - Very Low</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-                <select
-                  value={formData.attributes.status}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, status: e.target.value as Status }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Status.OPEN}>Open (detected)</option>
-                  <option value={Status.START}>In Progress (fixing)</option>
-                  <option value={Status.DONE}>Resolved</option>
-                  <option value={Status.CLOSE}>Closed</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Drift Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="message"
-                required
-                rows={4}
-                value={formData.attributes.message}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  attributes: { ...formData.attributes, message: e.target.value }
-                })}
-                placeholder="Describe the detected drift: what configuration changed, what is the difference between expected and actual state..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="impact"
-                checked={formData.attributes.impact || false}
-                onCheckedChange={(checked) => setFormData({
-                  ...formData,
-                  attributes: { ...formData.attributes, impact: checked as boolean }
-                })}
-              />
-              <label htmlFor="impact" className="text-sm font-normal cursor-pointer text-gray-700 dark:text-gray-300">
-                This drift has an impact on the service
-              </label>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
-              Check if the drift affects service functionality or security
-            </p>
-
-            <div className="space-y-2">
-              <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Owner / Responsible <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="owner"
-                type="text"
-                required
-                value={formData.attributes.owner || ''}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  attributes: { ...formData.attributes, owner: e.target.value }
-                })}
-                placeholder="Ex: team-platform, john.doe"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="ticket" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket URL (optional)</label>
-              <Input
-                id="ticket"
-                type="url"
-                value={formData.links?.ticket || ''}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  links: { ...formData.links, ticket: e.target.value }
-                })}
-                placeholder="https://jira.company.com/browse/DRIFT-123"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Full Jira ticket URL
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end space-x-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate('/drifts')}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={createMutation.isPending}
-          >
-            <GitBranch className="w-4 h-4 mr-2" />
-            {createMutation.isPending ? 'Creating...' : 'Create Drift'}
-          </Button>
-        </div>
-      </form>
+      {/* Decorative glows */}
+      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none" style={{ background: ha('primary', 0.05) }} />
+      <div className="fixed bottom-0 left-64 -z-10 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: ha('tertiary', 0.05) }} />
     </div>
   )
 }

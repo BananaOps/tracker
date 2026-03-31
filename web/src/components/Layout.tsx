@@ -1,6 +1,9 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
+import { faRobot } from '@fortawesome/free-solid-svg-icons'
+import { useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -11,34 +14,15 @@ import { getSlackEventsChannelUrl } from '../config'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { 
-    name: 'Events', 
-    icon: Clock,
-    submenu: [
-      { name: 'Timeline', href: '/events/timeline', icon: Clock },
-      { name: 'Streamline', href: '/events/streamline', icon: Package },
-      { name: 'Calendar', href: '/events/calendar', icon: Calendar },
-      { name: 'Overlaps', href: '/events/overlaps', icon: AlertTriangle },
-    ]
-  },
+  { name: 'Timeline', href: '/events/timeline', icon: Clock },
+  { name: 'Streamline', href: '/events/streamline', icon: Package },
+  { name: 'Calendar', href: '/events/calendar', icon: Calendar },
+  { name: 'Overlaps', href: '/events/overlaps', icon: AlertTriangle },
   { name: 'Insights', href: '/insights', icon: BarChart3 },
-  { 
-    name: 'Catalog', 
-    icon: Table,
-    submenu: [
-      { name: 'Services', href: '/catalog', icon: Table },
-      { name: 'Dependencies', href: '/catalog/dependencies', icon: GitBranch },
-      { name: 'Version Compliance', href: '/catalog/version-compliance', icon: AlertTriangle },
-    ]
-  },
-  {
-    name: 'Drifts', 
-    icon: GitBranch,
-    submenu: [
-      { name: 'Active Drifts', href: '/drifts', icon: GitBranch },
-      { name: 'All Drifts', href: '/drifts/all', icon: Search },
-    ]
-  },
+  { name: 'Services', href: '/catalog', icon: Table },
+  { name: 'Architecture Diagram', href: '/catalog/dependencies', icon: ({ className }: { className?: string }) => <span className={`inline-flex items-center justify-center ${className || ''}`}><i className="fa-solid fa-chart-diagram text-sm" /></span> },
+  { name: 'Version Compliance', href: '/catalog/version-compliance', icon: AlertTriangle },
+  { name: 'Drifts', href: '/drifts', icon: GitBranch },
   { name: 'RPA Usage', href: '/rpa', icon: Bot },
   { name: 'Locks', href: '/locks', icon: Lock },
   { name: 'Links', href: '/links', icon: LinkIcon },
@@ -47,29 +31,9 @@ const navigation = [
 
 export default function Layout() {
   const location = useLocation()
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const isActiveRoute = (href?: string, submenu?: { href: string }[]) => {
-    if (href) return location.pathname === href
-    if (submenu) return submenu.some(item => location.pathname === item.href)
-    return false
-  }
-
-  const handleMouseEnter = (itemName: string) => {
-    if (hoverTimeout) { clearTimeout(hoverTimeout); setHoverTimeout(null) }
-    setOpenSubmenu(itemName)
-  }
-
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => setOpenSubmenu(null), 300)
-    setHoverTimeout(timeout)
-  }
-
-  useEffect(() => {
-    return () => { if (hoverTimeout) clearTimeout(hoverTimeout) }
-  }, [hoverTimeout])
+  const isActiveRoute = (href: string) => location.pathname === href
 
   // Shared classes
   const navItem = 'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200'
@@ -121,58 +85,10 @@ export default function Layout() {
             <div className="space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon
-                const isActive = isActiveRoute(item.href, item.submenu)
-                const hasSubmenu = !!item.submenu
-                const isOpen = openSubmenu === item.name
-
-                if (hasSubmenu) {
-                  const firstSub = item.submenu?.[0]
-
-                  if (isCollapsed && firstSub) {
-                    return (
-                      <Link key={item.name} to={firstSub.href}
-                        className={`${navItem} justify-center ${isActive ? navActive : navInactive}`}
-                        title={item.name}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </Link>
-                    )
-                  }
-
-                  return (
-                    <div key={item.name}>
-                      <button
-                        onClick={() => setOpenSubmenu(isOpen ? null : item.name)}
-                        className={`w-full ${navItem} justify-between ${isActive ? navActive : navInactive}`}
-                      >
-                        <div className="flex items-center">
-                          <Icon className="w-4 h-4 mr-3" />
-                          {item.name}
-                        </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      {isOpen && (
-                        <div className="ml-4 mt-1 space-y-1">
-                          {item.submenu?.map((sub) => {
-                            const SubIcon = sub.icon
-                            const isSubActive = location.pathname === sub.href
-                            return (
-                              <Link key={sub.name} to={sub.href}
-                                className={`${navItem} ${isSubActive ? navActive : navInactive}`}
-                              >
-                                <SubIcon className="w-4 h-4 mr-3" />
-                                {sub.name}
-                              </Link>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )
-                }
+                const isActive = isActiveRoute(item.href)
 
                 return (
-                  <Link key={item.name} to={item.href!}
+                  <Link key={item.name} to={item.href}
                     className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${isActive ? navActive : navInactive}`}
                     title={isCollapsed ? item.name : ''}
                   >
@@ -208,12 +124,38 @@ export default function Layout() {
             <div className="flex-1 max-w-2xl">
               <LinksSearch collapsed={false} />
             </div>
-            <Link to="/events/create"
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all ml-4"
-              style={{ background: 'rgb(var(--hud-primary))', color: 'white', boxShadow: '0 2px 8px rgb(var(--hud-primary) / 0.2)' }}
-            >
-              <Plus className="w-4 h-4" /> New Event
-            </Link>
+            <div className="flex items-center gap-2 ml-4">
+              <Link to="/locks/create"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                style={{ color: 'rgb(var(--hud-on-surface-var))', border: '1px solid rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}
+              >
+                <Lock className="w-3.5 h-3.5" /> New Lock
+              </Link>
+              <Link to="/drifts/create"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                style={{ color: 'rgb(var(--hud-on-surface-var))', border: '1px solid rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}
+              >
+                <FontAwesomeIcon icon={faCodeBranch} className="w-3.5 h-3.5" /> New Drift
+              </Link>
+              <Link to="/rpa/create"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                style={{ color: 'rgb(var(--hud-on-surface-var))', border: '1px solid rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}
+              >
+                <FontAwesomeIcon icon={faRobot} className="w-3.5 h-3.5" /> New RPA
+              </Link>
+              <Link to="/catalog/create"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                style={{ color: 'rgb(var(--hud-on-surface-var))', border: '1px solid rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}
+              >
+                <Package className="w-3.5 h-3.5" /> New Service
+              </Link>
+              <Link to="/events/create"
+                className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
+                style={{ background: 'rgb(var(--hud-primary))', color: 'white', boxShadow: '0 2px 8px rgb(var(--hud-primary) / 0.2)' }}
+              >
+                <Plus className="w-4 h-4" /> New Event
+              </Link>
+            </div>
           </header>
           <main className="flex-1 flex flex-col overflow-hidden">
             <Outlet />
