@@ -9,6 +9,7 @@ import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from './EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
+import { useTheme } from '../contexts/ThemeContext'
 import { getSlackMessageUrl, parseSlackId } from '../config'
 import Toast from './Toast'
 import EventChangelog from './EventChangelog'
@@ -20,6 +21,7 @@ interface EventDetailsModalProps {
 }
 
 export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
+  const { effectiveTheme } = useTheme()
   const [isEditing, setIsEditing] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -392,6 +394,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     ? editedEvent.attributes.owner.split(/[\s.@]/).filter(Boolean).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('')
     : ''
 
+  const blockBg = effectiveTheme === 'dark' ? ha('surface-highest', 0.5) : 'rgba(255,255,255,0.85)'
+
   const quickStatuses = [
     { v: Status.START, l: 'Start', c: '#40ceed' },
     { v: Status.IN_PROGRESS, l: 'In Progress', c: '#60a5fa' },
@@ -434,7 +438,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
 
       {/* Modal */}
       <div className="relative w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-        style={{ background: ha('surface', 0.75), backdropFilter: 'blur(16px)', border: `1px solid ${ha('outline-var', 0.2)}` }}>
+        style={{ background: effectiveTheme === 'dark' ? ha('surface', 0.85) : 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', border: `1px solid ${ha('outline-var', 0.2)}` }}>
 
         {/* Header: Title + Actions */}
         <div className="px-8 pt-6 pb-6 shrink-0" style={{ borderBottom: `1px solid ${ha('outline-var', 0.15)}` }}>
@@ -513,7 +517,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 {/* Info Cards */}
                 {!isEditing && (
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: hud.surfaceHigh }}>
+                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: blockBg, border: '1px solid ' + ha('outline-var', 0.12) }}>
                       <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Environment</span>
                       <div className="text-xl font-bold uppercase" style={{ fontFamily: "'Space Grotesk',sans-serif", color: (() => {
                         const e = String(editedEvent.attributes.environment).toLowerCase()
@@ -528,13 +532,13 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         {getEnvironmentLabel(editedEvent.attributes.environment) || '—'}
                       </div>
                     </div>
-                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: hud.surfaceHigh }}>
+                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: blockBg, border: '1px solid ' + ha('outline-var', 0.12) }}>
                       <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Priority</span>
                       <div className="text-xl font-bold uppercase" style={{ fontFamily: "'Space Grotesk',sans-serif", color: editedEvent.attributes.priority === Priority.P1 ? hud.error : editedEvent.attributes.priority === Priority.P2 ? '#fb923c' : hud.onSurface }}>
                         {getPriorityLabel(editedEvent.attributes.priority)}
                       </div>
                     </div>
-                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: hud.surfaceHigh, borderLeft: `3px solid ${editedEvent.attributes.impact ? '#ff6e84' : '#34d399'}` }}>
+                    <div className="p-5 rounded-xl flex flex-col justify-between h-28" style={{ background: blockBg, borderLeft: `3px solid ${editedEvent.attributes.impact ? '#ff6e84' : '#34d399'}` }}>
                       <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Impact</span>
                       <div className="flex items-center gap-2">
                         <i className="fa-solid fa-meteor text-lg" style={{ color: editedEvent.attributes.impact ? '#ff6e84' : '#34d399' }} />
@@ -543,14 +547,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         </span>
                       </div>
                     </div>
-                    <div className="p-5 rounded-xl flex flex-col justify-between h-28 relative" style={{ background: hud.surfaceHigh, border: `1px solid ${currentStatusColor}30` }}>
+                    <div className="p-5 rounded-xl flex flex-col justify-between h-28 relative" style={{ background: blockBg, border: `1px solid ${currentStatusColor}30` }}>
                       <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Status</span>
                       <button onClick={() => setShowStatusDropdown(!showStatusDropdown)} className="flex items-center justify-between w-full">
                         <span className="text-xl font-bold uppercase" style={{ fontFamily: "'Space Grotesk',sans-serif", color: currentStatusColor }}>{currentStatusLabel}</span>
                         <svg className={`w-4 h-4 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} style={{ color: currentStatusColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {showStatusDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg shadow-xl z-20 py-1 overflow-hidden" style={{ background: hud.surfaceHigh, border: `1px solid ${ha('outline-var', 0.3)}` }}>
+                        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg shadow-xl z-20 py-1 overflow-hidden" style={{ background: blockBg, border: `1px solid ${ha('outline-var', 0.3)}` }}>
                           {quickStatuses.map(({ v, l, c }) => (
                             <button key={v} onClick={() => { handleQuickStatus(v); setShowStatusDropdown(false) }}
                               className="w-full text-left px-4 py-2 text-sm font-semibold transition-all flex items-center gap-2 hover:brightness-125"
@@ -680,7 +684,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       {editedEvent.links?.pullRequestLink && (
                         <a href={editedEvent.links.pullRequestLink} target="_blank" rel="noopener noreferrer"
                           className="p-5 rounded-xl flex items-center gap-4 transition-all hover:brightness-110"
-                          style={{ background: hud.surfaceHigh, border: `1px solid ${ha('outline-var', 0.1)}` }}>
+                          style={{ background: blockBg, border: `1px solid ${ha('outline-var', 0.1)}` }}>
                           <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(36,41,47,0.3)' }}>
                             <i className="fa-brands fa-github text-2xl" />
                           </div>
@@ -693,7 +697,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       {editedEvent.links?.ticket && (
                         <a href={editedEvent.links.ticket.startsWith('http') ? editedEvent.links.ticket : '#'} target="_blank" rel="noopener noreferrer"
                           className="p-5 rounded-xl flex items-center gap-4 transition-all hover:brightness-110"
-                          style={{ background: hud.surfaceHigh, border: `1px solid ${ha('outline-var', 0.1)}` }}>
+                          style={{ background: blockBg, border: `1px solid ${ha('outline-var', 0.1)}` }}>
                           <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(37,99,235,0.15)' }}>
                             <i className="fa-brands fa-jira text-2xl" style={{ color: '#2684FF' }} />
                           </div>
@@ -710,7 +714,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         return (
                           <a href={url} target="_blank" rel="noopener noreferrer"
                             className="p-5 rounded-xl flex items-center gap-4 transition-all hover:brightness-110"
-                            style={{ background: hud.surfaceHigh, border: `1px solid ${ha('outline-var', 0.1)}` }}>
+                            style={{ background: blockBg, border: `1px solid ${ha('outline-var', 0.1)}` }}>
                             <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(74,21,75,0.15)' }}>
                               <i className="fa-brands fa-slack text-2xl" style={{ color: '#E01E5A' }} />
                             </div>
@@ -741,7 +745,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
               {/* Right Column: Owner + Audit */}
               <div className="lg:col-span-4 space-y-6">
                 {/* Owner Card */}
-                <div className="p-5 rounded-xl" style={{ background: hud.surfaceHigh, borderLeft: `4px solid ${hud.primary}` }}>
+                <div className="p-5 rounded-xl" style={{ background: blockBg, borderLeft: `4px solid ${hud.primary}` }}>
                   <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold mb-4" style={{ color: hud.onSurfaceVar }}>Event Owner</h4>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: hud.primary }}>

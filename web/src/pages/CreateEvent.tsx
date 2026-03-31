@@ -7,17 +7,13 @@ import type { CreateEventRequest } from '../types/api'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card'
-import { Clock, AlertCircle } from 'lucide-react'
+import { AlertCircle, FileText, Clock, Link2, Search, Zap, Plus, Github, Ticket, Repeat } from 'lucide-react'
 
 export default function CreateEvent() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
 
-  // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['catalogs', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
@@ -25,15 +21,13 @@ export default function CreateEvent() {
 
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
-  // État pour la récurrence
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<'1week' | '2weeks' | '4weeks'>('1week')
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('')
 
-  // Calculer les dates par défaut
   const now = new Date()
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
-  const defaultStartDate = now.toISOString().slice(0, 16) // Format datetime-local
+  const defaultStartDate = now.toISOString().slice(0, 16)
   const defaultEndDate = oneHourLater.toISOString().slice(0, 16)
 
   const [formData, setFormData] = useState<CreateEventRequest>({
@@ -58,9 +52,7 @@ export default function CreateEvent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setShowToast(true)
-      setTimeout(() => {
-        navigate(-1) // Retour à la page précédente
-      }, 2000)
+      setTimeout(() => { navigate(-1) }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating event:', error)
@@ -69,40 +61,31 @@ export default function CreateEvent() {
 
   const getErrorMessage = () => {
     if (!createMutation.isError) return ''
-    
     const error = createMutation.error as any
     const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error'
-    
-    // Améliorer le message d'erreur pour les locks
     if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
       return `🔒 Cannot create event: Service is already locked. Please check the Locks page to see who has locked it and unlock it first if needed.`
     } else if (errorMessage.toLowerCase().includes('cannot create event')) {
-      // Le backend renvoie déjà "cannot create event: ..." avec le détail
       return `🔒 ${errorMessage}`
     } else if (errorMessage.toLowerCase().includes('internal error')) {
       return `🔒 Cannot create event: There may be a lock conflict. Please check the Locks page.`
     }
-    
     return `❌ Error creating event: ${errorMessage}`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setShowToast(false)
-    
-    // Convertir les dates en ISO complet
+
     let startDateISO = undefined
     let endDateISO = undefined
-    
     if (formData.attributes.startDate) {
       startDateISO = new Date(formData.attributes.startDate).toISOString()
     }
-    
     if (formData.attributes.endDate) {
       endDateISO = new Date(formData.attributes.endDate).toISOString()
     }
-    
-    // S'assurer que la source est toujours "tracker"
+
     const eventData = {
       ...formData,
       attributes: {
@@ -112,21 +95,16 @@ export default function CreateEvent() {
         endDate: endDateISO,
       },
     }
-    
-    // Si récurrence activée, créer plusieurs événements
+
     if (isRecurring && recurrenceEndDate && startDateISO) {
       const events: any[] = []
       const startDate = new Date(formData.attributes.startDate!)
       const endDate = new Date(formData.attributes.endDate!)
       const recurrenceEnd = new Date(recurrenceEndDate)
-      
-      // Calculer l'intervalle en jours
       const intervalDays = recurrenceFrequency === '1week' ? 7 : recurrenceFrequency === '2weeks' ? 14 : 28
-      
       let currentStart = new Date(startDate)
       let currentEnd = new Date(endDate)
-      
-      // Générer les événements récurrents
+
       while (currentStart <= recurrenceEnd) {
         const recurringEvent = {
           ...eventData,
@@ -138,379 +116,332 @@ export default function CreateEvent() {
           },
         }
         events.push(convertEventForAPI(recurringEvent))
-        
-        // Avancer à la prochaine occurrence
         currentStart = new Date(currentStart.getTime() + intervalDays * 24 * 60 * 60 * 1000)
         currentEnd = new Date(currentEnd.getTime() + intervalDays * 24 * 60 * 60 * 1000)
       }
-      
-      // Créer tous les événements
+
       try {
         for (const event of events) {
           await eventsApi.create(event)
         }
         queryClient.invalidateQueries({ queryKey: ['events'] })
         setShowToast(true)
-        setTimeout(() => {
-          navigate(-1)
-        }, 2000)
+        setTimeout(() => { navigate(-1) }, 2000)
       } catch (error) {
         console.error('Error creating recurring events:', error)
       }
     } else {
-      // Créer un seul événement
       const apiData = convertEventForAPI(eventData)
       createMutation.mutate(apiData)
     }
   }
 
+  const ha = (v: string, a: number) => `rgb(var(--hud-${v}) / ${a})`
+  const hud = {
+    surface: 'rgb(var(--hud-surface))',
+    surfaceHigh: 'rgb(var(--hud-surface-high))',
+    surfaceHighest: 'rgb(var(--hud-surface-highest))',
+    primary: 'rgb(var(--hud-primary))',
+    tertiary: 'rgb(var(--hud-tertiary))',
+    onSurface: 'rgb(var(--hud-on-surface))',
+    onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
+    outline: 'rgb(var(--hud-outline))',
+    outlineVar: 'rgb(var(--hud-outline-var))',
+    error: 'rgb(var(--hud-error))',
+    success: 'rgb(var(--hud-success))',
+  }
+
+  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-none"
+  const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
+  const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
+
+  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+    <div className="flex items-center gap-3 mb-8">
+      <span style={{ color: color || hud.primary }}>{icon}</span>
+      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+    </div>
+  )
+
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
-      <div className="flex items-center space-x-3">
-        <Clock className="w-8 h-8 text-blue-600" />
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Event</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register a new event in the system</p>
-        </div>
-      </div>
-
-      {createMutation.isError && (
-        <div className="flex items-start gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium">{getErrorMessage()}</p>
-            {getErrorMessage().includes('🔒') && (
-              <p className="text-sm mt-2">
-                💡 Tip: You can view and manage locks on the <a href="/locks" className="underline hover:text-red-800 dark:hover:text-red-200">Locks page</a>
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {showToast && (
-        <Toast 
-          message="Event created successfully!"
-          onClose={() => setShowToast(false)}
-        />
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">What is an event?</h3>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              Events track important activities in your infrastructure: deployments, operations, incidents, drifts, and RPA executions. They provide a timeline of changes and help correlate issues with deployments.
-            </p>
-          </div>
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create a New Event
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Register a new operation, incident or deployment. Data accuracy ensures system integrity.
+          </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Event Information</CardTitle>
-            <CardDescription>Basic information about the event</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Title <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="title"
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ex: Deployment service-api v2.1.0"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
-                <select
-                  value={formData.attributes.type}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, type: e.target.value as EventType }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={EventType.DEPLOYMENT}>Deployment</option>
-                  <option value={EventType.OPERATION}>Operation</option>
-                  <option value={EventType.DRIFT}>Drift</option>
-                  <option value={EventType.INCIDENT}>Incident</option>
-                  <option value={EventType.RPA_USAGE}>RPA Usage</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
-                <select
-                  value={formData.attributes.priority}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, priority: e.target.value as Priority }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Priority.P1}>P1 - Critical</option>
-                  <option value={Priority.P2}>P2 - High</option>
-                  <option value={Priority.P3}>P3 - Medium</option>
-                  <option value={Priority.P4}>P4 - Low</option>
-                  <option value={Priority.P5}>P5 - Very Low</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-                <select
-                  value={formData.attributes.status}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, status: e.target.value as Status }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Status.PLANNED}>Planned</option>
-                  <option value={Status.OPEN}>Open</option>
-                  <option value={Status.START}>Started</option>
-                  <option value={Status.IN_PROGRESS}>In Progress</option>
-                  <option value={Status.SUCCESS}>Success</option>
-                  <option value={Status.DONE}>Done</option>
-                  <option value={Status.FAILURE}>Failed</option>
-                  <option value={Status.WARNING}>Warning</option>
-                  <option value={Status.ERROR}>Error</option>
-                  <option value={Status.CLOSE}>Closed</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
-                <select
-                  value={formData.attributes.environment}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, environment: e.target.value as Environment }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Environment.DEVELOPMENT}>Development</option>
-                  <option value={Environment.INTEGRATION}>Integration</option>
-                  <option value={Environment.UAT}>UAT</option>
-                  <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                  <option value={Environment.PRODUCTION}>Production</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Service <span className="text-red-500">*</span>
-                </label>
-                <ServiceAutocomplete
-                  id="service"
-                  value={formData.attributes.service}
-                  onChange={(value) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, service: value }
-                  })}
-                  services={catalogServices}
-                  loading={catalogLoading}
-                  required
-                  placeholder="Type to search or select a service"
-                />
-                {catalogServices.length === 0 && !catalogLoading && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    No services in catalog. Add services in the <a href="/catalog/create" className="text-primary-600 hover:underline">Catalog</a> first.
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Owner <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="owner"
-                  type="text"
-                  required
-                  value={formData.attributes.owner || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, owner: e.target.value }
-                  })}
-                  placeholder="Ex: john.doe, team-platform"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Message <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="message"
-                required
-                rows={3}
-                value={formData.attributes.message}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  attributes: { ...formData.attributes, message: e.target.value }
-                })}
-                placeholder="Detailed event description"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                <Input
-                  id="startDate"
-                  type="datetime-local"
-                  value={formData.attributes.startDate || ''}
-                  onChange={(e) => {
-                    const newStartDate = e.target.value
-                    const currentEndDate = formData.attributes.endDate
-                    // If endDate is before the new startDate, adjust endDate to match startDate
-                    const updatedEndDate = (currentEndDate && newStartDate && newStartDate > currentEndDate)
-                      ? newStartDate
-                      : currentEndDate
-                    setFormData({
-                      ...formData,
-                      attributes: { ...formData.attributes, startDate: newStartDate, endDate: updatedEndDate }
-                    })
-                  }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                <Input
-                  id="endDate"
-                  type="datetime-local"
-                  value={formData.attributes.endDate || ''}
-                  min={formData.attributes.startDate || undefined}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, endDate: e.target.value }
-                  })}
-                />
-              </div>
-            </div>
-
-            {/* Recurring Events Section */}
-            <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isRecurring"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-                  Create recurring event
-                </label>
-              </div>
-
-              {isRecurring && (
-                <div className="space-y-4 pl-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="recurrenceFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Frequency <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="recurrenceFrequency"
-                        value={recurrenceFrequency}
-                        onChange={(e) => setRecurrenceFrequency(e.target.value as '1week' | '2weeks' | '4weeks')}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        required={isRecurring}
-                      >
-                        <option value="1week">Every week</option>
-                        <option value="2weeks">Every 2 weeks</option>
-                        <option value="4weeks">Every 4 weeks</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="recurrenceEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Recurrence End Date <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="recurrenceEndDate"
-                        type="date"
-                        value={recurrenceEndDate}
-                        onChange={(e) => setRecurrenceEndDate(e.target.value)}
-                        required={isRecurring}
-                        min={formData.attributes.startDate?.slice(0, 10)}
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    💡 Multiple events will be created automatically based on the selected frequency until the end date.
-                  </p>
-                </div>
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <div>
+              <p className="text-sm font-medium" style={{ color: hud.error }}>{getErrorMessage()}</p>
+              {getErrorMessage().includes('🔒') && (
+                <p className="text-xs mt-2" style={{ color: hud.onSurfaceVar }}>
+                  💡 View and manage locks on the <a href="/locks" className="underline" style={{ color: hud.primary }}>Locks page</a>
+                </p>
               )}
             </div>
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <label htmlFor="pullRequest" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pull Request (optional)</label>
-              <Input
-                id="pullRequest"
-                type="url"
-                value={formData.links?.pullRequestLink || ''}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  links: { ...formData.links, pullRequestLink: e.target.value }
-                })}
-                placeholder="https://github.com/org/repo/pull/123"
-              />
+        {showToast && <Toast message="Event created successfully!" onClose={() => setShowToast(false)} />}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+            {/* ── Left Column: Core Info ── */}
+            <div className="md:col-span-8 space-y-8">
+
+              {/* Section: Event Information */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
+                <SectionHeader icon={<FileText className="w-5 h-5" />} title="Event Information" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Event Title <span style={{ color: hud.error }}>*</span></label>
+                    <input type="text" required value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g.: Deploy Cluster-K8S-Production-V2"
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Event Type</label>
+                    <select value={formData.attributes.type}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, type: e.target.value as EventType } })}
+                      className={inputCls + ' appearance-none'} style={inputStyle}>
+                      <option value={EventType.DEPLOYMENT}>Deployment</option>
+                      <option value={EventType.OPERATION}>Operation</option>
+                      <option value={EventType.DRIFT}>Drift</option>
+                      <option value={EventType.INCIDENT}>Incident</option>
+                      <option value={EventType.RPA_USAGE}>RPA Usage</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
+                    <select value={formData.attributes.environment}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
+                      className={inputCls + ' appearance-none'} style={inputStyle}>
+                      <option value={Environment.PRODUCTION}>Production</option>
+                      <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                      <option value={Environment.UAT}>UAT</option>
+                      <option value={Environment.INTEGRATION}>Integration</option>
+                      <option value={Environment.DEVELOPMENT}>Development</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
+                    <select value={formData.attributes.priority}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, priority: e.target.value as Priority } })}
+                      className={inputCls + ' appearance-none'} style={inputStyle}>
+                      <option value={Priority.P1}>P1 - Critical</option>
+                      <option value={Priority.P2}>P2 - High</option>
+                      <option value={Priority.P3}>P3 - Medium</option>
+                      <option value={Priority.P4}>P4 - Low</option>
+                      <option value={Priority.P5}>P5 - Very Low</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Initial Status</label>
+                    <select value={formData.attributes.status}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
+                      className={inputCls + ' appearance-none'} style={inputStyle}>
+                      <option value={Status.OPEN}>Open</option>
+                      <option value={Status.PLANNED}>Planned</option>
+                      <option value={Status.START}>Started</option>
+                      <option value={Status.IN_PROGRESS}>In Progress</option>
+                      <option value={Status.SUCCESS}>Success</option>
+                      <option value={Status.DONE}>Done</option>
+                      <option value={Status.FAILURE}>Failed</option>
+                      <option value={Status.WARNING}>Warning</option>
+                      <option value={Status.CLOSE}>Closed</option>
+                    </select>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Technical Details */}
+              <section className="p-8 rounded-xl overflow-visible relative z-10" style={{ background: hud.surface }}>
+                <SectionHeader icon={<Search className="w-5 h-5" />} title="Technical Details" />
+                <div className="space-y-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Message / Description <span style={{ color: hud.error }}>*</span></label>
+                    <textarea required rows={4} value={formData.attributes.message}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, message: e.target.value } })}
+                      placeholder="Describe the details of the intervention or observed symptoms..."
+                      className={inputCls + ' resize-none'} style={inputStyle} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="relative z-10">
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Impacted Service <span style={{ color: hud.error }}>*</span></label>
+                      <ServiceAutocomplete
+                        id="service"
+                        value={formData.attributes.service}
+                        onChange={(value) => setFormData({ ...formData, attributes: { ...formData.attributes, service: value } })}
+                        services={catalogServices}
+                        loading={catalogLoading}
+                        required
+                        placeholder="Search for a service..."
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Owner <span style={{ color: hud.error }}>*</span></label>
+                      <input type="text" required value={formData.attributes.owner || ''}
+                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, owner: e.target.value } })}
+                        placeholder="ex: john.doe, team-platform"
+                        className={inputCls} style={inputStyle} />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Resources */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
+                <SectionHeader icon={<Link2 className="w-5 h-5" />} title="Resources" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Ticket Jira</label>
+                    <div className="relative">
+                      <Ticket className="absolute left-3 top-3 w-4 h-4" style={{ color: hud.onSurfaceVar }} />
+                      <input type="url" value={formData.links?.ticket || ''}
+                        onChange={(e) => setFormData({ ...formData, links: { ...formData.links, ticket: e.target.value } })}
+                        placeholder="ex: https://jira.company.com/TRK-1234"
+                        className={inputCls + ' pl-10'} style={inputStyle} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>GitHub PR</label>
+                    <div className="relative">
+                      <Github className="absolute left-3 top-3 w-4 h-4" style={{ color: hud.onSurfaceVar }} />
+                      <input type="url" value={formData.links?.pullRequestLink || ''}
+                        onChange={(e) => setFormData({ ...formData, links: { ...formData.links, pullRequestLink: e.target.value } })}
+                        placeholder="ex: https://github.com/org/repo/pull/452"
+                        className={inputCls + ' pl-10'} style={inputStyle} />
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="ticket" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket URL (optional)</label>
-              <Input
-                id="ticket"
-                type="url"
-                value={formData.links?.ticket || ''}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  links: { ...formData.links, ticket: e.target.value }
-                })}
-                placeholder="https://jira.company.com/browse/PROJ-123"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Full Jira ticket URL
-              </p>
-            </div>
+            {/* ── Right Column: Planning ── */}
+            <div className="md:col-span-4 space-y-8">
 
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                onClick={() => navigate(-1)}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                {createMutation.isPending ? 'Creating...' : 'Create Event'}
-              </Button>
+              {/* Section: Planning */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.tertiary}` }}>
+                <SectionHeader icon={<Clock className="w-5 h-5" />} title="Scheduling" color={hud.tertiary} />
+                <div className="space-y-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Start</label>
+                    <input type="datetime-local" value={formData.attributes.startDate || ''}
+                      onChange={(e) => {
+                        const newStart = e.target.value
+                        const end = formData.attributes.endDate
+                        setFormData({ ...formData, attributes: { ...formData.attributes, startDate: newStart, endDate: (end && newStart > end) ? newStart : end } })
+                      }}
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Estimated End</label>
+                    <input type="datetime-local" value={formData.attributes.endDate || ''} min={formData.attributes.startDate || undefined}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, endDate: e.target.value } })}
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                </div>
+              </section>
+
+              {/* Section: Recurrence Widget */}
+              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Repeat className="w-20 h-20" />
+                </div>
+                <div className="flex flex-col items-center text-center py-2">
+                  <Repeat className="w-10 h-10 mb-4" style={{ color: isRecurring ? hud.primary : hud.success }} />
+                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Recurrence</h4>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="sr-only peer" />
+                    <div className="relative w-14 h-7 rounded-full peer transition-colors"
+                      style={{ background: isRecurring ? hud.primary : hud.surfaceHighest }}>
+                      <div className="absolute top-0.5 left-[4px] bg-white rounded-full h-6 w-6 transition-transform"
+                        style={{ transform: isRecurring ? 'translateX(100%)' : 'translateX(0)' }} />
+                    </div>
+                    <span className="ms-3 text-sm font-medium" style={{ color: hud.onSurfaceVar }}>Enable</span>
+                  </label>
+                  {isRecurring && (
+                    <div className="w-full space-y-4 mt-6 text-left">
+                      <div>
+                        <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Frequency</label>
+                        <select value={recurrenceFrequency} onChange={(e) => setRecurrenceFrequency(e.target.value as any)}
+                          className={inputCls + ' appearance-none'} style={inputStyle} required={isRecurring}>
+                          <option value="1week">Every week</option>
+                          <option value="2weeks">Every 2 weeks</option>
+                          <option value="4weeks">Every 4 weeks</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className={labelCls} style={{ color: hud.onSurfaceVar }}>End Date</label>
+                        <input type="date" value={recurrenceEndDate} onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                          required={isRecurring} min={formData.attributes.startDate?.slice(0, 10)}
+                          className={inputCls} style={inputStyle} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Section: Impact Widget */}
+              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <i className="fa-solid fa-meteor text-7xl" />
+                </div>
+                <div className="flex flex-col items-center text-center py-2">
+                  <i className="fa-solid fa-meteor text-4xl mb-4 transition-colors duration-300"
+                    style={{ color: formData.attributes.impact ? hud.error : hud.success }} />
+                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Impact Detection</h4>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={formData.attributes.impact || false}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: e.target.checked } })}
+                      className="sr-only peer" />
+                    <div className="relative w-14 h-7 rounded-full peer transition-colors"
+                      style={{ background: formData.attributes.impact ? hud.error : hud.surfaceHighest }}>
+                      <div className="absolute top-0.5 left-[4px] bg-white rounded-full h-6 w-6 transition-transform"
+                        style={{ transform: formData.attributes.impact ? 'translateX(100%)' : 'translateX(0)' }} />
+                    </div>
+                    <span className="ms-3 text-sm font-medium" style={{ color: hud.onSurfaceVar }}>Impact detected</span>
+                  </label>
+                </div>
+              </section>
             </div>
-          </CardContent>
-        </Card>
-      </form>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
+            <button type="button" onClick={() => navigate(-1)}
+              className="px-8 py-3 font-bold transition-colors hover:opacity-80"
+              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={createMutation.isPending}
+              className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+              style={{
+                background: `linear-gradient(135deg, ${hud.primary}, ${ha('primary-dim', 1)})`,
+                color: 'white',
+                fontFamily: "'Space Grotesk', sans-serif",
+                boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
+              }}>
+              <Plus className="w-4 h-4" />
+              {createMutation.isPending ? 'Creating...' : 'Create Event'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Decorative Background Glows */}
+      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none" style={{ background: ha('primary', 0.05) }} />
+      <div className="fixed bottom-0 left-64 -z-10 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: ha('tertiary', 0.05) }} />
     </div>
   )
 }

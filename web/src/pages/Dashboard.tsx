@@ -582,15 +582,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* FAB */}
-      <Link
-        to="/events/create"
-        className="fixed bottom-10 right-10 w-16 h-16 rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 transition-all z-50"
-        style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})` }}
-      >
-        <Plus className="w-7 h-7 text-white" />
-      </Link>
-
       {selectedEvent && (
         <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       )}

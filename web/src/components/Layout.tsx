@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight, Link as LinkIcon } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
@@ -198,14 +198,23 @@ export default function Layout() {
             <div className="flex justify-center">
               <ThemeToggle compact={isCollapsed} />
             </div>
-            <div className="flex justify-center">
-              <LinksSearch collapsed={isCollapsed} />
-            </div>
           </div>
         </aside>
 
         {/* Main Content */}
         <div className={`flex-1 ${isCollapsed ? 'ml-16' : 'ml-64'} flex flex-col h-screen overflow-hidden transition-all duration-300`}>
+          {/* Top Bar */}
+          <header className="h-14 shrink-0 flex items-center justify-between px-6 border-b relative z-50" style={{ background: 'rgb(var(--hud-surface) / 0.6)', backdropFilter: 'blur(12px)', borderColor: 'rgb(var(--hud-outline-var) / 0.15)' }}>
+            <div className="flex-1 max-w-2xl">
+              <LinksSearch collapsed={false} />
+            </div>
+            <Link to="/events/create"
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-bold transition-all ml-4"
+              style={{ background: 'rgb(var(--hud-primary))', color: 'white', boxShadow: '0 2px 8px rgb(var(--hud-primary) / 0.2)' }}
+            >
+              <Plus className="w-4 h-4" /> New Event
+            </Link>
+          </header>
           <main className="flex-1 flex flex-col overflow-hidden">
             <Outlet />
           </main>
