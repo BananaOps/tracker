@@ -481,18 +481,18 @@ export default function EventsCalendar() {
                           )}
                         </div>
                         {dayEvents.length > 0 && (
-                          <div className="space-y-0.5 flex-1 overflow-hidden">
+                          <div className="space-y-1 flex-1 overflow-hidden">
                             {dayEvents.slice(0, 3).map((event: any, idx: number) => {
                               const t = String(event.attributes.type).toLowerCase()
                               const c = t === 'deployment' || t === '1' ? '#40ceed' : t === 'incident' || t === '4' ? '#ff6e84' : t === 'drift' || t === '3' ? '#a3aac4' : t === 'operation' || t === '2' ? '#bd9dff' : '#a78bfa'
                               return (
-                                <div key={idx} className="text-[9px] px-1 py-0.5 rounded truncate" style={{ background: `${c}15`, color: c }}>
+                                <div key={idx} className="text-[10px] font-medium px-1.5 py-1 rounded-md truncate leading-tight" style={{ background: `${c}20`, color: c, borderLeft: `2px solid ${c}` }}>
                                   {event.title}
                                 </div>
                               )
                             })}
                             {dayEvents.length > 3 && (
-                              <div className="text-[9px] font-medium px-1" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>+{dayEvents.length - 3}</div>
+                              <div className="text-[10px] font-medium px-1.5" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>+{dayEvents.length - 3}</div>
                             )}
                           </div>
                         )}

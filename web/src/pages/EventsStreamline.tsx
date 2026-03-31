@@ -1,20 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Package, Globe, Filter, X, Plus, Calendar, Clock, ChevronRight, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Package, Globe, Filter, X, Calendar, Clock, ChevronDown, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react'
 import type { Event } from '../types/api'
-import { getEventTypeColor, getEnvironmentLabel, getEventTypeLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
+import { getEnvironmentLabel, getEventTypeLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 
 type GroupBy = 'service' | 'environment'
 type ViewMode = 'week' | 'day'
@@ -238,391 +230,450 @@ export default function EventsStreamline() {
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
 
+  const [showTimeRangePicker, setShowTimeRangePicker] = useState(false)
+  const timeRangeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (timeRangeRef.current && !timeRangeRef.current.contains(e.target as Node)) {
+        setShowTimeRangePicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   if (isLoading || catalogLoading) {
-    return <div className="text-center py-12">Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen" style={{ background: 'rgb(var(--hud-bg))' }}>
+        <div className="text-sm font-medium" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Loading…</div>
+      </div>
+    )
   }
 
   const sortedGroups = Object.keys(groupedEvents).sort((a, b) => 
     groupedEvents[b].length - groupedEvents[a].length
   )
 
+  const getEventHexColor = (type: string) => {
+    const t = String(type).toLowerCase()
+    if (t === 'deployment' || t === '1') return '#40ceed'
+    if (t === 'incident'   || t === '4') return '#ff6e84'
+    if (t === 'drift'      || t === '3') return '#f5c842'
+    if (t === 'operation'  || t === '2') return '#bd9dff'
+    if (t === 'rpa_usage'  || t === '5') return '#818cf8'
+    return '#a78bfa'
+  }
+
+  const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
+  const T = {
+    bg:           'rgb(var(--hud-bg))',
+    surface:      'rgb(var(--hud-surface))',
+    surfaceLow:   'rgb(var(--hud-surface-low))',
+    surfaceHigh:  'rgb(var(--hud-surface-high))',
+    primary:      'rgb(var(--hud-primary))',
+    error:        'rgb(var(--hud-error))',
+    success:      'rgb(var(--hud-success))',
+    onSurface:    'rgb(var(--hud-on-surface))',
+    onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
+    outlineVar:   'rgb(var(--hud-outline-var))',
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar Filters - Style Datadog */}
+    <div className="flex h-screen overflow-hidden" style={{ background: T.bg, color: T.onSurface }}>
+
+      {/* Sidebar */}
       {showSidebar && (
-        <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col shrink-0">
+        <div className="w-64 flex flex-col shrink-0" style={{ background: T.surfaceLow, borderRight: `1px solid ${a('outline-var', 0.15)}` }}>
+
           {/* Sidebar Header */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <div className="p-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.12)}` }}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: T.onSurface }}>
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
               </h3>
               {activeFiltersCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
+                <button onClick={clearAllFilters} className="text-xs font-medium" style={{ color: T.primary }}>
                   Clear all
-                </Button>
+                </button>
               )}
             </div>
           </div>
 
-          {/* Filters Content */}
-          <ScrollArea className="flex-1 p-3">
-            <div className="space-y-4">
-              {/* Event Type Filter */}
-              <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
-                  Event Type
-                </h4>
-                <div className="space-y-2">
-                  {uniqueTypes.map(type => (
-                    <label key={String(type)} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedTypes.includes(String(type))}
-                        onCheckedChange={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                        {getEventTypeLabel(type)}
-                      </span>
+          {/* Filters scrollable */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+
+            {/* Event Type */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Event Type</div>
+              <div className="space-y-2">
+                {uniqueTypes.map(type => {
+                  const checked = selectedTypes.includes(String(type))
+                  const color = getEventHexColor(String(type))
+                  return (
+                    <label key={String(type)} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        onClick={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
+                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                        style={{
+                          background: checked ? color : a('outline-var', 0.1),
+                          border: `1.5px solid ${checked ? color : a('outline-var', 0.4)}`
+                        }}
+                      >
+                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                      </div>
+                      <span className="text-sm" style={{ color: T.onSurface }}>{getEventTypeLabel(String(type))}</span>
                     </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Environment Filter */}
-              <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
-                  Environment
-                </h4>
-                <div className="space-y-2">
-                  {uniqueEnvironments.map(env => (
-                    <label key={String(env)} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedEnvironments.includes(String(env))}
-                        onCheckedChange={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                        {getEnvironmentLabel(env)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Priority Filter */}
-              <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
-                  Priority
-                </h4>
-                <div className="space-y-2">
-                  {uniquePriorities.map(priority => (
-                    <label key={String(priority)} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedPriorities.includes(String(priority))}
-                        onCheckedChange={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                        {getPriorityLabel(priority)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Status Filter */}
-              <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
-                  Status
-                </h4>
-                <div className="space-y-2">
-                  {uniqueStatuses.map(status => (
-                    <label key={String(status)} className="flex items-center space-x-2 cursor-pointer group">
-                      <Checkbox
-                        checked={selectedStatuses.includes(String(status))}
-                        onCheckedChange={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                        {getStatusLabel(status)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Service Filter */}
-              <div>
-                <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">
-                  Service
-                </h4>
-                {catalogServices.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-                      <Input
-                        placeholder="Search services..."
-                        value={serviceSearchQuery}
-                        onChange={(e) => setServiceSearchQuery(e.target.value)}
-                        className="pl-7 h-8 text-xs"
-                      />
-                      {serviceSearchQuery && (
-                        <button
-                          onClick={() => setServiceSearchQuery('')}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {filteredCatalogServices.length > 0 ? (
-                        filteredCatalogServices.map(service => (
-                          <label key={service} className="flex items-center space-x-2 cursor-pointer group">
-                            <Checkbox
-                              checked={selectedServices.includes(service)}
-                              onCheckedChange={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 truncate" title={service}>
-                              {service}
-                            </span>
-                          </label>
-                        ))
-                      ) : (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">No services found</p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No services</p>
-                )}
+                  )
+                })}
               </div>
             </div>
-          </ScrollArea>
+
+            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
+
+            {/* Environment */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Environment</div>
+              <div className="space-y-2">
+                {uniqueEnvironments.map(env => {
+                  const checked = selectedEnvironments.includes(String(env))
+                  return (
+                    <label key={String(env)} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        onClick={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
+                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                        style={{
+                          background: checked ? T.primary : a('outline-var', 0.1),
+                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                        }}
+                      >
+                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                      </div>
+                      <span className="text-sm" style={{ color: T.onSurface }}>{getEnvironmentLabel(String(env))}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
+
+            {/* Priority */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Priority</div>
+              <div className="space-y-2">
+                {uniquePriorities.map(priority => {
+                  const checked = selectedPriorities.includes(String(priority))
+                  return (
+                    <label key={String(priority)} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        onClick={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
+                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                        style={{
+                          background: checked ? T.primary : a('outline-var', 0.1),
+                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                        }}
+                      >
+                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                      </div>
+                      <span className="text-sm" style={{ color: T.onSurface }}>{getPriorityLabel(String(priority))}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
+
+            {/* Status */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Status</div>
+              <div className="space-y-2">
+                {uniqueStatuses.map(status => {
+                  const checked = selectedStatuses.includes(String(status))
+                  return (
+                    <label key={String(status)} className="flex items-center gap-2 cursor-pointer">
+                      <div
+                        onClick={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
+                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                        style={{
+                          background: checked ? T.primary : a('outline-var', 0.1),
+                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                        }}
+                      >
+                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                      </div>
+                      <span className="text-sm" style={{ color: T.onSurface }}>{getStatusLabel(String(status))}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
+
+            {/* Service */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Service</div>
+              {catalogServices.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: T.onSurfaceVar }} />
+                    <input
+                      placeholder="Search services..."
+                      value={serviceSearchQuery}
+                      onChange={(e) => setServiceSearchQuery(e.target.value)}
+                      className="w-full px-7 py-1.5 rounded-lg text-xs"
+                      style={{ background: a('outline-var', 0.07), color: T.onSurface, border: 'none', outline: 'none' }}
+                    />
+                    {serviceSearchQuery && (
+                      <button
+                        onClick={() => setServiceSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2"
+                        style={{ color: T.onSurfaceVar }}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {filteredCatalogServices.length > 0 ? (
+                      filteredCatalogServices.map(service => {
+                        const checked = selectedServices.includes(service)
+                        return (
+                          <label key={service} className="flex items-center gap-2 cursor-pointer">
+                            <div
+                              onClick={() => toggleFilter(service, selectedServices, setSelectedServices)}
+                              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                              style={{
+                                background: checked ? T.primary : a('outline-var', 0.1),
+                                border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                              }}
+                            >
+                              {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                            </div>
+                            <span className="text-sm truncate" style={{ color: T.onSurface }} title={service}>{service}</span>
+                          </label>
+                        )
+                      })
+                    ) : (
+                      <p className="text-xs italic" style={{ color: T.onSurfaceVar }}>No services found</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm italic" style={{ color: T.onSurfaceVar }}>No services</p>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+
         {/* Top Bar */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="h-9 w-9"
-              >
-                <Filter className="w-4 h-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Events Streamline</h2>
-                {activeFiltersCount > 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''}
-                  </p>
-                )}
-              </div>
-            </div>
+        <div className="px-6 py-4 flex-shrink-0" style={{ background: T.surface, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+              style={{
+                background: showSidebar ? a('primary', 0.12) : a('outline-var', 0.08),
+                border: `1px solid ${showSidebar ? a('primary', 0.25) : 'transparent'}`,
+                color: showSidebar ? T.primary : T.onSurfaceVar
+              }}
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
+              Events Streamline
+            </h2>
           </div>
 
-          {/* Active Filters Tags */}
+          {/* Active Filter Pills */}
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               {selectedTypes.map(type => (
-                <Badge key={type} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span key={type} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
+                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
                   {getEventTypeLabel(type)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
-                </Badge>
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
+                </span>
               ))}
               {selectedEnvironments.map(env => (
-                <Badge key={env} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span key={env} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
+                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
                   {getEnvironmentLabel(env)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
-                </Badge>
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
+                </span>
               ))}
               {selectedPriorities.map(priority => (
-                <Badge key={priority} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span key={priority} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
+                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
                   {getPriorityLabel(priority)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
-                </Badge>
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
+                </span>
               ))}
               {selectedStatuses.map(status => (
-                <Badge key={status} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span key={status} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
+                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
                   {getStatusLabel(status)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
-                </Badge>
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
+                </span>
               ))}
               {selectedServices.map(service => (
-                <Badge key={service} variant="secondary" className="gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600">
+                <span key={service} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
+                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
                   {service}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(service, selectedServices, setSelectedServices)} />
-                </Badge>
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(service, selectedServices, setSelectedServices)} />
+                </span>
               ))}
             </div>
           )}
         </div>
 
         {/* Time Controls Bar */}
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-          <div className="flex items-center justify-between">
-            {/* Left: Time Range Picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 gap-2 text-xs">
-                  <Clock className="w-3 h-3" />
-                  {selectedTimeRange}
-                  <ChevronRight className="w-3 h-3 rotate-90" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="start">
-                <div className="p-3 space-y-3">
-                  <div>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Quick Ranges
-                    </div>
-                    <div className="space-y-1 mt-2">
-                      {timeRanges.map((range) => (
-                        <button
-                          key={range.label}
-                          onClick={() => handleTimeRangeSelect(range)}
-                          className={`w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                            selectedTimeRange === range.label
-                              ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium'
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {range.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+        <div className="px-6 py-3 flex items-center justify-between flex-shrink-0"
+          style={{ background: a('outline-var', 0.04), borderBottom: `1px solid ${a('outline-var', 0.12)}` }}>
 
-                  <Separator />
-
-                  <div>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Custom Range
-                    </div>
-                    <div className="space-y-2 mt-2">
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">From</label>
-                        <Input
-                          type="date"
-                          value={customStartDate}
-                          onChange={(e) => setCustomStartDate(e.target.value)}
-                          className="h-8 text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 dark:text-gray-400 block mb-1">To</label>
-                        <Input
-                          type="date"
-                          value={customEndDate}
-                          onChange={(e) => setCustomEndDate(e.target.value)}
-                          className="h-8 text-xs"
-                        />
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={handleCustomDateApply}
-                        disabled={!customStartDate || !customEndDate}
-                        className="w-full h-7 text-xs"
-                      >
-                        Apply Custom Range
-                      </Button>
-                    </div>
+          {/* Left: Time Range Picker */}
+          <div ref={timeRangeRef} className="relative">
+            <button
+              onClick={() => setShowTimeRangePicker(!showTimeRangePicker)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.3)}`, color: T.onSurface }}
+            >
+              <Clock className="w-3.5 h-3.5" style={{ color: T.primary }} />
+              {selectedTimeRange}
+              <ChevronDown className="w-3 h-3" style={{ color: T.onSurfaceVar }} />
+            </button>
+            {showTimeRangePicker && (
+              <div className="absolute top-full left-0 mt-1 z-50 rounded-xl p-4 w-72 space-y-4"
+                style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}`, boxShadow: `0 16px 40px ${a('bg', 0.8)}` }}>
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Quick Ranges</div>
+                  <div className="space-y-0.5">
+                    {timeRanges.map(range => (
+                      <button key={range.label}
+                        onClick={() => { handleTimeRangeSelect(range); setShowTimeRangePicker(false) }}
+                        className="w-full text-left px-3 py-1.5 rounded-lg text-xs transition-all"
+                        style={{
+                          background: selectedTimeRange === range.label ? a('primary', 0.12) : 'transparent',
+                          color: selectedTimeRange === range.label ? T.primary : T.onSurface,
+                          fontWeight: selectedTimeRange === range.label ? 600 : 400
+                        }}>
+                        {range.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Center: Date Display & View Mode */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">
-                  {format(startDate, 'MMM dd', { locale: fr })} - {format(endDate, 'MMM dd, yyyy', { locale: fr })}
-                </span>
+                <div style={{ borderTop: `1px solid ${a('outline-var', 0.12)}` }} />
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Custom Range</div>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: T.onSurfaceVar }}>From</label>
+                      <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-none"
+                        style={{ background: a('outline-var', 0.08), color: T.onSurface }} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: T.onSurfaceVar }}>To</label>
+                      <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-none"
+                        style={{ background: a('outline-var', 0.08), color: T.onSurface }} />
+                    </div>
+                    <button onClick={() => { handleCustomDateApply(); setShowTimeRangePicker(false) }}
+                      disabled={!customStartDate || !customEndDate}
+                      className="w-full py-2 rounded-lg text-xs font-bold transition-opacity disabled:opacity-40"
+                      style={{ background: T.primary, color: '#000' }}>
+                      Apply Custom Range
+                    </button>
+                  </div>
+                </div>
               </div>
+            )}
+          </div>
 
-              <div className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('week')}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors text-xs ${
-                    viewMode === 'week'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                  }`}
-                >
-                  <Calendar className="w-3 h-3" />
-                  <span className="font-medium">Week</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('day')}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors text-xs ${
-                    viewMode === 'day'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                  }`}
-                >
-                  <Clock className="w-3 h-3" />
-                  <span className="font-medium">Day</span>
-                </button>
-              </div>
+          {/* Center: Date Display + View Mode */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm">
+              <Calendar className="w-4 h-4" style={{ color: T.primary }} />
+              <span className="font-medium" style={{ color: T.onSurface }}>
+                {format(startDate, 'MMM dd', { locale: fr })} - {format(endDate, 'MMM dd, yyyy', { locale: fr })}
+              </span>
             </div>
-
-            {/* Right: Group By & Create */}
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
-                <button
-                  onClick={() => setGroupBy('service')}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors text-xs ${
-                    groupBy === 'service'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                  }`}
-                >
-                  <Package className="w-3 h-3" />
-                  <span className="font-medium">Service</span>
-                </button>
-                <button
-                  onClick={() => setGroupBy('environment')}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors text-xs ${
-                    groupBy === 'environment'
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                  }`}
-                >
-                  <Globe className="w-3 h-3" />
-                  <span className="font-medium">Environment</span>
-                </button>
-              </div>
-
-              <Link to="/events/create">
-                <Button size="sm" className="h-7 gap-1 text-xs">
-                  <Plus className="w-3 h-3" />
-                  Create Event
-                </Button>
-              </Link>
+            <div className="flex items-center rounded-lg p-0.5" style={{ background: a('outline-var', 0.08) }}>
+              <button
+                onClick={() => setViewMode('week')}
+                className="flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs"
+                style={{
+                  background: viewMode === 'week' ? T.surface : 'transparent',
+                  color: viewMode === 'week' ? T.onSurface : T.onSurfaceVar,
+                  boxShadow: viewMode === 'week' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+                }}
+              >
+                <Calendar className="w-3 h-3" />
+                <span className="font-medium">Week</span>
+              </button>
+              <button
+                onClick={() => setViewMode('day')}
+                className="flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs"
+                style={{
+                  background: viewMode === 'day' ? T.surface : 'transparent',
+                  color: viewMode === 'day' ? T.onSurface : T.onSurfaceVar,
+                  boxShadow: viewMode === 'day' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+                }}
+              >
+                <Clock className="w-3 h-3" />
+                <span className="font-medium">Day</span>
+              </button>
             </div>
           </div>
+
+          {/* Right: Group By */}
+          <div className="flex items-center rounded-lg p-0.5" style={{ background: a('outline-var', 0.08) }}>
+            <button
+              onClick={() => setGroupBy('service')}
+              className="flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs"
+              style={{
+                background: groupBy === 'service' ? T.surface : 'transparent',
+                color: groupBy === 'service' ? T.onSurface : T.onSurfaceVar,
+                boxShadow: groupBy === 'service' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+              }}
+            >
+              <Package className="w-3 h-3" />
+              <span className="font-medium">Service</span>
+            </button>
+            <button
+              onClick={() => setGroupBy('environment')}
+              className="flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs"
+              style={{
+                background: groupBy === 'environment' ? T.surface : 'transparent',
+                color: groupBy === 'environment' ? T.onSurface : T.onSurfaceVar,
+                boxShadow: groupBy === 'environment' ? '0 1px 3px rgba(0,0,0,0.3)' : 'none'
+              }}
+            >
+              <Globe className="w-3 h-3" />
+              <span className="font-medium">Environment</span>
+            </button>
+          </div>
+
         </div>
 
-        {/* Gantt View */}
-        <ScrollArea className="flex-1 p-6">
+        {/* Gantt Grid */}
+        <div className="flex-1 overflow-auto p-6">
           <div className={viewMode === 'week' ? '' : 'overflow-x-auto'}>
-            {/* Header avec les colonnes de temps */}
-           <div className={`grid gap-2 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700`} style={{ gridTemplateColumns: viewMode === 'day' ? `minmax(150px, 200px) repeat(24, minmax(0, 1fr))` : `200px repeat(${timeSlots.length}, minmax(0, 1fr))` }}>
-              <div className="font-semibold text-gray-700 dark:text-gray-300">
+
+            {/* Header */}
+            <div className="grid gap-2 mb-4 pb-4" style={{
+              gridTemplateColumns: viewMode === 'day' ? `minmax(150px, 200px) repeat(24, minmax(0, 1fr))` : `200px repeat(${timeSlots.length}, minmax(0, 1fr))`,
+              borderBottom: `1px solid ${a('outline-var', 0.15)}`
+            }}>
+              <div className="font-semibold text-sm" style={{ color: T.onSurface }}>
                 {groupBy === 'service' ? 'Service' : 'Environment'}
               </div>
               {timeSlots.map(slot => {
@@ -631,15 +682,15 @@ export default function EventsStreamline() {
                   <div key={slot.toISOString()} className="text-center">
                     {viewMode === 'week' ? (
                       <>
-                        <div className={`text-xs font-medium ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <div className="text-xs font-medium" style={{ color: isCurrent ? T.primary : T.onSurfaceVar }}>
                           {format(slot, 'EEE', { locale: fr })}
                         </div>
-                        <div className={`text-sm font-semibold ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                        <div className="text-sm font-semibold" style={{ color: isCurrent ? T.primary : T.onSurface }}>
                           {format(slot, 'dd')}
                         </div>
                       </>
                     ) : (
-                      <div className={`text-xs font-medium ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className="text-xs font-medium" style={{ color: isCurrent ? T.primary : T.onSurfaceVar }}>
                         {format(slot, 'HH:mm')}
                       </div>
                     )}
@@ -648,10 +699,13 @@ export default function EventsStreamline() {
               })}
             </div>
 
-            {/* Lignes pour chaque groupe */}
+            {/* Rows */}
             {sortedGroups.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                {viewMode === 'week' ? 'No events this week' : 'No events today'}
+              <div className="text-center py-12 flex flex-col items-center gap-3">
+                <Calendar className="w-10 h-10" style={{ color: T.onSurfaceVar }} />
+                <span className="text-sm" style={{ color: T.onSurfaceVar }}>
+                  {viewMode === 'week' ? 'No events this week' : 'No events today'}
+                </span>
               </div>
             ) : (
               <div className="space-y-4">
@@ -660,23 +714,21 @@ export default function EventsStreamline() {
                   const totalEvents = groupedEvents[groupName].length
                   const groupEventsArray = groupedEvents[groupName]
 
-                  // Calculer les événements uniques (éviter les doublons multi-slots)
-                  const uniqueEvents = groupEventsArray.filter((event, index, self) => 
+                  const uniqueEvents = groupEventsArray.filter((event, index, self) =>
                     index === self.findIndex(e => e.metadata?.id === event.metadata?.id)
                   )
 
-                  // Fonction pour calculer les indices de slot d'un événement
                   const getEventSlotIndices = (event: Event) => {
                     const startDateStr = event.attributes.startDate || event.metadata?.createdAt
                     if (!startDateStr) return { start: -1, end: -1 }
-                    
+
                     const startDate = new Date(startDateStr)
                     const endDateStr = event.attributes.endDate
                     const endDate = endDateStr ? new Date(endDateStr) : startDate
-                    
+
                     let startSlotIndex = -1
                     let endSlotIndex = -1
-                    
+
                     timeSlots.forEach((slot, index) => {
                       if (viewMode === 'week') {
                         if (isSameDay(slot, startDate) && startSlotIndex === -1) startSlotIndex = index
@@ -685,7 +737,7 @@ export default function EventsStreamline() {
                         const slotHour = getHours(slot)
                         const startHour = getHours(startDate)
                         const endHour = getHours(endDate)
-                        
+
                         if (isSameDay(slot, startDate) && slotHour === startHour && startSlotIndex === -1) {
                           startSlotIndex = index
                         }
@@ -694,37 +746,32 @@ export default function EventsStreamline() {
                         }
                       }
                     })
-                    
+
                     if (endSlotIndex === -1) endSlotIndex = startSlotIndex
                     return { start: startSlotIndex, end: endSlotIndex }
                   }
 
-                  // Fonction pour vérifier si deux événements se chevauchent
                   const eventsOverlap = (event1Indices: { start: number, end: number }, event2Indices: { start: number, end: number }) => {
                     return event1Indices.start <= event2Indices.end && event2Indices.start <= event1Indices.end
                   }
 
-                  // Assigner des pistes (tracks) aux événements pour éviter les chevauchements
                   const eventsWithTracks = uniqueEvents.map(event => {
                     const indices = getEventSlotIndices(event)
                     return { event, indices, track: 0 }
                   })
 
-                  // Algorithme de placement sur pistes
                   eventsWithTracks.forEach((eventData, index) => {
                     if (eventData.indices.start === -1) return
-                    
-                    // Trouver la première piste disponible
+
                     let track = 0
                     let trackAvailable = false
-                    
+
                     while (!trackAvailable) {
                       trackAvailable = true
-                      
-                      // Vérifier si cette piste est libre
+
                       for (let i = 0; i < index; i++) {
                         const otherEventData = eventsWithTracks[i]
-                        if (otherEventData.track === track && 
+                        if (otherEventData.track === track &&
                             otherEventData.indices.start !== -1 &&
                             eventsOverlap(eventData.indices, otherEventData.indices)) {
                           trackAvailable = false
@@ -733,45 +780,45 @@ export default function EventsStreamline() {
                         }
                       }
                     }
-                    
+
                     eventData.track = track
                   })
 
                   const maxTrack = Math.max(...eventsWithTracks.map(e => e.track), 0)
-                  
-                  // Détecter s'il y a des chevauchements (événements sur plusieurs pistes)
                   const hasOverlaps = maxTrack > 0
 
                   return (
                     <div key={groupName}>
                       <div className="relative">
-                        {/* Grille de fond avec les cellules */}
+
+                        {/* Background grid */}
                         <div className="grid gap-2 items-start" style={{ gridTemplateColumns: viewMode === 'day' ? `minmax(150px, 200px) repeat(24, minmax(0, 1fr))` : `200px repeat(${timeSlots.length}, minmax(0, 1fr))` }}>
-                          {/* Nom du groupe */}
+
+                          {/* Group name column */}
                           <div className="flex items-center space-x-2 py-2" style={{ minHeight: `${Math.max((maxTrack + 1) * 32 + 16, 80)}px` }}>
                             {groupBy === 'service' ? (
-                              <Package className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                              <Package className="w-4 h-4 flex-shrink-0" style={{ color: T.primary }} />
                             ) : (
-                              <Globe className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                              <Globe className="w-4 h-4 flex-shrink-0" style={{ color: T.primary }} />
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center space-x-2">
-                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                                <div className="font-semibold text-sm truncate" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
                                   {displayName}
                                 </div>
                                 {hasOverlaps && (
                                   <div className="relative flex-shrink-0" title="Overlapping events detected">
-                                    <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />
+                                    <AlertTriangle className="w-4 h-4 text-orange-400 animate-pulse" />
                                     <div className="absolute inset-0 animate-ping">
-                                      <AlertTriangle className="w-4 h-4 text-orange-500 opacity-75" />
+                                      <AlertTriangle className="w-4 h-4 text-orange-400 opacity-75" />
                                     </div>
                                   </div>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                              <div className="text-xs" style={{ color: T.onSurfaceVar }}>
                                 {totalEvents} event{totalEvents > 1 ? 's' : ''}
                                 {hasOverlaps && (
-                                  <span className="ml-1 text-orange-600 dark:text-orange-400 font-medium">
+                                  <span className="ml-1 text-orange-400 font-medium">
                                     • {maxTrack + 1} concurrent
                                   </span>
                                 )}
@@ -779,65 +826,67 @@ export default function EventsStreamline() {
                             </div>
                           </div>
 
-                          {/* Cellules de fond pour chaque slot de temps */}
+                          {/* Time slot background cells */}
                           {timeSlots.map(slot => {
                             const isCurrent = viewMode === 'week' ? isSameDay(slot, today) : getHours(slot) === getHours(new Date())
                             return (
-                              <div 
-                                key={slot.toISOString()} 
-                                className={`rounded ${
-                                  isCurrent 
-                                    ? 'bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700' 
-                                    : 'bg-gray-50 dark:bg-gray-800'
-                                }`}
-                                style={{ minHeight: `${Math.max((maxTrack + 1) * 32 + 16, 80)}px` }}
+                              <div
+                                key={slot.toISOString()}
+                                style={{
+                                  minHeight: `${Math.max((maxTrack + 1) * 32 + 16, 80)}px`,
+                                  borderRadius: '8px',
+                                  background: isCurrent ? a('primary', 0.08) : a('outline-var', 0.04),
+                                  border: `1px solid ${isCurrent ? a('primary', 0.2) : a('outline-var', 0.08)}`
+                                }}
                               />
                             )
                           })}
                         </div>
 
-                        {/* Couche des barres d'événements */}
+                        {/* Event bars layer */}
                         <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ paddingTop: '8px' }}>
                           <div className="grid gap-2" style={{ gridTemplateColumns: viewMode === 'day' ? `minmax(150px, 200px) repeat(${timeSlots.length}, minmax(0, 1fr))` : `200px repeat(${timeSlots.length}, minmax(0, 1fr))` }}>
-                            {/* Colonne vide pour aligner avec le nom du groupe */}
                             <div />
-                            
-                            {/* Conteneur pour chaque slot de temps */}
                             {timeSlots.map((slot, slotIndex) => (
                               <div key={slot.toISOString()} className="relative" style={{ minHeight: `${Math.max((maxTrack + 1) * 32 + 16, 80)}px` }}>
-                                {/* Événements qui commencent dans ce slot */}
                                 {eventsWithTracks.map(({ event, indices, track }) => {
                                   if (indices.start !== slotIndex) return null
-                                  
+
                                   const startDateStr = event.attributes.startDate || event.metadata?.createdAt
                                   if (!startDateStr) return null
-                                  
+
                                   const startDate = new Date(startDateStr)
                                   const endDateStr = event.attributes.endDate
                                   const endDate = endDateStr ? new Date(endDateStr) : startDate
-                                  
+
                                   const spanCount = indices.end - indices.start + 1
-                                  const typeColor = getEventTypeColor(event.attributes.type)
-                                  
+                                  const c = getEventHexColor(event.attributes.type)
+
                                   return (
                                     <div
                                       key={event.metadata?.id}
                                       onClick={() => setSelectedEvent(event)}
-                                      className={`absolute pointer-events-auto px-3 py-1.5 rounded text-xs cursor-pointer hover:opacity-90 hover:shadow-md transition-all ${typeColor.bg} ${typeColor.text} font-medium`}
+                                      className="absolute pointer-events-auto cursor-pointer hover:opacity-90 hover:shadow-md transition-all"
                                       style={{
-                                        left: '0',
-                                        right: spanCount > 1 ? `calc(-${(spanCount - 1) * 100}% - ${(spanCount - 1) * 0.5}rem)` : '0',
+                                        left: '2px',
+                                        right: spanCount > 1 ? `calc(-${(spanCount - 1) * 100}% - ${(spanCount - 1) * 0.5}rem + 2px)` : '2px',
                                         top: `${track * 32}px`,
-                                        height: '28px',
+                                        height: '26px',
                                         display: 'flex',
                                         alignItems: 'center',
                                         zIndex: 10,
+                                        background: `${c}22`,
+                                        borderLeft: `3px solid ${c}`,
+                                        borderRadius: '0 6px 6px 0',
+                                        padding: '0 8px',
                                       }}
                                       title={`${event.title} - ${format(startDate, 'HH:mm')} to ${format(endDate, 'HH:mm')}`}
                                     >
-                                      <div className="truncate flex-1">{event.title}</div>
+                                      <div className="truncate flex-1 text-xs font-semibold" style={{ color: c, fontFamily: "'Space Grotesk', sans-serif" }}>
+                                        {event.title}
+                                      </div>
                                       {spanCount > 2 && viewMode === 'week' && (
-                                        <div className="text-[10px] opacity-75 ml-2">
+                                        <div className="text-[10px] opacity-75 ml-2" style={{ color: c }}>
                                           {format(startDate, 'HH:mm')}
                                         </div>
                                       )}
@@ -848,23 +897,26 @@ export default function EventsStreamline() {
                             ))}
                           </div>
                         </div>
+
                       </div>
-                      
-                      {/* Séparateur entre les groupes */}
+
+                      {/* Row separator */}
                       {groupIndex < sortedGroups.length - 1 && (
-                        <div className="mt-3 border-t-2 border-gray-300 dark:border-gray-600" />
+                        <div className="mt-3" style={{ borderTop: `1px solid ${a('outline-var', 0.1)}` }} />
                       )}
                     </div>
                   )
                 })}
               </div>
             )}
+
           </div>
-        </ScrollArea>
+        </div>
+
       </div>
 
       {selectedEvent && (
-        <EventDetailsModal 
+        <EventDetailsModal
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
         />
