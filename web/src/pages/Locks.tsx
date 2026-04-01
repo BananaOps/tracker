@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
-import { Lock as LockIcon, Unlock, Plus, RefreshCw, AlertCircle, Eye } from 'lucide-react'
-import { getEnvironmentColor, getEnvironmentLabel } from '../lib/eventUtils'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Badge } from '../components/ui/badge'
+import { Lock as LockIcon, Unlock, RefreshCw, AlertCircle, Eye } from 'lucide-react'
+import { getEnvironmentLabel } from '../lib/eventUtils'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -17,6 +14,24 @@ export default function Locks() {
   const [selectedLock, setSelectedLock] = useState<Lock | null>(null)
   const [unlockUser, setUnlockUser] = useState('')
   const [unlockUserError, setUnlockUserError] = useState(false)
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+
+  // ── Design tokens ────────────────────────────────────────────────────────────
+  const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
+  const T = {
+    bg:             'rgb(var(--hud-bg))',
+    surface:        'rgb(var(--hud-surface))',
+    surfaceLow:     'rgb(var(--hud-surface-low))',
+    surfaceHigh:    'rgb(var(--hud-surface-high))',
+    primary:        'rgb(var(--hud-primary))',
+    primaryDim:     'rgb(var(--hud-primary-dim))',
+    tertiary:       'rgb(var(--hud-tertiary))',
+    error:          'rgb(var(--hud-error))',
+    success:        'rgb(var(--hud-success))',
+    onSurface:      'rgb(var(--hud-on-surface))',
+    onSurfaceVar:   'rgb(var(--hud-on-surface-var))',
+    outlineVar:     'rgb(var(--hud-outline-var))',
+  }
 
   const loadLocks = async () => {
     try {
@@ -25,7 +40,7 @@ export default function Locks() {
       const data = await locksApi.list()
       setLocks(data.locks || [])
     } catch (err) {
-      setError('Erreur lors du chargement des locks')
+      setError('Error loading locks')
       console.error(err)
     } finally {
       setLoading(false)
@@ -48,9 +63,7 @@ export default function Locks() {
       setUnlockUserError(true)
       return
     }
-
     if (!selectedLock) return
-
     try {
       setUnlocking(selectedLock.id)
       setShowUnlockPrompt(false)
@@ -64,362 +77,241 @@ export default function Locks() {
     }
   }
 
-  // Convertit un timestamp protobuf ou une string en Date
   const parseTimestamp = (timestamp: any): Date | null => {
     if (!timestamp) return null
-    
-    // Si c'est déjà une string ISO
     if (typeof timestamp === 'string') {
       const date = new Date(timestamp)
       return isNaN(date.getTime()) ? null : date
     }
-    
-    // Si c'est un objet protobuf {seconds, nanos}
     if (timestamp.seconds !== undefined) {
       const milliseconds = Number(timestamp.seconds) * 1000 + (timestamp.nanos || 0) / 1000000
       return new Date(milliseconds)
     }
-    
     return null
   }
 
   const formatDate = (timestamp: any) => {
     const date = parseTimestamp(timestamp)
     if (!date) return '-'
-    
     try {
-      return new Intl.DateTimeFormat('fr-FR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      }).format(date)
-    } catch (err) {
-      console.error('Error formatting date:', timestamp, err)
-      return '-'
-    }
+      return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(date)
+    } catch { return '-' }
   }
 
   const getTimeSince = (timestamp: any) => {
     const created = parseTimestamp(timestamp)
     if (!created) return '-'
-    
     try {
-      const now = new Date()
-      const diffMs = now.getTime() - created.getTime()
+      const diffMs = Date.now() - created.getTime()
       const diffMins = Math.floor(diffMs / 60000)
-      
       if (diffMins < 1) return '< 1m'
       if (diffMins < 60) return `${diffMins}m`
       const diffHours = Math.floor(diffMins / 60)
       if (diffHours < 24) return `${diffHours}h`
-      const diffDays = Math.floor(diffHours / 24)
-      return `${diffDays}j`
-    } catch (err) {
-      console.error('Error calculating time since:', timestamp, err)
-      return '-'
+      return `${Math.floor(diffHours / 24)}j`
+    } catch { return '-' }
+  }
+
+  const EnvBadge = ({ env }: { env: string }) => {
+    const colors: Record<string, string> = {
+      production: T.error, preproduction: '#f97316', uat: T.tertiary,
+      recette: '#8b5cf6', integration: T.primary, development: T.success,
     }
+    const c = colors[env?.toLowerCase()] || T.onSurfaceVar
+    return (
+      <span className="px-2 py-0.5 rounded text-xs font-bold"
+        style={{ background: `${c}20`, color: c, border: `1px solid ${c}40` }}>
+        {getEnvironmentLabel(env)}
+      </span>
+    )
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="flex items-center justify-center h-screen" style={{ background: T.bg }}>
+        <RefreshCw className="w-8 h-8 animate-spin" style={{ color: T.primary }} />
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Locks</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Manage deployment and operation locks
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={loadLocks}
-            variant="outline"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Button
-            onClick={() => navigate('/locks/create')}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Lock
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-full overflow-auto" style={{ background: T.bg, color: T.onSurface }}>
+      <div className="max-w-7xl mx-auto p-8">
 
-      {error && (
-        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-1.5">
-        {/* Total Locks Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Total Locks</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">{locks.length}</p>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg"></div>
-                <LockIcon className="relative w-12 h-12 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Locks
+            </h1>
+            <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
+              Manage deployment and operation locks
+            </p>
           </div>
         </div>
 
-        {/* Unique Services Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-orange-50/50 dark:from-slate-800 dark:to-orange-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Unique Services</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
-                  {new Set(locks.map(l => l.service)).size}
-                </p>
+        {error && (
+          <div className="flex items-center gap-3 p-4 rounded-xl mb-8"
+            style={{ background: a('error', 0.1), border: `1px solid ${a('error', 0.2)}` }}>
+            <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: T.error }} />
+            <span className="text-sm" style={{ color: T.error }}>{error}</span>
+          </div>
+        )}
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {[
+            { label: 'Total Locks', value: locks.length, color: T.primary, icon: <LockIcon className="w-5 h-5" /> },
+            { label: 'Unique Services', value: new Set(locks.map(l => l.service)).size, color: T.tertiary, icon: <AlertCircle className="w-5 h-5" /> },
+            { label: 'Environments', value: new Set(locks.map(l => l.environment)).size, color: T.success, icon: <Unlock className="w-5 h-5" /> },
+          ].map(({ label, value, color, icon }) => (
+            <div key={label} className="relative p-6 rounded-xl overflow-hidden"
+              style={{ background: T.surfaceLow, borderLeft: `2px solid ${color}` }}>
+              <div className="absolute top-3 right-3 opacity-10 pointer-events-none" style={{ color }}>
+                <div className="w-16 h-16 blur-xl rounded-full" style={{ background: color }} />
               </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-lg"></div>
-                <AlertCircle className="relative w-12 h-12 text-orange-600 dark:text-orange-400" />
+              <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
+              <div className="flex items-end justify-between">
+                <span className="text-4xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</span>
+                <span style={{ color }}>{icon}</span>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Environments Card */}
-        <div className="relative group h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden h-full border-0 bg-gradient-to-br from-white to-green-50/50 dark:from-slate-800 dark:to-green-900/10">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
-            <div className="flex items-center justify-between p-6 min-h-[120px]">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">Environments</p>
-                </div>
-                <p className="text-4xl font-black text-slate-900 dark:text-slate-100">
-                  {new Set(locks.map(l => l.environment)).size}
-                </p>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg"></div>
-                <Unlock className="relative w-12 h-12 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
+        {/* Table */}
+        {locks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 rounded-2xl"
+            style={{ background: T.surface }}>
+            <Unlock className="w-16 h-16 mb-4 opacity-20" style={{ color: T.onSurfaceVar }} />
+            <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>No active locks</h3>
+            <p className="text-sm mb-6" style={{ color: T.onSurfaceVar }}>All services are currently unlocked</p>
           </div>
-        </div>
-      </div>
-
-      {locks.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <Unlock className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No active locks
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            All services are currently unlocked
-          </p>
-          <Button
-            onClick={() => navigate('/locks/create')}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Lock
-          </Button>
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="min-w-full">
-              <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Service
-                  </th>
-                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Environnement
-                  </th>
-                  <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Resource
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Locked By
-                  </th>
-                  <th className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="hidden 2xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Locked For
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
+        ) : (
+          <div className="rounded-2xl overflow-hidden" style={{ background: T.surface }}>
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+                  {['Service', 'Environment', 'Resource', 'Locked By', 'Created At', 'Duration', 'Actions'].map(h => (
+                    <th key={h} className="px-5 py-3 text-left text-[10px] uppercase tracking-widest font-bold"
+                      style={{ color: T.onSurfaceVar }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody>
                 {locks.map((lock) => (
-                  <tr key={lock.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={lock.id}
+                    onMouseEnter={() => setHoveredRow(lock.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    style={{
+                      borderBottom: `1px solid ${a('outline-var', 0.08)}`,
+                      background: hoveredRow === lock.id ? a('outline-var', 0.05) : 'transparent',
+                      transition: 'background 0.15s'
+                    }}>
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <LockIcon className="w-4 h-4 text-red-500" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {lock.service}
-                        </span>
+                        <LockIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.error }} />
+                        <span className="text-sm font-medium">{lock.service}</span>
                       </div>
                     </td>
-                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
-                      <Badge variant="secondary">
-                        {getEnvironmentLabel(lock.environment)}
-                      </Badge>
+                    <td className="px-5 py-3.5">
+                      <EnvBadge env={lock.environment} />
                     </td>
-                    <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {lock.resource || '-'}
-                      </span>
+                    <td className="px-5 py-3.5 text-sm" style={{ color: T.onSurfaceVar }}>
+                      {lock.resource || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900 dark:text-white">
-                        {lock.who}
-                      </span>
+                    <td className="px-5 py-3.5 text-sm font-medium">{lock.who}</td>
+                    <td className="px-5 py-3.5 text-sm" style={{ color: T.onSurfaceVar, fontFamily: "'JetBrains Mono', monospace" }}>
+                      {formatDate((lock as any).createdAt || lock.created_at)}
                     </td>
-                    <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatDate((lock as any).createdAt || lock.created_at)}
-                      </span>
-                    </td>
-                    <td className="hidden 2xl:table-cell px-6 py-4 whitespace-nowrap">
-                      <Badge variant="secondary">
+                    <td className="px-5 py-3.5">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold"
+                        style={{ background: a('primary', 0.1), color: T.primary, fontFamily: "'JetBrains Mono', monospace" }}>
                         {getTimeSince((lock as any).createdAt || lock.created_at)}
-                      </Badge>
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
                         {lock.event_id && (
-                          <Button
-                            onClick={() => navigate(`/events/timeline?event=${lock.event_id}`)}
-                            variant="ghost"
-                            size="sm"
-                            title="View linked event"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View Event
-                          </Button>
+                          <button onClick={() => navigate(`/events/timeline?event=${lock.event_id}`)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
+                            style={{ color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}`, background: T.surfaceHigh }}>
+                            <Eye className="w-3 h-3" /> View Event
+                          </button>
                         )}
-                        <Button
-                          onClick={() => handleUnlock(lock)}
-                          disabled={unlocking === lock.id}
-                          variant="destructive"
-                          size="sm"
-                          title="Unlock service"
-                        >
-                          {unlocking === lock.id ? (
-                            <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
-                          ) : (
-                            <Unlock className="w-4 h-4 mr-1" />
-                          )}
-                          Unlock
-                        </Button>
+                        <button onClick={() => handleUnlock(lock)} disabled={unlocking === lock.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50"
+                          style={{ color: 'white', background: T.error }}>
+                          {unlocking === lock.id
+                            ? <><RefreshCw className="w-3 h-3 animate-spin" /> Unlocking...</>
+                            : <><Unlock className="w-3 h-3" /> Unlock</>
+                          }
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* Unlock Modal */}
+      {showUnlockPrompt && selectedLock && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUnlockPrompt(false)} />
+          <div className="relative w-full max-w-md rounded-2xl p-8 shadow-2xl"
+            style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
+            <div className="flex items-center gap-3 mb-6">
+              <Unlock className="w-5 h-5" style={{ color: T.primary }} />
+              <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Unlock Service</h3>
+            </div>
+            <p className="text-sm mb-6" style={{ color: T.onSurfaceVar }}>
+              Enter your name to unlock <strong style={{ color: T.onSurface }}>{selectedLock.service}</strong> in <strong style={{ color: T.onSurface }}>{getEnvironmentLabel(selectedLock.environment)}</strong>
+            </p>
+            <div className="mb-6">
+              <label className="block text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: T.onSurfaceVar }}>
+                Your Name <span style={{ color: T.error }}>*</span>
+              </label>
+              <input
+                type="text"
+                value={unlockUser}
+                onChange={(e) => { setUnlockUser(e.target.value); setUnlockUserError(false) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleUnlockConfirm() }}
+                placeholder="e.g., john.doe"
+                autoFocus
+                className="w-full border-0 border-b-2 px-4 py-3 rounded-t-lg text-sm focus:outline-none transition-all"
+                style={{
+                  background: T.surfaceLow,
+                  color: T.onSurface,
+                  borderColor: unlockUserError ? T.error : 'transparent',
+                }}
+              />
+              {unlockUserError && (
+                <p className="mt-1 text-xs" style={{ color: T.error }}>Name is required</p>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowUnlockPrompt(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-80"
+                style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+                Cancel
+              </button>
+              <button onClick={handleUnlockConfirm} disabled={unlocking === selectedLock.id}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50"
+                style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})`, color: 'white', fontFamily: "'Space Grotesk', sans-serif" }}>
+                <Unlock className="w-4 h-4" />
+                {unlocking === selectedLock.id ? 'Unlocking...' : 'Unlock'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Unlock User Prompt */}
-      {showUnlockPrompt && selectedLock && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-            onClick={() => setShowUnlockPrompt(false)}
-          />
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Unlock Service
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Enter your name to unlock <span className="font-semibold">{selectedLock.service}</span> in <span className="font-semibold">{getEnvironmentLabel(selectedLock.environment)}</span>
-              </p>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Your Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="text"
-                  value={unlockUser}
-                  onChange={(e) => {
-                    setUnlockUser(e.target.value)
-                    setUnlockUserError(false)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleUnlockConfirm()
-                    }
-                  }}
-                  placeholder="e.g., john.doe"
-                  className={unlockUserError ? 'border-red-500' : ''}
-                  autoFocus
-                />
-                {unlockUserError && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    Name is required
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowUnlockPrompt(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUnlockConfirm}
-                  disabled={unlocking === selectedLock.id}
-                  className="flex-1"
-                >
-                  {unlocking === selectedLock.id ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Unlocking...
-                    </>
-                  ) : (
-                    <>
-                      <Unlock className="w-4 h-4 mr-2" />
-                      Unlock
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Decorative glows */}
+      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: a('primary', 0.04) }} />
     </div>
   )
 }

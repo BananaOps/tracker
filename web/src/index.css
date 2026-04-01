@@ -3,19 +3,95 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  /* ── Intergalactic Design System Tokens ── */
+  :root {
+    /* Surfaces */
+    --hud-bg:               244 245 249;   /* #f4f5f9 */
+    --hud-surface:          255 255 255;   /* #ffffff */
+    --hud-surface-low:      248 249 252;   /* #f8f9fc */
+    --hud-surface-high:     236 238 244;   /* #eceef4 */
+    --hud-surface-highest:  220 224 235;   /* #dce0eb */
+
+    /* Brand */
+    --hud-primary:          0 123 229;     /* #007be5 */
+    --hud-primary-dim:      0 105 197;     /* #0069c5 */
+    --hud-secondary:        59 156 244;    /* #3b9cf4 */
+    --hud-tertiary:         38 192 111;    /* #26c06f */
+
+    /* Text */
+    --hud-on-surface:       23 26 34;      /* #171a22 */
+    --hud-on-surface-var:   108 110 121;   /* #6c6e79 */
+
+    /* Borders */
+    --hud-outline:          168 171 183;   /* #a8abb7 */
+    --hud-outline-var:      196 199 207;   /* #c4c7cf */
+
+    /* Semantic */
+    --hud-success:          38 192 111;    /* #26c06f */
+    --hud-error:            255 73 83;     /* #ff4953 */
+    --hud-warning:          255 128 0;     /* #ff8000 */
+
+    /* Sidebar */
+    --hud-sidebar-bg:       255 255 255;
+    --hud-sidebar-border:   220 224 235;
+    --hud-sidebar-active:   227 241 252;   /* #e3f1fc */
+    --hud-sidebar-text:     108 110 121;
+    --hud-sidebar-text-active: 0 123 229;
+    --hud-header-bg:        255 255 255;
   }
-  
+
+  .dark {
+    /* Surfaces */
+    --hud-bg:               23 26 34;      /* #171a22 */
+    --hud-surface:          31 35 48;      /* #1f2330 */
+    --hud-surface-low:      27 30 42;      /* #1b1e2a */
+    --hud-surface-high:     39 43 58;      /* #272b3a */
+    --hud-surface-highest:  49 54 71;      /* #313647 */
+
+    /* Brand */
+    --hud-primary:          58 176 255;    /* #3ab0ff */
+    --hud-primary-dim:      0 144 232;     /* #0090e8 */
+    --hud-secondary:        95 195 255;    /* #5fc3ff */
+    --hud-tertiary:         52 211 153;    /* #34d399 */
+
+    /* Text */
+    --hud-on-surface:       244 245 249;   /* #f4f5f9 */
+    --hud-on-surface-var:   168 171 183;   /* #a8abb7 */
+
+    /* Borders */
+    --hud-outline:          83 88 112;     /* #535870 */
+    --hud-outline-var:      58 63 82;      /* #3a3f52 */
+
+    /* Semantic */
+    --hud-success:          52 211 153;    /* #34d399 */
+    --hud-error:            255 113 120;   /* #ff7178 */
+    --hud-warning:          255 167 56;    /* #ffa738 */
+
+    /* Sidebar */
+    --hud-sidebar-bg:       23 26 34;
+    --hud-sidebar-border:   39 43 58;
+    --hud-sidebar-active:   30 58 92;      /* #1e3a5c */
+    --hud-sidebar-text:     168 171 183;
+    --hud-sidebar-text-active: 58 176 255;
+    --hud-header-bg:        23 26 34;
+  }
+
+  body {
+    background-color: rgb(var(--hud-bg));
+    color: rgb(var(--hud-on-surface));
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   /* Fix calendar icon color in dark mode for datetime-local inputs */
   input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
-  
   input[type="date"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
-  
   input[type="time"]::-webkit-calendar-picker-indicator {
     @apply dark:invert dark:opacity-70;
   }
@@ -23,75 +99,116 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors dark:bg-primary-500 dark:hover:bg-primary-600;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150;
+    background-color: rgb(var(--hud-primary));
+    color: white;
+    box-shadow: 0 1px 2px rgb(var(--hud-primary) / 0.25);
   }
-  
+  .btn-primary:hover {
+    background-color: rgb(var(--hud-primary-dim));
+    box-shadow: 0 2px 6px rgb(var(--hud-primary) / 0.35);
+  }
+  .btn-primary:active {
+    transform: translateY(0.5px);
+  }
+
   .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150 border;
+    background-color: rgb(var(--hud-surface));
+    color: rgb(var(--hud-on-surface));
+    border-color: rgb(var(--hud-outline-var));
   }
-  
+  .btn-secondary:hover {
+    background-color: rgb(var(--hud-surface-high));
+    border-color: rgb(var(--hud-outline));
+  }
+
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700;
+    @apply rounded-lg p-6 border;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var) / 0.6);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.06);
   }
-  
+
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400;
+    @apply w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all duration-150 border;
+    height: 36px;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var));
+    color: rgb(var(--hud-on-surface));
   }
-  
+  .input:focus {
+    border-color: rgb(var(--hud-primary));
+    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
+  }
+  .input::placeholder {
+    color: rgb(var(--hud-on-surface-var));
+  }
+
   .select {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100;
+    @apply w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all duration-150 border;
+    height: 36px;
+    background-color: rgb(var(--hud-surface));
+    border-color: rgb(var(--hud-outline-var));
+    color: rgb(var(--hud-on-surface));
+  }
+  .select:focus {
+    border-color: rgb(var(--hud-primary));
+    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
   }
 }
 
 @layer utilities {
   @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
-  
   .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
+    animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
-  /* Gradient text for icons */
+
+  @keyframes fade-up {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Intergalactic-palette icon colors */
   .icon-gradient {
-    background: linear-gradient(135deg, #a855f7 0%, #2563eb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #007be5;
   }
-  
   .icon-gradient-blue {
-    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #007be5;
   }
-  
   .icon-gradient-purple {
-    background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #8649e1;
   }
-  
   .icon-gradient-yellow {
-    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #cc6b00;
   }
-  
   .icon-gradient-red {
-    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ff4953;
+  }
+
+  /* Dark mode icon color overrides */
+  .dark .icon-gradient {
+    color: #3ab0ff;
+  }
+  .dark .icon-gradient-blue {
+    color: #3ab0ff;
+  }
+  .dark .icon-gradient-purple {
+    color: #b381f5;
+  }
+  .dark .icon-gradient-yellow {
+    color: #ffa738;
+  }
+  .dark .icon-gradient-red {
+    color: #ff7178;
   }
 }

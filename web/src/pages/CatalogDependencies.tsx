@@ -19,66 +19,75 @@ import {
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useMemo, useState, useCallback } from 'react'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Badge } from '../components/ui/badge'
 import { KubernetesIcon } from '../components/icons/KubernetesIcon'
 
 type LayoutType = 'circular' | 'hierarchical' | 'force' | 'grid'
 type ViewMode = 'graph' | 'list'
 
-// Custom Node Component for Dependency Graph (same as CatalogDetail)
+// Custom Node Component for Dependency Graph
 function DependencyNode({ data }: NodeProps) {
-  const { name, platform, platformLabel, slaLevel, depsCount } = data
+  const { name, platform, slaLevel, depsCount } = data
   const slaColor = getSLAColor(slaLevel)
   const platformColor = getPlatformColorHex(platform)
-  
+
   return (
-    <div 
-      className="min-w-[120px] min-h-[80px] bg-white dark:bg-gray-800 border-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
-      style={{ 
-        borderColor: slaColor,
+    <div
+      style={{
+        background: 'rgb(var(--hud-surface))',
+        border: `2px solid ${slaColor}`,
         borderTopWidth: '4px',
-        borderTopColor: platformColor
+        borderTopColor: platformColor,
+        borderRadius: '8px',
+        minWidth: '120px',
+        minHeight: '80px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        transition: 'box-shadow 0.2s',
       }}
     >
-      {/* Connection Handles */}
       <Handle
         type="target"
         position={Position.Left}
-        style={{ 
+        style={{
           background: '#6366f1',
           width: 6,
           height: 6,
-          border: '2px solid white'
+          border: '2px solid rgb(var(--hud-surface))',
         }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        style={{ 
+        style={{
           background: '#10b981',
           width: 6,
           height: 6,
-          border: '2px solid white'
+          border: '2px solid rgb(var(--hud-surface))',
         }}
       />
-      
+
       <div className="p-2 flex flex-col items-center justify-center h-full">
-        {/* Platform Icon */}
-        <div className="mb-1 flex items-center justify-center w-8 h-8 rounded-full" 
-             style={{ backgroundColor: `${platformColor}20` }}>
+        <div
+          className="mb-1 flex items-center justify-center w-8 h-8 rounded-full"
+          style={{ backgroundColor: `${platformColor}20` }}
+        >
           {getPlatformIconComponent(platform, 'w-4 h-4')}
         </div>
-        
-        {/* Service Name */}
-        <div className="text-[10px] font-bold text-gray-900 dark:text-gray-100 text-center mb-1 truncate max-w-full px-1">
+
+        <div
+          className="text-[10px] font-bold text-center mb-1 truncate max-w-full px-1"
+          style={{ color: 'rgb(var(--hud-on-surface))' }}
+        >
           {name}
         </div>
-        
-        {/* Deps Count Badge */}
+
         {depsCount > 0 && (
-          <div className="text-[8px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+          <div
+            className="text-[8px] px-1.5 py-0.5 rounded-full"
+            style={{
+              background: 'rgb(var(--hud-surface-high))',
+              color: 'rgb(var(--hud-on-surface-var))',
+            }}
+          >
             {depsCount} deps
           </div>
         )}
@@ -90,7 +99,7 @@ function DependencyNode({ data }: NodeProps) {
 // Helper function to get platform icon as React component (same as CatalogDetail)
 function getPlatformIconComponent(platform?: Platform, className: string = 'w-4 h-4') {
   const iconColor = getPlatformColorHex(platform)
-  
+
   switch (platform) {
     case Platform.KUBERNETES:
       return (
@@ -138,7 +147,7 @@ function getPlatformIconComponent(platform?: Platform, className: string = 'w-4 
 // Helper function for filter badges (smaller icons, no color override)
 function getPlatformIconComponentForFilter(platform?: Platform) {
   const className = 'w-3 h-3'
-  
+
   switch (platform) {
     case Platform.KUBERNETES:
       return <KubernetesIcon className={className} />
@@ -188,6 +197,24 @@ export default function CatalogDependencies() {
   const [layoutType, setLayoutType] = useState<LayoutType>('hierarchical')
   const [viewMode, setViewMode] = useState<ViewMode>('graph')
   const [nodeSize, setNodeSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+
+  // ── Design tokens ─────────────────────────────────────────────────────────
+  const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
+  const T = {
+    bg:           'rgb(var(--hud-bg))',
+    surface:      'rgb(var(--hud-surface))',
+    surfaceLow:   'rgb(var(--hud-surface-low))',
+    surfaceHigh:  'rgb(var(--hud-surface-high))',
+    primary:      'rgb(var(--hud-primary))',
+    primaryDim:   'rgb(var(--hud-primary-dim))',
+    tertiary:     'rgb(var(--hud-tertiary))',
+    error:        'rgb(var(--hud-error))',
+    success:      'rgb(var(--hud-success))',
+    onSurface:    'rgb(var(--hud-on-surface))',
+    onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
+    outlineVar:   'rgb(var(--hud-outline-var))',
+  }
 
   const { data: allCatalogs, isLoading } = useQuery({
     queryKey: ['catalog', 'list'],
@@ -229,12 +256,12 @@ export default function CatalogDependencies() {
     // If there's a search query, include direct dependencies
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      
+
       // First, find services that match the search
       const matchingServices = filteredCatalogs.filter(catalog =>
         catalog.name.toLowerCase().includes(query)
       )
-      
+
       // Then, collect all direct dependencies of matching services
       const dependencyNames = new Set<string>()
       matchingServices.forEach(service => {
@@ -243,12 +270,10 @@ export default function CatalogDependencies() {
         // Add dependencies out (services that depend on this one)
         service.dependenciesOut?.forEach(dep => dependencyNames.add(dep))
       })
-      
+
       // Include matching services and their direct dependencies
       filteredCatalogs = filteredCatalogs.filter(catalog => {
-        // Include if it matches the search query
         if (catalog.name.toLowerCase().includes(query)) return true
-        // Include if it's a direct dependency of a matching service
         if (dependencyNames.has(catalog.name)) return true
         return false
       })
@@ -262,10 +287,10 @@ export default function CatalogDependencies() {
     })
 
     // Separate services with and without dependencies
-    const servicesWithoutDeps = sortedCatalogs.filter(c => 
+    const servicesWithoutDeps = sortedCatalogs.filter(c =>
       (c.dependenciesIn?.length || 0) + (c.dependenciesOut?.length || 0) === 0
     )
-    const servicesWithDeps = sortedCatalogs.filter(c => 
+    const servicesWithDeps = sortedCatalogs.filter(c =>
       (c.dependenciesIn?.length || 0) + (c.dependenciesOut?.length || 0) > 0
     )
 
@@ -278,17 +303,15 @@ export default function CatalogDependencies() {
       }
       const currentNodeSize = nodeSizes[nodeSize]
       const dependencyCount = (catalog.dependenciesIn?.length || 0) + (catalog.dependenciesOut?.length || 0)
-      
-      // Determine if this service has dependencies and its position within its group
+
       const hasNoDeps = dependencyCount === 0
-      const groupIndex = hasNoDeps 
+      const groupIndex = hasNoDeps
         ? servicesWithoutDeps.findIndex(c => c.name === catalog.name)
         : servicesWithDeps.findIndex(c => c.name === catalog.name)
 
       switch (layoutType) {
         case 'circular':
           if (hasNoDeps) {
-            // Services without dependencies: smaller inner circle
             const innerRadius = 250
             const innerAngleStep = (2 * Math.PI) / servicesWithoutDeps.length
             const innerAngle = groupIndex * innerAngleStep
@@ -297,7 +320,6 @@ export default function CatalogDependencies() {
               y: 400 + innerRadius * Math.sin(innerAngle)
             }
           } else {
-            // Services with dependencies: larger outer circle
             const outerRadius = Math.max(450, servicesWithDeps.length * 12)
             const outerAngleStep = (2 * Math.PI) / servicesWithDeps.length
             const outerAngle = groupIndex * outerAngleStep
@@ -309,32 +331,29 @@ export default function CatalogDependencies() {
 
         case 'hierarchical':
           if (hasNoDeps) {
-            // Services without dependencies: top section (level 0)
             const maxPerRow = 10
             const row = Math.floor(groupIndex / maxPerRow)
             const col = groupIndex % maxPerRow
             return {
               x: 100 + col * currentNodeSize.spacing,
-              y: 100 + (row * 140) // Start at top
+              y: 100 + (row * 140)
             }
           } else {
-            // Services with dependencies: lower sections (levels 1-5)
             const level = Math.min(Math.floor(dependencyCount / 3) + 1, 5)
             const servicesAtLevel = servicesWithDeps.filter(c => {
               const deps = (c.dependenciesIn?.length || 0) + (c.dependenciesOut?.length || 0)
               return Math.min(Math.floor(deps / 3) + 1, 5) === level
             })
-            
+
             const levelIndex = servicesAtLevel.findIndex(c => c.name === catalog.name)
             const maxPerLevel = Math.ceil(servicesAtLevel.length / Math.max(1, Math.ceil(servicesAtLevel.length / 8)))
-            
+
             const row = Math.floor(levelIndex / maxPerLevel)
             const col = levelIndex % maxPerLevel
-            
-            // Add offset for services without dependencies section
+
             const noDepsRows = Math.ceil(servicesWithoutDeps.length / 10)
-            const offsetY = 300 + (noDepsRows * 140) // Space after no-deps section
-            
+            const offsetY = 300 + (noDepsRows * 140)
+
             return {
               x: 100 + col * currentNodeSize.spacing,
               y: offsetY + (level * 180) + (row * 140)
@@ -343,7 +362,6 @@ export default function CatalogDependencies() {
 
         case 'grid':
           if (hasNoDeps) {
-            // Services without dependencies: top grid
             const maxCols = 10
             const gridRow = Math.floor(groupIndex / maxCols)
             const gridCol = groupIndex % maxCols
@@ -352,15 +370,13 @@ export default function CatalogDependencies() {
               y: 100 + gridRow * (currentNodeSize.height + 40)
             }
           } else {
-            // Services with dependencies: bottom grid with offset
             const maxCols = 10
             const gridRow = Math.floor(groupIndex / maxCols)
             const gridCol = groupIndex % maxCols
-            
-            // Add offset for services without dependencies section
+
             const noDepsRows = Math.ceil(servicesWithoutDeps.length / 10)
             const offsetY = 300 + (noDepsRows * (currentNodeSize.height + 40))
-            
+
             return {
               x: 100 + gridCol * currentNodeSize.spacing,
               y: offsetY + gridRow * (currentNodeSize.height + 40)
@@ -369,25 +385,23 @@ export default function CatalogDependencies() {
 
         case 'force':
           if (hasNoDeps) {
-            // Services without dependencies: left cluster
             const leftClusterX = 300
             const leftClusterY = 400
             const leftRadius = Math.min(200, servicesWithoutDeps.length * 8)
             const leftAngle = (groupIndex / servicesWithoutDeps.length) * 2 * Math.PI
             const jitter = (Math.random() - 0.5) * 60
-            
+
             return {
               x: leftClusterX + leftRadius * Math.cos(leftAngle) + jitter,
               y: leftClusterY + leftRadius * Math.sin(leftAngle) + jitter
             }
           } else {
-            // Services with dependencies: right cluster
             const rightClusterX = 900
             const rightClusterY = 400
             const rightRadius = Math.max(250, dependencyCount * 15)
             const rightAngle = (groupIndex / servicesWithDeps.length) * 2 * Math.PI
             const jitter = (Math.random() - 0.5) * 80
-            
+
             return {
               x: rightClusterX + rightRadius * Math.cos(rightAngle) + jitter,
               y: rightClusterY + rightRadius * Math.sin(rightAngle) + jitter
@@ -395,23 +409,22 @@ export default function CatalogDependencies() {
           }
 
         default:
-          // Default: separate sections
           if (hasNoDeps) {
             const defaultRow = Math.floor(groupIndex / 10)
             const defaultCol = groupIndex % 10
-            return { 
-              x: 100 + defaultCol * currentNodeSize.spacing, 
-              y: 100 + defaultRow * (currentNodeSize.height + 40) 
+            return {
+              x: 100 + defaultCol * currentNodeSize.spacing,
+              y: 100 + defaultRow * (currentNodeSize.height + 40)
             }
           } else {
             const defaultRow = Math.floor(groupIndex / 10)
             const defaultCol = groupIndex % 10
             const noDepsRows = Math.ceil(servicesWithoutDeps.length / 10)
             const offsetY = 300 + (noDepsRows * (currentNodeSize.height + 40))
-            
-            return { 
-              x: 100 + defaultCol * currentNodeSize.spacing, 
-              y: offsetY + defaultRow * (currentNodeSize.height + 40) 
+
+            return {
+              x: 100 + defaultCol * currentNodeSize.spacing,
+              y: offsetY + defaultRow * (currentNodeSize.height + 40)
             }
           }
       }
@@ -431,7 +444,7 @@ export default function CatalogDependencies() {
       nodes.push({
         id: catalog.name,
         type: 'dependencyNode',
-        data: { 
+        data: {
           name: catalog.name,
           slaLevel: catalog.sla?.level,
           platform: catalog.platform,
@@ -449,29 +462,23 @@ export default function CatalogDependencies() {
         if (!edgeSet.has(edgeId) && filteredCatalogs.some(c => c.name === depName)) {
           const sourceCatalog = filteredCatalogs.find(c => c.name === depName)
           const targetCatalog = catalog
-          
-          // Check if source and target have dependencies
+
           const sourceHasDeps = sourceCatalog && ((sourceCatalog.dependenciesIn?.length || 0) + (sourceCatalog.dependenciesOut?.length || 0)) > 0
           const targetHasDeps = (targetCatalog.dependenciesIn?.length || 0) + (targetCatalog.dependenciesOut?.length || 0) > 0
-          
-          // Only create edges between services that both have dependencies
-          // This prevents arrows from crossing through the no-dependency zone
+
           if (sourceHasDeps && targetHasDeps) {
             edgeSet.add(edgeId)
-            
-            // Use different edge styles based on layout to avoid crossing zones
+
             let edgeType = 'smoothstep'
             let edgeStyle = { stroke: '#64748b', strokeWidth: 2 }
-            
+
             if (layoutType === 'hierarchical' || layoutType === 'grid') {
-              // For hierarchical and grid layouts, use straight edges that go around the no-deps zone
               edgeType = 'step'
               edgeStyle = { stroke: '#64748b', strokeWidth: 2, strokeDasharray: '5,5' }
             } else if (layoutType === 'force') {
-              // For force layout, use curved edges
               edgeType = 'smoothstep'
             }
-            
+
             edges.push({
               id: edgeId,
               source: depName,
@@ -483,7 +490,6 @@ export default function CatalogDependencies() {
                 type: MarkerType.ArrowClosed,
                 color: '#64748b',
               },
-              // Add path options to avoid crossing the no-dependency zone
               ...(layoutType === 'hierarchical' && {
                 pathOptions: { offset: 20, borderRadius: 10 }
               })
@@ -535,11 +541,11 @@ export default function CatalogDependencies() {
     if (!allCatalogs) return { total: 0, withDeps: 0, totalDeps: 0 }
 
     const total = allCatalogs.catalogs.length
-    const withDeps = allCatalogs.catalogs.filter(c => 
-      (c.dependenciesIn && c.dependenciesIn.length > 0) || 
+    const withDeps = allCatalogs.catalogs.filter(c =>
+      (c.dependenciesIn && c.dependenciesIn.length > 0) ||
       (c.dependenciesOut && c.dependenciesOut.length > 0)
     ).length
-    const totalDeps = allCatalogs.catalogs.reduce((sum, c) => 
+    const totalDeps = allCatalogs.catalogs.reduce((sum, c) =>
       sum + (c.dependenciesIn?.length || 0) + (c.dependenciesOut?.length || 0), 0
     )
 
@@ -547,26 +553,32 @@ export default function CatalogDependencies() {
   }, [allCatalogs])
 
   if (isLoading) {
-    return <div className="text-center py-12">Loading...</div>
+    return (
+      <div style={{ background: 'rgb(var(--hud-bg))', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <GitBranch className="w-8 h-8 animate-pulse" style={{ color: 'rgb(var(--hud-primary))' }} />
+      </div>
+    )
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="min-h-full overflow-auto p-6 space-y-6" style={{ background: T.bg, color: T.onSurface }}>
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/catalog')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-all hover:opacity-80"
+            style={{ background: T.surfaceHigh, color: T.onSurface, border: `1px solid ${a('outline-var', 0.2)}` }}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-3">
-              <GitBranch className="w-8 h-8" />
+            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <GitBranch className="w-8 h-8" style={{ color: T.primary }} />
               <span>Global Dependencies</span>
             </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
               Complete view of all service dependencies
             </p>
           </div>
@@ -574,319 +586,243 @@ export default function CatalogDependencies() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
-               borderTop: '4px solid #6366f1',
-               boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-          <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
-            {stats.total}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Services', value: stats.total, color: T.primary, icon: <GitBranch className="w-5 h-5" /> },
+          { label: 'With Dependencies', value: stats.withDeps, color: T.success, icon: <Activity className="w-5 h-5" /> },
+          { label: 'Total Dependencies', value: stats.totalDeps, color: T.tertiary, icon: <Package className="w-5 h-5" /> },
+        ].map(({ label, value, color, icon }) => (
+          <div key={label} className="relative p-6 rounded-xl overflow-hidden"
+            style={{ background: T.surfaceLow, borderLeft: `2px solid ${color}` }}>
+            <div className="absolute top-3 right-3 opacity-10 pointer-events-none">
+              <div className="w-16 h-16 blur-xl rounded-full" style={{ background: color }} />
+            </div>
+            <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
+            <div className="flex items-end justify-between">
+              <span className="text-4xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</span>
+              <span style={{ color }}>{icon}</span>
+            </div>
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Total Services
-          </div>
-        </div>
-
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%)',
-               borderTop: '4px solid #10b981',
-               boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-            {stats.withDeps}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            With Dependencies
-          </div>
-        </div>
-
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%)',
-               borderTop: '4px solid #3b82f6',
-               boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-            {stats.totalDeps}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Total Dependencies
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filters */}
-      <div className="card">
-        <div className="space-y-4">
-          {/* Layout and View Controls */}
-          <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Layout:</span>
-              <div className="flex gap-2">
+      <div className="p-6 rounded-xl space-y-4" style={{ background: T.surface }}>
+        {/* Layout and View Controls */}
+        <div className="flex items-center justify-between flex-wrap gap-4 pb-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Layout:</span>
+            <div className="flex gap-2">
+              {(['hierarchical', 'grid', 'circular', 'force'] as LayoutType[]).map(lt => (
                 <button
-                  onClick={() => setLayoutType('hierarchical')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    layoutType === 'hierarchical'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
+                  key={lt}
+                  onClick={() => setLayoutType(lt)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
+                  style={layoutType === lt
+                    ? { background: T.primary, color: 'white' }
+                    : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
+                  }
                 >
-                  Hierarchical
+                  {lt === 'grid' && <Grid className="w-3 h-3" />}
+                  {lt.charAt(0).toUpperCase() + lt.slice(1)}
                 </button>
-                <button
-                  onClick={() => setLayoutType('grid')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    layoutType === 'grid'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <Grid className="w-3 h-3 inline mr-1" />
-                  Grid
-                </button>
-                <button
-                  onClick={() => setLayoutType('circular')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    layoutType === 'circular'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Circular
-                </button>
-                <button
-                  onClick={() => setLayoutType('force')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    layoutType === 'force'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Force
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Node Size:</span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setNodeSize('small')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    nodeSize === 'small'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <ZoomOut className="w-3 h-3 inline mr-1" />
-                  Small
-                </button>
-                <button
-                  onClick={() => setNodeSize('medium')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    nodeSize === 'medium'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Medium
-                </button>
-                <button
-                  onClick={() => setNodeSize('large')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    nodeSize === 'large'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <ZoomIn className="w-3 h-3 inline mr-1" />
-                  Large
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setViewMode('graph')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  viewMode === 'graph'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                <Maximize2 className="w-3 h-3 inline mr-1" />
-                Graph
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                <List className="w-3 h-3 inline mr-1" />
-                List
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search services..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Node Size:</span>
+            <div className="flex gap-2">
+              {(['small', 'medium', 'large'] as const).map(size => (
+                <button
+                  key={size}
+                  onClick={() => setNodeSize(size)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
+                  style={nodeSize === size
+                    ? { background: T.primary, color: 'white' }
+                    : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
+                  }
+                >
+                  {size === 'small' && <ZoomOut className="w-3 h-3" />}
+                  {size === 'large' && <ZoomIn className="w-3 h-3" />}
+                  {size.charAt(0).toUpperCase() + size.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-4 flex-wrap gap-2">
-              {/* Type Filters */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Type:</span>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueTypes.map((type: string) => (
+          <div className="flex items-center gap-2">
+            {([
+              { mode: 'graph' as ViewMode, icon: <Maximize2 className="w-3 h-3" />, label: 'Graph' },
+              { mode: 'list' as ViewMode, icon: <List className="w-3 h-3" />, label: 'List' },
+            ]).map(({ mode, icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
+                style={viewMode === mode
+                  ? { background: T.primary, color: 'white' }
+                  : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
+                }
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: T.onSurfaceVar }} />
+          <input
+            type="text"
+            placeholder="Search services..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-10 py-2 rounded-lg text-sm focus:outline-none transition-all"
+            style={{
+              background: T.surfaceHigh,
+              border: `1px solid ${a('outline-var', 0.3)}`,
+              color: T.onSurface,
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
+              style={{ color: T.onSurfaceVar }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Type Filters */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Type:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {uniqueTypes.map((type: string) => (
+                  <button
+                    key={type}
+                    onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
+                    className="px-3 py-1 text-xs font-medium rounded-full transition-all hover:opacity-90"
+                    style={selectedTypes.includes(type)
+                      ? { background: T.primary, color: 'white' }
+                      : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
+                    }
+                  >
+                    {getCatalogTypeLabel(type)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Platform Filters */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Platform:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {uniquePlatforms.map((platform: string) => {
+                  const platformColors = getPlatformColor(platform as Platform)
+                  return (
                     <button
-                      key={type}
-                      onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                        selectedTypes.includes(type)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50'
+                      key={platform}
+                      onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 hover:opacity-90 ${
+                        selectedPlatforms.includes(platform)
+                          ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
+                          : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText}`
                       }`}
                     >
-                      {getCatalogTypeLabel(type)}
+                      <span className="flex items-center">
+                        {getPlatformIconComponentForFilter(platform as Platform)}
+                      </span>
+                      <span>{getPlatformLabel(platform as Platform)}</span>
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Platform Filters */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Platform:</span>
-                <div className="flex flex-wrap gap-2">
-                  {uniquePlatforms.map((platform: string) => {
-                    const platformColors = getPlatformColor(platform as Platform)
-                    return (
-                      <button
-                        key={platform}
-                        onClick={() => toggleFilter(platform, selectedPlatforms, setSelectedPlatforms)}
-                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors flex items-center space-x-1.5 ${
-                          selectedPlatforms.includes(platform)
-                            ? `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} ring-2 ring-offset-1 ring-gray-400`
-                            : `${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText} hover:opacity-80`
-                        }`}
-                      >
-                        <span className="flex items-center">
-                          {getPlatformIconComponentForFilter(platform as Platform)}
-                        </span>
-                        <span>{getPlatformLabel(platform as Platform)}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* SLA Filters */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">SLA:</span>
-                <div className="flex flex-wrap gap-2">
-                  {[SLALevel.CRITICAL, SLALevel.HIGH, SLALevel.MEDIUM, SLALevel.LOW].map(level => (
-                    <button
-                      key={level}
-                      onClick={() => toggleSLAFilter(level)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                        selectedSLA.includes(level)
-                          ? 'text-white'
-                          : 'hover:opacity-80'
-                      }`}
-                      style={{
-                        backgroundColor: selectedSLA.includes(level) ? getSLAColor(level) : `${getSLAColor(level)}30`,
-                        color: selectedSLA.includes(level) ? 'white' : getSLAColor(level),
-                      }}
-                    >
-                      {getSLALabel(level)}
-                    </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
             </div>
 
-            {(searchQuery || selectedSLA.length > 0 || selectedTypes.length > 0 || selectedPlatforms.length > 0) && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center space-x-1 font-medium"
-              >
-                <X className="w-4 h-4" />
-                <span>Clear All</span>
-              </button>
-            )}
+            {/* SLA Filters */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>SLA:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[SLALevel.CRITICAL, SLALevel.HIGH, SLALevel.MEDIUM, SLALevel.LOW].map(level => (
+                  <button
+                    key={level}
+                    onClick={() => toggleSLAFilter(level)}
+                    className="px-3 py-1 text-xs font-medium rounded-full transition-all hover:opacity-90"
+                    style={{
+                      background: selectedSLA.includes(level) ? getSLAColor(level) : `${getSLAColor(level)}25`,
+                      color: selectedSLA.includes(level) ? 'white' : getSLAColor(level),
+                      border: `1px solid ${getSLAColor(level)}50`,
+                    }}
+                  >
+                    {getSLALabel(level)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
+
+          {(searchQuery || selectedSLA.length > 0 || selectedTypes.length > 0 || selectedPlatforms.length > 0) && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
+              style={{ color: T.error, background: a('error', 0.1), border: `1px solid ${a('error', 0.2)}` }}
+            >
+              <X className="w-3.5 h-3.5" />
+              Clear All
+            </button>
+          )}
         </div>
       </div>
 
       {/* Legend */}
-      <div className="card">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Legend</h3>
+      <div className="p-6 rounded-xl" style={{ background: T.surface }}>
+        <h3 className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>Legend</h3>
         <div className="flex flex-wrap gap-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(SLALevel.CRITICAL) }}></div>
-            <span className="text-gray-600 dark:text-gray-400">Critical SLA</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(SLALevel.HIGH) }}></div>
-            <span className="text-gray-600 dark:text-gray-400">High SLA</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(SLALevel.MEDIUM) }}></div>
-            <span className="text-gray-600 dark:text-gray-400">Medium SLA</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(SLALevel.LOW) }}></div>
-            <span className="text-gray-600 dark:text-gray-400">Low SLA</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-0.5 bg-gray-500"></div>
-            <span className="text-gray-600 dark:text-gray-400">Dependency</span>
+          {[
+            { label: 'Critical SLA', level: SLALevel.CRITICAL },
+            { label: 'High SLA', level: SLALevel.HIGH },
+            { label: 'Medium SLA', level: SLALevel.MEDIUM },
+            { label: 'Low SLA', level: SLALevel.LOW },
+          ].map(({ label, level }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(level) }} />
+              <span style={{ color: T.onSurfaceVar }}>{label}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-0.5 rounded" style={{ background: T.onSurfaceVar, opacity: 0.4 }} />
+            <span style={{ color: T.onSurfaceVar }}>Dependency</span>
           </div>
         </div>
       </div>
 
       {/* Graph or List View */}
       {viewMode === 'graph' ? (
-        <div className="card p-0 overflow-hidden" style={{ height: '700px' }}>
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="rounded-xl overflow-hidden" style={{ background: T.surface, height: '700px' }}>
+          <div className="p-4" style={{ background: T.surfaceHigh, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Dependency Graph
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs mt-0.5" style={{ color: T.onSurfaceVar }}>
                   Showing {nodes.length} services with {edges.length} dependencies
                 </p>
               </div>
               {nodes.length > 50 && (
-                <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-lg">
-                  ⚠️ Large dataset - Consider using List view for better performance
+                <div
+                  className="text-xs px-3 py-1 rounded-lg"
+                  style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}
+                >
+                  ⚠️ Large dataset — Consider using List view for better performance
                 </div>
               )}
             </div>
@@ -902,9 +838,9 @@ export default function CatalogDependencies() {
             maxZoom={2}
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
           >
-            <Background color="#e5e7eb" gap={16} />
+            <Background color={a('outline-var', 0.5)} gap={16} />
             <Controls />
-            <MiniMap 
+            <MiniMap
               nodeColor={(n) => {
                 const slaLevel = n.data?.slaLevel
                 return getSLAColor(slaLevel) + '60'
@@ -914,47 +850,31 @@ export default function CatalogDependencies() {
           </ReactFlow>
         </div>
       ) : (
-        <div className="card">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="rounded-xl overflow-hidden" style={{ background: T.surface }}>
+          <div className="p-4" style={{ background: T.surfaceHigh, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+            <h3 className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               Dependencies List View
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs mt-0.5" style={{ color: T.onSurfaceVar }}>
               Showing {nodes.length} services with their dependencies
             </p>
           </div>
-          
+
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Service
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    SLA
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Platform
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Dependencies In
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Dependencies Out
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Total Deps
-                  </th>
+            <table className="w-full">
+              <thead>
+                <tr style={{ background: T.surfaceHigh, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+                  {['Service', 'Type', 'SLA', 'Platform', 'Dependencies In', 'Dependencies Out', 'Total Deps'].map(h => (
+                    <th key={h} className="px-5 py-3 text-left text-[10px] uppercase tracking-widest font-bold"
+                      style={{ color: T.onSurfaceVar }}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody>
                 {allCatalogs?.catalogs
                   .filter(catalog => {
-                    // Apply same filters as graph
                     if (searchQuery) {
                       const query = searchQuery.toLowerCase()
                       if (!catalog.name.toLowerCase().includes(query)) return false
@@ -977,7 +897,7 @@ export default function CatalogDependencies() {
                   .sort((a, b) => {
                     const aDeps = (a.dependenciesIn?.length || 0) + (a.dependenciesOut?.length || 0)
                     const bDeps = (b.dependenciesIn?.length || 0) + (b.dependenciesOut?.length || 0)
-                    return bDeps - aDeps // Sort by total dependencies (descending)
+                    return bDeps - aDeps
                   })
                   .map((catalog) => {
                     const depsIn = catalog.dependenciesIn?.length || 0
@@ -985,71 +905,74 @@ export default function CatalogDependencies() {
                     const totalDeps = depsIn + depsOut
                     const slaColor = catalog.sla ? getSLAColor(catalog.sla.level) : '#94a3b8'
                     const platformColors = catalog.platform ? getPlatformColor(catalog.platform) : { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
+                    const totalDepsColor = totalDeps === 0 ? T.onSurfaceVar : totalDeps < 3 ? '#22c55e' : totalDeps < 6 ? '#eab308' : '#ef4444'
 
                     return (
-                      <tr 
+                      <tr
                         key={catalog.name}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                        className="cursor-pointer transition-colors"
+                        onMouseEnter={() => setHoveredRow(catalog.name)}
+                        onMouseLeave={() => setHoveredRow(null)}
                         onClick={() => navigate(`/catalog/${catalog.name}`)}
+                        style={{
+                          borderBottom: `1px solid ${a('outline-var', 0.08)}`,
+                          background: hoveredRow === catalog.name ? T.surfaceLow : 'transparent',
+                          transition: 'background 0.15s',
+                        }}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-3">
-                            <div 
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: slaColor }}
-                            />
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: slaColor }} />
                             <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {catalog.name}
-                              </div>
+                              <div className="text-sm font-medium">{catalog.name}</div>
                               {catalog.description && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                <div className="text-xs truncate max-w-xs" style={{ color: T.onSurfaceVar }}>
                                   {catalog.description}
                                 </div>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            style={{ background: a('outline-var', 0.1), color: T.onSurfaceVar }}>
                             {getCatalogTypeLabel(catalog.type)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span 
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
-                            style={{ backgroundColor: slaColor }}
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <span
+                            className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white"
+                            style={{ background: slaColor }}
                           >
                             {getSLALabel(catalog.sla?.level)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-5 py-4 whitespace-nowrap">
                           {catalog.platform ? (
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium space-x-1 ${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText}`}>
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${platformColors.bg} ${platformColors.text} ${platformColors.darkBg} ${platformColors.darkText}`}>
                               <span>{getPlatformIcon(catalog.platform)}</span>
                               <span>{getPlatformLabel(catalog.platform)}</span>
                             </span>
                           ) : (
-                            <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                            <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {depsIn}
-                            </span>
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{depsIn}</span>
                             {depsIn > 0 && catalog.dependenciesIn && (
                               <div className="flex flex-wrap gap-1 max-w-xs">
                                 {catalog.dependenciesIn.slice(0, 3).map((dep, idx) => (
-                                  <span 
+                                  <span
                                     key={idx}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                                    className="px-1.5 py-0.5 rounded text-xs font-medium"
+                                    style={{ background: a('primary', 0.1), color: T.primary }}
                                   >
                                     {dep}
                                   </span>
                                 ))}
                                 {catalog.dependenciesIn.length > 3 && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  <span className="text-xs" style={{ color: T.onSurfaceVar }}>
                                     +{catalog.dependenciesIn.length - 3} more
                                   </span>
                                 )}
@@ -1057,23 +980,22 @@ export default function CatalogDependencies() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {depsOut}
-                            </span>
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{depsOut}</span>
                             {depsOut > 0 && catalog.dependenciesOut && (
                               <div className="flex flex-wrap gap-1 max-w-xs">
                                 {catalog.dependenciesOut.slice(0, 3).map((dep, idx) => (
-                                  <span 
+                                  <span
                                     key={idx}
-                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                    className="px-1.5 py-0.5 rounded text-xs font-medium"
+                                    style={{ background: a('success', 0.1), color: T.success }}
                                   >
                                     {dep}
                                   </span>
                                 ))}
                                 {catalog.dependenciesOut.length > 3 && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  <span className="text-xs" style={{ color: T.onSurfaceVar }}>
                                     +{catalog.dependenciesOut.length - 3} more
                                   </span>
                                 )}
@@ -1081,25 +1003,19 @@ export default function CatalogDependencies() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            <span className={`text-sm font-bold ${
-                              totalDeps === 0 ? 'text-gray-400 dark:text-gray-500' :
-                              totalDeps < 3 ? 'text-green-600 dark:text-green-400' :
-                              totalDeps < 6 ? 'text-yellow-600 dark:text-yellow-400' :
-                              'text-red-600 dark:text-red-400'
-                            }`}>
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold" style={{ color: totalDepsColor, fontFamily: "'JetBrains Mono', monospace" }}>
                               {totalDeps}
                             </span>
                             {totalDeps > 0 && (
-                              <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                <div 
-                                  className={`h-1.5 rounded-full ${
-                                    totalDeps < 3 ? 'bg-green-500' :
-                                    totalDeps < 6 ? 'bg-yellow-500' :
-                                    'bg-red-500'
-                                  }`}
-                                  style={{ width: `${Math.min((totalDeps / 10) * 100, 100)}%` }}
+                              <div className="w-16 rounded-full h-1.5" style={{ background: a('outline-var', 0.15) }}>
+                                <div
+                                  className="h-1.5 rounded-full"
+                                  style={{
+                                    width: `${Math.min((totalDeps / 10) * 100, 100)}%`,
+                                    background: totalDepsColor,
+                                  }}
                                 />
                               </div>
                             )}
@@ -1133,14 +1049,18 @@ export default function CatalogDependencies() {
             }
             return true
           }).length === 0 && (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <div className="flex flex-col items-center justify-center py-16">
+              <GitBranch className="w-12 h-12 mb-3 opacity-20" style={{ color: T.onSurfaceVar }} />
               <p className="text-sm font-medium">No services found</p>
-              <p className="text-xs mt-1">Try adjusting your filters or search query</p>
+              <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>Try adjusting your filters or search query</p>
             </div>
           )}
         </div>
       )}
+
+      {/* Decorative glow */}
+      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: a('primary', 0.04) }} />
     </div>
   )
 }
@@ -1361,4 +1281,3 @@ function getPlatformColorHex(platform?: Platform): string {
       return '#94a3b8' // gray-400
   }
 }
-

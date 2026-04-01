@@ -4,21 +4,16 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
-import { Bot } from 'lucide-react'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Card, CardContent } from '../components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Bot, Clock, Plus, Search } from 'lucide-react'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
 
-  // Charger le catalogue pour la liste des services
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['catalogs', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
@@ -26,9 +21,8 @@ export default function CreateRpaOperation() {
 
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
-  // Date par défaut : maintenant
   const now = new Date()
-  const defaultStartDate = now.toISOString().slice(0, 16) // Format datetime-local
+  const defaultStartDate = now.toISOString().slice(0, 16)
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
@@ -51,9 +45,7 @@ export default function CreateRpaOperation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setShowToast(true)
-      setTimeout(() => {
-        navigate('/rpa')
-      }, 2000)
+      setTimeout(() => { navigate('/rpa') }, 2000)
     },
     onError: (error: any) => {
       console.error('Error creating RPA Operation:', error)
@@ -63,20 +55,15 @@ export default function CreateRpaOperation() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setShowToast(false)
-    
-    // Convertir startDate et calculer endDate
-    let startDateISO = undefined
-    let endDateISO = undefined
-    
+
+    let startDateISO: string | undefined
+    let endDateISO: string | undefined
     if (formData.attributes.startDate) {
       const startDateTime = new Date(formData.attributes.startDate)
       startDateISO = startDateTime.toISOString()
-      
-      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000)
-      endDateISO = endDateTime.toISOString()
+      endDateISO = new Date(startDateTime.getTime() + 60 * 60 * 1000).toISOString()
     }
-    
-    // Préparer les données avec les valeurs automatiques
+
     const submitData: CreateEventRequest = {
       title: formData.title,
       attributes: {
@@ -93,198 +80,198 @@ export default function CreateRpaOperation() {
       },
       links: {},
     }
-    
-    // Convertir les enums en nombres pour l'API
-    const apiData = convertEventForAPI(submitData)
-    createMutation.mutate(apiData)
+
+    createMutation.mutate(convertEventForAPI(submitData))
   }
 
+  // ── Design tokens ──────────────────────────────────────────────────────────
+  const ha = (v: string, a: number) => `rgb(var(--hud-${v}) / ${a})`
+  const hud = {
+    surface:        'rgb(var(--hud-surface))',
+    surfaceHigh:    'rgb(var(--hud-surface-high))',
+    surfaceHighest: 'rgb(var(--hud-surface-highest))',
+    primary:        'rgb(var(--hud-primary))',
+    primaryDim:     'rgb(var(--hud-primary-dim))',
+    tertiary:       'rgb(var(--hud-tertiary))',
+    onSurface:      'rgb(var(--hud-on-surface))',
+    onSurfaceVar:   'rgb(var(--hud-on-surface-var))',
+    error:          'rgb(var(--hud-error))',
+    success:        'rgb(var(--hud-success))',
+  }
+
+  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-none"
+  const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
+  const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
+
+  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+    <div className="flex items-center gap-3 mb-8">
+      <span style={{ color: color || hud.primary }}>{icon}</span>
+      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+    </div>
+  )
+
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen max-w-3xl mx-auto pt-12">
-      <div className="flex items-center space-x-3">
-        <Bot className="w-8 h-8 text-purple-600" />
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create RPA Operation</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Register an RPA automation operation</p>
-        </div>
-      </div>
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
 
-      {createMutation.isError && (
-        <div className="flex items-center gap-2 p-4 text-red-800 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>Error creating RPA operation. Please try again.</span>
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create an RPA Operation
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Track executions of your robots, automation scripts, or automated workflows.
+          </p>
         </div>
-      )}
-      
-      {showToast && (
-        <Toast 
-          message="RPA Operation created successfully!"
-          onClose={() => setShowToast(false)}
-        />
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-          <Bot className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-1">What is an RPA operation?</h3>
-            <p className="text-sm text-purple-800 dark:text-purple-200">
-              RPA (Robotic Process Automation) refers to the automation of repetitive business processes.
-              Use this page to track executions of your robots, automation scripts, or automated workflows.
-            </p>
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating RPA operation. Please try again.</p>
           </div>
-        </div>
+        )}
 
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Operation Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="title"
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Ex: Automatic invoice processing, Customer data synchronization"
-                />
-              </div>
+        {showToast && <Toast message="RPA Operation created successfully!" onClose={() => setShowToast(false)} />}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="service" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Service / RPA Robot <span className="text-red-500">*</span>
-                  </label>
-                  <ServiceAutocomplete
-                    id="service"
-                    value={formData.attributes.service}
-                    onChange={(value) => setFormData({
-                      ...formData,
-                      attributes: { ...formData.attributes, service: value }
-                    })}
-                    services={catalogServices}
-                    loading={catalogLoading}
-                    required
-                    placeholder="Type to search or select a service"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {catalogServices.length > 0 
-                      ? 'Name of the robot or RPA service' 
-                      : 'No services in catalog. Add services in the Catalog first.'}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+
+            {/* ── Left Column ── */}
+            <div className="md:col-span-8 space-y-8">
+
+              {/* Operation Information */}
+              <section className="p-8 rounded-xl overflow-visible relative z-10" style={{ background: hud.surface }}>
+                <SectionHeader icon={<Search className="w-5 h-5" />} title="Operation Information" />
+                <div className="space-y-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Operation Name <span style={{ color: hud.error }}>*</span></label>
+                    <input type="text" required value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g.: Automatic invoice processing, Customer data synchronization"
+                      className={inputCls} style={inputStyle} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="relative z-10">
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Service / RPA Robot <span style={{ color: hud.error }}>*</span></label>
+                      <ServiceAutocomplete
+                        id="service"
+                        value={formData.attributes.service}
+                        onChange={(value) => setFormData({ ...formData, attributes: { ...formData.attributes, service: value } })}
+                        services={catalogServices}
+                        loading={catalogLoading}
+                        required
+                        placeholder="Search for a service..."
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
+                      <select value={formData.attributes.environment}
+                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
+                        className={inputCls + ' appearance-none'} style={inputStyle}>
+                        <option value={Environment.PRODUCTION}>Production</option>
+                        <option value={Environment.PREPRODUCTION}>Preproduction</option>
+                        <option value={Environment.UAT}>UAT</option>
+                        <option value={Environment.RECETTE}>Recette</option>
+                        <option value={Environment.INTEGRATION}>Integration</option>
+                        <option value={Environment.DEVELOPMENT}>Development</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Operation Status</label>
+                    <select value={formData.attributes.status}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
+                      className={inputCls + ' appearance-none'} style={inputStyle}>
+                      <option value={Status.START}>Started</option>
+                      <option value={Status.SUCCESS}>Success</option>
+                      <option value={Status.FAILURE}>Failure</option>
+                      <option value={Status.WARNING}>Warning</option>
+                      <option value={Status.ERROR}>Error</option>
+                      <option value={Status.DONE}>Done</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Description <span style={{ color: hud.error }}>*</span></label>
+                    <textarea required rows={4} value={formData.attributes.message}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, message: e.target.value } })}
+                      placeholder="Describe the operation: number of items processed, results, any errors..."
+                      className={inputCls + ' resize-none'} style={inputStyle} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Owner <span style={{ color: hud.error }}>*</span></label>
+                    <input type="text" required value={formData.attributes.owner || ''}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, owner: e.target.value } })}
+                      placeholder="e.g.: team-automation, rpa-team"
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* ── Right Column ── */}
+            <div className="md:col-span-4 space-y-8">
+
+              {/* Scheduling */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.tertiary}` }}>
+                <SectionHeader icon={<Clock className="w-5 h-5" />} title="Scheduling" color={hud.tertiary} />
+                <div className="space-y-6">
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Start Date</label>
+                    <input type="datetime-local" value={formData.attributes.startDate || ''}
+                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, startDate: e.target.value } })}
+                      className={inputCls} style={inputStyle} />
+                  </div>
+                  <p className="text-xs px-1" style={{ color: hud.onSurfaceVar }}>
+                    End date will be automatically set to <strong>1 hour</strong> after the start date.
                   </p>
                 </div>
+              </section>
 
-                <div className="space-y-2">
-                  <label htmlFor="environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</label>
-                  <select
-                    value={formData.attributes.environment}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      attributes: { ...formData.attributes, environment: e.target.value as Environment }
-                    })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value={Environment.DEVELOPMENT}>Development</option>
-                    <option value={Environment.INTEGRATION}>Integration</option>
-                    <option value={Environment.UAT}>UAT</option>
-                    <option value={Environment.RECETTE}>Recette</option>
-                    <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                    <option value={Environment.PRODUCTION}>Production</option>
-                  </select>
+              {/* RPA info widget */}
+              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Bot className="w-20 h-20" />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Operation Status</label>
-                <select
-                  value={formData.attributes.status}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, status: e.target.value as Status }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value={Status.START}>Started</option>
-                  <option value={Status.SUCCESS}>Success</option>
-                  <option value={Status.FAILURE}>Failure</option>
-                  <option value={Status.WARNING}>Warning</option>
-                  <option value={Status.ERROR}>Error</option>
-                  <option value={Status.DONE}>Done</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Operation Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="message"
-                  required
-                  rows={4}
-                  value={formData.attributes.message}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, message: e.target.value }
-                  })}
-                  placeholder="Describe the operation performed: number of items processed, duration, results, any errors..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-y"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                <Input
-                  id="startDate"
-                  type="datetime-local"
-                  value={formData.attributes.startDate || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, startDate: e.target.value }
-                  })}
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  End date will be automatically set to 1 hour after start date
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="owner" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Owner / Responsible <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="owner"
-                  type="text"
-                  required
-                  value={formData.attributes.owner || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    attributes: { ...formData.attributes, owner: e.target.value }
-                  })}
-                  placeholder="Ex: team-automation, rpa-team"
-                />
-              </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                onClick={() => navigate('/rpa')}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-              >
-                <Bot className="w-4 h-4 mr-2" />
-                {createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}
-              </Button>
+                <div className="flex flex-col items-center text-center py-2">
+                  <Bot className="w-10 h-10 mb-4" style={{ color: hud.primary }} />
+                  <h4 className="font-bold mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>RPA Operation</h4>
+                  <p className="text-xs leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+                    Robotic Process Automation refers to the automation of repetitive business processes by software robots.
+                  </p>
+                </div>
+              </section>
             </div>
-          </CardContent>
-        </Card>
-      </form>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
+            <button type="button" onClick={() => navigate('/rpa')}
+              className="px-8 py-3 font-bold transition-colors hover:opacity-80"
+              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={createMutation.isPending}
+              className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+              style={{
+                background: `linear-gradient(135deg, ${hud.primary}, ${hud.primaryDim})`,
+                color: 'white',
+                fontFamily: "'Space Grotesk', sans-serif",
+                boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
+              }}>
+              <Bot className="w-4 h-4" />
+              {createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Decorative glows */}
+      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none" style={{ background: ha('primary', 0.05) }} />
+      <div className="fixed bottom-0 left-64 -z-10 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none" style={{ background: ha('tertiary', 0.05) }} />
     </div>
   )
 }
-

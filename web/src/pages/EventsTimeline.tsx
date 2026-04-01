@@ -578,79 +578,82 @@ export default function EventsTimeline() {
                   const typeColor = getEventTypeColor(event.attributes.type)
                   return (
                     <div key={event.metadata?.id} className="relative flex items-start space-x-4">
-                      <div className={`relative z-10 flex items-center justify-center w-16 h-16 bg-white dark:bg-gray-800 border-2 ${typeColor.border} rounded-full`}>
-                        {getEventTypeIcon(event.attributes.type, 'w-6 h-6')}
+                      <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full shrink-0 ${typeColor.border}`} style={{ background: 'rgb(var(--hud-surface))', borderWidth: '2px', borderStyle: 'solid' }}>
+                        {getEventTypeIcon(event.attributes.type, 'w-5 h-5')}
                       </div>
                       
                       <div 
-                        className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 cursor-pointer hover:shadow-lg hover:border-primary-500 dark:hover:border-primary-500 transition-all"
+                        className="flex-1 rounded-xl p-5 cursor-pointer transition-all hover:shadow-lg"
+                        style={{ background: 'rgb(var(--hud-surface) / 0.75)', backdropFilter: 'blur(8px)', border: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}
                         onClick={() => setSelectedEvent(event)}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full flex items-center space-x-1 ${typeColor.bg} ${typeColor.text}`}>
-                                {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
-                                <span>{getEventTypeLabel(event.attributes.type)}</span>
-                              </span>
-                              {event.attributes.environment && (
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getEnvironmentColor(event.attributes.environment).bg} ${getEnvironmentColor(event.attributes.environment).text}`}>
-                                  {getEnvironmentLabel(event.attributes.environment)}
-                                </span>
-                              )}
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(event.attributes.priority).bg} ${getPriorityColor(event.attributes.priority).text}`}>
-                                {getPriorityLabel(event.attributes.priority)}
-                              </span>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.attributes.status).bg} ${getStatusColor(event.attributes.status).text}`}>
-                                {getStatusLabel(event.attributes.status)}
-                              </span>
-                              {isEventApproved(event) && (
-                                <Badge variant="success" className="gap-1">
-                                  <CheckCircle className="w-3 h-3" />
-                                  Approved
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 break-words mb-2">{event.title}</h3>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto">
-                              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words">{event.attributes.message}</p>
-                            </div>
-                            
-                            <div className="flex items-center space-x-4 mt-3 text-sm">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-gray-500 dark:text-gray-400">Service:</span>
-                                <Badge variant="outline" className="font-mono">
-                                  {event.attributes.service}
-                                </Badge>
-                              </div>
-                              <span className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
-                                <span>Source:</span>
-                                <SourceIcon source={event.attributes.source} />
-                                <span className="font-medium">{event.attributes.source}</span>
-                              </span>
-                              {event.attributes.owner && (
-                                <span className="text-gray-500 dark:text-gray-400">
-                                  Owner: <span className="font-medium text-gray-700 dark:text-gray-300">{event.attributes.owner}</span>
-                                </span>
-                              )}
-                            </div>
+                        {/* Top row: badges */}
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          {(() => {
+                            const t = String(event.attributes.type).toLowerCase()
+                            const c = t === 'deployment' || t === '1' ? '#40ceed' : t === 'incident' || t === '4' ? '#ff6e84' : t === 'drift' || t === '3' ? '#a3aac4' : t === 'operation' || t === '2' ? '#bd9dff' : '#a78bfa'
+                            return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getEventTypeLabel(event.attributes.type)}</span>
+                          })()}
+                          {event.attributes.environment && (() => {
+                            const e = String(event.attributes.environment).toLowerCase()
+                            const c = e === 'production' || e === '7' ? '#f87171' : e === 'preproduction' || e === '6' ? '#fb923c' : e === 'uat' || e === '4' || e === 'recette' || e === '5' ? '#60a5fa' : e === 'development' || e === '1' ? '#4ade80' : '#a3aac4'
+                            return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ background: c }} />
+                              {getEnvironmentLabel(event.attributes.environment)}
+                            </span>
+                          })()}
+                          {(() => {
+                            const p = String(event.attributes.priority).toLowerCase()
+                            const c = p === 'p1' || p === '1' ? '#ef4444' : p === 'p2' || p === '2' ? '#fb923c' : p === 'p3' || p === '3' ? '#fbbf24' : '#6b7280'
+                            return <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getPriorityLabel(event.attributes.priority)}</span>
+                          })()}
+                          {(() => {
+                            const s = String(event.attributes.status).toLowerCase()
+                            const c = s === 'success' || s === '3' || s === 'done' || s === '11' ? '#34d399' : s === 'failure' || s === '2' || s === 'error' || s === '5' ? '#ff6e84' : s === 'start' || s === '1' || s === 'in_progress' || s === '12' ? '#40ceed' : s === 'warning' || s === '4' ? '#fbbf24' : '#6b7280'
+                            return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getStatusLabel(event.attributes.status)}</span>
+                          })()}
+                          {isEventApproved(event) && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(52,211,153,0.15)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)' }}>
+                              <CheckCircle className="w-3 h-3" /> Approved
+                            </span>
+                          )}
+                          {/* Timestamp right-aligned */}
+                          <span className="ml-auto text-[10px] font-mono" style={{ color: 'rgb(var(--hud-outline))' }}>
+                            {event.metadata?.createdAt && format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}
+                          </span>
+                        </div>
 
-                            <EventLinks 
-                              links={event.links}
-                              source={event.attributes.source}
-                              slackId={event.metadata?.slackId}
-                              className="mt-3"
-                            />
-                          </div>
-                          
-                          <div className="text-right text-sm text-gray-500 dark:text-gray-400">
-                            {event.metadata?.createdAt && (
-                              <time>
-                                {format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}
-                              </time>
-                            )}
-                          </div>
+                        {/* Title */}
+                        <h3 className="text-lg font-bold break-words mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{event.title}</h3>
+                        
+                        {/* Description */}
+                        {event.attributes.message && (
+                          <p className="text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>{event.attributes.message}</p>
+                        )}
+                        
+                        {/* Metadata row */}
+                        <div className="flex items-center gap-4 flex-wrap text-xs" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
+                          <span className="font-mono font-bold" style={{ color: 'rgb(var(--hud-on-surface))' }}>{event.attributes.service}</span>
+                          {event.attributes.startDate && (
+                            <span className="flex items-center gap-1">
+                              <i className="fa-solid fa-play text-[8px]" style={{ color: '#34d399' }} />
+                              <span className="font-mono">{format(new Date(event.attributes.startDate), 'PPp', { locale: fr })}</span>
+                            </span>
+                          )}
+                          {event.attributes.endDate && (
+                            <span className="flex items-center gap-1">
+                              <i className="fa-solid fa-flag-checkered text-[8px]" style={{ color: '#ff6e84' }} />
+                              <span className="font-mono">{format(new Date(event.attributes.endDate), 'PPp', { locale: fr })}</span>
+                            </span>
+                          )}
+                          {event.attributes.owner && (
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style={{ background: 'rgb(var(--hud-primary))' }}>
+                                {event.attributes.owner.split(/[\s.@]/).filter(Boolean).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('')}
+                              </span>
+                              {event.attributes.owner}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -3,11 +3,9 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { useState, useMemo } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Filter, X, Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Filter, X, Search, SlidersHorizontal } from 'lucide-react'
 import type { Event } from '../types/api'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
-import EventLinks from '../components/EventLinks'
+import { getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -36,9 +34,10 @@ export default function EventsCalendar() {
   const monthEnd = useMemo(() => endOfMonth(currentDate), [currentDate])
 
   // Récupérer les événements avec une clé qui change chaque mois pour forcer le refresh
-  const { data, isLoading } = useQuery({
-    queryKey: ['events', 'calendar', format(currentDate, 'yyyy-MM')],
+  const { data } = useQuery({
+    queryKey: ['events', 'calendar'],
     queryFn: () => eventsApi.list({ perPage: 1000 }),
+    staleTime: 60_000,
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -383,16 +382,7 @@ export default function EventsCalendar() {
                 </p>
               </div>
             </div>
-            
-            <Link to="/events/create">
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                Create Event
-              </Button>
-            </Link>
           </div>
-
-          {/* Active Filters Tags */}
           {activeFiltersCount > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               {selectedTypes.map((type: string) => (
@@ -430,20 +420,12 @@ export default function EventsCalendar() {
         </div>
 
         {/* Calendar Content */}
-        <div className="flex-1 overflow-hidden p-6 bg-gray-50 dark:bg-gray-900 flex flex-col">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">Loading events for {format(currentDate, 'MMMM yyyy', { locale: fr })}...</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-6 flex-1 min-h-0">
-            {/* Calendar Grid - fixed size, no scroll */}
-            <div className="flex-[2] shrink-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex-1 overflow-hidden p-4 flex flex-col" style={{ background: 'rgb(var(--hud-bg))' }}>
+            <div className="flex gap-4 flex-1 min-h-0">
+            {/* Calendar Grid */}
+            <div className="flex-[2] shrink-0 rounded-xl flex flex-col overflow-hidden" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
+              <div className="px-4 py-3 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
+                <h3 className="text-lg font-semibold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {format(currentDate, 'MMMM yyyy', { locale: fr })}
                 </h3>
                 <div className="flex space-x-2">
@@ -456,19 +438,18 @@ export default function EventsCalendar() {
                 </div>
               </div>
 
-              <div className="p-4 flex-1 flex flex-col">
-                {/* En-têtes des jours */}
-                <div className="grid grid-cols-7 gap-2 mb-1">
-                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-                    <div key={day} className="text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <div className="px-3 py-2 flex-1 flex flex-col min-h-0">
+                {/* Day headers */}
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <div key={day} className="text-center text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
                       {day}
                     </div>
                   ))}
                 </div>
                 
-                {/* Grille des jours */}
-                <div className="grid grid-cols-7 auto-rows-fr gap-2 flex-1">
-                  {/* Cellules vides pour aligner le premier jour */}
+                {/* Day grid */}
+                <div className="grid grid-cols-7 gap-1 flex-1 auto-rows-fr min-h-0">
                   {Array.from({ length: firstDayOfWeek }).map((_, index) => (
                     <div key={`empty-${index}`} />
                   ))}
@@ -482,34 +463,36 @@ export default function EventsCalendar() {
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
-                        className={`
-                          min-h-0 p-2 rounded border transition-all relative flex flex-col overflow-hidden
-                          ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
-                          ${isCurrentDay ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-gray-800'}
-                          hover:shadow-md
-                        `}
+                        className="min-h-0 p-1.5 rounded-lg transition-all relative flex flex-col overflow-hidden"
+                        style={{
+                          background: isSelected ? 'rgb(var(--hud-primary) / 0.15)' : isCurrentDay ? 'rgb(var(--hud-primary) / 0.07)' : 'transparent',
+                          border: isSelected ? '2px solid rgb(var(--hud-primary))' : '1px solid rgb(var(--hud-outline-var) / 0.1)',
+                        }}
                       >
-                        <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                          <div className={`text-base font-semibold ${isCurrentDay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                        <div className="flex items-center justify-between mb-0.5 flex-shrink-0">
+                          <span className={`text-xs font-bold ${isCurrentDay ? '' : ''}`}
+                            style={{ color: isCurrentDay ? 'rgb(var(--hud-primary))' : 'rgb(var(--hud-on-surface))' }}>
                             {format(day, 'd')}
-                          </div>
+                          </span>
+                          {dayEvents.length > 0 && (
+                            <span className="text-[9px] font-bold px-1 rounded" style={{ background: 'rgb(var(--hud-primary) / 0.15)', color: 'rgb(var(--hud-primary))' }}>
+                              {dayEvents.length}
+                            </span>
+                          )}
                         </div>
                         {dayEvents.length > 0 && (
-                          <div className="space-y-1 flex-1 overflow-y-auto">
-                            {dayEvents.slice(0, 5).map((event: any, idx: number) => {
-                              const typeColor = getEventTypeColor(event.attributes.type)
+                          <div className="space-y-1 flex-1 overflow-hidden">
+                            {dayEvents.slice(0, 3).map((event: any, idx: number) => {
+                              const t = String(event.attributes.type).toLowerCase()
+                              const c = t === 'deployment' || t === '1' ? '#40ceed' : t === 'incident' || t === '4' ? '#ff6e84' : t === 'drift' || t === '3' ? '#a3aac4' : t === 'operation' || t === '2' ? '#bd9dff' : '#a78bfa'
                               return (
-                                <div
-                                  key={idx}
-                                  className={`text-xs px-2 py-1 rounded truncate flex items-center space-x-1 ${typeColor.bg} ${typeColor.text} border-0`}
-                                >
-                                  {getEventTypeIcon(event.attributes.type, 'w-3 h-3 flex-shrink-0')}
-                                  <span className="truncate">{event.title}</span>
+                                <div key={idx} className="text-[10px] font-medium px-1.5 py-1 rounded-md truncate leading-tight" style={{ background: `${c}20`, color: c, borderLeft: `2px solid ${c}` }}>
+                                  {event.title}
                                 </div>
                               )
                             })}
-                            {dayEvents.length > 5 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium px-2">+{dayEvents.length - 5} more</div>
+                            {dayEvents.length > 3 && (
+                              <div className="text-[10px] font-medium px-1.5" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>+{dayEvents.length - 3}</div>
                             )}
                           </div>
                         )}
@@ -520,80 +503,94 @@ export default function EventsCalendar() {
               </div>
             </div>
 
-            {/* Event Details Panel - scrollable */}
-            <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col overflow-hidden min-h-0">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {/* Event Details Panel */}
+            <div className="flex-1 rounded-xl flex flex-col overflow-hidden min-h-0" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
+              <div className="px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
+                <h3 className="text-lg font-semibold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: fr }) : 'Select a Date'}
                 </h3>
+                {selectedDayEvents.length > 0 && (
+                  <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>{selectedDayEvents.length} event{selectedDayEvents.length > 1 ? 's' : ''}</p>
+                )}
               </div>
               
               <ScrollArea className="flex-1 overflow-y-auto">
                 <div className="p-4">
                   {selectedDayEvents.length > 0 ? (
-                    <div className="space-y-4">
-                      {/* Liste des événements */}
-                      <div className="space-y-3">
-                        {selectedDayEvents.map((event: any) => {
-                          const typeColor = getEventTypeColor(event.attributes.type)
-                          const envColor = getEnvironmentColor(event.attributes.environment)
-                          const priorityColor = getPriorityColor(event.attributes.priority)
-                          const statusColor = getStatusColor(event.attributes.status)
-                          const startDateStr = event.attributes.startDate || event.metadata?.createdAt
-                          const startDate = startDateStr ? new Date(startDateStr) : null
-                          const endDate = event.attributes.endDate ? new Date(event.attributes.endDate) : startDate
-                          
-                          return (
-                            <div 
-                              key={event.metadata?.id} 
-                              className="p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
-                              onClick={() => setSelectedEvent(event)}
-                            >
-                              <div className="flex items-center flex-wrap gap-2 mb-2">
-                                {getEventTypeIcon(event.attributes.type, 'w-4 h-4 flex-shrink-0')}
-                                <Badge className={`${typeColor.bg} ${typeColor.text} border-0`}>
-                                  {getEventTypeLabel(event.attributes.type)}
-                                </Badge>
-                                {event.attributes.environment && (
-                                  <Badge className={`${envColor.bg} ${envColor.text} border-0`}>
-                                    {getEnvironmentLabel(event.attributes.environment)}
-                                  </Badge>
-                                )}
-                                <Badge className={`${priorityColor.bg} ${priorityColor.text} border-0`}>
-                                  {getPriorityLabel(event.attributes.priority)}
-                                </Badge>
-                                <Badge className={`${statusColor.bg} ${statusColor.text} border-0`}>
-                                  {getStatusLabel(event.attributes.status)}
-                                </Badge>
-                              </div>
-                              <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{event.title}</p>
-                              <div className="flex items-center justify-between mt-1">
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{event.attributes.service}</p>
-                                {startDate && endDate && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                                    {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}
-                                  </p>
-                                )}
-                              </div>
-                              <EventLinks 
-                                links={event.links}
-                                source={event.attributes.source}
-                                slackId={event.metadata?.slackId}
-                                className="mt-2"
-                              />
+                    <div className="space-y-3">
+                      {selectedDayEvents.map((event: any) => {
+                        const startDateStr = event.attributes.startDate || event.metadata?.createdAt
+                        const startDate = startDateStr ? new Date(startDateStr) : null
+                        const endDate = event.attributes.endDate ? new Date(event.attributes.endDate) : startDate
+                        
+                        return (
+                          <div 
+                            key={event.metadata?.id} 
+                            className="rounded-xl p-4 cursor-pointer transition-all hover:shadow-lg"
+                            style={{ background: 'rgb(var(--hud-surface) / 0.75)', backdropFilter: 'blur(8px)', border: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}
+                            onClick={() => setSelectedEvent(event)}
+                          >
+                            {/* Badges row */}
+                            <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                              {(() => {
+                                const t = String(event.attributes.type).toLowerCase()
+                                const c = t === 'deployment' || t === '1' ? '#40ceed' : t === 'incident' || t === '4' ? '#ff6e84' : t === 'drift' || t === '3' ? '#a3aac4' : t === 'operation' || t === '2' ? '#bd9dff' : '#a78bfa'
+                                return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getEventTypeLabel(event.attributes.type)}</span>
+                              })()}
+                              {event.attributes.environment && (() => {
+                                const e = String(event.attributes.environment).toLowerCase()
+                                const c = e === 'production' || e === '7' ? '#f87171' : e === 'preproduction' || e === '6' ? '#fb923c' : e === 'uat' || e === '4' || e === 'recette' || e === '5' ? '#60a5fa' : e === 'development' || e === '1' ? '#4ade80' : '#a3aac4'
+                                return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>
+                                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: c }} />
+                                  {getEnvironmentLabel(event.attributes.environment)}
+                                </span>
+                              })()}
+                              {(() => {
+                                const p = String(event.attributes.priority).toLowerCase()
+                                const c = p === 'p1' || p === '1' ? '#ef4444' : p === 'p2' || p === '2' ? '#fb923c' : p === 'p3' || p === '3' ? '#fbbf24' : '#6b7280'
+                                return <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getPriorityLabel(event.attributes.priority)}</span>
+                              })()}
+                              {(() => {
+                                const s = String(event.attributes.status).toLowerCase()
+                                const c = s === 'success' || s === '3' || s === 'done' || s === '11' ? '#34d399' : s === 'failure' || s === '2' || s === 'error' || s === '5' ? '#ff6e84' : s === 'start' || s === '1' || s === 'in_progress' || s === '12' ? '#40ceed' : s === 'warning' || s === '4' ? '#fbbf24' : '#6b7280'
+                                return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getStatusLabel(event.attributes.status)}</span>
+                              })()}
                             </div>
-                          )
-                        })}
-                      </div>
+
+                            {/* Title */}
+                            <h4 className="text-sm font-bold break-words mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{event.title}</h4>
+                            
+                            {/* Description */}
+                            {event.attributes.message && (
+                              <p className="text-xs leading-relaxed mb-2 line-clamp-2" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>{event.attributes.message}</p>
+                            )}
+                            
+                            {/* Metadata */}
+                            <div className="flex items-center gap-3 flex-wrap text-[10px]" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
+                              <span className="font-mono font-bold" style={{ color: 'rgb(var(--hud-on-surface))' }}>{event.attributes.service}</span>
+                              {startDate && endDate && (
+                                <span className="font-mono">{format(startDate, 'HH:mm')} → {format(endDate, 'HH:mm')}</span>
+                              )}
+                              {event.attributes.owner && (
+                                <span className="flex items-center gap-1">
+                                  <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold text-white" style={{ background: 'rgb(var(--hud-primary))' }}>
+                                    {event.attributes.owner.split(/[\s.@]/).filter(Boolean).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('')}
+                                  </span>
+                                  {event.attributes.owner}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No events for this date</p>
+                    <p className="text-sm text-center py-8" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>No events for this date</p>
                   )}
                 </div>
               </ScrollArea>
             </div>
           </div>
-          )}
         </div>
       </div>
 

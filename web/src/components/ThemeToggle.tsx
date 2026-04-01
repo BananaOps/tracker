@@ -9,67 +9,40 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme()
 
   if (compact) {
-    // Mode compact : un seul bouton qui cycle entre les thèmes
     const cycleTheme = () => {
       if (theme === 'light') setTheme('dark')
       else if (theme === 'dark') setTheme('system')
       else setTheme('light')
     }
-
     const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
-
     return (
-      <button
-        onClick={cycleTheme}
-        className="p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
-        title={`Current: ${theme} mode (click to change)`}
-        type="button"
+      <button onClick={cycleTheme}
+        className="p-2 rounded-lg bg-hud-surface-high text-hud-on-surface-var hover:text-hud-on-surface transition-colors"
+        title={`Current: ${theme} mode (click to change)`} type="button"
       >
         <Icon className="w-4 h-4" />
       </button>
     )
   }
 
+  const btn = (t: typeof theme, Icon: typeof Sun, title: string) => (
+    <button onClick={() => setTheme(t)}
+      className={`p-2 rounded-lg transition-colors ${
+        theme === t
+          ? 'bg-hud-surface text-hud-primary shadow-sm'
+          : 'text-hud-on-surface-var hover:text-hud-on-surface'
+      }`}
+      title={title} type="button"
+    >
+      <Icon className="w-4 h-4" />
+    </button>
+  )
+
   return (
-    <div className="flex items-center space-x-1 bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
-      <button
-        onClick={() => setTheme('light')}
-        className={`p-2 rounded-md transition-colors ${
-          theme === 'light'
-            ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-        }`}
-        title="Light mode"
-        type="button"
-      >
-        <Sun className="w-4 h-4" />
-      </button>
-      
-      <button
-        onClick={() => setTheme('dark')}
-        className={`p-2 rounded-md transition-colors ${
-          theme === 'dark'
-            ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-        }`}
-        title="Dark mode"
-        type="button"
-      >
-        <Moon className="w-4 h-4" />
-      </button>
-      
-      <button
-        onClick={() => setTheme('system')}
-        className={`p-2 rounded-md transition-colors ${
-          theme === 'system'
-            ? 'bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-        }`}
-        title="System mode"
-        type="button"
-      >
-        <Monitor className="w-4 h-4" />
-      </button>
+    <div className="flex items-center space-x-1 bg-hud-surface-high rounded-lg p-1">
+      {btn('light', Sun, 'Light mode')}
+      {btn('dark', Moon, 'Dark mode')}
+      {btn('system', Monitor, 'System mode')}
     </div>
   )
 }

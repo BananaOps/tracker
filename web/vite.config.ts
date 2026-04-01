@@ -5,6 +5,7 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const homerUrl = env.VITE_HOMER_URL || ''
+  const backendUrl = env.VITE_BACKEND_URL || 'http://localhost:8080'
 
   return {
     plugins: [react()],
@@ -18,7 +19,7 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: backendUrl,
           changeOrigin: true,
         },
         // In dev, proxy Homer config.yml directly to avoid CORS + no backend needed

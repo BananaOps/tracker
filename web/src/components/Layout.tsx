@@ -1,6 +1,9 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, ChevronDown, BookOpen, MessageSquare, Lock, BarChart3, Search, ChevronLeft, ChevronRight, Link as LinkIcon } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
+import { faRobot } from '@fortawesome/free-solid-svg-icons'
+import { useState } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -9,259 +12,237 @@ import Footer from './Footer'
 import LinksSearch from './LinksSearch'
 import { getSlackEventsChannelUrl } from '../config'
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { 
-    name: 'Events', 
-    icon: Clock,
-    submenu: [
-      { name: 'Timeline', href: '/events/timeline', icon: Clock },
-      { name: 'Streamline', href: '/events/streamline', icon: Package },
-      { name: 'Calendar', href: '/events/calendar', icon: Calendar },
-      { name: 'Overlaps', href: '/events/overlaps', icon: AlertTriangle },
-    ]
-  },
-  { name: 'Insights', href: '/insights', icon: BarChart3 },
-  { 
-    name: 'Catalog', 
-    icon: Table,
-    submenu: [
-      { name: 'Services', href: '/catalog', icon: Table },
-      { name: 'Dependencies', href: '/catalog/dependencies', icon: GitBranch },
-      { name: 'Version Compliance', href: '/catalog/version-compliance', icon: AlertTriangle },
-    ]
+const navigationSections = [
+  {
+    label: 'Operations',
+    items: [
+      { name: 'Dashboard',   href: '/dashboard',         icon: LayoutDashboard },
+      { name: 'Timeline',    href: '/events/timeline',   icon: Clock },
+      { name: 'Streamline',  href: '/events/streamline', icon: Package },
+      { name: 'Calendar',    href: '/events/calendar',   icon: Calendar },
+      { name: 'Overlaps',    href: '/events/overlaps',   icon: AlertTriangle },
+      { name: 'Insights',    href: '/insights',          icon: BarChart3 },
+    ],
   },
   {
-    name: 'Drifts', 
-    icon: GitBranch,
-    submenu: [
-      { name: 'Active Drifts', href: '/drifts', icon: GitBranch },
-      { name: 'All Drifts', href: '/drifts/all', icon: Search },
-    ]
+    label: 'Services',
+    items: [
+      { name: 'Catalog',      href: '/catalog',                    icon: Table },
+      { name: 'Architecture', href: '/catalog/dependencies',       icon: ({ className }: { className?: string }) => <span className={`inline-flex items-center justify-center ${className || ''}`}><i className="fa-solid fa-chart-diagram text-[13px]" /></span> },
+      { name: 'Compliance',   href: '/catalog/version-compliance', icon: AlertTriangle },
+    ],
   },
-  { name: 'RPA Usage', href: '/rpa', icon: Bot },
-  { name: 'Locks', href: '/locks', icon: Lock },
-  { name: 'Links', href: '/links', icon: LinkIcon },
-  { name: 'Docs', href: '/docs', icon: BookOpen },
+  {
+    label: 'Infrastructure',
+    items: [
+      { name: 'Drifts',    href: '/drifts', icon: GitBranch },
+      { name: 'RPA Usage', href: '/rpa',    icon: Bot },
+      { name: 'Locks',     href: '/locks',  icon: Lock },
+    ],
+  },
+  {
+    label: 'Resources',
+    items: [
+      { name: 'Links', href: '/links', icon: LinkIcon },
+      { name: 'Docs',  href: '/docs',  icon: BookOpen },
+    ],
+  },
 ]
 
 export default function Layout() {
   const location = useLocation()
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const isActiveRoute = (href?: string, submenu?: any[]) => {
-    if (href) {
-      return location.pathname === href
-    }
-    if (submenu) {
-      return submenu.some(item => location.pathname === item.href)
-    }
-    return false
-  }
+  const isActiveRoute = (href: string) => location.pathname === href
 
-  const handleMouseEnter = (itemName: string) => {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
-    }
-    setOpenSubmenu(itemName)
-  }
-
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setOpenSubmenu(null)
-    }, 300) // Délai de 300ms avant fermeture
-    setHoverTimeout(timeout)
-  }
-
-  // Nettoyage du timeout au démontage du composant
-  useEffect(() => {
-    return () => {
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout)
-      }
-    }
-  }, [hoverTimeout])
+  const navItem = 'flex items-center px-3 py-[7px] rounded-ig text-sm font-medium transition-all duration-150 cursor-pointer select-none'
+  const navActive = 'bg-[rgb(var(--hud-sidebar-active))] text-[rgb(var(--hud-sidebar-text-active))] font-semibold'
+  const navInactive = 'text-[rgb(var(--hud-sidebar-text))] hover:bg-hud-surface-high hover:text-hud-on-surface'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Banners at the top - not fixed, naturally inserted */}
+    <div className="min-h-screen bg-hud-bg">
       <div>
         <DemoBanner />
         <OpenSourceBanner />
         <StaticModeBanner />
       </div>
-      
+
       <div className="flex">
-        {/* Sidebar Navigation */}
-        <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-screen z-40 transition-all duration-300`}>
-          {/* Logo */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          {!isCollapsed && (
-            <Link to="/dashboard" className="flex items-center group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg transform group-hover:scale-110 transition-transform duration-200"></div>
-                <div className="relative p-1.5">
-                  <Rocket className="w-5 h-5 text-white transform -rotate-45" />
-                </div>
-              </div>
-              <h1 className="ml-2 text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
-                Tracker
-              </h1>
-            </Link>
-          )}
-          {isCollapsed && (
-            <Link to="/dashboard" className="flex items-center group mx-auto">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg transform group-hover:scale-110 transition-transform duration-200"></div>
-                <div className="relative p-1.5">
-                  <Rocket className="w-5 h-5 text-white transform -rotate-45" />
-                </div>
-              </div>
-            </Link>
-          )}
-        </div>
-
-        {/* Toggle Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-50"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        {/* Sidebar */}
+        <aside
+          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed h-screen z-40 transition-all duration-200`}
+          style={{
+            background: 'rgb(var(--hud-sidebar-bg))',
+            borderRight: '1px solid rgb(var(--hud-sidebar-border))',
+          }}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          )}
-        </button>
+          {/* Logo */}
+          <div
+            className={`flex items-center h-[52px] px-4 shrink-0 ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}
+            style={{ borderBottom: '1px solid rgb(var(--hud-sidebar-border))' }}
+          >
+            <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="w-7 h-7 rounded-ig flex items-center justify-center shrink-0"
+                style={{ background: 'rgb(var(--hud-primary))' }}
+              >
+                <Rocket className="w-4 h-4 text-white" style={{ transform: 'rotate(-45deg)' }} />
+              </div>
+              {!isCollapsed && (
+                <span className="text-[15px] font-bold text-hud-on-surface tracking-tight truncate">
+                  Tracker
+                </span>
+              )}
+            </Link>
+          </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3">
-          <div className="space-y-1">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = isActiveRoute(item.href, item.submenu)
-              const hasSubmenu = !!item.submenu
-              const isOpen = openSubmenu === item.name
+          {/* Sidebar toggle */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-[60px] w-6 h-6 rounded-full flex items-center justify-center transition-colors z-50"
+            style={{
+              background: 'rgb(var(--hud-surface))',
+              border: '1px solid rgb(var(--hud-outline-var))',
+              boxShadow: '0 1px 3px rgb(0 0 0 / 0.08)',
+            }}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed
+              ? <ChevronRight className="w-3.5 h-3.5 text-hud-on-surface-var" />
+              : <ChevronLeft  className="w-3.5 h-3.5 text-hud-on-surface-var" />
+            }
+          </button>
 
-              if (hasSubmenu) {
-                // En mode collapsed, on redirige vers la première page du submenu
-                const firstSubmenuItem = item.submenu?.[0]
-                
-                if (isCollapsed && firstSubmenuItem) {
-                  return (
-                    <Link
-                      key={item.name}
-                      to={firstSubmenuItem.href}
-                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                      title={item.name}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </Link>
-                  )
-                }
-                
-                return (
-                  <div key={item.name}>
-                    <button
-                      onClick={() => setOpenSubmenu(isOpen ? null : item.name)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center">
-                        <Icon className="w-4 h-4 mr-3" />
-                        {item.name}
-                      </div>
-                      <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                    </button>
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4 no-scrollbar">
+            {navigationSections.map((section) => (
+              <div key={section.label}>
+                {!isCollapsed && (
+                  <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-hud-on-surface-var/50 select-none">
+                    {section.label}
+                  </p>
+                )}
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon
+                    const isActive = isActiveRoute(item.href)
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${isActive ? navActive : navInactive}`}
+                        title={isCollapsed ? item.name : ''}
+                      >
+                        <Icon className={`w-[15px] h-[15px] shrink-0 ${isCollapsed ? '' : 'mr-2.5'}`} />
+                        {!isCollapsed && <span className="truncate">{item.name}</span>}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
 
-                    {/* Submenu */}
-                    {isOpen && (
-                      <div className="ml-4 mt-1 space-y-1">
-                        {item.submenu?.map((subItem) => {
-                          const SubIcon = subItem.icon
-                          const isSubActive = location.pathname === subItem.href
-                          return (
-                            <Link
-                              key={subItem.name}
-                              to={subItem.href}
-                              className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
-                                isSubActive
-                                  ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                              }`}
-                            >
-                              <SubIcon className="w-4 h-4 mr-3" />
-                              {subItem.name}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              }
+          {/* Bottom */}
+          <div
+            className="px-2 py-3 space-y-1"
+            style={{ borderTop: '1px solid rgb(var(--hud-sidebar-border))' }}
+          >
+            {getSlackEventsChannelUrl() && (
+              <a
+                href={getSlackEventsChannelUrl()!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${navInactive}`}
+                title={isCollapsed ? 'Events Channel' : ''}
+              >
+                <MessageSquare className={`w-[15px] h-[15px] shrink-0 ${isCollapsed ? '' : 'mr-2.5'}`} />
+                {!isCollapsed && <span className="truncate">Events Channel</span>}
+              </a>
+            )}
+            <div className={`flex ${isCollapsed ? 'justify-center' : 'px-1'}`}>
+              <ThemeToggle compact={isCollapsed} />
+            </div>
+          </div>
+        </aside>
 
-              return (
+        {/* Main Content */}
+        <div className={`flex-1 ${isCollapsed ? 'ml-[56px]' : 'ml-[220px]'} flex flex-col h-screen overflow-hidden transition-all duration-200`}>
+          {/* Top Bar */}
+          <header
+            className="h-[52px] shrink-0 flex items-center justify-between px-5 relative z-50"
+            style={{
+              background: 'rgb(var(--hud-surface))',
+              borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.5)',
+            }}
+          >
+            <div className="flex-1 max-w-xl">
+              <LinksSearch collapsed={false} />
+            </div>
+
+            <div className="flex items-center gap-1.5 ml-4">
+              {/* Secondary actions */}
+              {(
+                [
+                  { to: '/locks/create',   icon: Lock,    label: 'New Lock' },
+                  { to: '/drifts/create',  icon: null,    label: 'New Drift',    faIcon: faCodeBranch },
+                  { to: '/rpa/create',     icon: null,    label: 'New RPA',      faIcon: faRobot },
+                  { to: '/catalog/create', icon: Package, label: 'New Service' },
+                ] as const
+              ).map(({ to, icon: Icon, label, faIcon }: any) => (
                 <Link
-                  key={item.name}
-                  to={item.href!}
-                  className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                  title={isCollapsed ? item.name : ''}
+                  key={to}
+                  to={to}
+                  className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150"
+                  style={{
+                    color: 'rgb(var(--hud-on-surface-var))',
+                    border: '1px solid rgb(var(--hud-outline-var))',
+                    background: 'rgb(var(--hud-surface))',
+                  }}
+                  onMouseEnter={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface-high))'
+                    ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline))'
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface))'
+                    ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline-var))'
+                  }}
                 >
-                  <Icon className={`w-4 h-4 ${isCollapsed ? '' : 'mr-3'}`} />
-                  {!isCollapsed && item.name}
+                  {faIcon
+                    ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" />
+                    : <Icon className="w-3 h-3" />
+                  }
+                  {label}
                 </Link>
-              )
-            })}
-          </div>
-        </nav>
+              ))}
 
-        {/* Bottom Actions */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
-          {getSlackEventsChannelUrl() && (
-            <a
-              href={getSlackEventsChannelUrl()!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center ${isCollapsed ? 'justify-center' : ''} px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-              title={isCollapsed ? 'Open Events Channel in Slack' : ''}
-            >
-              <MessageSquare className={`w-4 h-4 ${isCollapsed ? '' : 'mr-3'}`} />
-              {!isCollapsed && 'Events Channel'}
-            </a>
-          )}
-          <div className="flex justify-center">
-            <ThemeToggle compact={isCollapsed} />
-          </div>
-          <div className="flex justify-center">
-            <LinksSearch collapsed={isCollapsed} />
-          </div>
+              {/* Primary CTA */}
+              <Link
+                to="/events/create"
+                className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-white"
+                style={{
+                  background: 'rgb(var(--hud-primary))',
+                  boxShadow: '0 1px 2px rgb(var(--hud-primary) / 0.3)',
+                }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary-dim))'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary))'
+                }}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                New Event
+              </Link>
+            </div>
+          </header>
+
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <Outlet />
+          </main>
         </div>
-      </aside>
 
-      {/* Main Content */}
-      <div className={`flex-1 ${isCollapsed ? 'ml-16' : 'ml-64'} flex flex-col h-screen overflow-hidden transition-all duration-300`}>
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <Outlet />
-        </main>
-      </div>
-      
-      {/* Fixed Footer */}
-      <Footer isCollapsed={isCollapsed} />
+        <Footer isCollapsed={isCollapsed} />
       </div>
     </div>
   )
