@@ -33,6 +33,7 @@ bin/
 .vscode/
 .idea/
 .kiro/
+.claude/
 *.swp
 *.swo
 *~

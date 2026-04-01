@@ -23,11 +23,11 @@ export function Dialog({ open, onClose, children }: DialogProps) {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40"
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-xl mx-4">{children}</div>
+      <div className="relative z-10 w-full max-w-xl mx-4 animate-fade-up">{children}</div>
     </div>
   )
 }
@@ -38,7 +38,7 @@ export function DialogContent({ className, children, ...props }: DialogContentPr
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+        'bg-hud-surface rounded-ig-md shadow-ig-dropdown border border-hud-outline-var/60 overflow-hidden',
         className,
       )}
       {...props}
@@ -52,7 +52,7 @@ export function DialogClose({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      className="p-1 rounded-ig text-hud-on-surface-var hover:text-hud-on-surface hover:bg-hud-surface-high transition-colors"
     >
       <X className="w-4 h-4" />
     </button>
@@ -61,7 +61,7 @@ export function DialogClose({ onClick }: { onClick: () => void }) {
 
 export function DialogHeader({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('flex items-center justify-between px-6 pt-5 pb-3', className)}>
+    <div className={cn('flex items-center justify-between px-5 pt-5 pb-3 border-b border-hud-outline-var/40', className)}>
       {children}
     </div>
   )
@@ -69,7 +69,7 @@ export function DialogHeader({ children, className }: { children: React.ReactNod
 
 export function DialogTitle({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2 className={cn('text-lg font-semibold text-gray-900 dark:text-gray-100', className)}>
+    <h2 className={cn('text-base font-semibold text-hud-on-surface', className)}>
       {children}
     </h2>
   )

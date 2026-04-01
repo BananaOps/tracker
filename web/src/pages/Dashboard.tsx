@@ -54,9 +54,9 @@ function StatusBadge({ status }: { status: string }) {
   const isClosed = s === 'close' || s === '10'
   const isPlanned = s === 'planned' || s === '13'
 
-  const color = isSuccess ? '#34d399' : isFail ? '#ff6e84' : isRunning ? '#40ceed' : isWarning ? '#fbbf24' : isOpen ? '#a78bfa' : isClosed ? '#6b7280' : isPlanned ? '#60a5fa' : T.onSurfaceVar
-  const bg = isSuccess ? 'rgba(52,211,153,0.1)' : isFail ? 'rgba(255,110,132,0.1)' : isRunning ? 'rgba(64,206,237,0.1)' : isWarning ? 'rgba(251,191,36,0.1)' : isOpen ? 'rgba(167,139,250,0.1)' : isClosed ? 'rgba(107,114,128,0.1)' : isPlanned ? 'rgba(96,165,250,0.1)' : 'rgba(163,170,196,0.1)'
-  const border = isSuccess ? 'rgba(52,211,153,0.2)' : isFail ? 'rgba(255,110,132,0.2)' : isRunning ? 'rgba(64,206,237,0.2)' : isWarning ? 'rgba(251,191,36,0.2)' : isOpen ? 'rgba(167,139,250,0.2)' : isClosed ? 'rgba(107,114,128,0.2)' : isPlanned ? 'rgba(96,165,250,0.2)' : 'rgba(163,170,196,0.2)'
+  const color = isSuccess ? '#26c06f' : isFail ? '#ff4953' : isRunning ? '#007be5' : isWarning ? '#ff8000' : isOpen ? '#8649e1' : isClosed ? '#6c6e79' : isPlanned ? '#3b9cf4' : T.onSurfaceVar
+  const bg = isSuccess ? 'rgba(38,192,111,0.1)' : isFail ? 'rgba(255,73,83,0.1)' : isRunning ? 'rgba(0,123,229,0.1)' : isWarning ? 'rgba(255,128,0,0.1)' : isOpen ? 'rgba(134,73,225,0.1)' : isClosed ? 'rgba(108,110,121,0.1)' : isPlanned ? 'rgba(59,156,244,0.1)' : 'rgba(168,171,183,0.1)'
+  const border = isSuccess ? 'rgba(38,192,111,0.2)' : isFail ? 'rgba(255,73,83,0.2)' : isRunning ? 'rgba(0,123,229,0.2)' : isWarning ? 'rgba(255,128,0,0.2)' : isOpen ? 'rgba(134,73,225,0.2)' : isClosed ? 'rgba(108,110,121,0.2)' : isPlanned ? 'rgba(59,156,244,0.2)' : 'rgba(168,171,183,0.2)'
 
   return (
     <span
@@ -89,13 +89,13 @@ function getEventTypeIconColor(type: string) {
 
 function getEnvBadgeColor(env?: string): { color: string; bg: string; border: string } {
   const e = String(env || '').toLowerCase()
-  if (e === 'production' || e === '7') return { color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.2)' }
-  if (e === 'preproduction' || e === '6') return { color: '#fb923c', bg: 'rgba(251,146,60,0.1)', border: 'rgba(251,146,60,0.2)' }
-  if (e === 'uat' || e === '4' || e === 'recette' || e === '5' || e === 'tnr' || e === '3') return { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)' }
-  if (e === 'integration' || e === '2') return { color: '#2dd4bf', bg: 'rgba(45,212,191,0.1)', border: 'rgba(45,212,191,0.2)' }
-  if (e === 'development' || e === '1') return { color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.2)' }
-  if (e === 'mco' || e === '8') return { color: '#a78bfa', bg: 'rgba(167,139,250,0.1)', border: 'rgba(167,139,250,0.2)' }
-  return { color: T.onSurfaceVar, bg: 'rgba(163,170,196,0.1)', border: 'rgba(163,170,196,0.2)' }
+  if (e === 'production' || e === '7') return { color: '#ff4953', bg: 'rgba(255,73,83,0.1)', border: 'rgba(255,73,83,0.2)' }
+  if (e === 'preproduction' || e === '6') return { color: '#ff8000', bg: 'rgba(255,128,0,0.1)', border: 'rgba(255,128,0,0.2)' }
+  if (e === 'uat' || e === '4' || e === 'recette' || e === '5' || e === 'tnr' || e === '3') return { color: '#007be5', bg: 'rgba(0,123,229,0.1)', border: 'rgba(0,123,229,0.2)' }
+  if (e === 'integration' || e === '2') return { color: '#00b3bd', bg: 'rgba(0,179,189,0.1)', border: 'rgba(0,179,189,0.2)' }
+  if (e === 'development' || e === '1') return { color: '#26c06f', bg: 'rgba(38,192,111,0.1)', border: 'rgba(38,192,111,0.2)' }
+  if (e === 'mco' || e === '8') return { color: '#8649e1', bg: 'rgba(134,73,225,0.1)', border: 'rgba(134,73,225,0.2)' }
+  return { color: T.onSurfaceVar, bg: 'rgba(168,171,183,0.1)', border: 'rgba(168,171,183,0.2)' }
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -187,10 +187,10 @@ export default function Dashboard() {
     const other = total - prod - preprod - uat - dev
     return {
       segments: [
-        { label: 'Production', color: '#f87171', count: prod, pct: Math.round((prod / total) * 100) },
-        { label: 'Pré-production', color: '#fb923c', count: preprod, pct: Math.round((preprod / total) * 100) },
-        { label: 'UAT / Recette', color: '#60a5fa', count: uat, pct: Math.round((uat / total) * 100) },
-        { label: 'Dev / Integration', color: '#4ade80', count: dev, pct: Math.round((dev / total) * 100) },
+        { label: 'Production', color: '#ff4953', count: prod, pct: Math.round((prod / total) * 100) },
+        { label: 'Pré-production', color: '#ff8000', count: preprod, pct: Math.round((preprod / total) * 100) },
+        { label: 'UAT / Recette', color: '#007be5', count: uat, pct: Math.round((uat / total) * 100) },
+        { label: 'Dev / Integration', color: '#26c06f', count: dev, pct: Math.round((dev / total) * 100) },
         ...(other > 0 ? [{ label: 'Other', color: T.onSurfaceVar, count: other, pct: Math.round((other / total) * 100) }] : []),
       ],
       total: events.length,

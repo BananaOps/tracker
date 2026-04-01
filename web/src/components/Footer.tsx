@@ -5,9 +5,10 @@ interface FooterProps {
 export default function Footer({ isCollapsed = false }: FooterProps) {
   return (
     <footer
-      className={`fixed bottom-0 right-0 bg-hud-surface/80 backdrop-blur-sm border-t border-hud-outline-var/20 z-30 transition-all duration-300 ${
-        isCollapsed ? 'left-16' : 'left-64'
+      className={`fixed bottom-0 right-0 border-t border-hud-outline-var/30 z-30 transition-all duration-200 ${
+        isCollapsed ? 'left-[56px]' : 'left-[220px]'
       }`}
+      style={{ background: 'rgb(var(--hud-surface))' }}
     >
       <style>{`
         @keyframes banana-swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }

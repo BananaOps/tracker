@@ -201,7 +201,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
       {collapsed ? (
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors border border-gray-200 dark:border-gray-700"
+          className="flex items-center justify-center w-8 h-8 text-hud-on-surface-var bg-hud-surface-low hover:bg-hud-surface-high rounded-md transition-colors border border-hud-outline-var"
           title="Search links & services (Ctrl+K)"
         >
           <Search className="w-3.5 h-3.5" />
@@ -209,42 +209,42 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors border border-gray-200 dark:border-gray-700"
+          className="flex items-center gap-2 px-3 h-8 text-xs text-hud-on-surface-var bg-hud-surface-low hover:bg-hud-surface-high rounded-md transition-all duration-150 border border-hud-outline-var w-full max-w-xs"
           title="Search links & services (Ctrl+K)"
         >
-          <Search className="w-3 h-3" />
-          <span>Search</span>
-          <kbd className="ml-1 flex items-center gap-0.5 text-gray-400">
-            <Command className="w-3 h-3" />K
+          <Search className="w-3 h-3 shrink-0" />
+          <span className="flex-1 text-left">Search…</span>
+          <kbd className="flex items-center gap-0.5 text-hud-on-surface-var/50 text-[11px]">
+            <Command className="w-2.5 h-2.5" />K
           </kbd>
         </button>
       )}
 
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogContent>
-          <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <Search className="w-4 h-4 text-gray-400 flex-shrink-0 mr-3" />
+          <div className="flex items-center px-4 py-3 border-b border-hud-outline-var/40">
+            <Search className="w-4 h-4 text-hud-on-surface-var flex-shrink-0 mr-3" />
             <input
               ref={inputRef}
               type="text"
               placeholder="Search links and services…"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 outline-none"
+              className="flex-1 bg-transparent text-sm text-hud-on-surface placeholder:text-hud-on-surface-var/50 outline-none"
             />
-            <kbd className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+            <kbd className="text-xs text-hud-on-surface-var bg-hud-surface-low px-1.5 py-0.5 rounded-ig-sm border border-hud-outline-var">
               ESC
             </kbd>
           </div>
 
           <div ref={listRef} className="max-h-96 overflow-y-auto py-2">
             {results.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No results found</p>
+              <p className="text-sm text-hud-on-surface-var text-center py-8">No results found</p>
             ) : (
               <>
                 {linkResults.length > 0 && (
                   <>
-                    <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                    <p className="px-4 pb-1 text-[10px] font-semibold uppercase tracking-widest text-hud-on-surface-var/50">
                       Links
                     </p>
                     {linkResults.map((result) => {
@@ -263,7 +263,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
                 )}
                 {catalogResults.length > 0 && (
                   <>
-                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-hud-on-surface-var/50">
                       Services
                     </p>
                     {catalogResults.map((result) => {
@@ -284,10 +284,10 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
             )}
           </div>
 
-          <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center gap-3 text-xs text-gray-400">
-            <span><kbd className="bg-gray-100 dark:bg-gray-800 px-1 rounded border border-gray-200 dark:border-gray-700">↑↓</kbd> navigate</span>
-            <span><kbd className="bg-gray-100 dark:bg-gray-800 px-1 rounded border border-gray-200 dark:border-gray-700">↵</kbd> open</span>
-            <span><kbd className="bg-gray-100 dark:bg-gray-800 px-1 rounded border border-gray-200 dark:border-gray-700">ESC</kbd> close</span>
+          <div className="px-4 py-2 border-t border-hud-outline-var/40 flex items-center gap-3 text-xs text-hud-on-surface-var/60">
+            <span><kbd className="bg-hud-surface-low px-1 rounded-ig-sm border border-hud-outline-var">↑↓</kbd> navigate</span>
+            <span><kbd className="bg-hud-surface-low px-1 rounded-ig-sm border border-hud-outline-var">↵</kbd> open</span>
+            <span><kbd className="bg-hud-surface-low px-1 rounded-ig-sm border border-hud-outline-var">ESC</kbd> close</span>
           </div>
         </DialogContent>
       </Dialog>
@@ -311,11 +311,11 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
       onClick={onSelect}
       onMouseEnter={onHover}
       className={`w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left ${
-        active ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+        active ? 'bg-hud-primary/8' : 'hover:bg-hud-surface-low'
       }`}
     >
-      <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-white text-xs ${
-        isLink ? 'bg-indigo-600' : 'bg-emerald-600'
+      <div className={`flex-shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-white text-xs ${
+        isLink ? 'bg-hud-primary' : 'bg-hud-tertiary'
       }`}>
         {isLink
           ? result.icon ? <i className={result.icon} aria-hidden="true" /> : <ExternalLink className="w-3.5 h-3.5" />
@@ -324,14 +324,14 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{result.name}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{result.subtitle}</p>
+        <p className="text-sm font-medium text-hud-on-surface truncate">{result.name}</p>
+        <p className="text-xs text-hud-on-surface-var truncate">{result.subtitle}</p>
       </div>
 
-      <span className={`flex-shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+      <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
         isLink
-          ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'
-          : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+          ? 'bg-hud-primary/10 text-hud-primary'
+          : 'bg-hud-tertiary/10 text-hud-tertiary'
       }`}>
         {isLink ? 'link' : 'service'}
       </span>
