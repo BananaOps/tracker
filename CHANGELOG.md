@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/BananaOps/tracker/compare/v0.16.2...v0.17.0) (2026-04-05)
+
+
+### Features
+
+* add link page and search func ([#152](https://github.com/BananaOps/tracker/issues/152)) ([c5af3be](https://github.com/BananaOps/tracker/commit/c5af3be6aad45706948246ffa6877259cb3adff3))
+
+
+### Bug Fixes
+
+* update release-please workflow to use GitHub app token for authentication ([2bd15d2](https://github.com/BananaOps/tracker/commit/2bd15d21eff3a7ea692fdbe29850e55c09e8d006))
+
 ## [0.16.2](https://github.com/BananaOps/tracker/compare/v0.16.1...v0.16.2) (2026-03-03)
 
 
