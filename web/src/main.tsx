@@ -4,6 +4,20 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import App from './App'
 import './index.css'
+import { config } from './config'
+
+// Initialize Microsoft Clarity if a project ID is configured
+if (config.clarityProjectId) {
+  const clarityId = config.clarityProjectId
+  ;(function (c: any, l: Document, a: string, r: string, i: string) {
+    c[a] = c[a] || function (...args: unknown[]) { (c[a].q = c[a].q || []).push(args) }
+    const t = l.createElement(r) as HTMLScriptElement
+    t.async = true
+    t.src = 'https://www.clarity.ms/tag/' + i
+    const y = l.getElementsByTagName(r)[0]
+    y.parentNode!.insertBefore(t, y)
+  })(window, document, 'clarity', 'script', clarityId)
+}
 
 // FontAwesome configuration
 import { library } from '@fortawesome/fontawesome-svg-core'

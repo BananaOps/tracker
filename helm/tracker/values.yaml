@@ -29,6 +29,11 @@ env:
     # URL of your Homer dashboard to import links from (optional)
     # Example: http://homer.example.com
     url: ""
+  clarity:
+    # Microsoft Clarity project ID for user analytics (optional)
+    # Leave empty to disable Clarity entirely.
+    # Get your project ID at https://clarity.microsoft.com
+    projectId: ""
 
 image:
   repository: bananaops/tracker

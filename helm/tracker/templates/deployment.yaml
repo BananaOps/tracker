@@ -79,6 +79,10 @@ spec:
             - name: HOMER_URL
               value: {{ .Values.env.homer.url | quote }}
             {{- end }}
+            {{- if .Values.env.clarity.projectId }}
+            - name: CLARITY_PROJECT_ID
+              value: {{ .Values.env.clarity.projectId | quote }}
+            {{- end }}
           command:
             - ./tracker
             - serv

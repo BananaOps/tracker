@@ -35,6 +35,8 @@ export interface TrackerConfig {
   homerUrl?: string
   demoMode?: boolean
   buyMeCoffeeUrl?: string
+  /** Microsoft Clarity project ID. Leave empty to disable analytics. */
+  clarityProjectId?: string
 }
 
 declare global {
@@ -68,6 +70,7 @@ export const config: TrackerConfig & { api: { baseUrl: string } } = {
   },
   demoMode: window.TRACKER_CONFIG?.demoMode,
   buyMeCoffeeUrl: window.TRACKER_CONFIG?.buyMeCoffeeUrl,
+  clarityProjectId: window.TRACKER_CONFIG?.clarityProjectId || (import.meta as any).env?.VITE_CLARITY_PROJECT_ID || '',
   api: {
     baseUrl:
       (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1alpha1',
