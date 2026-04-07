@@ -13,7 +13,7 @@ const config = {
     { name: 'Infrastructure', services: ['database-service', 'monitoring', 'logging', 'backup-service'], owner: 'infra-team' },
     { name: 'Security', services: ['auth-service', 'firewall', 'vpn-service', 'audit-service'], owner: 'security-team' },
   ],
-  environments: ['development', 'integration', 'tnr', 'uat', 'preproduction', 'production'],
+  environments: ['development', 'integration', 'tnr', 'uat', 'preproduction', 'production', 'mco'],
   priorities: { p1: 1, p2: 2, p3: 3, p4: 4, p5: 5 },
   statuses: {
     deployment: ['planned', 'start', 'success', 'failure'],
@@ -541,15 +541,15 @@ function createLock(lock) {
     headers: { 'Content-Type': 'application/json' },
     timeout: '30s',
   };
-  
+
   const response = http.post(`${API_URL}/lock`, payload, params);
-  
+
   if (response.status === 200) {
-    console.log(`✓ Lock created: ${lock.service} (${lock.environment})`);
+    console.log(`✓ Lock created: ${lock.service} (${lock.environment}) by ${lock.who}`);
   } else {
-    console.error(`✗ Lock failed: ${lock.service} - ${response.status}`);
+    console.error(`✗ Lock failed: ${lock.service} - ${response.status} - ${response.body}`);
   }
-  
+
   return response;
 }
 
@@ -655,54 +655,60 @@ export default function () {
   let lockCount = 0;
   
   // Créer quelques locks pour simuler des opérations en cours
+  // Champs valides : service, who, environment, resource (deployment | operation)
   const activeLocks = [
     {
       service: 'payment-service',
+      who: 'platform-team',
       environment: 'production',
-      reason: 'Database migration in progress',
-      owner: 'platform-team',
-      expiresAt: getDate(0, 2), // Expire dans 2 heures
+      resource: 'deployment',
     },
     {
       service: 'user-management',
+      who: 'security-team',
       environment: 'preproduction',
-      reason: 'Security patch deployment',
-      owner: 'security-team',
-      expiresAt: getDate(0, 1), // Expire dans 1 heure
+      resource: 'deployment',
     },
     {
       service: 'analytics-engine',
+      who: 'data-team',
       environment: 'production',
-      reason: 'Performance optimization',
-      owner: 'data-team',
-      expiresAt: getDate(1, 0), // Expire demain
+      resource: 'operation',
     },
     {
       service: 'api-gateway',
+      who: 'platform-team',
       environment: 'production',
-      reason: 'Load balancer configuration update',
-      owner: 'platform-team',
-      expiresAt: getDate(0, 4), // Expire dans 4 heures
+      resource: 'deployment',
     },
     {
       service: 'auth-service',
+      who: 'security-team',
       environment: 'integration',
-      reason: 'Authentication library upgrade',
-      owner: 'security-team',
-      expiresAt: getDate(0, 6), // Expire dans 6 heures
+      resource: 'deployment',
+    },
+    {
+      service: 'data-warehouse',
+      who: 'data-team',
+      environment: 'preproduction',
+      resource: 'operation',
+    },
+    {
+      service: 'web-frontend',
+      who: 'frontend-team',
+      environment: 'production',
+      resource: 'deployment',
+    },
+    {
+      service: 'etl-jobs',
+      who: 'data-team',
+      environment: 'integration',
+      resource: 'operation',
     },
   ];
 
   activeLocks.forEach((lockData) => {
-    const lock = {
-      service: lockData.service,
-      environment: lockData.environment,
-      reason: lockData.reason,
-      owner: lockData.owner,
-      expiresAt: lockData.expiresAt,
-    };
-    
-    createLock(lock);
+    createLock(lockData);
     lockCount++;
     sleep(0.05);
   });
@@ -714,9 +720,9 @@ export default function () {
   console.log('--- Génération des événements ---');
   let eventCount = 0;
   
-  // Générer des événements pour les 30 prochains jours
-  for (let day = -5; day <= 30; day++) {
-    const eventsPerDay = randomInt(3, 8);
+  // Générer des événements sur les 35 derniers jours (couvre la vue Insights 30j + historique)
+  for (let day = -35; day <= 0; day++) {
+    const eventsPerDay = randomInt(3, 10);
     
     for (let i = 0; i < eventsPerDay; i++) {
       const team = randomElement(config.teams);
@@ -923,14 +929,12 @@ export default function () {
   console.log(`✓ ${lockCount} locks créés`);
   console.log(`✓ ${eventCount} événements créés`);
   console.log('');
-  console.log('🎯 Nouvelles fonctionnalités testées:');
-  console.log('  • SLA avec niveaux Critical/High/Medium/Low');
-  console.log('  • Plateformes étendues (19 plateformes multi-cloud)');
-  console.log('  • Dépendances upstream/downstream entre services');
-  console.log('  • Gestion de versions pour deliverables (availableVersions, latestVersion, referenceVersion)');
-  console.log('  • UsedDeliverables pour projets avec versions utilisées');
-  console.log('  • Version compliance tracking');
-  console.log('  • Locks actifs pour opérations en cours');
+  console.log('🎯 Données générées:');
+  console.log('  • Deliverables avec versions (availableVersions, latestVersion, referenceVersion)');
+  console.log('  • Projets avec usedDeliverables, SLA, plateforme, dépendances');
+  console.log('  • Locks actifs (champs: service, who, environment, resource)');
+  console.log('  • Événements sur les 35 derniers jours (vue Insights 30j alimentée)');
+  console.log('  • Environnements: development, integration, tnr, uat, preproduction, production, mco');
   console.log('');
   console.log('🔍 Vérification:');
   console.log(`  Catalogues: curl ${BASE_URL}/api/v1alpha1/catalogs/list | jq '.totalCount'`);
