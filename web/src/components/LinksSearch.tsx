@@ -78,7 +78,6 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
   const listRef = useRef<HTMLDivElement>(null)
   const activeIdxRef = useRef(0)
   const resultsRef = useRef<FlatResult[]>([])
-  const openRef = useRef(false)
   const navigate = useNavigate()
   const homerUrl = getHomerUrl()
   const localGroups = getLinksConfig()
@@ -124,11 +123,6 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
     setActiveIdx(0)
   }, [results])
 
-  // Keep openRef in sync
-  useEffect(() => {
-    openRef.current = open
-  }, [open])
-
   // Scroll active item into view
   useEffect(() => {
     if (!listRef.current) return
@@ -145,14 +139,23 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
     setOpen(false)
   }
 
+  // Ctrl+K global shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
         setOpen(prev => !prev)
-        return
       }
-      if (!openRef.current) return
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // Keyboard navigation — active whenever the dialog is open, no focus dependency
+  useEffect(() => {
+    if (!open) return
+
+    const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         setActiveIdx(i => {
@@ -177,17 +180,20 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
           navigate(`/catalog/${selected.serviceName}`)
         }
         setOpen(false)
+      } else if (e.key === 'Escape') {
+        setOpen(false)
       }
     }
-    document.addEventListener('keydown', handler, true)
-    return () => document.removeEventListener('keydown', handler, true)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, navigate])
+
+  // Focus input when dialog opens, reset query
   useEffect(() => {
     if (open) {
       setQuery('')
-      setTimeout(() => inputRef.current?.focus(), 50)
+      requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
 
@@ -230,6 +236,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
               placeholder="Search links and services…"
               value={query}
               onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault() }}
               className="flex-1 bg-transparent text-sm text-hud-on-surface placeholder:text-hud-on-surface-var/50 outline-none"
             />
             <kbd className="text-xs text-hud-on-surface-var bg-hud-surface-low px-1.5 py-0.5 rounded-ig-sm border border-hud-outline-var">
@@ -311,7 +318,7 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
       onClick={onSelect}
       onMouseEnter={onHover}
       className={`w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left ${
-        active ? 'bg-hud-primary/8' : 'hover:bg-hud-surface-low'
+        active ? 'bg-hud-primary/10' : 'hover:bg-hud-surface-low'
       }`}
     >
       <div className={`flex-shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-white text-xs ${
