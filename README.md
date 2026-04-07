@@ -53,14 +53,87 @@
 - **🔄 Real-time** - Track events as they happen
 - **🎨 Customizable** - Extend and adapt to your needs
 
-### Use Cases
+---
 
-- **Deployment Tracking** - Monitor all deployments across environments
-- **Incident Management** - Track incidents from detection to resolution
-- **Configuration Drift** - Detect and manage infrastructure drifts
-- **RPA Monitoring** - Track robotic process automation executions
-- **Service Catalog** - Maintain inventory of services, libraries, and modules
-- **Distributed Locking** - Coordinate operations across services
+## 🖥️ Interface
+
+### Dashboard
+
+Real-time overview with event velocity chart, environment breakdown, and live activity stream.
+
+![Dashboard](./docs/assets/screenshots/dashboard.png)
+
+### Timeline
+
+Chronological list of all events with advanced filtering by type, environment, priority and status.
+
+![Timeline](./docs/assets/screenshots/timeline.png)
+
+### Streamline
+
+Gantt-style visualization to detect and manage scheduling conflicts across services.
+
+![Streamline](./docs/assets/screenshots/streamline.png)
+
+### Calendar
+
+Monthly calendar view with per-day event details and overlap detection.
+
+![Calendar](./docs/assets/screenshots/calendar.png)
+
+### Overlaps
+
+Dedicated page for resolving scheduling conflicts with team contact information.
+
+![Overlaps](./docs/assets/screenshots/overlaps.png)
+
+### Insights
+
+Analytics over a configurable period — event distribution, top projects, and trends.
+
+![Insights](./docs/assets/screenshots/insights.png)
+
+### Catalog
+
+Inventory of all services, modules, libraries, and containers with version and owner tracking.
+
+![Catalog](./docs/assets/screenshots/catalog.png)
+
+### Architecture
+
+Interactive dependency graph of services registered in the catalog.
+
+![Architecture](./docs/assets/screenshots/architecture.png)
+
+### Compliance
+
+Version compliance tracking to identify projects using outdated deliverables.
+
+![Compliance](./docs/assets/screenshots/compliance.png)
+
+### Locks
+
+View and manage deployment locks across all services and environments.
+
+![Locks](./docs/assets/screenshots/locks.png)
+
+### Drifts
+
+Track and manage configuration drifts with Jira integration.
+
+![Drifts](./docs/assets/screenshots/drifts.png)
+
+### RPA Usage
+
+Monitor Robotic Process Automation executions.
+
+![RPA Usage](./docs/assets/screenshots/rpa.png)
+
+### Links
+
+Quick access portal to all your tools and resources, synced from Homer.
+
+![Links](./docs/assets/screenshots/links.png)
 
 ---
 
@@ -73,27 +146,32 @@
 - **Search & Filter**: Powerful search across all event attributes
 - **Timeline View**: Visualize events chronologically
 - **Calendar View**: See events in a calendar format
+- **Insights**: Analytics and trend visualization over configurable periods
 
 ### 📦 Service Catalog
 - **Inventory Management**: Track modules, libraries, projects, containers
 - **Version Tracking**: Monitor versions across your infrastructure
 - **Multi-Language**: Support for Go, Java, Python, JavaScript, and more
 - **Repository Links**: Direct links to GitHub/GitLab repositories
-- **Documentation**: Link to service documentation
+- **Architecture View**: Interactive service dependency graph
+- **Compliance Tracking**: Identify projects with outdated deliverables
 
 ### 🔒 Distributed Locking
 - **Exclusive Locks**: Prevent concurrent operations
 - **Lock Ownership**: Track who owns which locks
 - **Automatic Cleanup**: Locks expire automatically
 - **Coordination**: Synchronize deployments and operations
+- **Lock Management UI**: View and release locks directly from the interface
 
 ### 🎨 Modern UI
-- **Dashboard**: Overview of recent events and statistics
-- **Timeline**: Chronological event view with filtering
+- **Collapsible Sidebar**: Clean navigation organized by domain
+- **Dashboard**: Live activity stream with charts and statistics
+- **Streamline**: Gantt chart with automatic overlap detection
 - **Calendar**: Monthly calendar view of events
-- **Dark Mode**: Beautiful dark theme support
+- **Dark / Light / System mode**: Three theme options
 - **Responsive**: Works on desktop, tablet, and mobile
-- **Real-time**: Auto-refresh and live updates
+- **Global Search**: `Ctrl+K` instant search across all data
+- **Quick Actions**: Header shortcuts to create events, locks, drifts, and more
 
 ### 🔌 API & Integration
 - **gRPC API**: High-performance native API
@@ -102,6 +180,7 @@
 - **OpenAPI Spec**: Standard API specification
 - **MCP Server**: Model Context Protocol for AI agents (Kiro, Claude, etc.)
 - **Prometheus**: Built-in metrics endpoint
+- **Homer Integration**: Sync links from your Homer dashboard
 
 ---
 
@@ -178,7 +257,6 @@ npm run dev
 - [🔌 API Specification](./docs/api-specification.md) - API reference
 - [📚 Swagger UI](http://localhost:8080/docs) - Interactive API docs (when running)
 - [🤖 MCP Server](./docs/MCP_SERVER.md) - Model Context Protocol server for AI agents
-
 
 ---
 

@@ -6,10 +6,13 @@
 2. [Getting Started](#getting-started)
 3. [Dashboard](#dashboard)
 4. [Events Management](#events-management)
-5. [Catalog](#catalog)
-6. [Drifts Management](#drifts-management)
-7. [RPA Usage](#rpa-usage)
-8. [Advanced Features](#advanced-features)
+5. [Insights](#insights)
+6. [Catalog](#catalog)
+7. [Drifts Management](#drifts-management)
+8. [RPA Usage](#rpa-usage)
+9. [Locks](#locks)
+10. [Links](#links)
+11. [Advanced Features](#advanced-features)
 
 ---
 
@@ -36,60 +39,91 @@ Navigate to your Tracker instance URL (e.g., `https://tracker.your-domain.com`)
 
 ### Navigation
 
-The main navigation bar at the top provides access to all features:
+The interface uses a **collapsible sidebar** on the left with four sections:
 
+#### Operations
 - **Dashboard** - Overview of today's activity
-- **Events** - Dropdown menu with 4 views:
-  - Timeline - Chronological list
-  - Streamline - Gantt chart view
-  - Calendar - Monthly calendar
-  - Overlaps - Conflict management
+- **Timeline** - Chronological list of events
+- **Streamline** - Gantt chart view
+- **Calendar** - Monthly calendar
+- **Overlaps** - Conflict management
+- **Insights** - Analytics and statistics over a configurable period
+
+#### Services
 - **Catalog** - Service inventory
+- **Architecture** - Service dependency visualization
+- **Compliance** - Version compliance tracking
+
+#### Infrastructure
 - **Drifts** - Configuration drift tracking
 - **RPA Usage** - Automation monitoring
+- **Locks** - Deployment and operation locks
+
+#### Resources
+- **Links** - Quick access portal to tools and resources
+- **Docs** - In-app documentation
+
+### Sidebar Controls
+
+- **Collapse sidebar** button (top of sidebar) to hide/show the sidebar
+- **Events Channel** Slack link at the bottom of the sidebar
+
+### Header Bar
+
+The top header provides:
+- **Search bar** (`Ctrl+K` or `⌘K`) - Global search across all data
+- **Quick action buttons**: New Lock, New Drift, New RPA, New Service, New Event
 
 ### Theme Toggle
 
-Click the sun/moon icon in the top-right corner to switch between light and dark modes.
+Three theme modes are available at the bottom of the sidebar:
+- **Light mode**
+- **Dark mode**
+- **System mode** (follows OS preference)
 
 ---
 
 ## Dashboard
 
-The Dashboard provides a quick overview of today's events and system health.
+The Dashboard (`/dashboard`) provides a real-time overview of today's events and system health.
 
 ### Statistics Cards
 
 Four main metrics are displayed:
 
-1. **Total Events** - All events created today
-2. **Success** - Successfully completed events
-3. **Failures** - Failed or errored events
-4. **In Progress** - Currently running events
-5. **Overlaps** - Number of scheduling conflicts (with alert indicator)
+1. **Total Events** - All events created today (with in-progress count)
+2. **Success Rate (%)** - Percentage of successfully completed events
+3. **Critical Failures** - Failed or errored events (with active failure indicator)
+4. **Overlaps** - Number of scheduling conflicts detected
 
-### Overlap Alert
+### Event Velocity Chart
 
-When events overlap, a prominent orange banner appears showing:
-- Number of conflicts detected
-- List of overlapping event pairs
-- Quick access to detailed information
+A 24-hour bar chart showing events per hour with a **Live** indicator. Allows quick identification of activity peaks throughout the day.
 
-### Event Distribution Charts
+### Environment Breakdown
 
-Visual breakdown by:
-- **Event Type** - Deployments, Operations, Drifts, Incidents
-- **Status** - Success, Failure, In Progress
+A pie chart showing the distribution of today's events by environment (Production, Pré-production, UAT / Recette, Dev / Integration) with percentages and counts.
+
+### Live Activity Stream
+
+A filterable table showing recent events with the following columns:
+- **Event ID** - Short hash identifier
+- **Title** - Event description
+- **Type** - Deployment, Operation, RPA Usage, etc.
+- **Service** - Affected service
+- **Environment** - Deployment environment
 - **Priority** - P1 (Critical) to P5 (Low)
-- **Environment** - Development, Production, etc.
+- **Status** - Planned, Success, Failed, Warning, etc.
+- **Timestamp** - Creation time
 
-### Recent Events List
+#### Quick Filters
 
-The 10 most recent events with:
-- Event type icon and badge
-- Service name
-- Environment, Priority, and Status badges
-- Click to view full details
+Above the table, filter buttons let you narrow results instantly:
+- **Type**: Deployment, Operation, Drift, Incident
+- **Status**: Success, Failed, In Progress, Warning, Open, Planned
+- **Env**: Prod, Preprod, Dev
+
+Click **"View Historical Data Archive"** to go to the full Timeline view.
 
 ---
 
@@ -146,7 +180,7 @@ Click any event card to open the detailed modal.
 
 #### View Modes
 
-**Grions:**
+**Groups:**
 - **By Service** - Events grouped by project/service
 - **By Environment** - Events grouped by environment
 
@@ -268,6 +302,31 @@ Use this page to:
 
 ---
 
+## Insights
+
+**Purpose:** Analytics and statistics on event activity over a configurable period
+
+### Filters
+
+- **Environment** - Filter by a specific environment (default: All)
+- **Service** - Filter by a specific service (default: All)
+- **Period** - Configurable period (default: last 30 days)
+
+### Statistics Cards
+
+Four event type breakdowns with count and percentage:
+- **Deployments**
+- **Incidents**
+- **Operations**
+- **Drifts**
+
+### Charts
+
+- **Top Projects** - Most active projects during the period
+- **Event Distribution** - Visual breakdown of event types and statuses
+
+---
+
 ## Catalog
 
 **Purpose:** Inventory of all modules, libraries, and projects
@@ -325,7 +384,45 @@ Columns:
 
 ### Adding to Catalog
 
-Click **"Add to Catalog"** button to register a new service.
+Click **"New Service"** in the header to register a new service.
+
+---
+
+### Architecture View
+
+**Purpose:** Visualize service dependencies and relationships
+
+Accessible at `/catalog/dependencies`. Displays an interactive dependency graph of services registered in the catalog, with a **Legend** explaining the visual indicators.
+
+---
+
+### Compliance View
+
+**Purpose:** Track which projects use outdated versions of their declared deliverables
+
+Accessible at `/catalog/version-compliance`.
+
+#### Statistics Cards
+
+- **Total Projects** - All projects in the catalog
+- **Compliant** - Projects using up-to-date deliverable versions
+- **Non-Compliant** - Projects with at least one outdated deliverable
+- **No Deliverables** - Projects without declared deliverables
+
+#### Filters
+
+- **Search** - Filter by project or deliverable name
+- **Type** - Package, Chart, Container, Module
+
+#### Compliance Table
+
+Columns:
+- **Project** - Project name
+- **Status** - Compliant / Non-Compliant / No Deliverables
+- **Compliance** - Percentage of up-to-date deliverables
+- **Deliverables** - Total count of declared deliverables
+- **Outdated** - Count of outdated deliverables
+- **Actions** - View Details button
 
 ---
 
@@ -383,6 +480,10 @@ Filter drifts by:
 - Status
 - Service (from catalog)
 
+### Creating a Drift
+
+Click **"New Drift"** in the header bar to manually create a drift event.
+
 ---
 
 ## RPA Usage
@@ -409,6 +510,56 @@ Each RPA operation displays:
 ### Filters
 
 Same filtering capabilities as other event views.
+
+### Creating an RPA Event
+
+Click **"New RPA"** in the header bar to manually create an RPA event.
+
+---
+
+## Locks
+
+**Purpose:** View and manage deployment and operation locks across services
+
+Accessible at `/locks`.
+
+### Statistics
+
+Three summary cards:
+- **Total Locks** - All active locks
+- **Unique Services** - Number of distinct services with locks
+- **Environments** - Number of environments affected
+
+### Lock Table
+
+Columns:
+- **Service** - Locked service name
+- **Environment** - Environment where the lock applies
+- **Resource** - Type of locked resource (deployment, operation, etc.)
+- **Locked By** - Username or team that acquired the lock
+- **Created At** - Date and time the lock was created
+- **Duration** - Time elapsed since lock creation
+- **Actions** - **Unlock** button to release the lock
+
+### Creating a Lock
+
+Click **"New Lock"** in the header bar to acquire a new lock.
+
+---
+
+## Links
+
+**Purpose:** Quick access portal to all your tools and resources, synced from Homer
+
+Accessible at `/links`.
+
+### Features
+
+- **Filter** bar (`Ctrl+K`) - Filter links by name
+- **Refresh** button - Reload links from Homer
+- **Add Link** button - Manually add a local link
+
+Links are organized by **categories** (e.g., team names, tool groups). When Homer is unavailable, local links are shown instead.
 
 ---
 
@@ -456,6 +607,7 @@ Click any event to open a detailed modal showing:
 
 ### Keyboard Shortcuts
 
+- **Ctrl+K / ⌘K** - Open global search
 - **Escape** - Close modals
 - **F5** - Refresh page
 - **Ctrl/Cmd + F** - Browser search (works in tables)
@@ -521,11 +673,11 @@ Overlaps are detected when:
 
 ### For Managers
 
-1. **Review statistics** for trends
+1. **Review Insights** for trends over 30 days
 2. **Check overlap page** for coordination issues
 3. **Monitor drift resolution** times
 4. **Use calendar view** for planning
-5. **Export data** for reports (coming soon)
+5. **Check Compliance** to track outdated deliverables
 
 ### For Teams
 
@@ -534,6 +686,7 @@ Overlaps are detected when:
 3. **Link tickets** for traceability
 4. **Use consistent naming** for services
 5. **Document in event messages** for context
+6. **Use Locks** to prevent concurrent deployments
 
 ---
 
@@ -566,9 +719,17 @@ Submit via:
 
 ## Glossary
 
+**Architecture** - Interactive visualization of service dependencies and relationships
+
+**Compliance** - Tracking whether projects use up-to-date versions of their declared deliverables
+
 **Drift** - Unintended configuration change detected in infrastructure
 
 **Event** - Any tracked activity (deployment, operation, incident, etc.)
+
+**Insights** - Analytics view showing event distribution and trends over a configurable period
+
+**Lock** - A mechanism to prevent concurrent deployments or operations on a service
 
 **Overlap** - Two or more events running simultaneously
 
@@ -582,6 +743,5 @@ Submit via:
 
 ---
 
-**Last Updated:** November 2024  
-**Version:** 1.0
-
+**Last Updated:** April 2026
+**Version:** 2.0
