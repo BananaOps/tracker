@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/BananaOps/tracker/compare/v0.17.0...v0.17.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* **deps:** bump github.com/grpc-ecosystem/grpc-gateway/v2 from 2.27.3 to 2.27.4 ([#135](https://github.com/BananaOps/tracker/issues/135)) ([943ae96](https://github.com/BananaOps/tracker/commit/943ae96a185df906f15d50ec10b192f56e863f2a))
+* **Snyk:** Security upgrade vite from 8.0.3 to 8.0.5 ([#160](https://github.com/BananaOps/tracker/issues/160)) ([0e445cc](https://github.com/BananaOps/tracker/commit/0e445cc574952373e79366412eec1b4103a93963))
+
 ## [0.17.0](https://github.com/BananaOps/tracker/compare/v0.16.2...v0.17.0) (2026-04-05)
 
 
