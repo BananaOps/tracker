@@ -143,6 +143,8 @@ var serv = &cobra.Command{
 
 			homerURL := os.Getenv("HOMER_URL")
 
+			clarityProjectID := os.Getenv("CLARITY_PROJECT_ID")
+
 			// Escape values to prevent XSS injection
 			jiraDomain = html.EscapeString(jiraDomain)
 			jiraProjectKey = html.EscapeString(jiraProjectKey)
@@ -150,6 +152,7 @@ var serv = &cobra.Command{
 			slackEventsChannel = html.EscapeString(slackEventsChannel)
 			buyMeCoffeeURL = html.EscapeString(buyMeCoffeeURL)
 			homerURL = html.EscapeString(homerURL)
+			clarityProjectID = html.EscapeString(clarityProjectID)
 
 			w.Header().Set("Content-Type", "application/javascript")
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -166,8 +169,9 @@ var serv = &cobra.Command{
   },
   demoMode: %s,
   buyMeCoffeeUrl: "%s",
-  homerUrl: "%s"
-};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL, homerURL)
+  homerUrl: "%s",
+  clarityProjectId: "%s"
+};`, jiraDomain, jiraProjectKey, slackWorkspace, slackEventsChannel, demoMode, buyMeCoffeeURL, homerURL, clarityProjectID)
 			if err != nil {
 				slog.Error("Failed to write config.js response", "error", err)
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
