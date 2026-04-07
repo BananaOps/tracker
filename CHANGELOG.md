@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/BananaOps/tracker/compare/v0.17.1...v0.18.0) (2026-04-07)
+
+
+### Features
+
+* **analytics:** add Microsoft Clarity integration for user analytics ([#165](https://github.com/BananaOps/tracker/issues/165)) ([7ef9dff](https://github.com/BananaOps/tracker/commit/7ef9dff1459bd61a97b8e2aa0a45afcad2d7c7f2))
+
 ## [0.17.1](https://github.com/BananaOps/tracker/compare/v0.17.0...v0.17.1) (2026-04-07)
 
 
