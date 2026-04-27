@@ -256,6 +256,7 @@ export default function CreateEvent() {
                       className={inputCls + ' appearance-none'} style={inputStyle}>
                       <option value={Status.OPEN}>Open</option>
                       <option value={Status.PLANNED}>Planned</option>
+                      <option value={Status.WAITING_APPROVAL}>Waiting Approval</option>
                       <option value={Status.START}>Started</option>
                       <option value={Status.IN_PROGRESS}>In Progress</option>
                       <option value={Status.SUCCESS}>Success</option>

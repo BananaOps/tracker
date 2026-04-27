@@ -53,10 +53,11 @@ function StatusBadge({ status }: { status: string }) {
   const isOpen = s === 'open' || s === '9'
   const isClosed = s === 'close' || s === '10'
   const isPlanned = s === 'planned' || s === '13'
+  const isWaitingApproval = s === 'waiting_approval' || s === '14'
 
-  const color = isSuccess ? '#26c06f' : isFail ? '#ff4953' : isRunning ? '#007be5' : isWarning ? '#ff8000' : isOpen ? '#8649e1' : isClosed ? '#6c6e79' : isPlanned ? '#3b9cf4' : T.onSurfaceVar
-  const bg = isSuccess ? 'rgba(38,192,111,0.1)' : isFail ? 'rgba(255,73,83,0.1)' : isRunning ? 'rgba(0,123,229,0.1)' : isWarning ? 'rgba(255,128,0,0.1)' : isOpen ? 'rgba(134,73,225,0.1)' : isClosed ? 'rgba(108,110,121,0.1)' : isPlanned ? 'rgba(59,156,244,0.1)' : 'rgba(168,171,183,0.1)'
-  const border = isSuccess ? 'rgba(38,192,111,0.2)' : isFail ? 'rgba(255,73,83,0.2)' : isRunning ? 'rgba(0,123,229,0.2)' : isWarning ? 'rgba(255,128,0,0.2)' : isOpen ? 'rgba(134,73,225,0.2)' : isClosed ? 'rgba(108,110,121,0.2)' : isPlanned ? 'rgba(59,156,244,0.2)' : 'rgba(168,171,183,0.2)'
+  const color = isSuccess ? '#26c06f' : isFail ? '#ff4953' : isRunning ? '#007be5' : isWarning ? '#ff8000' : isOpen ? '#8649e1' : isClosed ? '#6c6e79' : isPlanned ? '#3b9cf4' : isWaitingApproval ? '#f97316' : T.onSurfaceVar
+  const bg = isSuccess ? 'rgba(38,192,111,0.1)' : isFail ? 'rgba(255,73,83,0.1)' : isRunning ? 'rgba(0,123,229,0.1)' : isWarning ? 'rgba(255,128,0,0.1)' : isOpen ? 'rgba(134,73,225,0.1)' : isClosed ? 'rgba(108,110,121,0.1)' : isPlanned ? 'rgba(59,156,244,0.1)' : isWaitingApproval ? 'rgba(249,115,22,0.1)' : 'rgba(168,171,183,0.1)'
+  const border = isSuccess ? 'rgba(38,192,111,0.2)' : isFail ? 'rgba(255,73,83,0.2)' : isRunning ? 'rgba(0,123,229,0.2)' : isWarning ? 'rgba(255,128,0,0.2)' : isOpen ? 'rgba(134,73,225,0.2)' : isClosed ? 'rgba(108,110,121,0.2)' : isPlanned ? 'rgba(59,156,244,0.2)' : isWaitingApproval ? 'rgba(249,115,22,0.2)' : 'rgba(168,171,183,0.2)'
 
   return (
     <span
@@ -153,6 +154,7 @@ export default function Dashboard() {
           open: ['open', '9'],
           closed: ['close', '10'],
           planned: ['planned', '13'],
+          waiting_approval: ['waiting_approval', '14'],
         }
         const allowed = statusMap[streamFilters.status]
         if (allowed && !allowed.includes(s)) return false
@@ -437,6 +439,7 @@ export default function Dashboard() {
                   { k: 'warning', l: 'Warning', c: '#fbbf24' },
                   { k: 'open', l: 'Open', c: '#a78bfa' },
                   { k: 'planned', l: 'Planned', c: '#60a5fa' },
+                  { k: 'waiting_approval', l: 'Waiting Approval', c: '#f97316' },
                 ].map(({ k, l, c }) => (
                   <button key={k} onClick={() => toggleFilter('status', k)}
                     className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"

@@ -270,6 +270,7 @@ enum Status {
   done = 11;
   in_progress = 12;
   planned = 13;
+  waiting_approval = 14;
 }
 
 enum Environment {

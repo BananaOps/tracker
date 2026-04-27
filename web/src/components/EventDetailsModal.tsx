@@ -406,6 +406,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     { v: Status.OPEN, l: 'Open', c: '#a78bfa' },
     { v: Status.CLOSE, l: 'Closed', c: '#6b7280' },
     { v: Status.PLANNED, l: 'Planned', c: '#60a5fa' },
+    { v: Status.WAITING_APPROVAL, l: 'Waiting Approval', c: '#f97316' },
   ]
 
   const currentStatusColor = quickStatuses.find(s => s.v === editedEvent.attributes.status)?.c || hud.onSurfaceVar

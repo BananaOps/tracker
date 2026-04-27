@@ -323,6 +323,9 @@ export const getStatusLabel = (status?: Status | string) => {
     case 'planned':
     case '13':
       return 'Planned'
+    case 'waiting_approval':
+    case '14':
+      return 'Waiting Approval'
     default:
       return 'Unknown'
   }
@@ -378,6 +381,12 @@ export const getStatusColor = (status?: Status | string) => {
       return {
         bg:   'bg-violet-50 dark:bg-violet-900/20',
         text: 'text-violet-700 dark:text-violet-300',
+      }
+    case 'waiting_approval':
+    case '14':
+      return {
+        bg:   'bg-orange-50 dark:bg-orange-900/20',
+        text: 'text-orange-700 dark:text-orange-300',
       }
     case 'close':
     case '10':

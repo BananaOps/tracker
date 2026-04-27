@@ -159,6 +159,7 @@ const (
 	Status_done               Status = 11
 	Status_in_progress        Status = 12
 	Status_planned            Status = 13
+	Status_waiting_approval   Status = 14
 )
 
 // Enum value maps for Status.
@@ -178,6 +179,7 @@ var (
 		11: "done",
 		12: "in_progress",
 		13: "planned",
+		14: "waiting_approval",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED": 0,
@@ -194,6 +196,7 @@ var (
 		"done":               11,
 		"in_progress":        12,
 		"planned":            13,
+		"waiting_approval":   14,
 	}
 )
 

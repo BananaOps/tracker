@@ -39,10 +39,11 @@ function StatusBadge({ status }: { status: string }) {
   const isOpen = s === 'open' || s === '9'
   const isPlanned = s === 'planned' || s === '13'
   const isClosed = s === 'close' || s === '10' || s === 'closed'
+  const isWaitingApproval = s === 'waiting_approval' || s === '14'
 
-  const color = isSuccess ? '#34d399' : isFail ? '#ff6e84' : isRunning ? '#40ceed' : isWarning ? '#fbbf24' : isOpen ? '#a78bfa' : isPlanned ? '#60a5fa' : isClosed ? '#6b7280' : T.onSurfaceVar
-  const bg = isSuccess ? 'rgba(52,211,153,0.1)' : isFail ? 'rgba(255,110,132,0.1)' : isRunning ? 'rgba(64,206,237,0.1)' : isWarning ? 'rgba(251,191,36,0.1)' : isOpen ? 'rgba(167,139,250,0.1)' : isPlanned ? 'rgba(96,165,250,0.1)' : isClosed ? 'rgba(107,114,128,0.1)' : 'rgba(163,170,196,0.1)'
-  const border = isSuccess ? 'rgba(52,211,153,0.2)' : isFail ? 'rgba(255,110,132,0.2)' : isRunning ? 'rgba(64,206,237,0.2)' : isWarning ? 'rgba(251,191,36,0.2)' : isOpen ? 'rgba(167,139,250,0.2)' : isPlanned ? 'rgba(96,165,250,0.2)' : isClosed ? 'rgba(107,114,128,0.2)' : 'rgba(163,170,196,0.2)'
+  const color = isSuccess ? '#34d399' : isFail ? '#ff6e84' : isRunning ? '#40ceed' : isWarning ? '#fbbf24' : isOpen ? '#a78bfa' : isPlanned ? '#60a5fa' : isClosed ? '#6b7280' : isWaitingApproval ? '#f97316' : T.onSurfaceVar
+  const bg = isSuccess ? 'rgba(52,211,153,0.1)' : isFail ? 'rgba(255,110,132,0.1)' : isRunning ? 'rgba(64,206,237,0.1)' : isWarning ? 'rgba(251,191,36,0.1)' : isOpen ? 'rgba(167,139,250,0.1)' : isPlanned ? 'rgba(96,165,250,0.1)' : isClosed ? 'rgba(107,114,128,0.1)' : isWaitingApproval ? 'rgba(249,115,22,0.1)' : 'rgba(163,170,196,0.1)'
+  const border = isSuccess ? 'rgba(52,211,153,0.2)' : isFail ? 'rgba(255,110,132,0.2)' : isRunning ? 'rgba(64,206,237,0.2)' : isWarning ? 'rgba(251,191,36,0.2)' : isOpen ? 'rgba(167,139,250,0.2)' : isPlanned ? 'rgba(96,165,250,0.2)' : isClosed ? 'rgba(107,114,128,0.2)' : isWaitingApproval ? 'rgba(249,115,22,0.2)' : 'rgba(163,170,196,0.2)'
 
   return (
     <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full" style={{ background: bg, color, border: `1px solid ${border}` }}>
