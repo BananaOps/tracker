@@ -558,6 +558,11 @@ export default function EventsCalendar() {
                                 const c = s === 'success' || s === '3' || s === 'done' || s === '11' ? '#34d399' : s === 'failure' || s === '2' || s === 'error' || s === '5' ? '#ff6e84' : s === 'start' || s === '1' || s === 'in_progress' || s === '12' ? '#40ceed' : s === 'warning' || s === '4' ? '#fbbf24' : '#6b7280'
                                 return <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${c}15`, color: c, border: `1px solid ${c}30` }}>{getStatusLabel(event.attributes.status)}</span>
                               })()}
+                              {event.attributes.impact && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84', border: '1px solid rgba(255,110,132,0.3)' }}>
+                                  <i className="fa-solid fa-meteor" /> Impact
+                                </span>
+                              )}
                             </div>
 
                             {/* Title */}

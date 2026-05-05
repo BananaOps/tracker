@@ -620,6 +620,11 @@ export default function EventsTimeline() {
                               <CheckCircle className="w-3 h-3" /> Approved
                             </span>
                           )}
+                          {event.attributes.impact && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84', border: '1px solid rgba(255,110,132,0.3)' }}>
+                              <i className="fa-solid fa-meteor" /> Impact
+                            </span>
+                          )}
                           {/* Timestamp right-aligned */}
                           <span className="ml-auto text-[10px] font-mono" style={{ color: 'rgb(var(--hud-outline))' }}>
                             {event.metadata?.createdAt && format(new Date(event.metadata.createdAt), 'PPp', { locale: fr })}

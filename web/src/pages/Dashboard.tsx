@@ -505,7 +505,10 @@ export default function Dashboard() {
                         #{event.metadata?.id?.slice(-8).toUpperCase() || '—'}
                       </td>
                       <td className="px-6 py-5 text-sm max-w-[200px] truncate" style={{ color: T.onSurface }}>
-                        {event.title}
+                        <span className="inline-flex items-center gap-1.5">
+                          {event.title}
+                          {event.attributes.impact && <i className="fa-solid fa-meteor text-[10px] flex-shrink-0" style={{ color: '#ff6e84' }} />}
+                        </span>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">

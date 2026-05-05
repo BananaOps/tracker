@@ -888,6 +888,9 @@ export default function EventsStreamline() {
                                       <div className="truncate flex-1 text-xs font-semibold" style={{ color: c, fontFamily: "'Space Grotesk', sans-serif" }}>
                                         {event.title}
                                       </div>
+                                      {event.attributes.impact && (
+                                        <i className="fa-solid fa-meteor text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84' }} />
+                                      )}
                                       {spanCount > 2 && viewMode === 'week' && (
                                         <div className="text-[10px] opacity-75 ml-2" style={{ color: c }}>
                                           {format(startDate, 'HH:mm')}
