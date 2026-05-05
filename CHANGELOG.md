@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.19.0](https://github.com/BananaOps/tracker/compare/v0.18.0...v0.19.0) (2026-05-05)
+
+
+### Features
+
+* add waiting approval status ([74f96ad](https://github.com/BananaOps/tracker/commit/74f96adf415a24cdf3a5ff32d154de9cdd0ca4a1))
+* **EventDetailsModal:** add start and end date editing fields ([1627fa1](https://github.com/BananaOps/tracker/commit/1627fa11230b84c923a19df0ee3b57535c4f7622))
+* **events:** add impact indicator badge across all event views ([2910915](https://github.com/BananaOps/tracker/commit/291091553b1a46d655aa3814b22f15bc8860453e))
+* **events:** replace list API with date-range search across all views ([ffe03b3](https://github.com/BananaOps/tracker/commit/ffe03b35ca227885f28daab6b521508bd3d5cd22))
+* **ui:** add date-time picker component with calendar support ([05d3838](https://github.com/BananaOps/tracker/commit/05d3838db422b1db4fe275e83d7842080755e3b0))
+
 ## [0.18.0](https://github.com/BananaOps/tracker/compare/v0.17.1...v0.18.0) (2026-04-07)
 
 
