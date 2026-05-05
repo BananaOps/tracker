@@ -602,6 +602,31 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         </select>
                       </div>
                     </div>
+                    {/* Dates */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium mb-1" style={{ color: hud.onSurfaceVar }}>
+                          <i className="fa-solid fa-play mr-1" /> Start Date
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="input text-sm"
+                          value={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined } })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1" style={{ color: hud.onSurfaceVar }}>
+                          <i className="fa-solid fa-flag-checkered mr-1" /> End Date
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="input text-sm"
+                          value={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate).toISOString().slice(0, 16) : ''}
+                          onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, endDate: e.target.value ? new Date(e.target.value).toISOString() : undefined } })}
+                        />
+                      </div>
+                    </div>
                     {/* Impact toggle */}
                     <label className="flex items-center gap-3 p-3 rounded-lg cursor-pointer" style={{ background: ha('outline-var', 0.08), border: `1px solid ${ha('outline-var', 0.15)}` }}>
                       <input type="checkbox" checked={editedEvent.attributes.impact || false}
