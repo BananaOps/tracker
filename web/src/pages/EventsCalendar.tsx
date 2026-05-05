@@ -35,8 +35,11 @@ export default function EventsCalendar() {
 
   // Récupérer les événements avec une clé qui change chaque mois pour forcer le refresh
   const { data } = useQuery({
-    queryKey: ['events', 'calendar'],
-    queryFn: () => eventsApi.list({ perPage: 1000 }),
+    queryKey: ['events', 'calendar', monthStart.toISOString(), monthEnd.toISOString()],
+    queryFn: () => eventsApi.search({
+      startDate: monthStart.toISOString(),
+      endDate: monthEnd.toISOString(),
+    }),
     staleTime: 60_000,
   })
 

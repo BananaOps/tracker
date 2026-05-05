@@ -89,9 +89,26 @@ export default function EventsOverlaps() {
   const [isCustomPeriod, setIsCustomPeriod] = useState<boolean>(false)
   const [overlapMode, setOverlapMode] = useState<OverlapMode>('strict')
 
+  const startDate = useMemo(() => {
+    if (isCustomPeriod && customStartDate) {
+      try { return startOfDay(new Date(customStartDate)) } catch { return startOfDay(currentDate) }
+    }
+    return startOfDay(currentDate)
+  }, [isCustomPeriod, customStartDate, currentDate])
+
+  const endDate = useMemo(() => {
+    if (isCustomPeriod && customEndDate) {
+      try { return endOfDay(new Date(customEndDate)) } catch { return endOfDay(addDays(currentDate, selectedDays - 1)) }
+    }
+    return endOfDay(addDays(currentDate, selectedDays - 1))
+  }, [isCustomPeriod, customEndDate, currentDate, selectedDays])
+
   const { data, isLoading } = useQuery({
-    queryKey: ['events', 'list'],
-    queryFn: () => eventsApi.list({ perPage: 500 }),
+    queryKey: ['events', 'overlaps', startDate.toISOString(), endDate.toISOString()],
+    queryFn: () => eventsApi.search({
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    }),
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
@@ -107,20 +124,6 @@ export default function EventsOverlaps() {
     catalogs.forEach(catalog => map.set(catalog.name, catalog))
     return map
   }, [catalogs])
-
-  const startDate = useMemo(() => {
-    if (isCustomPeriod && customStartDate) {
-      try { return startOfDay(new Date(customStartDate)) } catch { return startOfDay(currentDate) }
-    }
-    return startOfDay(currentDate)
-  }, [isCustomPeriod, customStartDate, currentDate])
-
-  const endDate = useMemo(() => {
-    if (isCustomPeriod && customEndDate) {
-      try { return endOfDay(new Date(customEndDate)) } catch { return endOfDay(addDays(currentDate, selectedDays - 1)) }
-    }
-    return endOfDay(addDays(currentDate, selectedDays - 1))
-  }, [isCustomPeriod, customEndDate, currentDate, selectedDays])
 
   const periodEvents = useMemo(() => {
     return allEvents.filter(event => {

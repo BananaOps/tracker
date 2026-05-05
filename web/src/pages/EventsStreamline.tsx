@@ -46,8 +46,11 @@ export default function EventsStreamline() {
   const [selectedServices, setSelectedServices] = useState<string[]>([])
 
   const { data, isLoading } = useQuery({
-    queryKey: ['events', 'list'],
-    queryFn: () => eventsApi.list({ perPage: 500 }),
+    queryKey: ['events', 'streamline', startDate.toISOString(), endDate.toISOString()],
+    queryFn: () => eventsApi.search({
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    }),
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
