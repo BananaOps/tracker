@@ -8,6 +8,7 @@ import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { AlertCircle, FileText, Clock, Link2, Search, Zap, Plus, Github, Ticket, Repeat } from 'lucide-react'
+import { DateTimePicker } from '../components/ui/date-time-picker'
 
 export default function CreateEvent() {
   const navigate = useNavigate()
@@ -27,8 +28,8 @@ export default function CreateEvent() {
 
   const now = new Date()
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
-  const defaultStartDate = now.toISOString().slice(0, 16)
-  const defaultEndDate = oneHourLater.toISOString().slice(0, 16)
+  const defaultStartDate = now.toISOString()
+  const defaultEndDate = oneHourLater.toISOString()
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
@@ -341,19 +342,24 @@ export default function CreateEvent() {
                 <div className="space-y-6">
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Start</label>
-                    <input type="datetime-local" value={formData.attributes.startDate || ''}
-                      onChange={(e) => {
-                        const newStart = e.target.value
+                    <DateTimePicker
+                      date={formData.attributes.startDate ? new Date(formData.attributes.startDate) : undefined}
+                      setDate={(date) => {
+                        const newStart = date?.toISOString()
                         const end = formData.attributes.endDate
-                        setFormData({ ...formData, attributes: { ...formData.attributes, startDate: newStart, endDate: (end && newStart > end) ? newStart : end } })
+                        const endDate = end ? new Date(end) : undefined
+                        setFormData({ ...formData, attributes: { ...formData.attributes, startDate: newStart, endDate: (endDate && date && date > endDate) ? newStart : end } })
                       }}
-                      className={inputCls} style={inputStyle} />
+                      placeholder="Select start date"
+                    />
                   </div>
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Estimated End</label>
-                    <input type="datetime-local" value={formData.attributes.endDate || ''} min={formData.attributes.startDate || undefined}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, endDate: e.target.value } })}
-                      className={inputCls} style={inputStyle} />
+                    <DateTimePicker
+                      date={formData.attributes.endDate ? new Date(formData.attributes.endDate) : undefined}
+                      setDate={(date) => setFormData({ ...formData, attributes: { ...formData.attributes, endDate: date?.toISOString() } })}
+                      placeholder="Select end date"
+                    />
                   </div>
                 </div>
               </section>

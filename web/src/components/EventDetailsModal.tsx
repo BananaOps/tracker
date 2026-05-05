@@ -14,6 +14,7 @@ import { getSlackMessageUrl, parseSlackId } from '../config'
 import Toast from './Toast'
 import EventChangelog from './EventChangelog'
 import LockIndicator from './LockIndicator'
+import { DateTimePicker } from './ui/date-time-picker'
 
 interface EventDetailsModalProps {
   event: Event
@@ -604,26 +605,24 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                     </div>
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium mb-1" style={{ color: hud.onSurfaceVar }}>
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium" style={{ color: hud.onSurfaceVar }}>
                           <i className="fa-solid fa-play mr-1" /> Start Date
                         </label>
-                        <input
-                          type="datetime-local"
-                          className="input text-sm"
-                          value={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, startDate: e.target.value ? new Date(e.target.value).toISOString() : undefined } })}
+                        <DateTimePicker
+                          date={editedEvent.attributes.startDate ? new Date(editedEvent.attributes.startDate) : undefined}
+                          setDate={(date) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, startDate: date?.toISOString() } })}
+                          placeholder="Select start date"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1" style={{ color: hud.onSurfaceVar }}>
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium" style={{ color: hud.onSurfaceVar }}>
                           <i className="fa-solid fa-flag-checkered mr-1" /> End Date
                         </label>
-                        <input
-                          type="datetime-local"
-                          className="input text-sm"
-                          value={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate).toISOString().slice(0, 16) : ''}
-                          onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, endDate: e.target.value ? new Date(e.target.value).toISOString() : undefined } })}
+                        <DateTimePicker
+                          date={editedEvent.attributes.endDate ? new Date(editedEvent.attributes.endDate) : undefined}
+                          setDate={(date) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, endDate: date?.toISOString() } })}
+                          placeholder="Select end date"
                         />
                       </div>
                     </div>

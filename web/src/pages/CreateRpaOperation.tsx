@@ -8,6 +8,7 @@ import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { AlertCircle, Bot, Clock, Plus, Search } from 'lucide-react'
+import { DateTimePicker } from '../components/ui/date-time-picker'
 
 export default function CreateRpaOperation() {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ export default function CreateRpaOperation() {
   const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
 
   const now = new Date()
-  const defaultStartDate = now.toISOString().slice(0, 16)
+  const defaultStartDate = now.toISOString()
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
@@ -221,9 +222,11 @@ export default function CreateRpaOperation() {
                 <div className="space-y-6">
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Start Date</label>
-                    <input type="datetime-local" value={formData.attributes.startDate || ''}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, startDate: e.target.value } })}
-                      className={inputCls} style={inputStyle} />
+                    <DateTimePicker
+                      date={formData.attributes.startDate ? new Date(formData.attributes.startDate) : undefined}
+                      setDate={(date) => setFormData({ ...formData, attributes: { ...formData.attributes, startDate: date?.toISOString() } })}
+                      placeholder="Select start date"
+                    />
                   </div>
                   <p className="text-xs px-1" style={{ color: hud.onSurfaceVar }}>
                     End date will be automatically set to <strong>1 hour</strong> after the start date.
