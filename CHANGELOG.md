@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/BananaOps/tracker/compare/v0.19.0...v0.19.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* **deps:** bump github.com/envoyproxy/protoc-gen-validate from 1.2.1 to 1.3.3 ([#169](https://github.com/BananaOps/tracker/issues/169)) ([640beb3](https://github.com/BananaOps/tracker/commit/640beb329fc54829621bc67603fcd9476508f2d2))
+
 ## [0.19.0](https://github.com/BananaOps/tracker/compare/v0.18.0...v0.19.0) (2026-05-05)
 
 
