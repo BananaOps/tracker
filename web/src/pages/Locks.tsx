@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
 import { Lock as LockIcon, Unlock, RefreshCw, AlertCircle, Eye } from 'lucide-react'
 import { getEnvironmentLabel } from '../lib/eventUtils'
+import { EnvBadge } from '../components/Badges'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -112,20 +113,6 @@ export default function Locks() {
     } catch { return '-' }
   }
 
-  const EnvBadge = ({ env }: { env: string }) => {
-    const colors: Record<string, string> = {
-      production: T.error, preproduction: '#f97316', uat: T.tertiary,
-      recette: '#8b5cf6', integration: T.primary, development: T.success,
-    }
-    const c = colors[env?.toLowerCase()] || T.onSurfaceVar
-    return (
-      <span className="px-2 py-0.5 rounded text-xs font-bold"
-        style={{ background: `${c}20`, color: c, border: `1px solid ${c}40` }}>
-        {getEnvironmentLabel(env)}
-      </span>
-    )
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen" style={{ background: T.bg }}>
@@ -161,19 +148,19 @@ export default function Locks() {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total Locks', value: locks.length, color: T.primary, icon: <LockIcon className="w-5 h-5" /> },
-            { label: 'Unique Services', value: new Set(locks.map(l => l.service)).size, color: T.tertiary, icon: <AlertCircle className="w-5 h-5" /> },
-            { label: 'Environments', value: new Set(locks.map(l => l.environment)).size, color: T.success, icon: <Unlock className="w-5 h-5" /> },
-          ].map(({ label, value, color, icon }) => (
-            <div key={label} className="relative p-6 rounded-xl overflow-hidden"
-              style={{ background: T.surfaceLow, borderLeft: `2px solid ${color}` }}>
-              <div className="absolute top-3 right-3 opacity-10 pointer-events-none" style={{ color }}>
-                <div className="w-16 h-16 blur-xl rounded-full" style={{ background: color }} />
-              </div>
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
-              <div className="flex items-end justify-between">
-                <span className="text-4xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</span>
-                <span style={{ color }}>{icon}</span>
+            { label: 'Total Locks', value: locks.length, tint: { bg: '#EFF4FF', color: '#1B3575', border: '#C2D0EF' }, icon: <LockIcon className="w-5 h-5" /> },
+            { label: 'Unique Services', value: new Set(locks.map(l => l.service)).size, tint: { bg: '#F3EEFF', color: '#5B21B6', border: '#DDCFFA' }, icon: <AlertCircle className="w-5 h-5" /> },
+            { label: 'Environments', value: new Set(locks.map(l => l.environment)).size, tint: { bg: '#ECFDF3', color: '#166534', border: '#BBF7D0' }, icon: <Unlock className="w-5 h-5" /> },
+          ].map(({ label, value, tint, icon }) => (
+            <div key={label} className="rounded-xl p-4 flex items-center gap-3"
+              style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+              <span className="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0"
+                style={{ background: tint.bg, color: tint.color, borderColor: tint.border }}>
+                {icon}
+              </span>
+              <div>
+                <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface }}>{value}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5" style={{ color: T.onSurfaceVar }}>{label}</p>
               </div>
             </div>
           ))}
@@ -182,13 +169,13 @@ export default function Locks() {
         {/* Table */}
         {locks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl"
-            style={{ background: T.surface }}>
+            style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
             <Unlock className="w-16 h-16 mb-4 opacity-20" style={{ color: T.onSurfaceVar }} />
             <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>No active locks</h3>
             <p className="text-sm mb-6" style={{ color: T.onSurfaceVar }}>All services are currently unlocked</p>
           </div>
         ) : (
-          <div className="rounded-2xl overflow-hidden" style={{ background: T.surface }}>
+          <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
@@ -308,10 +295,6 @@ export default function Locks() {
           </div>
         </div>
       )}
-
-      {/* Decorative glows */}
-      <div className="fixed top-0 right-0 -z-10 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
-        style={{ background: a('primary', 0.04) }} />
     </div>
   )
 }

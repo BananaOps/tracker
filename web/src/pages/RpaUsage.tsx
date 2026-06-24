@@ -9,7 +9,8 @@ import { startOfMonth, endOfMonth } from 'date-fns'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
 import EventDetailsModal from '../components/EventDetailsModal'
-import { getStatusLabel, getEnvironmentLabel } from '../lib/eventUtils'
+import { getStatusLabel } from '../lib/eventUtils'
+import { StatusBadge, EnvBadge } from '../components/Badges'
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const V = {
@@ -31,46 +32,6 @@ const T = Object.fromEntries(Object.entries(V).map(([k, v]) => [k, `rgb(var(${v}
 const a = (key: keyof typeof V, opacity: number) => `rgb(var(${V[key]}) / ${opacity})`
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: string }) {
-  const s = String(status || '').toLowerCase()
-  const isSuccess = s === 'success' || s === '3' || s === 'done' || s === '11'
-  const isFail = s === 'failure' || s === '2' || s === 'error' || s === '5'
-  const isRunning = s === 'start' || s === '1' || s === 'in_progress' || s === '12'
-  const isWarning = s === 'warning' || s === '4'
-  const isOpen = s === 'open' || s === '9'
-  const isPlanned = s === 'planned' || s === '13'
-  const isWaitingApproval = s === 'waiting_approval' || s === '14'
-
-  const color = isSuccess ? '#34d399' : isFail ? '#ff6e84' : isRunning ? '#40ceed' : isWarning ? '#fbbf24' : isOpen ? '#a78bfa' : isPlanned ? '#60a5fa' : isWaitingApproval ? '#f97316' : T.onSurfaceVar
-  const bg = isSuccess ? 'rgba(52,211,153,0.1)' : isFail ? 'rgba(255,110,132,0.1)' : isRunning ? 'rgba(64,206,237,0.1)' : isWarning ? 'rgba(251,191,36,0.1)' : isOpen ? 'rgba(167,139,250,0.1)' : isPlanned ? 'rgba(96,165,250,0.1)' : isWaitingApproval ? 'rgba(249,115,22,0.1)' : 'rgba(163,170,196,0.1)'
-  const border = isSuccess ? 'rgba(52,211,153,0.2)' : isFail ? 'rgba(255,110,132,0.2)' : isRunning ? 'rgba(64,206,237,0.2)' : isWarning ? 'rgba(251,191,36,0.2)' : isOpen ? 'rgba(167,139,250,0.2)' : isPlanned ? 'rgba(96,165,250,0.2)' : isWaitingApproval ? 'rgba(249,115,22,0.2)' : 'rgba(163,170,196,0.2)'
-
-  return (
-    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase" style={{ color }}>
-      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: color }} />
-      <span className="px-2 py-0.5 rounded-full" style={{ background: bg, border: `1px solid ${border}` }}>
-        {getStatusLabel(status)}
-      </span>
-    </span>
-  )
-}
-
-function EnvBadge({ env }: { env?: string }) {
-  const e = String(env || '').toLowerCase()
-  const color =
-    e === 'production' || e === '7' ? '#f87171' :
-    e === 'preproduction' || e === '6' ? '#fb923c' :
-    e === 'uat' || e === '4' || e === 'recette' || e === '5' || e === 'tnr' || e === '3' ? '#60a5fa' :
-    e === 'integration' || e === '2' ? '#2dd4bf' :
-    e === 'development' || e === '1' ? '#4ade80' :
-    T.onSurfaceVar
-  return (
-    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
-      {getEnvironmentLabel(env || '')}
-    </span>
-  )
-}
-
 function OwnerAvatar({ name }: { name?: string }) {
   if (!name) return <span style={{ color: T.onSurfaceVar }}>—</span>
   const initials = name.split(/[\s._-]/).map(p => p[0]?.toUpperCase() || '').join('').slice(0, 2) || '??'
@@ -218,45 +179,42 @@ export default function RpaUsage() {
         {/* ── KPI Cards ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Total Operations */}
-          <div className="p-8 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow, borderLeft: `2px solid ${T.primary}` }}>
-            <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: a('primary', 0.06) }} />
+          <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Total RPA Operations</p>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: a('primary', 0.12) }}>
-                <FontAwesomeIcon icon={faRobot} className="w-5 h-5" style={{ color: T.primary }} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                <FontAwesomeIcon icon={faRobot} className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-5xl font-medium tracking-tighter font-mono" style={{ color: T.onSurface }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
               {rpaOperations.length.toLocaleString()}
             </p>
-            <div className="mt-6 flex items-center gap-2 text-xs" style={{ color: T.tertiary }}>
+            <div className="mt-5 flex items-center gap-2 text-xs" style={{ color: T.onSurfaceVar }}>
               <TrendingUp className="w-3.5 h-3.5" />
               <span>{thisMonthOps.length} this month</span>
             </div>
           </div>
 
           {/* This Month + sparkline */}
-          <div className="p-8 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow, borderLeft: `2px solid ${T.tertiary}` }}>
-            <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: a('tertiary', 0.06) }} />
+          <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>This Month</p>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: a('tertiary', 0.12) }}>
-                <TrendingUp className="w-5 h-5" style={{ color: T.tertiary }} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#F3EEFF', color: '#5B21B6', borderColor: '#DDCFFA' }}>
+                <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-5xl font-medium tracking-tighter font-mono" style={{ color: T.onSurface }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
               {thisMonthOps.length.toLocaleString()}
             </p>
             {/* Mini sparkline */}
-            <div className="mt-6 h-10 flex items-end gap-1">
+            <div className="mt-5 h-10 flex items-end gap-1">
               {sparkline.map((v, i) => {
                 const pct = Math.max(8, (v / sparkMax) * 100)
                 const isCurrent = i === 4
                 return (
                   <div key={i} className="flex-1 rounded-t-sm" style={{
                     height: `${pct}%`,
-                    background: isCurrent ? T.tertiary : a('tertiary', 0.25),
-                    boxShadow: isCurrent ? `0 0 10px ${a('tertiary', 0.4)}` : undefined,
+                    background: isCurrent ? '#5B21B6' : '#DDCFFA',
                   }} />
                 )
               })}
@@ -264,18 +222,17 @@ export default function RpaUsage() {
           </div>
 
           {/* Active Services */}
-          <div className="p-8 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow, borderLeft: `2px solid ${a('outlineVar', 0.6)}` }}>
-            <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: a('outlineVar', 0.04) }} />
+          <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
               <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Active RPA Services</p>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: a('outlineVar', 0.1) }}>
-                <Clock className="w-5 h-5" style={{ color: T.onSurfaceVar }} />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#ECFDF3', color: '#166534', borderColor: '#BBF7D0' }}>
+                <Clock className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-5xl font-medium tracking-tighter font-mono" style={{ color: T.onSurface }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
               {Object.keys(byService).length.toLocaleString()}
             </p>
-            <p className="mt-6 text-xs" style={{ color: T.onSurfaceVar }}>
+            <p className="mt-5 text-xs" style={{ color: T.onSurfaceVar }}>
               distinct services
             </p>
           </div>
@@ -283,7 +240,7 @@ export default function RpaUsage() {
 
         {/* ── Usage by Service ── */}
         <div>
-          <div className="p-8 rounded-2xl" style={{ background: T.surface }}>
+          <div className="p-8 rounded-2xl" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold flex items-center gap-3" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: T.tertiary }} />
@@ -306,8 +263,8 @@ export default function RpaUsage() {
                       <div key={service}>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg" style={{ background: a('primary', 0.1) }}>
-                              <FontAwesomeIcon icon={faRobot} className="w-4 h-4" style={{ color: T.primary } as any} />
+                            <div className="p-2 rounded-lg border" style={{ background: '#EFF4FF', borderColor: '#C2D0EF' }}>
+                              <FontAwesomeIcon icon={faRobot} className="w-4 h-4" style={{ color: '#1B3575' } as any} />
                             </div>
                             <div>
                               <p className="text-sm font-bold font-mono" style={{ color: T.onSurface }}>{service}</p>
@@ -324,8 +281,7 @@ export default function RpaUsage() {
                             className="h-full rounded-full transition-all duration-500"
                             style={{
                               width: `${pct}%`,
-                              background: `linear-gradient(to right, ${T.primary}, ${T.tertiary})`,
-                              boxShadow: `0 0 12px ${a('primary', 0.3)}`,
+                              background: T.primary,
                             }}
                           />
                         </div>
@@ -339,7 +295,7 @@ export default function RpaUsage() {
         </div>
 
         {/* ── Recent Executions Table ── */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: T.surface }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
 
           {/* Table header + filters */}
           <div className="px-8 py-6" style={{ borderBottom: `1px solid ${a('outlineVar', 0.08)}` }}>

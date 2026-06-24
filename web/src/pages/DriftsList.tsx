@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 
 import { eventsApi } from '../lib/api'
 import type { Event } from '../types/api'
@@ -9,6 +9,7 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faJira } from '@fortawesome/free-brands-svg-icons'
 import { getEnvironmentLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import { StatusBadge, EnvBadge } from '../components/Badges'
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const V = {
@@ -29,47 +30,8 @@ const V = {
 const T = Object.fromEntries(Object.entries(V).map(([k, v]) => [k, `rgb(var(${v}))`])) as Record<keyof typeof V, string>
 const a = (key: keyof typeof V, opacity: number) => `rgb(var(${V[key]}) / ${opacity})`
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: string }) {
-  const s = String(status || '').toLowerCase()
-  const isSuccess = s === 'success' || s === '3' || s === 'done' || s === '11'
-  const isFail = s === 'failure' || s === '2' || s === 'error' || s === '5' || s === 'failed'
-  const isRunning = s === 'start' || s === '1' || s === 'in_progress' || s === '12'
-  const isWarning = s === 'warning' || s === '4'
-  const isOpen = s === 'open' || s === '9'
-  const isPlanned = s === 'planned' || s === '13'
-  const isClosed = s === 'close' || s === '10' || s === 'closed'
-  const isWaitingApproval = s === 'waiting_approval' || s === '14'
-
-  const color = isSuccess ? '#34d399' : isFail ? '#ff6e84' : isRunning ? '#40ceed' : isWarning ? '#fbbf24' : isOpen ? '#a78bfa' : isPlanned ? '#60a5fa' : isClosed ? '#6b7280' : isWaitingApproval ? '#f97316' : T.onSurfaceVar
-  const bg = isSuccess ? 'rgba(52,211,153,0.1)' : isFail ? 'rgba(255,110,132,0.1)' : isRunning ? 'rgba(64,206,237,0.1)' : isWarning ? 'rgba(251,191,36,0.1)' : isOpen ? 'rgba(167,139,250,0.1)' : isPlanned ? 'rgba(96,165,250,0.1)' : isClosed ? 'rgba(107,114,128,0.1)' : isWaitingApproval ? 'rgba(249,115,22,0.1)' : 'rgba(163,170,196,0.1)'
-  const border = isSuccess ? 'rgba(52,211,153,0.2)' : isFail ? 'rgba(255,110,132,0.2)' : isRunning ? 'rgba(64,206,237,0.2)' : isWarning ? 'rgba(251,191,36,0.2)' : isOpen ? 'rgba(167,139,250,0.2)' : isPlanned ? 'rgba(96,165,250,0.2)' : isClosed ? 'rgba(107,114,128,0.2)' : isWaitingApproval ? 'rgba(249,115,22,0.2)' : 'rgba(163,170,196,0.2)'
-
-  return (
-    <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full" style={{ background: bg, color, border: `1px solid ${border}` }}>
-      {getStatusLabel(status)}
-    </span>
-  )
-}
-
-function EnvBadge({ env }: { env?: string }) {
-  const e = String(env || '').toLowerCase()
-  const color =
-    e === 'production' || e === '7' ? '#f87171' :
-    e === 'preproduction' || e === '6' ? '#fb923c' :
-    e === 'uat' || e === '4' || e === 'recette' || e === '5' || e === 'tnr' || e === '3' ? '#60a5fa' :
-    e === 'integration' || e === '2' ? '#2dd4bf' :
-    e === 'development' || e === '1' ? '#4ade80' :
-    T.onSurfaceVar
-  return (
-    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
-      {getEnvironmentLabel(env || '')}
-    </span>
-  )
-}
-
 // ─── Modal ────────────────────────────────────────────────────────────────────
-function HudModal({ title, onClose, children }: { title: React.ReactNode; onClose: () => void; children: React.ReactNode }) {
+function HudModal({ title, onClose, children }: { title: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -269,30 +231,29 @@ export default function DriftsList() {
         )}
 
         {/* ── KPI Cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
-            { label: 'Active Drifts', value: stats.active, color: '#fbbf24', glow: 'rgba(251,191,36,0.04)', icon: <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" style={{ color: '#fbbf24' }} />, sub: `${stats.total} total` },
-            { label: 'Affected Services', value: stats.services, color: T.primary, glow: a('primary', 0.04), icon: <AlertCircle className="w-4 h-4" style={{ color: T.primary }} />, sub: 'unique services' },
-            { label: 'Critical Issues', value: stats.critical, color: T.error, glow: a('error', 0.04), icon: <AlertTriangle className="w-4 h-4" style={{ color: T.error }} />, sub: 'P1 or error status', borderLeft: stats.critical > 0 ? `2px solid ${T.error}` : undefined },
-            { label: 'Total Recorded', value: stats.total, color: T.tertiary, glow: a('tertiary', 0.04), icon: <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" style={{ color: T.tertiary }} />, sub: 'all time' },
-            { label: 'Resolved', value: stats.resolved, color: '#34d399', glow: 'rgba(52,211,153,0.04)', icon: <CheckCircle className="w-4 h-4" style={{ color: '#34d399' }} />, sub: 'done / closed' },
-          ].map(({ label, value, color, glow, icon, sub, borderLeft }) => (
-            <div key={label} className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow, borderLeft }}>
-              <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: glow }} />
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>{label}</span>
+            { label: 'Active Drifts', value: stats.active, tint: { bg: '#FFF8E8', color: '#8C5A00', border: '#FFE0A0' }, icon: <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" />, sub: `${stats.total} total` },
+            { label: 'Affected Services', value: stats.services, tint: { bg: '#EFF4FF', color: '#1B3575', border: '#C2D0EF' }, icon: <AlertCircle className="w-4 h-4" />, sub: 'unique services' },
+            { label: 'Critical Issues', value: stats.critical, tint: { bg: '#FEECEC', color: '#B42318', border: '#FBD4D4' }, icon: <AlertTriangle className="w-4 h-4" />, sub: 'P1 or error status' },
+            { label: 'Total Recorded', value: stats.total, tint: { bg: '#F3EEFF', color: '#5B21B6', border: '#DDCFFA' }, icon: <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4" />, sub: 'all time' },
+            { label: 'Resolved', value: stats.resolved, tint: { bg: '#ECFDF3', color: '#166534', border: '#BBF7D0' }, icon: <CheckCircle className="w-4 h-4" />, sub: 'done / closed' },
+          ].map(({ label, value, tint, icon, sub }) => (
+            <div key={label} className="p-4 rounded-xl flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
+              <span className="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0" style={{ background: tint.bg, color: tint.color, borderColor: tint.border }}>
                 {icon}
+              </span>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>{value}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5 truncate" style={{ color: T.onSurfaceVar }}>{label}</p>
+                <p className="text-[10px] mt-0.5 truncate" style={{ color: T.onSurfaceVar }}>{sub}</p>
               </div>
-              <div className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif", color: value > 0 && label === 'Critical Issues' ? color : T.onSurface }}>
-                {String(value).padStart(2, '0')}
-              </div>
-              <div className="mt-4 text-xs" style={{ color: T.onSurfaceVar }}>{sub}</div>
             </div>
           ))}
         </div>
 
         {/* ── View Toggle + Filters ── */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: T.surface }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
           <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap" style={{ borderBottom: `1px solid ${a('outlineVar', 0.08)}` }}>
             {/* View mode toggle */}
             <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: T.surfaceLow }}>
@@ -456,7 +417,16 @@ export default function DriftsList() {
                       {/* Service */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <FontAwesomeIcon icon={faCodeBranch} className="w-3.5 h-3.5 shrink-0" style={{ color: '#fbbf24' } as any} />
+                          <span
+                            className="w-6 h-6 rounded-md border flex items-center justify-center shrink-0"
+                            style={{
+                              background: '#EFF4FF',
+                              color: '#1B3575',
+                              borderColor: '#C2D0EF',
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faCodeBranch} className="text-[10px]" />
+                          </span>
                           <span className="text-xs font-mono font-medium truncate max-w-[120px]" style={{ color: T.onSurface }} title={drift.attributes.service}>
                             {drift.attributes.service}
                           </span>

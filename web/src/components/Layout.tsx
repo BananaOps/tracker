@@ -29,7 +29,6 @@ const navigationSections = [
     items: [
       { name: 'Catalog',      href: '/catalog',                    icon: Table },
       { name: 'Architecture', href: '/catalog/dependencies',       icon: ({ className }: { className?: string }) => <span className={`inline-flex items-center justify-center ${className || ''}`}><i className="fa-solid fa-chart-diagram text-[13px]" /></span> },
-      { name: 'Compliance',   href: '/catalog/version-compliance', icon: AlertTriangle },
     ],
   },
   {
@@ -55,9 +54,9 @@ export default function Layout() {
 
   const isActiveRoute = (href: string) => location.pathname === href
 
-  const navItem = 'flex items-center px-3 py-[7px] rounded-ig text-sm font-medium transition-all duration-150 cursor-pointer select-none'
-  const navActive = 'bg-[rgb(var(--hud-sidebar-active))] text-[rgb(var(--hud-sidebar-text-active))] font-semibold'
-  const navInactive = 'text-[rgb(var(--hud-sidebar-text))] hover:bg-hud-surface-high hover:text-hud-on-surface'
+  const navItem = 'flex items-center px-2.5 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-150 cursor-pointer select-none'
+  const navActive = 'bg-white/[0.09] text-white'
+  const navInactive = 'text-white/45 hover:text-white/75 hover:bg-white/[0.04]'
 
   return (
     <div className="min-h-screen bg-hud-bg">
@@ -70,28 +69,22 @@ export default function Layout() {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed h-screen z-40 transition-all duration-200`}
-          style={{
-            background: 'rgb(var(--hud-sidebar-bg))',
-            borderRight: '1px solid rgb(var(--hud-sidebar-border))',
-          }}
+          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed h-screen z-40 transition-all duration-200 bg-[#0F1629]`}
+          style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}
         >
           {/* Logo */}
           <div
-            className={`flex items-center h-[52px] px-4 shrink-0 ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}
-            style={{ borderBottom: '1px solid rgb(var(--hud-sidebar-border))' }}
+            className={`flex items-center h-[56px] px-5 shrink-0 ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
           >
             <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0">
               <div
-                className="w-7 h-7 rounded-ig flex items-center justify-center shrink-0"
-                style={{ background: 'rgb(var(--hud-primary))' }}
+                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-[#E8580A]"
               >
-                <Rocket className="w-4 h-4 text-white" style={{ transform: 'rotate(-45deg)' }} />
+                <Rocket className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
-              {!isCollapsed && (
-                <span className="text-[15px] font-bold text-hud-on-surface tracking-tight truncate">
-                  Tracker
-                </span>
+            {!isCollapsed && (
+                <span className="text-[13px] font-semibold text-white tracking-tight truncate">Tracker</span>
               )}
             </Link>
           </div>
@@ -114,11 +107,11 @@ export default function Layout() {
           </button>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4 no-scrollbar">
+          <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-4 no-scrollbar">
             {navigationSections.map((section) => (
               <div key={section.label}>
                 {!isCollapsed && (
-                  <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-hud-on-surface-var/50 select-none">
+                  <p className="px-2 mb-2 text-[10px] font-medium text-white/25 tracking-widest uppercase select-none">
                     {section.label}
                   </p>
                 )}
@@ -133,8 +126,9 @@ export default function Layout() {
                         className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${isActive ? navActive : navInactive}`}
                         title={isCollapsed ? item.name : ''}
                       >
-                        <Icon className={`w-[15px] h-[15px] shrink-0 ${isCollapsed ? '' : 'mr-2.5'}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${isCollapsed ? '' : 'mr-2.5'} ${isActive ? 'text-[#E8580A]' : ''}`} />
                         {!isCollapsed && <span className="truncate">{item.name}</span>}
+                        {!isCollapsed && isActive && <span className="w-1 h-3.5 rounded-full ml-auto bg-[#E8580A] opacity-80" />}
                       </Link>
                     )
                   })}
@@ -144,24 +138,23 @@ export default function Layout() {
           </nav>
 
           {/* Bottom */}
-          <div
-            className="px-2 py-3 space-y-1"
-            style={{ borderTop: '1px solid rgb(var(--hud-sidebar-border))' }}
-          >
-            {getSlackEventsChannelUrl() && (
-              <a
-                href={getSlackEventsChannelUrl()!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${navInactive}`}
-                title={isCollapsed ? 'Events Channel' : ''}
-              >
-                <MessageSquare className={`w-[15px] h-[15px] shrink-0 ${isCollapsed ? '' : 'mr-2.5'}`} />
-                {!isCollapsed && <span className="truncate">Events Channel</span>}
-              </a>
-            )}
-            <div className={`flex ${isCollapsed ? 'justify-center' : 'px-1'}`}>
-              <ThemeToggle compact={isCollapsed} />
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className={`px-2 py-2 space-y-1 ${isCollapsed ? 'items-center' : ''}`}>
+              {getSlackEventsChannelUrl() && (
+                <a
+                  href={getSlackEventsChannelUrl()!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${navInactive}`}
+                  title={isCollapsed ? 'Events Channel' : ''}
+                >
+                  <MessageSquare className={`w-4 h-4 shrink-0 ${isCollapsed ? '' : 'mr-2.5'}`} />
+                  {!isCollapsed && <span className="truncate">Events Channel</span>}
+                </a>
+              )}
+              <div className={`flex ${isCollapsed ? 'justify-center' : 'px-1'}`}>
+                <ThemeToggle compact={isCollapsed} />
+              </div>
             </div>
           </div>
         </aside>
@@ -172,7 +165,7 @@ export default function Layout() {
           <header
             className="h-[52px] shrink-0 flex items-center justify-between px-5 relative z-50"
             style={{
-              background: 'rgb(var(--hud-surface))',
+              background: '#EEF1F8',
               borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.5)',
             }}
           >

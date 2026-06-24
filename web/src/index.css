@@ -6,74 +6,74 @@
   /* ── Intergalactic Design System Tokens ── */
   :root {
     /* Surfaces */
-    --hud-bg:               244 245 249;   /* #f4f5f9 */
+    --hud-bg:               239 241 246;   /* #eff1f6 */
     --hud-surface:          255 255 255;   /* #ffffff */
-    --hud-surface-low:      248 249 252;   /* #f8f9fc */
-    --hud-surface-high:     236 238 244;   /* #eceef4 */
-    --hud-surface-highest:  220 224 235;   /* #dce0eb */
+    --hud-surface-low:      243 245 249;   /* #f3f5f9 */
+    --hud-surface-high:     238 241 248;   /* #eef1f8 */
+    --hud-surface-highest:  224 230 241;   /* #e0e6f1 */
 
     /* Brand */
-    --hud-primary:          0 123 229;     /* #007be5 */
-    --hud-primary-dim:      0 105 197;     /* #0069c5 */
-    --hud-secondary:        59 156 244;    /* #3b9cf4 */
-    --hud-tertiary:         38 192 111;    /* #26c06f */
+    --hud-primary:          27 53 117;     /* #1b3575 */
+    --hud-primary-dim:      21 44 104;     /* #152c68 */
+    --hud-secondary:        74 127 219;    /* #4a7fdb */
+    --hud-tertiary:         22 163 74;      /* #16a34a */
 
     /* Text */
-    --hud-on-surface:       23 26 34;      /* #171a22 */
-    --hud-on-surface-var:   108 110 121;   /* #6c6e79 */
+    --hud-on-surface:       13 17 23;      /* #0d1117 */
+    --hud-on-surface-var:   110 120 145;   /* #6e7891 */
 
     /* Borders */
-    --hud-outline:          168 171 183;   /* #a8abb7 */
-    --hud-outline-var:      196 199 207;   /* #c4c7cf */
+    --hud-outline:          176 186 208;   /* #b0bad0 */
+    --hud-outline-var:      197 203 220;   /* #c5cbdc */
 
     /* Semantic */
-    --hud-success:          38 192 111;    /* #26c06f */
-    --hud-error:            255 73 83;     /* #ff4953 */
-    --hud-warning:          255 128 0;     /* #ff8000 */
+    --hud-success:          22 163 74;      /* #16a34a */
+    --hud-error:            192 51 10;      /* #c0330a */
+    --hud-warning:          245 158 11;     /* #f59e0b */
 
     /* Sidebar */
-    --hud-sidebar-bg:       255 255 255;
-    --hud-sidebar-border:   220 224 235;
-    --hud-sidebar-active:   227 241 252;   /* #e3f1fc */
-    --hud-sidebar-text:     108 110 121;
-    --hud-sidebar-text-active: 0 123 229;
+    --hud-sidebar-bg:       15 22 41;      /* #0f1629 */
+    --hud-sidebar-border:   32 40 61;      /* #20283d */
+    --hud-sidebar-active:   31 39 58;      /* #1f273a */
+    --hud-sidebar-text:     166 176 200;   /* #a6b0c8 */
+    --hud-sidebar-text-active: 255 255 255;
     --hud-header-bg:        255 255 255;
   }
 
   .dark {
     /* Surfaces */
-    --hud-bg:               23 26 34;      /* #171a22 */
-    --hud-surface:          31 35 48;      /* #1f2330 */
-    --hud-surface-low:      27 30 42;      /* #1b1e2a */
-    --hud-surface-high:     39 43 58;      /* #272b3a */
-    --hud-surface-highest:  49 54 71;      /* #313647 */
+    --hud-bg:               13 17 23;      /* #0d1117 */
+    --hud-surface:          22 28 42;      /* #161c2a */
+    --hud-surface-low:      26 32 48;      /* #1a2030 */
+    --hud-surface-high:     30 37 53;      /* #1e2535 */
+    --hud-surface-highest:  42 50 69;      /* #2a3245 */
 
     /* Brand */
-    --hud-primary:          58 176 255;    /* #3ab0ff */
-    --hud-primary-dim:      0 144 232;     /* #0090e8 */
-    --hud-secondary:        95 195 255;    /* #5fc3ff */
-    --hud-tertiary:         52 211 153;    /* #34d399 */
+    --hud-primary:          74 127 219;    /* #4a7fdb */
+    --hud-primary-dim:      64 112 196;    /* #4070c4 */
+    --hud-secondary:        99 146 229;    /* #6392e5 */
+    --hud-tertiary:         34 197 94;      /* #22c55e */
 
     /* Text */
-    --hud-on-surface:       244 245 249;   /* #f4f5f9 */
-    --hud-on-surface-var:   168 171 183;   /* #a8abb7 */
+    --hud-on-surface:       232 235 242;   /* #e8ebf2 */
+    --hud-on-surface-var:   122 135 168;   /* #7a87a8 */
 
     /* Borders */
-    --hud-outline:          83 88 112;     /* #535870 */
-    --hud-outline-var:      58 63 82;      /* #3a3f52 */
+    --hud-outline:          111 124 158;   /* #6f7c9e */
+    --hud-outline-var:      78 88 117;     /* #4e5875 */
 
     /* Semantic */
-    --hud-success:          52 211 153;    /* #34d399 */
-    --hud-error:            255 113 120;   /* #ff7178 */
-    --hud-warning:          255 167 56;    /* #ffa738 */
+    --hud-success:          34 197 94;      /* #22c55e */
+    --hud-error:            192 51 10;      /* #c0330a */
+    --hud-warning:          245 158 11;     /* #f59e0b */
 
     /* Sidebar */
-    --hud-sidebar-bg:       23 26 34;
-    --hud-sidebar-border:   39 43 58;
-    --hud-sidebar-active:   30 58 92;      /* #1e3a5c */
-    --hud-sidebar-text:     168 171 183;
-    --hud-sidebar-text-active: 58 176 255;
-    --hud-header-bg:        23 26 34;
+    --hud-sidebar-bg:       8 13 24;       /* #080d18 */
+    --hud-sidebar-border:   28 35 53;      /* #1c2335 */
+    --hud-sidebar-active:   24 33 54;      /* #182136 */
+    --hud-sidebar-text:     140 151 178;   /* #8c97b2 */
+    --hud-sidebar-text-active: 255 255 255;
+    --hud-header-bg:        22 28 42;
   }
 
   body {
@@ -180,35 +180,35 @@
 
   /* Intergalactic-palette icon colors */
   .icon-gradient {
-    color: #007be5;
+    color: #1b3575;
   }
   .icon-gradient-blue {
-    color: #007be5;
+    color: #1b3575;
   }
   .icon-gradient-purple {
-    color: #8649e1;
+    color: #4a7fdb;
   }
   .icon-gradient-yellow {
-    color: #cc6b00;
+    color: #e8580a;
   }
   .icon-gradient-red {
-    color: #ff4953;
+    color: #c0330a;
   }
 
   /* Dark mode icon color overrides */
   .dark .icon-gradient {
-    color: #3ab0ff;
+    color: #4a7fdb;
   }
   .dark .icon-gradient-blue {
-    color: #3ab0ff;
+    color: #4a7fdb;
   }
   .dark .icon-gradient-purple {
-    color: #b381f5;
+    color: #99afe8;
   }
   .dark .icon-gradient-yellow {
-    color: #ffa738;
+    color: #f59e0b;
   }
   .dark .icon-gradient-red {
-    color: #ff7178;
+    color: #e8580a;
   }
 }
