@@ -301,11 +301,11 @@ export default function EventsTimeline() {
     <div className="flex h-screen overflow-hidden">{/* Removed extra padding/borders */}
       {/* Sidebar Filters - Style Datadog */}
       {showSidebar && (
-        <div className="w-64 border-r border-gray-200 dark:border-gray-700 flex flex-col shrink-0" style={{ background: 'rgb(var(--hud-surface))' }}>
+        <div className="w-64 border-r border-hud-outline-var/60 flex flex-col shrink-0" style={{ background: 'rgb(var(--hud-surface))' }}>
           {/* Sidebar Header */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700" style={{ background: 'rgb(var(--hud-surface-high))' }}>
+          <div className="p-3 border-b border-hud-outline-var/60" style={{ background: 'rgb(var(--hud-surface-high))' }}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-hud-on-surface flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
               </h3>
@@ -318,7 +318,7 @@ export default function EventsTimeline() {
             
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hud-on-surface-var" />
               <Input
                 placeholder="Search events..."
                 value={searchQuery}

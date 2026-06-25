@@ -3,13 +3,15 @@ import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Packag
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
 import DemoBanner from './DemoBanner'
 import Footer from './Footer'
 import LinksSearch from './LinksSearch'
+import CreatePanelHost from './CreatePanelHost'
+import { useCreatePanel } from '../contexts/CreatePanelContext'
 import { getSlackEventsChannelUrl } from '../config'
 
 const navigationSections = [
@@ -51,12 +53,13 @@ const navigationSections = [
 export default function Layout() {
   const location = useLocation()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { open } = useCreatePanel()
 
   const isActiveRoute = (href: string) => location.pathname === href
 
   const navItem = 'flex items-center px-2.5 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-150 cursor-pointer select-none'
-  const navActive = 'bg-white/[0.09] text-white'
-  const navInactive = 'text-white/45 hover:text-white/75 hover:bg-white/[0.04]'
+  const navActive = 'bg-white/10 text-white'
+  const navInactive = 'text-white/45 hover:text-white/80 hover:bg-white/[0.06]'
 
   return (
     <div className="min-h-screen bg-hud-bg">
@@ -84,7 +87,7 @@ export default function Layout() {
                 <Rocket className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
             {!isCollapsed && (
-                <span className="text-[13px] font-semibold text-white tracking-tight truncate">Tracker</span>
+                <span className="text-[16px] font-bold text-white tracking-tight truncate">Tracker</span>
               )}
             </Link>
           </div>
@@ -152,7 +155,7 @@ export default function Layout() {
                   {!isCollapsed && <span className="truncate">Events Channel</span>}
                 </a>
               )}
-              <div className={`flex ${isCollapsed ? 'justify-center' : 'px-1'}`}>
+              <div className="flex justify-center">
                 <ThemeToggle compact={isCollapsed} />
               </div>
             </div>
@@ -165,8 +168,8 @@ export default function Layout() {
           <header
             className="h-[52px] shrink-0 flex items-center justify-between px-5 relative z-50"
             style={{
-              background: '#EEF1F8',
-              borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.5)',
+              background: 'rgb(var(--hud-surface))',
+              borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.65)',
             }}
           >
             <div className="flex-1 max-w-xl">
@@ -177,41 +180,51 @@ export default function Layout() {
               {/* Secondary actions */}
               {(
                 [
-                  { to: '/locks/create',   icon: Lock,    label: 'New Lock' },
-                  { to: '/drifts/create',  icon: null,    label: 'New Drift',    faIcon: faCodeBranch },
-                  { to: '/rpa/create',     icon: null,    label: 'New RPA',      faIcon: faRobot },
-                  { to: '/catalog/create', icon: Package, label: 'New Service' },
+                  { panel: 'lock',        icon: Lock,    label: 'New Lock' },
+                  { panel: 'drift',       icon: null,    label: 'New Drift',    faIcon: faCodeBranch },
+                  { panel: 'rpa',         icon: null,    label: 'New RPA',      faIcon: faRobot },
+                  { panel: 'service',     icon: Package, label: 'New Service' },
                 ] as const
-              ).map(({ to, icon: Icon, label, faIcon }: any) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150"
-                  style={{
-                    color: 'rgb(var(--hud-on-surface-var))',
-                    border: '1px solid rgb(var(--hud-outline-var))',
-                    background: 'rgb(var(--hud-surface))',
-                  }}
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface-high))'
-                    ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline))'
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface))'
-                    ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline-var))'
-                  }}
-                >
-                  {faIcon
-                    ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" />
-                    : <Icon className="w-3 h-3" />
-                  }
-                  {label}
-                </Link>
-              ))}
+              ).map((item: any) => {
+                const { to, panel, icon: Icon, label, faIcon } = item
+                const className = "flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150"
+                const style = {
+                  color: 'rgb(var(--hud-on-surface-var))',
+                  border: '1px solid rgb(var(--hud-outline-var))',
+                  background: 'rgb(var(--hud-surface))',
+                }
+                const onMouseEnter = (e: MouseEvent<HTMLElement>) => {
+                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface-high))'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline))'
+                }
+                const onMouseLeave = (e: MouseEvent<HTMLElement>) => {
+                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface))'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline-var))'
+                }
+                const content = (
+                  <>
+                    {faIcon ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
+                    {label}
+                  </>
+                )
+                if (panel) {
+                  return (
+                    <button key={label} type="button" onClick={() => open(panel)} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+                      {content}
+                    </button>
+                  )
+                }
+                return (
+                  <Link key={to} to={to} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+                    {content}
+                  </Link>
+                )
+              })}
 
               {/* Primary CTA */}
-              <Link
-                to="/events/create"
+              <button
+                type="button"
+                onClick={() => open('event')}
                 className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-white"
                 style={{
                   background: 'rgb(var(--hud-primary))',
@@ -226,7 +239,7 @@ export default function Layout() {
               >
                 <Plus className="w-3.5 h-3.5" />
                 New Event
-              </Link>
+              </button>
             </div>
           </header>
 
@@ -237,6 +250,8 @@ export default function Layout() {
 
         <Footer isCollapsed={isCollapsed} />
       </div>
+
+      <CreatePanelHost />
     </div>
   )
 }

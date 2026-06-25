@@ -384,7 +384,6 @@ export default function Dashboard() {
       timeline: [
         { label: 'Production', env: 'production', events: byEnv('production').slice(0, 8) },
         { label: 'Pre-production', env: 'preproduction', events: byEnv('preproduction').slice(0, 8) },
-        { label: 'Other', env: 'other', events: byEnv('other').slice(0, 8) },
       ],
     }
   }, [events])

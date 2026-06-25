@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react'
 
 import { eventsApi } from '../lib/api'
+import { useCreatePanel } from '../contexts/CreatePanelContext'
 import type { Event } from '../types/api'
 import { EventType, Status, Priority } from '../types/api'
 import { AlertTriangle, AlertCircle, ExternalLink, CheckCircle, X, Search } from 'lucide-react'
@@ -78,6 +79,8 @@ export default function DriftsList() {
   const [ticketUrlError, setTicketUrlError] = useState(false)
   const [creatingTicket, setCreatingTicket] = useState(false)
 
+  const { createdTick } = useCreatePanel()
+
   const loadDrifts = async () => {
     try {
       setLoading(true)
@@ -92,7 +95,7 @@ export default function DriftsList() {
     }
   }
 
-  useEffect(() => { loadDrifts() }, [])
+  useEffect(() => { loadDrifts() }, [createdTick])
 
   // Active drifts = exclude done/close/closed/failed
   const activeDrifts = useMemo(() =>

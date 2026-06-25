@@ -211,4 +211,64 @@
   .dark .icon-gradient-red {
     color: #e8580a;
   }
+
+  /* Dark mode compatibility layer for legacy gray Tailwind classes */
+  .dark .text-gray-900,
+  .dark .text-gray-800,
+  .dark .text-gray-700 {
+    color: rgb(var(--hud-on-surface)) !important;
+  }
+  .dark .text-gray-600,
+  .dark .text-gray-500,
+  .dark .text-gray-400,
+  .dark .text-gray-300 {
+    color: rgb(var(--hud-on-surface-var)) !important;
+  }
+
+  .dark .bg-white,
+  .dark .bg-gray-50 {
+    background-color: rgb(var(--hud-surface)) !important;
+  }
+  .dark .bg-gray-100 {
+    background-color: rgb(var(--hud-surface-low)) !important;
+  }
+  .dark .bg-gray-200 {
+    background-color: rgb(var(--hud-surface-high)) !important;
+  }
+  .dark .bg-gray-700 {
+    background-color: rgb(var(--hud-surface-high)) !important;
+  }
+  .dark .bg-gray-800 {
+    background-color: rgb(var(--hud-surface)) !important;
+  }
+  .dark .bg-gray-900 {
+    background-color: rgb(var(--hud-bg)) !important;
+  }
+
+  .dark .border-gray-200,
+  .dark .border-gray-300,
+  .dark .border-gray-400 {
+    border-color: rgb(var(--hud-outline-var) / 0.65) !important;
+  }
+  .dark .border-gray-500,
+  .dark .border-gray-600,
+  .dark .border-gray-700 {
+    border-color: rgb(var(--hud-outline) / 0.7) !important;
+  }
+
+  .dark .hover\:bg-gray-50:hover,
+  .dark .hover\:bg-gray-100:hover {
+    background-color: rgb(var(--hud-surface-high)) !important;
+  }
+  .dark .hover\:bg-gray-700:hover,
+  .dark .hover\:bg-gray-800:hover {
+    background-color: rgb(var(--hud-surface-highest)) !important;
+  }
+  .dark .hover\:text-gray-700:hover,
+  .dark .hover\:text-gray-600:hover {
+    color: rgb(var(--hud-on-surface)) !important;
+  }
+  .dark .hover\:text-gray-400:hover {
+    color: rgb(var(--hud-on-surface-var)) !important;
+  }
 }

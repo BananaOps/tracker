@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { CreatePanelProvider } from './contexts/CreatePanelContext'
 import App from './App'
 import './index.css'
 import { config } from './config'
@@ -43,7 +44,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <App />
+        <CreatePanelProvider>
+          <App />
+        </CreatePanelProvider>
       </QueryClientProvider>
     </ThemeProvider>
   </React.StrictMode>,

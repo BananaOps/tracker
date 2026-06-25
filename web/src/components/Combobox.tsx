@@ -54,7 +54,7 @@ export default function Combobox({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-hud-on-surface-var mb-1">
           {label}
         </label>
       )}
@@ -63,31 +63,31 @@ export default function Combobox({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+        className="w-full px-3 py-2 text-left bg-hud-surface border border-hud-outline-var rounded-lg hover:bg-hud-surface-high focus:outline-none focus:ring-2 focus:ring-hud-primary/20 focus:border-hud-primary transition-colors"
       >
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-900 dark:text-gray-100 truncate">
+          <span className="text-sm text-hud-on-surface truncate">
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           <ChevronDown 
-            className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
+            className={`w-4 h-4 text-hud-on-surface-var transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
           />
         </div>
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-80 overflow-hidden">
+        <div className="absolute z-50 w-full mt-1 bg-hud-surface border border-hud-outline-var/60 rounded-lg shadow-lg max-h-80 overflow-hidden">
           {/* Search Input */}
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-2 border-b border-hud-outline-var/60">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-hud-on-surface-var" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-hud-surface-low border border-hud-outline-var rounded-md focus:outline-none focus:ring-2 focus:ring-hud-primary/20 text-hud-on-surface"
                 autoFocus
               />
             </div>
@@ -105,10 +105,10 @@ export default function Combobox({
                   key={option.value}
                   type="button"
                   onClick={() => handleSelect(option.value)}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between ${
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-hud-surface-high transition-colors flex items-center justify-between ${
                     option.value === value
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-900 dark:text-gray-100'
+                      ? 'bg-hud-primary/10 text-hud-primary'
+                      : 'text-hud-on-surface'
                   }`}
                 >
                   <span className="truncate">{option.label}</span>

@@ -4,9 +4,11 @@ import { locksApi, type Lock } from '../lib/api'
 import { Lock as LockIcon, Unlock, RefreshCw, AlertCircle, Eye } from 'lucide-react'
 import { getEnvironmentLabel } from '../lib/eventUtils'
 import { EnvBadge } from '../components/Badges'
+import { useCreatePanel } from '../contexts/CreatePanelContext'
 
 export default function Locks() {
   const navigate = useNavigate()
+  const { createdTick } = useCreatePanel()
   const [locks, setLocks] = useState<Lock[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +52,7 @@ export default function Locks() {
 
   useEffect(() => {
     loadLocks()
-  }, [])
+  }, [createdTick])
 
   const handleUnlock = (lock: Lock) => {
     setSelectedLock(lock)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
@@ -9,8 +9,16 @@ import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import CommunicationChannelsManager from '../components/CommunicationChannelsManager'
 import DashboardLinksManager from '../components/DashboardLinksManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
+import FormPanel from '../components/FormPanel'
+import ChipSelect, { type ChipOption } from '../components/ChipSelect'
 
-export default function CreateCatalog() {
+interface CreateCatalogProps {
+  asPanel?: boolean
+  onClose?: () => void
+  onSuccess?: () => void
+}
+
+export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: CreateCatalogProps = {}) {
   const navigate = useNavigate()
   const { name } = useParams()
   const queryClient = useQueryClient()
@@ -71,11 +79,15 @@ export default function CreateCatalog() {
     mutationFn: (data: Catalog) => catalogApi.createOrUpdate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['catalog'] })
-      navigate('/catalog')
+      if (asPanel) {
+        onSuccess?.()
+      } else {
+        navigate('/catalog')
+      }
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!formData.name || !formData.owner) return
     
@@ -189,7 +201,7 @@ export default function CreateCatalog() {
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 
-  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+  const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
       <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
@@ -204,28 +216,27 @@ export default function CreateCatalog() {
     )
   }
 
-  return (
-    <div className="min-h-full overflow-auto" style={{ background: hud.bg, color: hud.onSurface }}>
-      <div className="max-w-5xl mx-auto p-8">
+  const gridWrap = asPanel ? 'space-y-6' : 'grid grid-cols-1 md:grid-cols-12 gap-8'
+  const leftCol = asPanel ? 'space-y-6' : 'md:col-span-8 space-y-8'
+  const rightCol = asPanel ? 'space-y-6' : 'md:col-span-4 space-y-8'
 
-        {/* Header */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            {isEditing ? `Edit Service — ${name}` : 'New Service'}
-          </h2>
-          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
-            {isEditing
-              ? 'Update service metadata, dependencies and SLA configuration.'
-              : 'Register a new service in the catalog. Define its dependencies, SLA and operational details.'}
-          </p>
-        </div>
+  const catalogTypeOptions: ChipOption<CatalogType>[] = [
+    { value: CatalogType.MODULE, label: 'Module' },
+    { value: CatalogType.LIBRARY, label: 'Library' },
+    { value: CatalogType.WORKFLOW, label: 'Workflow' },
+    { value: CatalogType.PROJECT, label: 'Project' },
+    { value: CatalogType.CHART, label: 'Chart' },
+    { value: CatalogType.PACKAGE, label: 'Package' },
+    { value: CatalogType.CONTAINER, label: 'Container' },
+  ].map((o) => ({ ...o, visual: { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' } }))
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+  const body = (
+    <div className={asPanel ? 'space-y-6' : 'space-y-8'}>
+      {/* Bento Grid */}
+      <div className={gridWrap}>
 
-            {/* ── Left Column ── */}
-            <div className="md:col-span-8 space-y-8">
+        {/* ── Left Column ── */}
+        <div className={leftCol}>
 
               {/* Section: Service Information */}
               <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
@@ -255,21 +266,9 @@ export default function CreateCatalog() {
                       <label className={labelCls} style={{ color: hud.onSurfaceVar }}>
                         Type <span style={{ color: hud.error }}>*</span>
                       </label>
-                      <select
-                        required
-                        value={formData.type}
-                        onChange={(e) => handleChange('type', e.target.value)}
-                        className={inputCls + ' appearance-none'}
-                        style={inputStyle}
-                      >
-                        <option value={CatalogType.MODULE}>Module</option>
-                        <option value={CatalogType.LIBRARY}>Library</option>
-                        <option value={CatalogType.WORKFLOW}>Workflow</option>
-                        <option value={CatalogType.PROJECT}>Project</option>
-                        <option value={CatalogType.CHART}>Chart</option>
-                        <option value={CatalogType.PACKAGE}>Package</option>
-                        <option value={CatalogType.CONTAINER}>Container</option>
-                      </select>
+                      <ChipSelect ariaLabel="Type" options={catalogTypeOptions}
+                        value={formData.type as CatalogType}
+                        onChange={(type) => handleChange('type', type)} />
                     </div>
 
                     <div>
@@ -315,9 +314,10 @@ export default function CreateCatalog() {
                     </div>
 
                     <div>
-                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Version</label>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Version <span style={{ color: hud.error }}>*</span></label>
                       <input
                         type="text"
+                        required
                         value={formData.version}
                         onChange={(e) => handleChange('version', e.target.value)}
                         placeholder="e.g., v1.2.3, 2.0.0"
@@ -477,7 +477,7 @@ export default function CreateCatalog() {
             </div>
 
             {/* ── Right Column ── */}
-            <div className="md:col-span-4 space-y-8">
+            <div className={rightCol}>
 
               {/* SLA Widget */}
               <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh, borderLeft: `4px solid ${hud.tertiary}` }}>
@@ -604,6 +604,46 @@ export default function CreateCatalog() {
               onChange={handleUpdateVulnerabilitySummary}
             />
           </section>
+    </div>
+  )
+
+  if (asPanel) {
+    return (
+      <FormPanel
+        size="lg"
+        icon={<Package className="w-5 h-5" />}
+        title="New Service"
+        subtitle="Register a service in the catalog"
+        onClose={() => onClose?.()}
+        onSubmit={handleSubmit}
+        submitLabel={createUpdateMutation.isPending ? 'Creating...' : 'Create Service'}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitting={createUpdateMutation.isPending}
+        submitDisabled={!formData.name || !formData.owner}
+      >
+        {body}
+      </FormPanel>
+    )
+  }
+
+  return (
+    <div className="min-h-full overflow-auto" style={{ background: hud.bg, color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            {isEditing ? `Edit Service — ${name}` : 'New Service'}
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            {isEditing
+              ? 'Update service metadata, dependencies and SLA configuration.'
+              : 'Register a new service in the catalog. Define its dependencies, SLA and operational details.'}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {body}
 
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>

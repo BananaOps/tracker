@@ -1,23 +1,23 @@
-// Utility to generate dark mode class names
+// Utility to generate theme-aware class names backed by Tracker tokens.
 export const darkModeClasses = {
   // Text colors
-  textGray900: 'text-gray-900 dark:text-gray-100',
-  textGray800: 'text-gray-800 dark:text-gray-200',
-  textGray700: 'text-gray-700 dark:text-gray-300',
-  textGray600: 'text-gray-600 dark:text-gray-400',
-  textGray500: 'text-gray-500 dark:text-gray-400',
+  textGray900: 'text-hud-on-surface',
+  textGray800: 'text-hud-on-surface',
+  textGray700: 'text-hud-on-surface',
+  textGray600: 'text-hud-on-surface-var',
+  textGray500: 'text-hud-on-surface-var',
   
   // Background colors
-  bgWhite: 'bg-white dark:bg-gray-800',
-  bgGray50: 'bg-gray-50 dark:bg-gray-800',
-  bgGray100: 'bg-gray-100 dark:bg-gray-700',
-  bgGray200: 'bg-gray-200 dark:bg-gray-700',
+  bgWhite: 'bg-hud-surface',
+  bgGray50: 'bg-hud-surface-low',
+  bgGray100: 'bg-hud-surface-high',
+  bgGray200: 'bg-hud-surface-highest',
   
   // Border colors
-  borderGray200: 'border-gray-200 dark:border-gray-700',
-  borderGray300: 'border-gray-300 dark:border-gray-600',
+  borderGray200: 'border-hud-outline-var/60',
+  borderGray300: 'border-hud-outline',
   
   // Hover states
-  hoverBgGray100: 'hover:bg-gray-100 dark:hover:bg-gray-700',
-  hoverTextGray700: 'hover:text-gray-700 dark:hover:text-gray-300',
+  hoverBgGray100: 'hover:bg-hud-surface-high',
+  hoverTextGray700: 'hover:text-hud-on-surface',
 }

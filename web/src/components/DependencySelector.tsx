@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
 import { Check, ChevronDown, Search, Plus } from 'lucide-react'
 
 interface DependencySelectorProps {
@@ -60,7 +60,7 @@ export default function DependencySelector({
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       if (search.trim()) {
@@ -86,7 +86,7 @@ export default function DependencySelector({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-hud-on-surface-var mb-2">
           {label}
         </label>
       )}
@@ -95,7 +95,7 @@ export default function DependencySelector({
         {/* Input with dropdown */}
         <div className="flex-1 relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-hud-on-surface-var" />
             <input
               ref={inputRef}
               type="text"
@@ -111,12 +111,12 @@ export default function DependencySelector({
               }}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="w-full pl-9 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-9 pr-10 py-2 text-sm border border-hud-outline-var rounded-lg bg-hud-surface text-hud-on-surface placeholder:text-hud-on-surface-var/60 focus:ring-2 focus:ring-hud-primary/20 focus:border-hud-primary"
             />
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-hud-on-surface-var hover:text-hud-on-surface transition-colors"
             >
               <ChevronDown 
                 className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
@@ -126,12 +126,12 @@ export default function DependencySelector({
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-hidden">
+            <div className="absolute z-50 w-full mt-1 bg-hud-surface border border-hud-outline-var/60 rounded-lg shadow-lg max-h-60 overflow-hidden">
               <div className="max-h-60 overflow-y-auto">
                 {/* Existing services */}
                 {filteredServices.length > 0 && (
                   <>
-                    <div className="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50">
+                    <div className="px-3 py-2 text-xs font-medium text-hud-on-surface-var bg-hud-surface-low">
                       Existing Services
                     </div>
                     {filteredServices.map((service) => (
@@ -139,10 +139,10 @@ export default function DependencySelector({
                         key={service}
                         type="button"
                         onClick={() => handleSelect(service)}
-                        className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between ${
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-hud-surface-high transition-colors flex items-center justify-between ${
                           service === value
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                            : 'text-gray-900 dark:text-gray-100'
+                            ? 'bg-hud-primary/10 text-hud-primary'
+                            : 'text-hud-on-surface'
                         }`}
                       >
                         <span className="truncate">{service}</span>
@@ -158,12 +158,12 @@ export default function DependencySelector({
                 {search.trim() && !exactMatch && (
                   <>
                     {filteredServices.length > 0 && (
-                      <div className="border-t border-gray-200 dark:border-gray-700" />
+                      <div className="border-t border-hud-outline-var/60" />
                     )}
                     <button
                       type="button"
                       onClick={handleAddCustom}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center space-x-2 text-green-600 dark:text-green-400"
+                      className="w-full px-3 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center space-x-2 text-green-700 dark:text-green-300"
                     >
                       <Plus className="w-4 h-4 flex-shrink-0" />
                       <span className="truncate">Add "{search.trim()}"</span>
@@ -173,7 +173,7 @@ export default function DependencySelector({
 
                 {/* No results */}
                 {filteredServices.length === 0 && !search.trim() && (
-                  <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                  <div className="px-3 py-2 text-sm text-hud-on-surface-var text-center">
                     Type to search or add a custom service
                   </div>
                 )}
@@ -187,14 +187,14 @@ export default function DependencySelector({
           type="button"
           onClick={onAdd}
           disabled={!value.trim()}
-          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 bg-hud-primary text-white rounded-lg hover:bg-hud-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
         </button>
       </div>
 
       {/* Helper text */}
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mt-1 text-xs text-hud-on-surface-var">
         Select from existing services or type a custom name
       </p>
     </div>

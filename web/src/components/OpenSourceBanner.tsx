@@ -34,7 +34,7 @@ export default function OpenSourceBanner() {
               href="https://github.com/BananaOps/tracker"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-1.5 bg-white text-blue-600 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center px-4 py-1.5 bg-hud-surface text-hud-primary rounded-md text-sm font-medium hover:bg-hud-surface-high transition-colors"
             >
               <Github className="w-4 h-4 mr-2" />
               View on GitHub
