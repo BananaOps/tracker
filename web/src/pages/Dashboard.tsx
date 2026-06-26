@@ -84,13 +84,6 @@ function impactFromEvent(event: Event): DashImpact {
   return 'LOW'
 }
 
-function impactColor(impact: DashImpact) {
-  if (impact === 'CRITICAL') return C.accent
-  if (impact === 'HIGH') return C.amber
-  if (impact === 'MEDIUM') return '#93A8C8'
-  return '#C5CBD8'
-}
-
 function impactScore(impact: DashImpact) {
   return impact === 'CRITICAL' ? 4 : impact === 'HIGH' ? 3 : impact === 'MEDIUM' ? 2 : 1
 }
@@ -148,26 +141,6 @@ function getTypePalette(type?: string) {
   }
 
   return { bg: '#EEF1F8', text: '#4B5563', border: '#D5DBE8', solid: '#64748B' }
-}
-
-function StatusPill({ status }: { status: DashStatus }) {
-  const style =
-    status === 'ONGOING'
-      ? { bg: C.accent, text: '#fff', border: 'transparent', label: '● Live' }
-      : status === 'CONFLICT'
-        ? { bg: `${C.accent}1a`, text: C.accentDark, border: `${C.accent}4d`, label: '⚠ Conflict' }
-        : status === 'COMPLETED'
-          ? { bg: a('success', 0.12), text: T.success, border: a('success', 0.3), label: 'Done' }
-          : { bg: `${C.primary}14`, text: C.primary, border: `${C.primary}4d`, label: 'Planned' }
-
-  return (
-    <span
-      className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded-sm"
-      style={{ background: style.bg, color: style.text, border: `1px solid ${style.border}` }}
-    >
-      {style.label}
-    </span>
-  )
 }
 
 function TimelineStyleTypeBadge({ type }: { type?: string }) {
@@ -324,22 +297,25 @@ export default function Dashboard() {
     refetchInterval: 30000,
   })
 
-  const events = useMemo(() => todayEvents?.events || [], [todayEvents])
+  const { data: allEventsData } = useQuery({
+    queryKey: ['events', 'dashboard-all'],
+    queryFn: () => eventsApi.list({ perPage: 1000, page: 1 }),
+    refetchInterval: 30000,
+  })
+
+  const events: Event[] = useMemo(() => (todayEvents?.events || []) as Event[], [todayEvents])
+  const allEvents: Event[] = useMemo(() => (allEventsData?.events || []) as Event[], [allEventsData])
 
   const derived = useMemo(() => {
-    const rows: DerivedRow[] = events.map((event: Event) => {
+    const toDerivedRow = (event: Event): DerivedRow => {
       const status = normalizeStatus(event.attributes.status)
       const impact = impactFromEvent(event)
       const { start, end } = eventWindow(event)
       const service = event.attributes.service || 'unknown-service'
       return { event, status, impact, start, end, service }
-    })
+    }
+    const rows: DerivedRow[] = events.map(toDerivedRow)
 
-    const sortedByPriority = [...rows].sort((aRow: DerivedRow, bRow: DerivedRow) => {
-      const byImpact = impactScore(bRow.impact) - impactScore(aRow.impact)
-      if (byImpact !== 0) return byImpact
-      return aRow.start.getTime() - bRow.start.getTime()
-    })
     const sortedByTimeDesc = [...rows].sort((aRow: DerivedRow, bRow: DerivedRow) => bRow.start.getTime() - aRow.start.getTime())
 
     const serviceCount = rows.reduce<Record<string, ServiceSummary>>((acc: Record<string, ServiceSummary>, row: DerivedRow) => {
@@ -352,7 +328,15 @@ export default function Dashboard() {
     }, {})
 
     const now = new Date()
-    const nextCritical = sortedByPriority.find((row) => row.impact !== 'LOW' && row.start >= now)
+    const nextRows: DerivedRow[] = (allEvents.length > 0 ? allEvents : events)
+      .map((event: Event) => toDerivedRow(event))
+      .filter((row: DerivedRow) => row.start >= now)
+      .sort((aRow: DerivedRow, bRow: DerivedRow) => {
+        const byTime = aRow.start.getTime() - bRow.start.getTime()
+        if (byTime !== 0) return byTime
+        return impactScore(bRow.impact) - impactScore(aRow.impact)
+      })
+    const nextCritical = nextRows.find((row) => row.impact !== 'LOW') ?? nextRows[0]
 
     let overlapCount = 0
     for (let i = 0; i < rows.length; i += 1) {
@@ -386,7 +370,7 @@ export default function Dashboard() {
         { label: 'Pre-production', env: 'preproduction', events: byEnv('preproduction').slice(0, 8) },
       ],
     }
-  }, [events])
+  }, [events, allEvents])
 
   const nowHour = new Date().getHours() + new Date().getMinutes() / 60
 
