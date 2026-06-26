@@ -31,6 +31,7 @@ import {
   faCloud,
   faDatabase as faDatabaseSolid
 } from '@fortawesome/free-solid-svg-icons'
+import CatalogDetail from './CatalogDetail'
 import { KubernetesIcon } from '../components/icons/KubernetesIcon'
 import { KotlinIcon } from '../components/icons/KotlinIcon'
 import { TerraformIcon } from '../components/icons/TerraformIcon'
@@ -47,6 +48,7 @@ export default function CatalogTable() {
   const [selectedOwners, setSelectedOwners] = useState<string[]>([])
   const [ownerSearchQuery, setOwnerSearchQuery] = useState('')
   const [showSidebar, setShowSidebar] = useState(false) // Fermé par défaut
+  const [selectedService, setSelectedService] = useState<string | null>(null)
 
 
   const { data, isLoading } = useQuery({
@@ -254,6 +256,7 @@ export default function CatalogTable() {
   }
 
   return (
+    <>
     <div className="flex h-screen overflow-hidden" style={{ background: T.bg }}>
       {/* Sidebar Filters */}
       {showSidebar && (
@@ -654,7 +657,7 @@ export default function CatalogTable() {
                     style={{ borderTop: i > 0 ? `1px solid ${a('outline-var', 0.12)}` : undefined }}
                     onMouseEnter={e => (e.currentTarget.style.background = T.surfaceLow)}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => navigate(`/catalog/${catalog.name}`)}
+                    onClick={() => setSelectedService(catalog.name)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -669,43 +672,63 @@ export default function CatalogTable() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className="px-2.5 py-1 text-xs font-bold rounded-full"
-                        style={{ background: a('primary', 0.12), color: T.primary }}
-                      >
-                        {getCatalogTypeLabel(catalog.type)}
-                      </span>
+                     <span className="inline-flex items-center gap-1.5 text-left">
+                       <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                         <BookOpen className="w-3 h-3" />
+                       </span>
+                       <span className="text-[10px] font-semibold uppercase" style={{ color: '#1B3575' }}>
+                         {getCatalogTypeLabel(catalog.type)}
+                       </span>
+                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className="px-2.5 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1.5"
-                      style={{ background: a('outline-var', 0.1), color: T.onSurface }}
-                    >
-                      {getLanguageIcon(catalog.languages)}
-                      <span>{getLanguageLabel(catalog.languages)}</span>
-                    </span>
+                   <span className="inline-flex items-center gap-1.5 text-left">
+                     <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: 'rgb(var(--hud-surface-high))', color: T.onSurfaceVar, borderColor: a('outline-var', 0.35) }}>
+                       {getLanguageIcon(catalog.languages)}
+                     </span>
+                     <span className="text-[10px] font-semibold uppercase" style={{ color: T.onSurfaceVar }}>
+                       {getLanguageLabel(catalog.languages)}
+                     </span>
+                   </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {catalog.platform ? (
-                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1 ${getPlatformColor(catalog.platform).bg} ${getPlatformColor(catalog.platform).text} ${getPlatformColor(catalog.platform).darkBg} ${getPlatformColor(catalog.platform).darkText}`}>
-                        {getPlatformIcon(catalog.platform)}
-                        <span>{getPlatformLabel(catalog.platform)}</span>
-                      </span>
+                     <span className="inline-flex items-center gap-1.5 text-left">
+                       <span
+                         className="w-6 h-6 rounded-md flex items-center justify-center border"
+                         style={{
+                           background: getPlatformBadgeStyle(catalog.platform).bg,
+                           color: getPlatformBadgeStyle(catalog.platform).text,
+                           borderColor: getPlatformBadgeStyle(catalog.platform).border,
+                         }}
+                       >
+                         {getPlatformIcon(catalog.platform)}
+                       </span>
+                       <span className="text-[10px] font-semibold uppercase" style={{ color: getPlatformBadgeStyle(catalog.platform).text }}>
+                         {getPlatformLabel(catalog.platform)}
+                       </span>
+                     </span>
                     ) : (
                       <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {catalog.sla ? (
-                      <span
-                        className="px-2.5 py-1 text-xs font-bold rounded-full"
-                        style={{
-                          background: `${getSLAColor(catalog.sla.level)}20`,
-                          color: getSLAColor(catalog.sla.level),
-                        }}
-                      >
-                        {getSLALabel(catalog.sla.level)}
-                      </span>
+                     <span className="inline-flex items-center gap-1.5 text-left">
+                       <span
+                         className="w-6 h-6 rounded-md flex items-center justify-center border"
+                         style={{
+                           background: `${getSLAColor(catalog.sla.level)}1A`,
+                           color: getSLAColor(catalog.sla.level),
+                           borderColor: `${getSLAColor(catalog.sla.level)}66`,
+                         }}
+                       >
+                         <Shield className="w-3 h-3" />
+                       </span>
+                       <span className="text-[10px] font-semibold uppercase" style={{ color: getSLAColor(catalog.sla.level) }}>
+                         {getSLALabel(catalog.sla.level)}
+                       </span>
+                     </span>
                     ) : (
                       <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                     )}
@@ -792,6 +815,10 @@ export default function CatalogTable() {
         </div>
       </div>
     </div>
+    {selectedService && (
+      <CatalogDetail serviceNameProp={selectedService} onClose={() => setSelectedService(null)} />
+    )}
+    </>
   )
 }
 
@@ -952,6 +979,28 @@ function getPlatformLabel(platform?: Platform): string {
       return 'Multi-Cloud'
     default:
       return 'Not Set'
+  }
+}
+
+function getPlatformBadgeStyle(platform?: Platform): { bg: string; text: string; border: string } {
+  switch (platform) {
+    case Platform.KUBERNETES:
+      return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
+    case Platform.LAMBDA:
+    case Platform.STEP_FUNCTIONS:
+      return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0' }
+    case Platform.EC2:
+    case Platform.FARGATE:
+      return { bg: '#FFF4EA', text: '#C2410C', border: '#FFD5B0' }
+    case Platform.RDS:
+    case Platform.DYNAMODB:
+      return { bg: '#EAFBFA', text: '#0F766E', border: '#BDECE8' }
+    case Platform.CLOUD_RUN:
+    case Platform.APP_SERVICE:
+    case Platform.CLOUDWATCH:
+      return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
+    default:
+      return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
   }
 }
 

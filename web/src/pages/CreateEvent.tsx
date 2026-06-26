@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -7,10 +7,20 @@ import type { CreateEventRequest } from '../types/api'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
-import { AlertCircle, FileText, Clock, Link2, Search, Zap, Plus, Github, Ticket, Repeat } from 'lucide-react'
+import { AlertCircle, FileText, Clock, Link2, Search, Plus, Github, Ticket, Repeat } from 'lucide-react'
 import { DateTimePicker } from '../components/ui/date-time-picker'
+import FormPanel from '../components/FormPanel'
+import ChipSelect, { type ChipOption } from '../components/ChipSelect'
+import { getEnvVisual, getStatusVisual, getPriorityVisual, getTypeVisual } from '../components/Badges'
+import { getEnvironmentLabel, getStatusLabel, getEventTypeLabel } from '../lib/eventUtils'
 
-export default function CreateEvent() {
+interface CreateEventProps {
+  asPanel?: boolean
+  onClose?: () => void
+  onSuccess?: () => void
+}
+
+export default function CreateEvent({ asPanel = false, onClose, onSuccess }: CreateEventProps = {}) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
@@ -56,6 +66,10 @@ export default function CreateEvent() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
+      if (asPanel) {
+        onSuccess?.()
+        return
+      }
       setShowToast(true)
       setTimeout(() => { navigate(-1) }, 2000)
     },
@@ -78,7 +92,7 @@ export default function CreateEvent() {
     return `❌ Error creating event: ${errorMessage}`
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setShowToast(false)
 
@@ -130,6 +144,10 @@ export default function CreateEvent() {
           await eventsApi.create(event)
         }
         queryClient.invalidateQueries({ queryKey: ['events'] })
+        if (asPanel) {
+          onSuccess?.()
+          return
+        }
         setShowToast(true)
         setTimeout(() => { navigate(-1) }, 2000)
       } catch (error) {
@@ -160,54 +178,111 @@ export default function CreateEvent() {
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 
-  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+  const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
       <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
     </div>
   )
 
-  return (
-    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
-      <div className="max-w-5xl mx-auto p-8">
-        {/* Header */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Create a New Event
-          </h2>
-          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
-            Register a new operation, incident or deployment. Data accuracy ensures system integrity.
-          </p>
-        </div>
+  // ── Badge-style option sets for the Information section ──────────────────────
+  const typeOptions: ChipOption<EventType>[] = [
+    EventType.DEPLOYMENT, EventType.OPERATION, EventType.DRIFT, EventType.INCIDENT, EventType.RPA_USAGE,
+  ].map((v) => ({ value: v, label: getEventTypeLabel(v), visual: getTypeVisual(v) }))
 
-        {createMutation.isError && (
-          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
-            <div>
-              <p className="text-sm font-medium" style={{ color: hud.error }}>{getErrorMessage()}</p>
-              {getErrorMessage().includes('🔒') && (
-                <p className="text-xs mt-2" style={{ color: hud.onSurfaceVar }}>
-                  💡 View and manage locks on the <a href="/locks" className="underline" style={{ color: hud.primary }}>Locks page</a>
-                </p>
-              )}
-            </div>
-          </div>
-        )}
+  const envOptions: ChipOption<Environment>[] = [
+    Environment.PRODUCTION, Environment.PREPRODUCTION, Environment.UAT, Environment.INTEGRATION, Environment.DEVELOPMENT,
+  ].map((v) => ({ value: v, label: getEnvironmentLabel(v) ?? String(v), visual: getEnvVisual(v) }))
 
-        {showToast && <Toast message="Event created successfully!" onClose={() => setShowToast(false)} />}
+  const priorityOptions: ChipOption<Priority>[] = [
+    { value: Priority.P1, label: 'P1 · Critical' },
+    { value: Priority.P2, label: 'P2 · High' },
+    { value: Priority.P3, label: 'P3 · Medium' },
+    { value: Priority.P4, label: 'P4 · Low' },
+    { value: Priority.P5, label: 'P5 · Very Low' },
+  ].map((o) => ({ ...o, visual: getPriorityVisual(o.value) }))
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+  const statusOptions: ChipOption<Status>[] = [
+    Status.OPEN, Status.PLANNED, Status.WAITING_APPROVAL, Status.IN_PROGRESS,
+    Status.SUCCESS, Status.DONE, Status.FAILURE, Status.WARNING, Status.CLOSE,
+  ].map((v) => {
+    const vis = getStatusVisual(v)
+    return { value: v, label: getStatusLabel(v), visual: vis, icon: <i className={`fa-solid ${vis.icon} text-[10px]`} /> }
+  })
 
-            {/* ── Left Column: Core Info ── */}
-            <div className="md:col-span-8 space-y-8">
+  const impactOptions: ChipOption<'no' | 'yes'>[] = [
+    { value: 'no', label: 'No Impact', visual: { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' } },
+    { value: 'yes', label: 'Impact', visual: { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }, icon: <i className="fa-solid fa-meteor text-[10px]" /> },
+  ]
+
+  // ── Scheduling helpers (quick presets + duration shortcuts) ──────────────────
+  const startMs = formData.attributes.startDate ? new Date(formData.attributes.startDate).getTime() : undefined
+  const endMs = formData.attributes.endDate ? new Date(formData.attributes.endDate).getTime() : undefined
+  const durationMin = startMs !== undefined && endMs !== undefined && endMs > startMs
+    ? Math.round((endMs - startMs) / 60000)
+    : undefined
+
+  const formatDuration = (min: number) => {
+    const d = Math.floor(min / 1440)
+    const h = Math.floor((min % 1440) / 60)
+    const m = min % 60
+    return [d ? `${d}d` : '', h ? `${h}h` : '', m ? `${m}m` : ''].filter(Boolean).join(' ') || '0m'
+  }
+
+  const setStartDate = (date?: Date) => {
+    const newStart = date?.toISOString()
+    const end = formData.attributes.endDate
+    const endDate = end ? new Date(end) : undefined
+    setFormData({ ...formData, attributes: { ...formData.attributes, startDate: newStart, endDate: (endDate && date && date > endDate) ? newStart : end } })
+  }
+
+  const setEndDate = (date?: Date) => {
+    setFormData({ ...formData, attributes: { ...formData.attributes, endDate: date?.toISOString() } })
+  }
+
+  const applyDuration = (minutes: number) => {
+    const base = startMs !== undefined ? startMs : Date.now()
+    const startISO = formData.attributes.startDate ?? new Date(base).toISOString()
+    const endISO = new Date(base + minutes * 60000).toISOString()
+    setFormData({ ...formData, attributes: { ...formData.attributes, startDate: startISO, endDate: endISO } })
+  }
+
+  const durations = [
+    { label: '15m', min: 15 },
+    { label: '30m', min: 30 },
+    { label: '1h', min: 60 },
+    { label: '2h', min: 120 },
+    { label: '4h', min: 240 },
+    { label: '1d', min: 1440 },
+  ]
+
+  const miniChipCls = "px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-all duration-150 hover:-translate-y-px active:scale-95"
+  const neutralChip = {
+    background: 'rgb(var(--hud-surface-low))',
+    color: hud.onSurfaceVar,
+    borderColor: 'rgb(var(--hud-outline-var) / 0.6)',
+  }
+  const durActive = {
+    background: ha('primary', 0.16),
+    color: hud.primary,
+    borderColor: ha('primary', 0.45),
+  }
+
+  const gridWrap = asPanel ? 'space-y-6' : 'grid grid-cols-1 md:grid-cols-12 gap-8'
+  const leftCol = asPanel ? 'space-y-6' : 'md:col-span-8 space-y-8'
+  const rightCol = asPanel ? 'space-y-6' : 'md:col-span-4 space-y-8'
+
+  const body = (
+    <div className={gridWrap}>
+
+      {/* ── Left Column: Core Info ── */}
+      <div className={leftCol}>
 
               {/* Section: Event Information */}
               <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
                 <SectionHeader icon={<FileText className="w-5 h-5" />} title="Event Information" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
+                <div className="space-y-6">
+                  <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Event Title <span style={{ color: hud.error }}>*</span></label>
                     <input type="text" required value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -216,56 +291,50 @@ export default function CreateEvent() {
                   </div>
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Event Type</label>
-                    <select value={formData.attributes.type}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, type: e.target.value as EventType } })}
-                      className={inputCls + ' appearance-none'} style={inputStyle}>
-                      <option value={EventType.DEPLOYMENT}>Deployment</option>
-                      <option value={EventType.OPERATION}>Operation</option>
-                      <option value={EventType.DRIFT}>Drift</option>
-                      <option value={EventType.INCIDENT}>Incident</option>
-                      <option value={EventType.RPA_USAGE}>RPA Usage</option>
-                    </select>
+                    <ChipSelect
+                      ariaLabel="Event Type"
+                      options={typeOptions}
+                      value={formData.attributes.type as EventType}
+                      onChange={(type) => setFormData({ ...formData, attributes: { ...formData.attributes, type } })}
+                    />
                   </div>
-                  <div>
-                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
-                    <select value={formData.attributes.environment}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
-                      className={inputCls + ' appearance-none'} style={inputStyle}>
-                      <option value={Environment.PRODUCTION}>Production</option>
-                      <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                      <option value={Environment.UAT}>UAT</option>
-                      <option value={Environment.INTEGRATION}>Integration</option>
-                      <option value={Environment.DEVELOPMENT}>Development</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
-                    <select value={formData.attributes.priority}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, priority: e.target.value as Priority } })}
-                      className={inputCls + ' appearance-none'} style={inputStyle}>
-                      <option value={Priority.P1}>P1 - Critical</option>
-                      <option value={Priority.P2}>P2 - High</option>
-                      <option value={Priority.P3}>P3 - Medium</option>
-                      <option value={Priority.P4}>P4 - Low</option>
-                      <option value={Priority.P5}>P5 - Very Low</option>
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
+                      <ChipSelect
+                        ariaLabel="Environment"
+                        options={envOptions}
+                        value={formData.attributes.environment as Environment}
+                        onChange={(environment) => setFormData({ ...formData, attributes: { ...formData.attributes, environment } })}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
+                      <ChipSelect
+                        ariaLabel="Priority"
+                        options={priorityOptions}
+                        value={formData.attributes.priority as Priority}
+                        onChange={(priority) => setFormData({ ...formData, attributes: { ...formData.attributes, priority } })}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Initial Status</label>
-                    <select value={formData.attributes.status}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
-                      className={inputCls + ' appearance-none'} style={inputStyle}>
-                      <option value={Status.OPEN}>Open</option>
-                      <option value={Status.PLANNED}>Planned</option>
-                      <option value={Status.WAITING_APPROVAL}>Waiting Approval</option>
-                      <option value={Status.START}>Started</option>
-                      <option value={Status.IN_PROGRESS}>In Progress</option>
-                      <option value={Status.SUCCESS}>Success</option>
-                      <option value={Status.DONE}>Done</option>
-                      <option value={Status.FAILURE}>Failed</option>
-                      <option value={Status.WARNING}>Warning</option>
-                      <option value={Status.CLOSE}>Closed</option>
-                    </select>
+                    <ChipSelect
+                      ariaLabel="Initial Status"
+                      options={statusOptions}
+                      value={formData.attributes.status as Status}
+                      onChange={(status) => setFormData({ ...formData, attributes: { ...formData.attributes, status } })}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Impact</label>
+                    <ChipSelect
+                      ariaLabel="Impact"
+                      options={impactOptions}
+                      value={formData.attributes.impact ? 'yes' : 'no'}
+                      onChange={(v) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: v === 'yes' } })}
+                    />
                   </div>
                 </div>
               </section>
@@ -305,6 +374,68 @@ export default function CreateEvent() {
                 </div>
               </section>
 
+              {/* Section: Scheduling */}
+              <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
+                <SectionHeader icon={<Clock className="w-5 h-5" />} title="Scheduling" />
+                <div className="space-y-5">
+
+                  {/* Start + quick presets */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                      <label className={labelCls + ' mb-0'} style={{ color: hud.onSurfaceVar }}>Start</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button type="button" className={miniChipCls} style={neutralChip}
+                          onClick={() => setStartDate(new Date())}>Now</button>
+                        <button type="button" className={miniChipCls} style={neutralChip}
+                          onClick={() => setStartDate(new Date(Date.now() + 60 * 60 * 1000))}>+1h</button>
+                        <button type="button" className={miniChipCls} style={neutralChip}
+                          onClick={() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); setStartDate(d) }}>Tomorrow 9:00</button>
+                      </div>
+                    </div>
+                    <DateTimePicker
+                      date={formData.attributes.startDate ? new Date(formData.attributes.startDate) : undefined}
+                      setDate={setStartDate}
+                      placeholder="Select start date"
+                    />
+                  </div>
+
+                  {/* Duration shortcuts */}
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Duration</label>
+                    <div className="flex flex-wrap gap-2">
+                      {durations.map((d) => {
+                        const active = durationMin === d.min
+                        return (
+                          <button key={d.min} type="button" onClick={() => applyDuration(d.min)}
+                            className={miniChipCls + ' tabular-nums'}
+                            style={active ? durActive : neutralChip}>
+                            {d.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Estimated end + computed duration */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className={labelCls + ' mb-0'} style={{ color: hud.onSurfaceVar }}>Estimated End</label>
+                      {durationMin !== undefined && (
+                        <span className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-md"
+                          style={{ background: ha('primary', 0.12), color: hud.primary }}>
+                          {formatDuration(durationMin)}
+                        </span>
+                      )}
+                    </div>
+                    <DateTimePicker
+                      date={formData.attributes.endDate ? new Date(formData.attributes.endDate) : undefined}
+                      setDate={setEndDate}
+                      placeholder="Select end date"
+                    />
+                  </div>
+                </div>
+              </section>
+
               {/* Section: Resources */}
               <section className="p-8 rounded-xl" style={{ background: hud.surface }}>
                 <SectionHeader icon={<Link2 className="w-5 h-5" />} title="Resources" />
@@ -334,35 +465,7 @@ export default function CreateEvent() {
             </div>
 
             {/* ── Right Column: Planning ── */}
-            <div className="md:col-span-4 space-y-8">
-
-              {/* Section: Planning */}
-              <section className="p-8 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.tertiary}` }}>
-                <SectionHeader icon={<Clock className="w-5 h-5" />} title="Scheduling" color={hud.tertiary} />
-                <div className="space-y-6">
-                  <div>
-                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Start</label>
-                    <DateTimePicker
-                      date={formData.attributes.startDate ? new Date(formData.attributes.startDate) : undefined}
-                      setDate={(date) => {
-                        const newStart = date?.toISOString()
-                        const end = formData.attributes.endDate
-                        const endDate = end ? new Date(end) : undefined
-                        setFormData({ ...formData, attributes: { ...formData.attributes, startDate: newStart, endDate: (endDate && date && date > endDate) ? newStart : end } })
-                      }}
-                      placeholder="Select start date"
-                    />
-                  </div>
-                  <div>
-                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Estimated End</label>
-                    <DateTimePicker
-                      date={formData.attributes.endDate ? new Date(formData.attributes.endDate) : undefined}
-                      setDate={(date) => setFormData({ ...formData, attributes: { ...formData.attributes, endDate: date?.toISOString() } })}
-                      placeholder="Select end date"
-                    />
-                  </div>
-                </div>
-              </section>
+            <div className={rightCol}>
 
               {/* Section: Recurrence Widget */}
               <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
@@ -403,29 +506,6 @@ export default function CreateEvent() {
                 </div>
               </section>
 
-              {/* Section: Impact Widget */}
-              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <i className="fa-solid fa-meteor text-7xl" />
-                </div>
-                <div className="flex flex-col items-center text-center py-2">
-                  <i className="fa-solid fa-meteor text-4xl mb-4 transition-colors duration-300"
-                    style={{ color: formData.attributes.impact ? hud.error : hud.success }} />
-                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Impact Detection</h4>
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={formData.attributes.impact || false}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: e.target.checked } })}
-                      className="sr-only peer" />
-                    <div className="relative w-14 h-7 rounded-full peer transition-colors"
-                      style={{ background: formData.attributes.impact ? hud.error : hud.surfaceHighest }}>
-                      <div className="absolute top-0.5 left-[4px] bg-white rounded-full h-6 w-6 transition-transform"
-                        style={{ transform: formData.attributes.impact ? 'translateX(100%)' : 'translateX(0)' }} />
-                    </div>
-                    <span className="ms-3 text-sm font-medium" style={{ color: hud.onSurfaceVar }}>Impact detected</span>
-                  </label>
-                </div>
-              </section>
-
               {/* Section: Downstream Impact */}
               {formData.attributes.service && (
                 <section className="p-6 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.error}` }}>
@@ -450,6 +530,58 @@ export default function CreateEvent() {
               )}
             </div>
           </div>
+  )
+
+  if (asPanel) {
+    return (
+      <FormPanel
+        size="lg"
+        icon={<FileText className="w-5 h-5" />}
+        title="Create a New Event"
+        subtitle="Register an operation, incident or deployment"
+        onClose={() => onClose?.()}
+        onSubmit={handleSubmit}
+        submitLabel={createMutation.isPending ? 'Creating...' : 'Create Event'}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitting={createMutation.isPending}
+        error={createMutation.isError ? getErrorMessage() : undefined}
+      >
+        {body}
+      </FormPanel>
+    )
+  }
+
+  return (
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create a New Event
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Register a new operation, incident or deployment. Data accuracy ensures system integrity.
+          </p>
+        </div>
+
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <div>
+              <p className="text-sm font-medium" style={{ color: hud.error }}>{getErrorMessage()}</p>
+              {getErrorMessage().includes('🔒') && (
+                <p className="text-xs mt-2" style={{ color: hud.onSurfaceVar }}>
+                  💡 View and manage locks on the <a href="/locks" className="underline" style={{ color: hud.primary }}>Locks page</a>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showToast && <Toast message="Event created successfully!" onClose={() => setShowToast(false)} />}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {body}
 
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>

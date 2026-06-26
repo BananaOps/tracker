@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -10,8 +10,18 @@ import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { AlertCircle, GitBranch, Link2, Ticket, Plus } from 'lucide-react'
+import FormPanel from '../components/FormPanel'
+import ChipSelect, { type ChipOption } from '../components/ChipSelect'
+import { getEnvVisual, getPriorityVisual, getStatusVisual } from '../components/Badges'
+import { getEnvironmentLabel } from '../lib/eventUtils'
 
-export default function CreateDrift() {
+interface CreateDriftProps {
+  asPanel?: boolean
+  onClose?: () => void
+  onSuccess?: () => void
+}
+
+export default function CreateDrift({ asPanel = false, onClose, onSuccess }: CreateDriftProps = {}) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
@@ -42,6 +52,10 @@ export default function CreateDrift() {
   const createMutation = useMutation({
     mutationFn: eventsApi.create,
     onSuccess: () => {
+      if (asPanel) {
+        onSuccess?.()
+        return
+      }
       queryClient.invalidateQueries({ queryKey: ['events'] })
       setShowToast(true)
       setTimeout(() => { navigate('/drifts') }, 2000)
@@ -51,7 +65,7 @@ export default function CreateDrift() {
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     setShowToast(false)
     createMutation.mutate(convertEventForAPI(formData))
@@ -76,7 +90,7 @@ export default function CreateDrift() {
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 
-  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+  const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
       <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
@@ -87,34 +101,43 @@ export default function CreateDrift() {
   const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
   const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
 
-  return (
-    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
-      <div className="max-w-5xl mx-auto p-8">
+  // Badge-style option sets
+  const envOptions: ChipOption<Environment>[] = [
+    Environment.PRODUCTION, Environment.PREPRODUCTION, Environment.UAT, Environment.RECETTE, Environment.INTEGRATION, Environment.DEVELOPMENT,
+  ].map((v) => ({ value: v, label: getEnvironmentLabel(v) ?? String(v), visual: getEnvVisual(v) }))
 
-        {/* Header */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Create a Drift
-          </h2>
-          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
-            Register a configuration deviation detected between the expected and actual state of a resource.
-          </p>
-        </div>
+  const priorityOptions: ChipOption<Priority>[] = [
+    { value: Priority.P1, label: 'P1 · Critical' },
+    { value: Priority.P2, label: 'P2 · High' },
+    { value: Priority.P3, label: 'P3 · Medium' },
+    { value: Priority.P4, label: 'P4 · Low' },
+    { value: Priority.P5, label: 'P5 · Very Low' },
+  ].map((o) => ({ ...o, visual: getPriorityVisual(o.value) }))
 
-        {createMutation.isError && (
-          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
-            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating drift. Please try again.</p>
-          </div>
-        )}
+  const statusOptions: ChipOption<Status>[] = [
+    { value: Status.OPEN, label: 'Open' },
+    { value: Status.START, label: 'In Progress' },
+    { value: Status.DONE, label: 'Resolved' },
+    { value: Status.CLOSE, label: 'Closed' },
+  ].map((o) => {
+    const vis = getStatusVisual(o.value)
+    return { ...o, visual: vis, icon: <i className={`fa-solid ${vis.icon} text-[10px]`} /> }
+  })
 
-        {showToast && <Toast message="Drift created successfully!" onClose={() => setShowToast(false)} />}
+  const impactOptions: ChipOption<'no' | 'yes'>[] = [
+    { value: 'no', label: 'No Impact', visual: { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' } },
+    { value: 'yes', label: 'Impact', visual: { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }, icon: <i className="fa-solid fa-meteor text-[10px]" /> },
+  ]
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+  const gridWrap = asPanel ? 'space-y-6' : 'grid grid-cols-1 md:grid-cols-12 gap-8'
+  const leftCol = asPanel ? 'space-y-6' : 'md:col-span-8 space-y-8'
+  const rightCol = asPanel ? 'space-y-6' : 'md:col-span-4 space-y-8'
 
-            {/* ── Left Column ── */}
-            <div className="md:col-span-8 space-y-8">
+  const body = (
+    <div className={gridWrap}>
+
+      {/* ── Left Column ── */}
+      <div className={leftCol}>
 
               {/* Drift Information */}
               <section className="p-8 rounded-xl overflow-visible relative z-10" style={{ background: hud.surface }}>
@@ -128,58 +151,36 @@ export default function CreateDrift() {
                       className={inputCls} style={inputStyle} />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="relative z-10">
-                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Affected Service <span style={{ color: hud.error }}>*</span></label>
-                      <ServiceAutocomplete
-                        id="service"
-                        value={formData.attributes.service}
-                        onChange={(value) => setFormData({ ...formData, attributes: { ...formData.attributes, service: value } })}
-                        services={catalogServices}
-                        loading={catalogLoading}
-                        required
-                        placeholder="Search for a service..."
-                      />
-                    </div>
-                    <div>
-                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
-                      <select value={formData.attributes.environment}
-                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
-                        className={inputCls + ' appearance-none'} style={inputStyle}>
-                        <option value={Environment.PRODUCTION}>Production</option>
-                        <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                        <option value={Environment.UAT}>UAT</option>
-                        <option value={Environment.RECETTE}>Recette</option>
-                        <option value={Environment.INTEGRATION}>Integration</option>
-                        <option value={Environment.DEVELOPMENT}>Development</option>
-                      </select>
-                    </div>
+                  <div className="relative z-10">
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Affected Service <span style={{ color: hud.error }}>*</span></label>
+                    <ServiceAutocomplete
+                      id="service"
+                      value={formData.attributes.service}
+                      onChange={(value) => setFormData({ ...formData, attributes: { ...formData.attributes, service: value } })}
+                      services={catalogServices}
+                      loading={catalogLoading}
+                      required
+                      placeholder="Search for a service..."
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
+                    <ChipSelect ariaLabel="Environment" options={envOptions}
+                      value={formData.attributes.environment as Environment}
+                      onChange={(environment) => setFormData({ ...formData, attributes: { ...formData.attributes, environment } })} />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
-                      <select value={formData.attributes.priority}
-                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, priority: e.target.value as Priority } })}
-                        className={inputCls + ' appearance-none'} style={inputStyle}>
-                        <option value={Priority.P1}>P1 - Critical</option>
-                        <option value={Priority.P2}>P2 - High</option>
-                        <option value={Priority.P3}>P3 - Medium</option>
-                        <option value={Priority.P4}>P4 - Low</option>
-                        <option value={Priority.P5}>P5 - Very Low</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Status</label>
-                      <select value={formData.attributes.status}
-                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
-                        className={inputCls + ' appearance-none'} style={inputStyle}>
-                        <option value={Status.OPEN}>Open (detected)</option>
-                        <option value={Status.START}>In Progress (fixing)</option>
-                        <option value={Status.DONE}>Resolved</option>
-                        <option value={Status.CLOSE}>Closed</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Priority</label>
+                    <ChipSelect ariaLabel="Priority" options={priorityOptions}
+                      value={formData.attributes.priority as Priority}
+                      onChange={(priority) => setFormData({ ...formData, attributes: { ...formData.attributes, priority } })} />
+                  </div>
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Status</label>
+                    <ChipSelect ariaLabel="Status" options={statusOptions}
+                      value={formData.attributes.status as Status}
+                      onChange={(status) => setFormData({ ...formData, attributes: { ...formData.attributes, status } })} />
                   </div>
 
                   <div>
@@ -196,6 +197,13 @@ export default function CreateDrift() {
                       onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, owner: e.target.value } })}
                       placeholder="e.g.: team-platform, john.doe"
                       className={inputCls} style={inputStyle} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Impact</label>
+                    <ChipSelect ariaLabel="Impact" options={impactOptions}
+                      value={formData.attributes.impact ? 'yes' : 'no'}
+                      onChange={(v) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: v === 'yes' } })} />
                   </div>
                 </div>
               </section>
@@ -217,30 +225,7 @@ export default function CreateDrift() {
             </div>
 
             {/* ── Right Column ── */}
-            <div className="md:col-span-4 space-y-8">
-
-              {/* Impact Detection */}
-              <section className="p-8 rounded-xl overflow-hidden relative" style={{ background: hud.surfaceHigh }}>
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <i className="fa-solid fa-meteor text-7xl" />
-                </div>
-                <div className="flex flex-col items-center text-center py-2">
-                  <i className="fa-solid fa-meteor text-4xl mb-4 transition-colors duration-300"
-                    style={{ color: formData.attributes.impact ? hud.error : hud.success }} />
-                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Impact Detection</h4>
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={formData.attributes.impact || false}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, impact: e.target.checked } })}
-                      className="sr-only peer" />
-                    <div className="relative w-14 h-7 rounded-full peer transition-colors"
-                      style={{ background: formData.attributes.impact ? hud.error : hud.surfaceHighest }}>
-                      <div className="absolute top-0.5 left-[4px] bg-white rounded-full h-6 w-6 transition-transform"
-                        style={{ transform: formData.attributes.impact ? 'translateX(100%)' : 'translateX(0)' }} />
-                    </div>
-                    <span className="ms-3 text-sm font-medium" style={{ color: hud.onSurfaceVar }}>Impact detected</span>
-                  </label>
-                </div>
-              </section>
+            <div className={rightCol}>
 
               {/* Downstream Services */}
               {formData.attributes.service && (
@@ -266,6 +251,52 @@ export default function CreateDrift() {
               )}
             </div>
           </div>
+  )
+
+  if (asPanel) {
+    return (
+      <FormPanel
+        size="lg"
+        icon={<GitBranch className="w-5 h-5" />}
+        title="Create a Drift"
+        subtitle="Register a configuration deviation on a resource"
+        onClose={() => onClose?.()}
+        onSubmit={handleSubmit}
+        submitLabel={createMutation.isPending ? 'Creating...' : 'Create Drift'}
+        submitIcon={<Plus className="w-4 h-4" />}
+        submitting={createMutation.isPending}
+        error={createMutation.isError ? 'Error creating drift. Please try again.' : undefined}
+      >
+        {body}
+      </FormPanel>
+    )
+  }
+
+  return (
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create a Drift
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Register a configuration deviation detected between the expected and actual state of a resource.
+          </p>
+        </div>
+
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating drift. Please try again.</p>
+          </div>
+        )}
+
+        {showToast && <Toast message="Drift created successfully!" onClose={() => setShowToast(false)} />}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {body}
 
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>

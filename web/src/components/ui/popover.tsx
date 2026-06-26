@@ -92,7 +92,7 @@ export function PopoverContent({
     <div
       ref={ref}
       className={cn(
-        "absolute z-50 mt-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg",
+        "absolute z-50 mt-2 rounded-lg border border-hud-outline-var/60 bg-hud-surface shadow-lg",
         alignmentClasses[align],
         className
       )}

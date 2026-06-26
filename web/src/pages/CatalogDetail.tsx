@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { catalogApi, eventsApi } from '../lib/api'
 import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary, type InfrastructureType, type Event, Status } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Calendar, Rocket, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Calendar, Rocket, RefreshCw, Maximize2, Minimize2 } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faJava, 
@@ -41,7 +41,7 @@ import {
   Handle
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { useMemo, useState, useCallback, useRef, DragEvent } from 'react'
+import { useMemo, useState, useCallback, useRef, useEffect, DragEvent } from 'react'
 import { Button } from '../components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Badge } from '../components/ui/badge'
@@ -401,25 +401,41 @@ function getPlatformIconComponent(platform?: Platform, className: string = 'w-5 
   }
 }
 
-export default function CatalogDetail() {
-  const { serviceName } = useParams<{ serviceName: string }>()
+interface CatalogDetailProps {
+  serviceNameProp?: string
+  onClose?: () => void
+}
+
+export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetailProps = {}) {
+  const params = useParams<{ serviceName: string }>()
+  const serviceName = serviceNameProp ?? params.serviceName
   const navigate = useNavigate()
-  const location = useLocation()
   const queryClient = useQueryClient()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  // Determine active tab from URL
-  const activeTab = location.pathname.endsWith('/events') ? 'deployments' : 'overview'
+  // Panel (right-side drawer) state
+  const [expanded, setExpanded] = useState(false)
+  const handleClose = useCallback(() => {
+    if (onClose) onClose()
+    else navigate('/catalog')
+  }, [onClose, navigate])
 
-  // Handle tab change with URL navigation
-  const handleTabChange = (value: string) => {
-    if (value === 'deployments') {
-      navigate(`/catalog/${serviceName}/events`)
-    } else {
-      navigate(`/catalog/${serviceName}`)
+  // Active tab (internal state — no URL routing in panel mode)
+  const [activeTab, setActiveTab] = useState<'overview' | 'graph' | 'deployments'>('overview')
+  const handleTabChange = (value: string) => setActiveTab(value as 'overview' | 'graph' | 'deployments')
+
+  // Close on Escape + lock body scroll while panel is open
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
     }
-  }
-  
+  }, [handleClose])
+
   // Edit mode for infrastructure resources
   const [isEditingGraph, setIsEditingGraph] = useState(false)
   const [pendingResources, setPendingResources] = useState<InfrastructureResource[]>([])
@@ -441,29 +457,44 @@ export default function CatalogDetail() {
   const [draggingResource, setDraggingResource] = useState<string | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
-  // Deployments tab state
-  const [deploymentTimeRange, setDeploymentTimeRange] = useState<'7d' | '14d' | '30d'>('7d')
+  // HUD color helpers (shared visual language with EventDetailsModal / Streamline)
+  const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
+  const T = {
+    bg: 'rgb(var(--hud-bg))',
+    surface: 'rgb(var(--hud-surface))',
+    surfaceLow: 'rgb(var(--hud-surface-low))',
+    surfaceHigh: 'rgb(var(--hud-surface-high))',
+    surfaceHighest: 'rgb(var(--hud-surface-highest))',
+    primary: 'rgb(var(--hud-primary))',
+    primaryDim: 'rgb(var(--hud-primary-dim))',
+    tertiary: 'rgb(var(--hud-tertiary))',
+    error: 'rgb(var(--hud-error))',
+    success: 'rgb(var(--hud-success))',
+    onSurface: 'rgb(var(--hud-on-surface))',
+    onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
+    outline: 'rgb(var(--hud-outline))',
+    outlineVar: 'rgb(var(--hud-outline-var))',
+  }
 
-  // Helper function to calculate start date based on time range
-  const getStartDate = useCallback((range: '7d' | '14d' | '30d'): string => {
+  // Deployments: fixed 30-day window (last 30 days only)
+  const getStartDate = useCallback((): string => {
     const now = new Date()
-    const days = range === '7d' ? 7 : range === '14d' ? 14 : 30
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+    const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     return startDate.toISOString()
   }, [])
 
-  const { data: allCatalogs } = useQuery({
+  const { data: allCatalogs, isLoading: catalogsLoading } = useQuery({
     queryKey: ['catalog', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  // Fetch deployments for this service
-  const { data: deploymentsData, isLoading: deploymentsLoading, refetch: refetchDeployments } = useQuery({
-    queryKey: ['deployments', serviceName, deploymentTimeRange],
+  // Fetch deployments for this service (last 30 days)
+  const { data: deploymentsData, isLoading: deploymentsLoading } = useQuery({
+    queryKey: ['deployments', serviceName, '30d'],
     queryFn: () => eventsApi.search({
       service: serviceName,
       type: 1, // deployment
-      startDate: getStartDate(deploymentTimeRange),
+      startDate: getStartDate(),
       endDate: new Date().toISOString()
     }),
     enabled: !!serviceName,
@@ -867,179 +898,355 @@ export default function CatalogDetail() {
 
   if (!service) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Service not found</p>
-        <button onClick={() => navigate('/catalog')} className="mt-4 btn-primary">
-          Back to Catalog
-        </button>
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+        <div className="animate-slide-in relative h-full w-full max-w-2xl shadow-2xl flex items-center justify-center" style={{ background: T.surface, borderLeft: `1px solid ${a('outline-var', 0.2)}` }}>
+          <div className="text-center">
+            {catalogsLoading ? (
+              <p style={{ color: T.onSurfaceVar }}>Loading…</p>
+            ) : (
+              <>
+                <p style={{ color: T.onSurfaceVar }}>Service not found</p>
+                <button onClick={handleClose} className="mt-4 btn-primary">Back to Catalog</button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/catalog')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-3">
-              <Package className="w-8 h-8" />
-              <span>{service.name}</span>
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {service.description || 'No description'}
-            </p>
+    <>
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+
+      {/* Side Panel */}
+      <div className={`animate-slide-in relative h-full shadow-2xl overflow-hidden flex flex-col transition-[max-width] duration-300 ease-out w-full ${expanded ? 'max-w-full' : 'max-w-5xl'}`}
+        style={{ background: T.bg, borderLeft: `1px solid ${a('outline-var', 0.2)}` }}>
+
+        {/* Header */}
+        <div className="px-6 pt-5 pb-5 shrink-0" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}`, background: T.surface }}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight truncate" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+                {service.name}
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
+                {service.description || 'No description'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg"
+                style={{ background: T.primary, color: '#ffffff', boxShadow: `0 4px 16px ${a('primary', 0.2)}` }}
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit</span>
+              </button>
+              <button
+                onClick={handleDeleteClick}
+                className="p-2.5 rounded-lg transition-all"
+                style={{ background: a('error', 0.1), color: T.error, border: `1px solid ${a('error', 0.2)}` }}
+                title="Delete service"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button onClick={() => setExpanded(!expanded)} title={expanded ? 'Collapse panel' : 'Expand to full width'}
+                className="hidden md:flex p-2.5 rounded-lg transition-all" style={{ background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.2)}` }}>
+                {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+              <button onClick={handleClose} className="p-2.5 rounded-lg transition-all" style={{ color: T.onSurfaceVar }}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Link to="/catalog/dependencies" className="btn-secondary flex items-center space-x-2">
-            <GitBranch className="w-4 h-4" />
-            <span>View All Dependencies</span>
-          </Link>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6" style={{ scrollbarWidth: 'thin', scrollbarColor: `${a('outline-var', 0.4)} transparent` }}>
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <div className="flex items-center gap-2 mb-6">
           <button
-            onClick={handleEdit}
-            className="btn-primary flex items-center space-x-2"
+            type="button"
+            onClick={() => handleTabChange('overview')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all"
+            style={activeTab === 'overview'
+              ? { background: a('primary', 0.16), color: T.primary, border: `1px solid ${a('primary', 0.3)}` }
+              : { background: a('outline-var', 0.08), color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.14)}` }}
           >
-            <Edit className="w-4 h-4" />
-            <span>Edit</span>
+            <Package className="w-3.5 h-3.5" />
+            Overview
           </button>
           <button
-            onClick={handleDeleteClick}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            title="Delete service"
+            type="button"
+            onClick={() => handleTabChange('graph')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all"
+            style={activeTab === 'graph'
+              ? { background: a('primary', 0.16), color: T.primary, border: `1px solid ${a('primary', 0.3)}` }
+              : { background: a('outline-var', 0.08), color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.14)}` }}
           >
-            <Trash2 className="w-5 h-5" />
+            <GitBranch className="w-3.5 h-3.5" />
+            Dependency Graph
           </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('deployments')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all"
+            style={activeTab === 'deployments'
+              ? { background: a('primary', 0.16), color: T.primary, border: `1px solid ${a('primary', 0.3)}` }
+              : { background: a('outline-var', 0.08), color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.14)}` }}
+          >
+            <Rocket className="w-3.5 h-3.5" />
+            Deployments
+            {deploymentsData?.events && deploymentsData.events.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: a('outline-var', 0.16), color: T.onSurfaceVar }}>
+                {deploymentsData.events.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Overview Tab Content */}
+        <TabsContent value="overview" className="space-y-6 mt-0">
+
+      {/* Quick stats */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+          <span className="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0" style={{ background: a('primary', 0.1), color: T.primary, borderColor: a('primary', 0.25) }}>
+            <Package className="w-5 h-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface }}>{service.version || '—'}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5" style={{ color: T.onSurfaceVar }}>Version</p>
+          </div>
+        </div>
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+          <span className="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+            <GitBranch className="w-5 h-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface }}>{service.dependenciesIn?.length || 0}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5" style={{ color: T.onSurfaceVar }}>Upstream deps</p>
+          </div>
+        </div>
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+          <span className="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0" style={{ background: '#ECFDF3', color: '#166534', borderColor: '#BBF7D0' }}>
+            <GitBranch className="w-5 h-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface }}>{service.dependenciesOut?.length || 0}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5" style={{ color: T.onSurfaceVar }}>Downstream deps</p>
+          </div>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1">
-          <TabsTrigger value="overview" className="flex items-center space-x-2 data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-700 dark:data-[state=active]:bg-indigo-900/30 dark:data-[state=active]:text-indigo-300">
+      {/* Service Information */}
+      <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+        <div className="px-5 py-3 border-b" style={{ borderColor: a('outline-var', 0.4) }}>
+          <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-2" style={{ color: T.onSurfaceVar }}>
             <Package className="w-4 h-4" />
-            <span>Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="deployments" className="flex items-center space-x-2 data-[state=active]:bg-indigo-100 data-[state=active]:text-indigo-700 dark:data-[state=active]:bg-indigo-900/30 dark:data-[state=active]:text-indigo-300">
-            <Rocket className="w-4 h-4" />
-            <span>Deployments</span>
-            {deploymentsData?.events && deploymentsData.events.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {deploymentsData.events.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab Content */}
-        <TabsContent value="overview" className="space-y-6 mt-6">
-
-      {/* Service Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-1.5">
-        {/* SLA Card */}
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
-               borderTop: `4px solid ${getSLAColor(service.sla?.level)}`,
-               boxShadow: `0 0 20px ${getSLAColor(service.sla?.level)}40`
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 rounded-full animate-pulse"
-               style={{ backgroundColor: getSLAColor(service.sla?.level) }} />
-          <div className="flex items-center justify-between mb-2">
-            <Activity className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="text-3xl font-bold mb-1" style={{ color: getSLAColor(service.sla?.level) }}>
-            {getSLALabel(service.sla?.level)}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            SLA Level
-          </div>
-          {service.sla?.uptimePercentage && (
-            <div className="text-xs text-gray-400 mt-2">
-              Target: {service.sla.uptimePercentage}% uptime
+            <span>Service Information</span>
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          {/* Type */}
+          <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${a('outline-var', 0.3)}`, borderRight: `1px solid ${a('outline-var', 0.3)}` }}>
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Type</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-7 h-7 rounded-md flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                <Code className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-[10px] font-semibold uppercase" style={{ color: '#1B3575' }}>{getCatalogTypeLabel(service.type)}</span>
             </div>
+          </div>
+          {/* Language */}
+          <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${a('outline-var', 0.3)}`, borderRight: `1px solid ${a('outline-var', 0.3)}` }}>
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Language</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-7 h-7 rounded-md flex items-center justify-center border" style={{ background: T.surfaceHigh, color: T.onSurfaceVar, borderColor: a('outline-var', 0.35) }}>
+                {getLanguageIcon(service.languages)}
+              </span>
+              <span className="text-[10px] font-semibold uppercase" style={{ color: T.onSurfaceVar }}>{getLanguageLabel(service.languages)}</span>
+            </div>
+          </div>
+          {/* Platform */}
+          <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${a('outline-var', 0.3)}`, borderRight: `1px solid ${a('outline-var', 0.3)}` }}>
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Platform</span>
+            {service.platform ? (
+              <div className="flex items-center gap-1.5">
+                <span className="w-7 h-7 rounded-md flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                  {service.platform === Platform.KUBERNETES ? <KubernetesIcon className="w-3.5 h-3.5" /> : <Server className="w-3.5 h-3.5" />}
+                </span>
+                <span className="text-[10px] font-semibold uppercase" style={{ color: '#1B3575' }}>{getPlatformLabel(service.platform)}</span>
+              </div>
+            ) : (
+              <span className="text-xs" style={{ color: T.onSurfaceVar }}>—</span>
+            )}
+          </div>
+          {/* Owner */}
+          <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${a('outline-var', 0.3)}` }}>
+            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Owner</span>
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: T.primary }}>
+                {(service.owner || '?').split(/[\s.@]/).filter(Boolean).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('') || '?'}
+              </span>
+              <span className="text-sm font-semibold truncate" style={{ color: T.onSurface }}>{service.owner || 'Unassigned'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Links */}
+        {(service.repository || service.link || (service.communicationChannels && service.communicationChannels.length > 0) || (service.dashboardLinks && service.dashboardLinks.length > 0)) && (
+          <div className="px-5 py-4 border-t" style={{ borderColor: a('outline-var', 0.4) }}>
+            <span className="block text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>Links</span>
+            <div className="flex flex-wrap gap-2">
+              {service.repository && (
+                <a href={service.repository} target="_blank" rel="noopener noreferrer"
+                   className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                   style={{ background: T.surfaceHigh, color: T.onSurface, border: `1px solid ${a('outline-var', 0.3)}` }}>
+                  <Github className="w-3.5 h-3.5" />
+                  <span>GitHub</span>
+                  <ExternalLink className="w-3 h-3" style={{ color: T.onSurfaceVar }} />
+                </a>
+              )}
+              {service.link && (
+                <a href={service.link} target="_blank" rel="noopener noreferrer"
+                   className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                   style={{ background: a('primary', 0.1), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Documentation</span>
+                </a>
+              )}
+              {service.communicationChannels && service.communicationChannels.map((channel, index) => (
+                <a key={`comm-${index}`} href={channel.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border"
+                  style={getCommunicationChannelStyles(channel.type)}
+                  title={channel.description || `${channel.name} (${getCommunicationChannelLabel(channel.type)})`}>
+                  {getCommunicationChannelIcon(channel.type)}
+                  <span>{channel.name}</span>
+                  <ExternalLink className="w-3 h-3 opacity-70" />
+                </a>
+              ))}
+              {service.dashboardLinks && service.dashboardLinks.map((dashboard, index) => (
+                <a key={`dash-${index}`} href={dashboard.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border"
+                  style={getDashboardLinkStyles(dashboard.type)}
+                  title={dashboard.description || `${dashboard.name} (${getDashboardLabel(dashboard.type)})`}>
+                  {getDashboardIcon(dashboard.type)}
+                  <span>{dashboard.name}</span>
+                  <ExternalLink className="w-3 h-3 opacity-70" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Dependencies */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Upstream Dependencies */}
+        <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+          <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: a('outline-var', 0.4) }}>
+            <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-2" style={{ color: T.onSurfaceVar }}>
+              <GitBranch className="w-4 h-4" style={{ color: '#1B3575' }} />
+              <span>Upstream</span>
+            </h3>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: '#EFF4FF', color: '#1B3575' }}>{service.dependenciesIn?.length || 0}</span>
+          </div>
+          {service.dependenciesIn && service.dependenciesIn.length > 0 ? (
+            <ul className="p-3 space-y-2">
+              {service.dependenciesIn.map(dep => (
+                <li key={dep}>
+                  <Link to={`/catalog/${dep}`} className="flex items-center gap-2 p-2.5 rounded-lg transition-all" style={{ background: '#EFF4FF', border: '1px solid #C2D0EF' }}>
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center border shrink-0" style={{ background: '#FFFFFF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                      <Package className="w-3 h-3" />
+                    </span>
+                    <span className="text-sm font-semibold" style={{ color: '#1B3575' }}>{dep}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-6 text-center text-xs" style={{ color: T.onSurfaceVar }}>No upstream dependencies</p>
           )}
         </div>
 
-        {/* Dependencies In */}
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%)',
-               borderTop: '4px solid #3b82f6',
-               boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-          <div className="flex items-center justify-between mb-2">
-            <GitBranch className="w-5 h-5 text-blue-400" />
+        {/* Downstream Dependencies */}
+        <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+          <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: a('outline-var', 0.4) }}>
+            <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-2" style={{ color: T.onSurfaceVar }}>
+              <GitBranch className="w-4 h-4" style={{ color: '#166534' }} />
+              <span>Downstream</span>
+            </h3>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: '#ECFDF3', color: '#166534' }}>{service.dependenciesOut?.length || 0}</span>
           </div>
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-            {service.dependenciesIn?.length || 0}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Upstream Dependencies
-          </div>
-        </div>
-
-        {/* Dependencies Out */}
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%)',
-               borderTop: '4px solid #10b981',
-               boxShadow: '0 0 20px rgba(16, 185, 129, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <div className="flex items-center justify-between mb-2">
-            <GitBranch className="w-5 h-5 text-green-400" />
-          </div>
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
-            {service.dependenciesOut?.length || 0}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Downstream Dependencies
-          </div>
-        </div>
-
-        {/* Version */}
-        <div className="card min-h-[120px] relative overflow-hidden group hover:shadow-2xl transition-all duration-300"
-             style={{
-               background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)',
-               borderTop: '4px solid #a855f7',
-               boxShadow: '0 0 20px rgba(168, 85, 247, 0.3)'
-             }}>
-          <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-          <div className="flex items-center justify-between mb-2">
-            <Package className="w-5 h-5 text-purple-400" />
-          </div>
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-            {service.version}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Version
-          </div>
+          {service.dependenciesOut && service.dependenciesOut.length > 0 ? (
+            <ul className="p-3 space-y-2">
+              {service.dependenciesOut.map(dep => (
+                <li key={dep}>
+                  <Link to={`/catalog/${dep}`} className="flex items-center gap-2 p-2.5 rounded-lg transition-all" style={{ background: '#ECFDF3', border: '1px solid #BBF7D0' }}>
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center border shrink-0" style={{ background: '#FFFFFF', color: '#166534', borderColor: '#BBF7D0' }}>
+                      <Package className="w-3 h-3" />
+                    </span>
+                    <span className="text-sm font-semibold" style={{ color: '#166534' }}>{dep}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-6 text-center text-xs" style={{ color: T.onSurfaceVar }}>No downstream dependencies</p>
+          )}
         </div>
       </div>
 
+      {/* Version Management for Deliverables */}
+      {(service.type === CatalogType.PACKAGE ||
+        service.type === CatalogType.CHART ||
+        service.type === CatalogType.CONTAINER ||
+        service.type === CatalogType.MODULE) && (
+        <div className="grid grid-cols-1 gap-1.5">
+          <DeliverableVersions
+            serviceName={service.name}
+            serviceType={service.type as 'package' | 'chart' | 'container' | 'module'}
+            availableVersions={service.availableVersions || []}
+            latestVersion={service.latestVersion}
+            referenceVersion={service.referenceVersion}
+            onUpdateVersions={handleUpdateVersions}
+          />
+        </div>
+      )}
+
+      {/* Infrastructure Resources Management */}
+      <div className="grid grid-cols-1 gap-1.5">
+        <InfrastructureResourceManager
+          resources={service.infrastructureResources || []}
+          onChange={handleUpdateInfrastructureResources}
+        />
+      </div>
+
+        </TabsContent>
+
+        {/* Dependency Graph Tab Content */}
+        <TabsContent value="graph" className="mt-0">
       {/* Dependency Graph with Drag & Drop */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative" style={{ height: '650px' }}>
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div className="rounded-xl overflow-hidden relative" style={{ height: '650px', background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+        <div className="p-4 border-b" style={{ background: T.surfaceLow, borderColor: a('outline-var', 0.4) }}>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                <GitBranch className="w-5 h-5" />
+              <h3 className="text-base font-bold flex items-center gap-2" style={{ color: T.onSurface }}>
+                <GitBranch className="w-5 h-5" style={{ color: T.primary }} />
                 <span>Dependency Graph</span>
                 {isEditingGraph && (
-                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
+                  <span className="ml-1 inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase rounded-md border" style={{ background: '#FFF8E8', color: '#8C5A00', borderColor: '#FFE0A0' }}>
                     Editing
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>
                 {isEditingGraph 
                   ? 'Drag & drop resources from the palette, then click Save to apply changes'
                   : 'Click Edit to add infrastructure resources to the graph'
@@ -1085,7 +1292,7 @@ export default function CatalogDetail() {
               )}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs" style={{ color: T.onSurfaceVar }}>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: '#6366f1' }}></div>
               <span>Upstream (we depend on)</span>
@@ -1120,16 +1327,17 @@ export default function CatalogDetail() {
         <div className="flex h-[calc(100%-130px)]">
           {/* Left Sidebar - Resource Palette (only visible in edit mode) */}
           {isEditingGraph && (
-          <div className="w-56 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 overflow-y-auto">
+          <div className="w-56 border-r p-3 overflow-y-auto" style={{ borderColor: a('outline-var', 0.4), background: T.surfaceLow }}>
             <div className="mb-3">
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+              <label className="block text-[10px] font-bold mb-2 uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>
                 Cloud Provider
               </label>
               <select
                 value={selectedProvider}
                 onChange={(e) => setSelectedProvider(e.target.value)}
                 disabled={!isEditingGraph}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
+                className="select text-xs disabled:opacity-50"
+                style={{ height: '32px' }}
               >
                 <option value="AWS">AWS</option>
                 <option value="Azure">Azure</option>
@@ -1468,494 +1676,104 @@ export default function CatalogDetail() {
           </div>
         </div>
       </div>
-
-      {/* Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5">
-        {/* Service Information - Left Column (2/3 width) */}
-        <div className="lg:col-span-2">
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-              <Package className="w-5 h-5" />
-              <span>Service Information</span>
-            </h3>
-            <dl className="space-y-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Type</dt>
-                <dd>
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                    <Code className="w-4 h-4 mr-2" />
-                    {getCatalogTypeLabel(service.type)}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Primary Language</dt>
-                <dd>
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 space-x-2">
-                    {getLanguageIcon(service.languages)}
-                    <span>{getLanguageLabel(service.languages)}</span>
-                  </span>
-                </dd>
-              </div>
-              {service.platform && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Deployment Platform</dt>
-                  <dd>
-                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                      {service.platform === Platform.KUBERNETES ? (
-                        <KubernetesIcon className="w-4 h-4 mr-2" />
-                      ) : (
-                        <Server className="w-4 h-4 mr-2" />
-                      )}
-                      {getPlatformLabel(service.platform)}
-                    </span>
-                  </dd>
-                </div>
-              )}
-              <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Owner</dt>
-                <dd>
-                  <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                    {service.owner}
-                  </span>
-                </dd>
-              </div>
-
-              {service.repository && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Repository</dt>
-                  <dd>
-                    <a href={service.repository} target="_blank" rel="noopener noreferrer"
-                       className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 transition-colors space-x-2 border border-gray-300 dark:border-gray-600">
-                      <Github className="w-4 h-4" />
-                      <span>View on GitHub</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </dd>
-                </div>
-              )}
-              {service.link && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Documentation</dt>
-                  <dd>
-                    <a href={service.link} target="_blank" rel="noopener noreferrer"
-                       className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-600 transition-colors space-x-2 border border-blue-300 dark:border-blue-400">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>View Documentation</span>
-                    </a>
-                  </dd>
-                </div>
-              )}
-              {service.communicationChannels && service.communicationChannels.length > 0 && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Communication Channels</dt>
-                  <dd className="space-y-2">
-                    {service.communicationChannels.map((channel, index) => (
-                      <a
-                        key={index}
-                        href={channel.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
-                        style={getCommunicationChannelStyles(channel.type)}
-                        title={channel.description || `${channel.name} (${getCommunicationChannelLabel(channel.type)})`}
-                      >
-                        {getCommunicationChannelIcon(channel.type)}
-                        <span>{channel.name}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ))}
-                  </dd>
-                </div>
-              )}
-              {service.dashboardLinks && service.dashboardLinks.length > 0 && (
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Dashboard Links</dt>
-                  <dd className="space-y-2">
-                    {service.dashboardLinks.map((dashboard, index) => (
-                      <a
-                        key={index}
-                        href={dashboard.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-lg transition-colors space-x-2 border mr-2 mb-2 dark:bg-opacity-20 dark:border-opacity-60"
-                        style={getDashboardLinkStyles(dashboard.type)}
-                        title={dashboard.description || `${dashboard.name} (${getDashboardLabel(dashboard.type)})`}
-                      >
-                        {getDashboardIcon(dashboard.type)}
-                        <span>{dashboard.name}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ))}
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </div>
-        </div>
-
-        {/* SLA & Vulnerability - Right Column (1/3 width) */}
-        <div className="space-y-1.5">
-          {/* SLA Details */}
-          {service.sla ? (
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-                <Activity className="w-5 h-5" />
-                <span>SLA Details</span>
-              </h3>
-              <dl className="space-y-4">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Level</dt>
-                  <dd>
-                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-                          style={{
-                            backgroundColor: `${getSLAColor(service.sla.level)}20`,
-                            color: getSLAColor(service.sla.level)
-                          }}>
-                      <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: getSLAColor(service.sla.level) }} />
-                      {getSLALabel(service.sla.level)}
-                    </span>
-                  </dd>
-                </div>
-                
-                {/* SLA Metrics Grid - Only show if there are metrics */}
-                {(service.sla.uptimePercentage || service.sla.responseTimeMs) && (
-                  <div className="grid grid-cols-1 gap-1.5 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    {service.sla.uptimePercentage && (
-                      <div className="text-center">
-                        <div className="text-xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                          {service.sla.uptimePercentage}%
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Uptime Target
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {calculateDowntime(service.sla.uptimePercentage)} downtime/month
-                        </div>
-                      </div>
-                    )}
-                    {service.sla.responseTimeMs && (
-                      <div className="text-center">
-                        <div className="text-xl font-bold" style={{ color: getSLAColor(service.sla.level) }}>
-                          {service.sla.responseTimeMs}ms
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Response Time Target
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {service.sla.responseTimeMs < 100 ? 'Excellent' : 
-                           service.sla.responseTimeMs < 500 ? 'Good' : 
-                           service.sla.responseTimeMs < 1000 ? 'Acceptable' : 'Needs Improvement'}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {service.sla.description && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</dt>
-                    <dd className="text-sm text-gray-900 dark:text-gray-100 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      {service.sla.description}
-                    </dd>
-                  </div>
-                )}
-
-                {/* SLA Level Information */}
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">
-                    SLA Level Information
-                  </div>
-                  <div className="text-xs text-blue-700 dark:text-blue-300">
-                    {getSLADescription(service.sla.level)}
-                  </div>
-                </div>
-              </dl>
-            </div>
-          ) : (
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-                <Activity className="w-5 h-5" />
-                <span>SLA Details</span>
-              </h3>
-              <div className="text-center py-6">
-                <Activity className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No SLA defined
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  Consider defining SLA targets
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Vulnerability Summary */}
-          <VulnerabilityManager
-            vulnerabilitySummary={service.vulnerabilitySummary}
-            onChange={handleUpdateVulnerabilitySummary}
-          />
-        </div>
-      </div>
-
-      {/* Version Management for Deliverables */}
-      {(service.type === CatalogType.PACKAGE || 
-        service.type === CatalogType.CHART || 
-        service.type === CatalogType.CONTAINER || 
-        service.type === CatalogType.MODULE) && (
-        <div className="grid grid-cols-1 gap-1.5">
-          <DeliverableVersions
-            serviceName={service.name}
-            serviceType={service.type as 'package' | 'chart' | 'container' | 'module'}
-            availableVersions={service.availableVersions || []}
-            latestVersion={service.latestVersion}
-            referenceVersion={service.referenceVersion}
-            onUpdateVersions={handleUpdateVersions}
-          />
-        </div>
-      )}
-
-      {/* Used Deliverables Management for Projects */}
-      {service.type === CatalogType.PROJECT && (
-        <div className="grid grid-cols-1 gap-1.5">
-          <UsedDeliverablesManager
-            usedDeliverables={service.usedDeliverables || []}
-            onUpdate={handleUpdateUsedDeliverables}
-            availableDeliverables={allCatalogs?.catalogs
-              .filter(c => [CatalogType.PACKAGE, CatalogType.CHART, CatalogType.CONTAINER, CatalogType.MODULE, CatalogType.LIBRARY].includes(c.type))
-              .map(c => ({ 
-                name: c.name, 
-                type: c.type, 
-                availableVersions: c.availableVersions || [],
-                latestVersion: c.latestVersion,
-                referenceVersion: c.referenceVersion
-              }))
-            }
-          />
-        </div>
-      )}
-
-      {/* Infrastructure Resources Management */}
-      <div className="grid grid-cols-1 gap-1.5">
-        <InfrastructureResourceManager
-          resources={service.infrastructureResources || []}
-          onChange={handleUpdateInfrastructureResources}
-        />
-      </div>
-
-      {/* Dependencies Lists */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-        {/* Upstream Dependencies */}
-        {service.dependenciesIn && service.dependenciesIn.length > 0 && (
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-              <GitBranch className="w-5 h-5 text-blue-500" />
-              <span>Upstream Dependencies</span>
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Services that {service.name} depends on
-            </p>
-            <ul className="space-y-2">
-              {service.dependenciesIn.map(dep => (
-                <li key={dep}>
-                  <Link
-                    to={`/catalog/${dep}`}
-                    className="block p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                  >
-                    <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{dep}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Downstream Dependencies */}
-        {service.dependenciesOut && service.dependenciesOut.length > 0 && (
-          <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-              <GitBranch className="w-5 h-5 text-green-500" />
-              <span>Downstream Dependencies</span>
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Services that depend on {service.name}
-            </p>
-            <ul className="space-y-2">
-              {service.dependenciesOut.map(dep => (
-                <li key={dep}>
-                  <Link
-                    to={`/catalog/${dep}`}
-                    className="block p-3 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                  >
-                    <span className="text-sm font-medium text-green-900 dark:text-green-100">{dep}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
         </TabsContent>
 
         {/* Deployments Tab Content */}
-        <TabsContent value="deployments" className="space-y-6 mt-6">
-          {/* Time Range Filter */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant={deploymentTimeRange === '7d' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setDeploymentTimeRange('7d')}
-                  >
-                    7 days
-                  </Button>
-                  <Button
-                    variant={deploymentTimeRange === '14d' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setDeploymentTimeRange('14d')}
-                  >
-                    14 days
-                  </Button>
-                  <Button
-                    variant={deploymentTimeRange === '30d' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setDeploymentTimeRange('30d')}
-                  >
-                    30 days
-                  </Button>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refetchDeployments()}
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Refresh</span>
-              </Button>
-            </div>
-          </div>
-
+        <TabsContent value="deployments" className="space-y-6 mt-0">
           {/* Deployments Stats */}
           {deploymentsData?.events && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Rocket className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {deploymentsData.events.length}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Deployments</p>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+                <span className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                  <Rocket className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: T.onSurface }}>{deploymentsData.events.length}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.onSurfaceVar }}>Total Deployments</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {deploymentsData.events.filter(e => e.attributes.status === Status.SUCCESS).length}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Successful</p>
-                  </div>
+              <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+                <span className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#ECFDF3', color: '#166534', borderColor: '#BBF7D0' }}>
+                  <Check className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: T.onSurface }}>
+                    {deploymentsData.events.filter(e => e.attributes.status === Status.SUCCESS).length}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.onSurfaceVar }}>Successful</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                      {deploymentsData.events.filter(e => e.attributes.status === Status.FAILURE || e.attributes.status === Status.ERROR).length}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Failed</p>
-                  </div>
+              <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+                <span className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#FEECEC', color: '#B42318', borderColor: '#FBD4D4' }}>
+                  <X className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: T.onSurface }}>
+                    {deploymentsData.events.filter(e => e.attributes.status === Status.FAILURE || e.attributes.status === Status.ERROR).length}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.onSurfaceVar }}>Failed</p>
                 </div>
               </div>
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                      {deploymentsData.events.filter(e => e.attributes.status === Status.IN_PROGRESS || e.attributes.status === Status.START).length}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">In Progress</p>
-                  </div>
+              <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+                <span className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#FFF8E8', color: '#8C5A00', borderColor: '#FFE0A0' }}>
+                  <Clock className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: T.onSurface }}>
+                    {deploymentsData.events.filter(e => e.attributes.status === Status.IN_PROGRESS || e.attributes.status === Status.START).length}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.onSurfaceVar }}>In Progress</p>
                 </div>
               </div>
             </div>
           )}
 
           {/* Deployments Table */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                <Rocket className="w-5 h-5" />
+          <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
+            <div className="px-5 py-3 border-b" style={{ borderColor: a('outline-var', 0.4) }}>
+              <h3 className="text-[11px] uppercase tracking-[0.2em] font-bold flex items-center gap-2" style={{ color: T.onSurfaceVar }}>
+                <Rocket className="w-4 h-4" />
                 <span>Deployment History</span>
               </h3>
             </div>
             
             {deploymentsLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: a('primary', 0.25), borderTopColor: T.primary }} />
               </div>
             ) : deploymentsData?.events && deploymentsData.events.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-800">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Title
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Environment
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Owner
-                      </th>
+                <table className="min-w-full">
+                  <thead style={{ background: T.surfaceLow }}>
+                    <tr style={{ borderBottom: `1px solid ${a('outline-var', 0.4)}` }}>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>Title</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>Status</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>Environment</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>Date</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest" style={{ color: T.onSurfaceVar }}>Owner</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                    {deploymentsData.events.map((deployment) => (
+                  <tbody>
+                    {deploymentsData.events.map((deployment) => {
+                      const sv = getStatusVisual(deployment.attributes.status)
+                      return (
                       <tr 
                         key={deployment.metadata?.id} 
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                        className="cursor-pointer transition-colors hover:brightness-[0.98]"
+                        style={{ borderBottom: `1px solid ${a('outline-var', 0.25)}` }}
                         onClick={() => navigate(`/events/${deployment.metadata?.id}`)}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-3">
-                            <Rocket className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <div className="flex items-center gap-3">
+                            <span className="w-7 h-7 rounded-md flex items-center justify-center border shrink-0" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
+                              <Rocket className="w-3.5 h-3.5" />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold truncate" style={{ color: T.onSurface }}>
                                 {deployment.title}
                               </div>
                               {deployment.attributes.message && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                <div className="text-xs truncate max-w-xs" style={{ color: T.onSurfaceVar }}>
                                   {deployment.attributes.message}
                                 </div>
                               )}
@@ -1963,60 +1781,64 @@ export default function CatalogDetail() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge 
-                            variant="secondary"
-                            className={`${getStatusColor(deployment.attributes.status)}`}
-                          >
-                            {deployment.attributes.status}
-                          </Badge>
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: sv.bg, color: sv.text, borderColor: sv.border }}>
+                              <i className={`fa-solid ${sv.icon} text-[10px]`} />
+                            </span>
+                            <span className="text-[10px] font-semibold uppercase" style={{ color: sv.text }}>{sv.label}</span>
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {deployment.attributes.environment ? (
-                            <Badge variant="outline" className="capitalize">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold uppercase border" style={{ background: a('outline-var', 0.1), color: T.onSurfaceVar, borderColor: a('outline-var', 0.3) }}>
                               {deployment.attributes.environment}
-                            </Badge>
+                            </span>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-xs" style={{ color: T.onSurfaceVar }}>-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: T.onSurfaceVar }}>
                           {deployment.metadata?.createdAt ? (
-                            <div className="flex items-center space-x-1">
+                            <div className="flex items-center gap-1.5">
                               <Clock className="w-3 h-3" />
                               <span>{formatDate(deployment.metadata.createdAt)}</span>
                             </div>
                           ) : '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: T.onSurfaceVar }}>
                           {deployment.attributes.owner || '-'}
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
             ) : (
               <div className="text-center py-12">
-                <Rocket className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 font-medium">No deployments found</p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                  No deployments recorded for this service in the last {deploymentTimeRange === '7d' ? '7' : deploymentTimeRange === '14d' ? '14' : '30'} days
+                <Rocket className="w-12 h-12 mx-auto mb-4" style={{ color: a('outline-var', 0.6) }} />
+                <p className="font-medium" style={{ color: T.onSurfaceVar }}>No deployments found</p>
+                <p className="text-sm mt-1" style={{ color: T.onSurfaceVar }}>
+                  No deployments recorded for this service in the last 30 days
                 </p>
               </div>
             )}
           </div>
         </TabsContent>
       </Tabs>
+        </div>
+      </div>
+    </div>
 
       {/* Add Resource Modal */}
       {showAddResourceModal && newResourceType && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
                     {(() => {
                       const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)
                       const IconComponent = resourceConfig?.icon || Database
@@ -2024,17 +1846,18 @@ export default function CatalogDetail() {
                     })()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base font-bold" style={{ color: T.onSurface }}>
                       Add Infrastructure Resource
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm" style={{ color: T.onSurfaceVar }}>
                       {getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)?.label} ({selectedProvider})
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={cancelAddResource}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: T.onSurfaceVar }}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -2042,7 +1865,7 @@ export default function CatalogDetail() {
 
               {/* Content */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>
                   Resource Name
                 </label>
                 <input
@@ -2050,34 +1873,36 @@ export default function CatalogDetail() {
                   value={newResourceName}
                   onChange={(e) => setNewResourceName(e.target.value)}
                   placeholder="e.g., users-database, cache-redis"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="input"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') confirmAddResource()
                     if (e.key === 'Escape') cancelAddResource()
                   }}
                 />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-xs" style={{ color: T.onSurfaceVar }}>
                   Give a meaningful name to identify this resource in your architecture
                 </p>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end space-x-3">
+              <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={cancelAddResource}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+                  style={{ background: T.surfaceHigh, color: T.onSurface, border: `1px solid ${a('outline-var', 0.2)}` }}
                 >
                   Cancel
                 </button>
-                <Button
+                <button
                   onClick={confirmAddResource}
                   disabled={!newResourceName.trim()}
-                  className="flex items-center space-x-2"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
+                  style={{ background: T.primary, color: '#ffffff' }}
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Resource</span>
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -2086,13 +1911,13 @@ export default function CatalogDetail() {
 
       {/* Edit Resource Modal */}
       {showEditResourceModal && editingResource && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
                     {(() => {
                       const resourceConfig = getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)
                       const IconComponent = resourceConfig?.icon || Database
@@ -2100,17 +1925,18 @@ export default function CatalogDetail() {
                     })()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base font-bold" style={{ color: T.onSurface }}>
                       Edit Infrastructure Resource
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm" style={{ color: T.onSurfaceVar }}>
                       {getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)?.label || editingResource.type}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={cancelEditResource}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: T.onSurfaceVar }}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -2119,7 +1945,7 @@ export default function CatalogDetail() {
               {/* Content */}
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>
                     Resource Name
                   </label>
                   <input
@@ -2127,7 +1953,7 @@ export default function CatalogDetail() {
                     value={editResourceName}
                     onChange={(e) => setEditResourceName(e.target.value)}
                     placeholder="e.g., users-database, cache-redis"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="input"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') confirmEditResource()
@@ -2137,13 +1963,13 @@ export default function CatalogDetail() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>
                     Cloud Provider
                   </label>
                   <select
                     value={editResourceProvider}
                     onChange={(e) => setEditResourceProvider(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="select"
                   >
                     <option value="AWS">AWS</option>
                     <option value="Azure">Azure</option>
@@ -2154,7 +1980,7 @@ export default function CatalogDetail() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>
                     Description (optional)
                   </label>
                   <textarea
@@ -2162,27 +1988,30 @@ export default function CatalogDetail() {
                     onChange={(e) => setEditResourceDescription(e.target.value)}
                     placeholder="Brief description of this resource..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className="input resize-none"
+                    style={{ height: 'auto' }}
                   />
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end space-x-3">
+              <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={cancelEditResource}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+                  style={{ background: T.surfaceHigh, color: T.onSurface, border: `1px solid ${a('outline-var', 0.2)}` }}
                 >
                   Cancel
                 </button>
-                <Button
+                <button
                   onClick={confirmEditResource}
                   disabled={!editResourceName.trim()}
-                  className="flex items-center space-x-2"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
+                  style={{ background: T.primary, color: '#ffffff' }}
                 >
                   <Check className="w-4 h-4" />
                   <span>Save Changes</span>
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -2191,27 +2020,28 @@ export default function CatalogDetail() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('error', 0.1), borderColor: a('error', 0.2) }}>
+                    <AlertTriangle className="w-5 h-5" style={{ color: T.error }} />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-base font-bold" style={{ color: T.onSurface }}>
                       Delete Service
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm" style={{ color: T.onSurfaceVar }}>
                       This action cannot be undone
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={handleDeleteCancel}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: T.onSurfaceVar }}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -2219,14 +2049,14 @@ export default function CatalogDetail() {
 
               {/* Content */}
               <div className="mb-6">
-                <p className="text-gray-700 dark:text-gray-300 mb-3">
-                  Are you sure you want to delete the service <span className="font-semibold text-gray-900 dark:text-gray-100">"{service.name}"</span>?
+                <p className="mb-3" style={{ color: T.onSurface }}>
+                  Are you sure you want to delete the service <span className="font-bold">"{service.name}"</span>?
                 </p>
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <div className="flex items-start space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-red-700 dark:text-red-300">
-                      <p className="font-medium mb-1">This will permanently delete:</p>
+                <div className="rounded-lg p-3" style={{ background: a('error', 0.08), border: `1px solid ${a('error', 0.2)}` }}>
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: T.error }} />
+                    <div className="text-sm" style={{ color: T.error }}>
+                      <p className="font-semibold mb-1">This will permanently delete:</p>
                       <ul className="list-disc list-inside space-y-1 text-xs">
                         <li>Service configuration and metadata</li>
                         <li>SLA settings and targets</li>
@@ -2239,17 +2069,19 @@ export default function CatalogDetail() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end space-x-3">
+              <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={handleDeleteCancel}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+                  style={{ background: T.surfaceHigh, color: T.onSurface, border: `1px solid ${a('outline-var', 0.2)}` }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   disabled={deleteMutation.isPending}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 text-sm font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2"
+                  style={{ background: T.error }}
                 >
                   {deleteMutation.isPending ? (
                     <>
@@ -2268,7 +2100,7 @@ export default function CatalogDetail() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -2789,6 +2621,28 @@ function getStatusColor(status?: Status): string {
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+  }
+}
+
+function getStatusVisual(status?: Status): { bg: string; text: string; border: string; label: string; icon: string } {
+  switch (status) {
+    case Status.SUCCESS:
+    case Status.DONE:
+      return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0', label: 'Success', icon: 'fa-circle-check' }
+    case Status.FAILURE:
+    case Status.ERROR:
+      return { bg: '#FEECEC', text: '#B42318', border: '#FBD4D4', label: 'Failed', icon: 'fa-circle-xmark' }
+    case Status.WARNING:
+      return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0', label: 'Warning', icon: 'fa-triangle-exclamation' }
+    case Status.IN_PROGRESS:
+    case Status.START:
+      return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF', label: 'In Progress', icon: 'fa-satellite-dish' }
+    case Status.PLANNED:
+      return { bg: '#F3EEFF', text: '#5B21B6', border: '#DDCFFA', label: 'Planned', icon: 'fa-clock' }
+    case Status.WAITING_APPROVAL:
+      return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0', label: 'Awaiting', icon: 'fa-hourglass-half' }
+    default:
+      return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8', label: String(status || 'Unknown'), icon: 'fa-circle-info' }
   }
 }
 

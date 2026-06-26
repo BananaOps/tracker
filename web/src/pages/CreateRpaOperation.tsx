@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -7,10 +7,20 @@ import type { CreateEventRequest } from '../types/api'
 import { convertEventForAPI } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
-import { AlertCircle, Bot, Clock, Plus, Search } from 'lucide-react'
+import { AlertCircle, Bot, Clock, Search } from 'lucide-react'
 import { DateTimePicker } from '../components/ui/date-time-picker'
+import FormPanel from '../components/FormPanel'
+import ChipSelect, { type ChipOption } from '../components/ChipSelect'
+import { getEnvVisual, getStatusVisual } from '../components/Badges'
+import { getEnvironmentLabel } from '../lib/eventUtils'
 
-export default function CreateRpaOperation() {
+interface CreateRpaOperationProps {
+  asPanel?: boolean
+  onClose?: () => void
+  onSuccess?: () => void
+}
+
+export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess }: CreateRpaOperationProps = {}) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showToast, setShowToast] = useState(false)
@@ -45,6 +55,10 @@ export default function CreateRpaOperation() {
     mutationFn: eventsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] })
+      if (asPanel) {
+        onSuccess?.()
+        return
+      }
       setShowToast(true)
       setTimeout(() => { navigate('/rpa') }, 2000)
     },
@@ -53,7 +67,7 @@ export default function CreateRpaOperation() {
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     setShowToast(false)
 
@@ -104,41 +118,39 @@ export default function CreateRpaOperation() {
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 
-  const SectionHeader = ({ icon, title, color }: { icon: React.ReactNode; title: string; color?: string }) => (
+  const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
       <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
     </div>
   )
 
-  return (
-    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
-      <div className="max-w-5xl mx-auto p-8">
+  const gridWrap = asPanel ? 'space-y-6' : 'grid grid-cols-1 md:grid-cols-12 gap-8'
+  const leftCol = asPanel ? 'space-y-6' : 'md:col-span-8 space-y-8'
+  const rightCol = asPanel ? 'space-y-6' : 'md:col-span-4 space-y-8'
 
-        {/* Header */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Create an RPA Operation
-          </h2>
-          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
-            Track executions of your robots, automation scripts, or automated workflows.
-          </p>
-        </div>
+  // Badge-style option sets
+  const envOptions: ChipOption<Environment>[] = [
+    Environment.PRODUCTION, Environment.PREPRODUCTION, Environment.UAT, Environment.RECETTE, Environment.INTEGRATION, Environment.DEVELOPMENT,
+  ].map((v) => ({ value: v, label: getEnvironmentLabel(v) ?? String(v), visual: getEnvVisual(v) }))
 
-        {createMutation.isError && (
-          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
-            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating RPA operation. Please try again.</p>
-          </div>
-        )}
+  const statusOptions: ChipOption<Status>[] = [
+    { value: Status.START, label: 'Started' },
+    { value: Status.SUCCESS, label: 'Success' },
+    { value: Status.FAILURE, label: 'Failure' },
+    { value: Status.WARNING, label: 'Warning' },
+    { value: Status.ERROR, label: 'Error' },
+    { value: Status.DONE, label: 'Done' },
+  ].map((o) => {
+    const vis = getStatusVisual(o.value)
+    return { ...o, visual: vis, icon: <i className={`fa-solid ${vis.icon} text-[10px]`} /> }
+  })
 
-        {showToast && <Toast message="RPA Operation created successfully!" onClose={() => setShowToast(false)} />}
+  const body = (
+    <div className={gridWrap}>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-
-            {/* ── Left Column ── */}
-            <div className="md:col-span-8 space-y-8">
+      {/* ── Left Column ── */}
+      <div className={leftCol}>
 
               {/* Operation Information */}
               <section className="p-8 rounded-xl overflow-visible relative z-10" style={{ background: hud.surface }}>
@@ -167,31 +179,17 @@ export default function CreateRpaOperation() {
                     </div>
                     <div>
                       <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Environment</label>
-                      <select value={formData.attributes.environment}
-                        onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, environment: e.target.value as Environment } })}
-                        className={inputCls + ' appearance-none'} style={inputStyle}>
-                        <option value={Environment.PRODUCTION}>Production</option>
-                        <option value={Environment.PREPRODUCTION}>Preproduction</option>
-                        <option value={Environment.UAT}>UAT</option>
-                        <option value={Environment.RECETTE}>Recette</option>
-                        <option value={Environment.INTEGRATION}>Integration</option>
-                        <option value={Environment.DEVELOPMENT}>Development</option>
-                      </select>
+                      <ChipSelect ariaLabel="Environment" options={envOptions}
+                        value={formData.attributes.environment as Environment}
+                        onChange={(environment) => setFormData({ ...formData, attributes: { ...formData.attributes, environment } })} />
                     </div>
                   </div>
 
                   <div>
                     <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Operation Status</label>
-                    <select value={formData.attributes.status}
-                      onChange={(e) => setFormData({ ...formData, attributes: { ...formData.attributes, status: e.target.value as Status } })}
-                      className={inputCls + ' appearance-none'} style={inputStyle}>
-                      <option value={Status.START}>Started</option>
-                      <option value={Status.SUCCESS}>Success</option>
-                      <option value={Status.FAILURE}>Failure</option>
-                      <option value={Status.WARNING}>Warning</option>
-                      <option value={Status.ERROR}>Error</option>
-                      <option value={Status.DONE}>Done</option>
-                    </select>
+                    <ChipSelect ariaLabel="Operation Status" options={statusOptions}
+                      value={formData.attributes.status as Status}
+                      onChange={(status) => setFormData({ ...formData, attributes: { ...formData.attributes, status } })} />
                   </div>
 
                   <div>
@@ -214,7 +212,7 @@ export default function CreateRpaOperation() {
             </div>
 
             {/* ── Right Column ── */}
-            <div className="md:col-span-4 space-y-8">
+            <div className={rightCol}>
 
               {/* Scheduling */}
               <section className="p-8 rounded-xl" style={{ background: hud.surface, borderLeft: `4px solid ${hud.tertiary}` }}>
@@ -249,6 +247,51 @@ export default function CreateRpaOperation() {
               </section>
             </div>
           </div>
+  )
+
+  if (asPanel) {
+    return (
+      <FormPanel
+        icon={<Bot className="w-5 h-5" />}
+        title="Create RPA Operation"
+        subtitle="Track executions of robots and automation scripts"
+        onClose={() => onClose?.()}
+        onSubmit={handleSubmit}
+        submitLabel={createMutation.isPending ? 'Creating...' : 'Create RPA Operation'}
+        submitIcon={<Bot className="w-4 h-4" />}
+        submitting={createMutation.isPending}
+        error={createMutation.isError ? 'Error creating RPA operation. Please try again.' : undefined}
+      >
+        {body}
+      </FormPanel>
+    )
+  }
+
+  return (
+    <div className="min-h-full overflow-auto" style={{ background: 'rgb(var(--hud-bg))', color: hud.onSurface }}>
+      <div className="max-w-5xl mx-auto p-8">
+
+        {/* Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Create an RPA Operation
+          </h2>
+          <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
+            Track executions of your robots, automation scripts, or automated workflows.
+          </p>
+        </div>
+
+        {createMutation.isError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl mb-8" style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <p className="text-sm font-medium" style={{ color: hud.error }}>Error creating RPA operation. Please try again.</p>
+          </div>
+        )}
+
+        {showToast && <Toast message="RPA Operation created successfully!" onClose={() => setShowToast(false)} />}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {body}
 
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>

@@ -12,11 +12,11 @@ interface MetricCardProps {
 }
 
 const colorClasses = {
-  blue: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400',
-  green: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400',
-  red: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400',
-  amber: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400',
-  purple: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400',
+  blue: 'text-hud-primary bg-hud-primary/10 dark:bg-hud-primary/15 dark:text-[#8fb4ff]',
+  green: 'text-green-700 bg-green-100 dark:bg-green-900/25 dark:text-green-300',
+  red: 'text-hud-error bg-red-100 dark:bg-red-950/35 dark:text-red-300',
+  amber: 'text-amber-700 bg-amber-100 dark:bg-amber-950/35 dark:text-amber-300',
+  purple: 'text-violet-700 bg-violet-100 dark:bg-violet-950/35 dark:text-violet-300',
 }
 
 export default function MetricCard({ title, value, icon: Icon, color, trend }: MetricCardProps) {
@@ -28,12 +28,12 @@ export default function MetricCard({ title, value, icon: Icon, color, trend }: M
             <Icon className="w-5 h-5" />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
+            <p className="text-sm font-medium text-hud-on-surface-var">{title}</p>
+            <p className="text-2xl font-bold text-hud-on-surface">{value}</p>
           </div>
         </div>
         {trend && (
-          <div className={`text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-sm font-medium ${trend.isPositive ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
             {trend.isPositive ? '+' : ''}{trend.value}%
           </div>
         )}

@@ -1,12 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Edit2, Save, History, Lock, Unlock, CheckCircle, X, ExternalLink, Rocket, AlertTriangle, GitBranch, ChevronDown, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Edit2, History, ExternalLink, AlertTriangle, GitBranch } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { eventsApi, locksApi, catalogApi } from '../lib/api'
-import type { Event } from '../types/api'
-import { Priority, Status } from '../types/api'
+import { eventsApi, catalogApi } from '../lib/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
@@ -28,9 +26,6 @@ export default function EventDetail() {
   const [changelog, setChangelog] = useState<any[]>([])
   const [editOwner, setEditOwner] = useState('')
   const [ownerError, setOwnerError] = useState(false)
-  const [lockingService, setLockingService] = useState(false)
-  const [existingLock, setExistingLock] = useState<any>(null)
-  const [checkingLock, setCheckingLock] = useState(false)
 
   // Fetch event data
   const { data: event, isLoading, error } = useQuery({
@@ -54,6 +49,7 @@ export default function EventDetail() {
   })
 
   const downstreamServices = useMemo(() => serviceCatalog?.dependenciesIn ?? [], [serviceCatalog])
+  const [editedEvent, setEditedEvent] = useState(normalizedEvent)
 
   // Update editedEvent when normalizedEvent changes
   useEffect(() => {
@@ -77,31 +73,6 @@ export default function EventDetail() {
     }
     fetchChangelog()
   }, [activeTab, eventId])
-
-  // Check for existing lock
-  useEffect(() => {
-    const checkLock = async () => {
-      if (!editedEvent?.attributes.service || !editedEvent?.attributes.environment) {
-        return
-      }
-      
-      try {
-        setCheckingLock(true)
-        const locks = await locksApi.list()
-        const lock = locks.locks.find(
-          (l) => l.service === editedEvent.attributes.service && 
-                 l.environment === editedEvent.attributes.environment
-        )
-        setExistingLock(lock || null)
-      } catch (err) {
-        console.error('Error checking lock:', err)
-      } finally {
-        setCheckingLock(false)
-      }
-    }
-    
-    checkLock()
-  }, [editedEvent?.attributes.service, editedEvent?.attributes.environment])
 
   const updateMutation = useMutation({
     mutationFn: () => {
@@ -218,7 +189,7 @@ export default function EventDetail() {
               </h2>
               <LockIndicator event={editedEvent} />
             </div>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-hud-on-surface-var">
               Event ID: {editedEvent.metadata?.id}
             </p>
           </div>
@@ -267,15 +238,15 @@ export default function EventDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-        <div className="border-b border-gray-200 dark:border-gray-700 px-6">
+      <div className="bg-hud-surface border border-hud-outline-var/60 rounded-lg">
+        <div className="border-b border-hud-outline-var/60 px-6">
           <div className="flex space-x-8">
             <button
               onClick={() => setActiveTab('details')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'details'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  ? 'border-hud-primary text-hud-primary'
+                  : 'border-transparent text-hud-on-surface-var hover:text-hud-on-surface'
               }`}
             >
               Details
@@ -284,14 +255,14 @@ export default function EventDetail() {
               onClick={() => setActiveTab('history')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
                 activeTab === 'history'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  ? 'border-hud-primary text-hud-primary'
+                  : 'border-transparent text-hud-on-surface-var hover:text-hud-on-surface'
               }`}
             >
               <History className="w-4 h-4" />
               <span>History</span>
               {changelog.length > 0 && (
-                <span className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded-full">
+                <span className="px-2 py-0.5 text-xs bg-hud-surface-high rounded-full text-hud-on-surface-var">
                   {changelog.length}
                 </span>
               )}
@@ -304,14 +275,14 @@ export default function EventDetail() {
             <div className="space-y-6">
               {/* Owner field when editing */}
               {isEditing && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                <div className="p-4 bg-hud-primary/10 border border-hud-primary/20 rounded-lg">
+                  <label className="block text-sm font-medium text-hud-on-surface mb-2">
                     Your Name / Email <span className="text-red-600">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., john.doe@company.com"
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${ownerError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                    className={`w-full px-3 py-2 border rounded-lg bg-hud-surface text-hud-on-surface ${ownerError ? 'border-red-500' : 'border-hud-outline-var'}`}
                     value={editOwner}
                     onChange={(e) => {
                       setEditOwner(e.target.value)
@@ -326,11 +297,11 @@ export default function EventDetail() {
 
               {/* Description */}
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</h4>
+                <h4 className="text-sm font-semibold text-hud-on-surface-var mb-2">Description</h4>
                 {isEditing ? (
                   <textarea
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="w-full px-3 py-2 border border-hud-outline-var rounded-lg bg-hud-surface text-hud-on-surface"
                     value={editedEvent.attributes.message}
                     onChange={(e) => setEditedEvent({
                       ...editedEvent,
@@ -338,8 +309,8 @@ export default function EventDetail() {
                     })}
                   />
                 ) : (
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{editedEvent.attributes.message}</p>
+                  <div className="bg-hud-surface-low rounded-lg p-4 border border-hud-outline-var/60">
+                    <p className="text-hud-on-surface whitespace-pre-wrap">{editedEvent.attributes.message}</p>
                   </div>
                 )}
               </div>
@@ -347,10 +318,10 @@ export default function EventDetail() {
               {/* Details Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Service</h4>
+                  <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Service</h4>
                   <Link 
                     to={`/catalog/${editedEvent.attributes.service}`}
-                    className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1"
+                    className="text-hud-primary hover:underline flex items-center space-x-1"
                   >
                     <span>{editedEvent.attributes.service}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -358,24 +329,24 @@ export default function EventDetail() {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Source</h4>
+                  <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Source</h4>
                   <div className="flex items-center space-x-2">
                     <SourceIcon source={editedEvent.attributes.source} />
-                    <span className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.source}</span>
+                    <span className="text-hud-on-surface">{editedEvent.attributes.source}</span>
                   </div>
                 </div>
 
                 {editedEvent.attributes.owner && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Owner</h4>
-                    <p className="text-gray-900 dark:text-gray-100">{editedEvent.attributes.owner}</p>
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Owner</h4>
+                    <p className="text-hud-on-surface">{editedEvent.attributes.owner}</p>
                   </div>
                 )}
 
                 {editedEvent.metadata?.createdAt && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Created At</h4>
-                    <p className="text-gray-900 dark:text-gray-100">
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Created At</h4>
+                    <p className="text-hud-on-surface">
                       {format(new Date(editedEvent.metadata.createdAt), 'PPpp', { locale: fr })}
                     </p>
                   </div>
@@ -383,8 +354,8 @@ export default function EventDetail() {
 
                 {editedEvent.attributes.startDate && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Start Date</h4>
-                    <p className="text-gray-900 dark:text-gray-100">
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Start Date</h4>
+                    <p className="text-hud-on-surface">
                       {format(new Date(editedEvent.attributes.startDate), 'PPpp', { locale: fr })}
                     </p>
                   </div>
@@ -392,8 +363,8 @@ export default function EventDetail() {
 
                 {editedEvent.attributes.endDate && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">End Date</h4>
-                    <p className="text-gray-900 dark:text-gray-100">
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">End Date</h4>
+                    <p className="text-hud-on-surface">
                       {format(new Date(editedEvent.attributes.endDate), 'PPpp', { locale: fr })}
                     </p>
                   </div>
@@ -401,15 +372,15 @@ export default function EventDetail() {
 
                 {editedEvent.metadata?.duration && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Duration</h4>
-                    <p className="text-gray-900 dark:text-gray-100">{editedEvent.metadata.duration}</p>
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Duration</h4>
+                    <p className="text-hud-on-surface">{editedEvent.metadata.duration}</p>
                   </div>
                 )}
 
                 {editedEvent.metadata?.slackId && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Slack ID</h4>
-                    <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">{editedEvent.metadata.slackId}</p>
+                    <h4 className="text-sm font-semibold text-hud-on-surface-var mb-1">Slack ID</h4>
+                    <p className="text-hud-on-surface font-mono text-sm">{editedEvent.metadata.slackId}</p>
                   </div>
                 )}
               </div>
@@ -417,7 +388,7 @@ export default function EventDetail() {
               {/* Links */}
               {editedEvent.links && (editedEvent.links.pullRequestLink || editedEvent.links.ticket) && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Links</h4>
+                  <h4 className="text-sm font-semibold text-hud-on-surface-var mb-2">Links</h4>
                   <EventLinks links={editedEvent.links} />
                 </div>
               )}
@@ -425,13 +396,13 @@ export default function EventDetail() {
               {/* Downstream Impact */}
               {downstreamServices.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-hud-on-surface-var mb-2 flex items-center gap-2">
                     <GitBranch className="w-4 h-4 text-orange-500" />
                     Downstream Impact
-                    <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
-                      — services that depend on <span className="font-medium text-gray-600 dark:text-gray-300">{editedEvent.attributes.service}</span>
+                    <span className="text-xs font-normal text-hud-on-surface-var">
+                      — services that depend on <span className="font-medium text-hud-on-surface">{editedEvent.attributes.service}</span>
                     </span>
-                    <span className="ml-auto text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-medium">
+                    <span className="ml-auto text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">
                       {downstreamServices.length} service{downstreamServices.length > 1 ? 's' : ''}
                     </span>
                   </h4>
@@ -441,7 +412,7 @@ export default function EventDetail() {
                         <Link
                           key={svc}
                           to={`/catalog/${svc}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-hud-surface border border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
                         >
                           <GitBranch className="w-3 h-3" />
                           {svc}
@@ -469,4 +440,3 @@ export default function EventDetail() {
     </div>
   )
 }
-
