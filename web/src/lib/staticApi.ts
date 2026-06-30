@@ -210,6 +210,22 @@ export const staticLocksApi = {
   },
 }
 
+export const staticFreezeWindowsApi = {
+  list: async () => ({ freezeWindows: [], totalCount: 0 }),
+  get: async () => {
+    throw new Error('Get operation not available in static demo mode')
+  },
+  create: async () => {
+    throw new Error('Create operation not available in static demo mode')
+  },
+  update: async () => {
+    throw new Error('Update operation not available in static demo mode')
+  },
+  delete: async () => {
+    throw new Error('Delete operation not available in static demo mode')
+  },
+}
+
 export const getMetadata = async () => {
   const response = await fetch(`${STATIC_DATA_PATH}/metadata.json`)
   return response.json()

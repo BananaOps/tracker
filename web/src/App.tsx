@@ -22,6 +22,7 @@ import CreateLock from './pages/CreateLock'
 import Insights from './pages/Insights'
 import ThemeTest from './pages/ThemeTest'
 import Links from './pages/Links'
+import FreezeWindows from './pages/FreezeWindows'
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           <Route path="rpa/create" element={<CreateRpaOperation />} />
           <Route path="locks" element={<Locks />} />
           <Route path="locks/create" element={<CreateLock />} />
+          <Route path="freeze-windows" element={<FreezeWindows />} />
           <Route path="insights" element={<Insights />} />
           <Route path="links" element={<Links />} />
           <Route path="theme-test" element={<ThemeTest />} />

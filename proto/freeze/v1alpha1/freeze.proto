@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package tracker.freeze.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "proto/freeze/v1alpha1";
+
+service FreezeWindowService {
+  rpc CreateFreezeWindow(CreateFreezeWindowRequest) returns (CreateFreezeWindowResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/freeze-window"
+      body: "*"
+    };
+  }
+
+  rpc GetFreezeWindow(GetFreezeWindowRequest) returns (GetFreezeWindowResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/freeze-window/{id}"};
+  }
+
+  rpc UpdateFreezeWindow(UpdateFreezeWindowRequest) returns (UpdateFreezeWindowResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/freeze-window/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteFreezeWindow(DeleteFreezeWindowRequest) returns (DeleteFreezeWindowResponse) {
+    option (google.api.http) = {delete: "/api/v1alpha1/freeze-window/{id}"};
+  }
+
+  rpc ListFreezeWindows(ListFreezeWindowsRequest) returns (ListFreezeWindowsResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/freeze-windows/list"};
+  }
+}
+
+enum FreezeType {
+  FREEZE_TYPE_UNSPECIFIED = 0;
+  FREEZE_TYPE_HARD = 1;
+  FREEZE_TYPE_SOFT = 2;
+}
+
+enum FreezeScopeType {
+  FREEZE_SCOPE_UNSPECIFIED = 0;
+  FREEZE_SCOPE_GLOBAL = 1;
+  FREEZE_SCOPE_ENVIRONMENT = 2;
+  FREEZE_SCOPE_SERVICE = 3;
+  FREEZE_SCOPE_DOMAIN = 4;
+}
+
+message FreezeWindow {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  FreezeType type = 4;
+  FreezeScopeType scope_type = 5;
+  repeated string scope_ids = 6;
+  google.protobuf.Timestamp starts_at = 7;
+  google.protobuf.Timestamp ends_at = 8;
+  string timezone = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  bool active = 13;
+}
+
+message CreateFreezeWindowRequest {
+  string title = 1;
+  string description = 2;
+  FreezeType type = 3;
+  FreezeScopeType scope_type = 4;
+  repeated string scope_ids = 5;
+  google.protobuf.Timestamp starts_at = 6;
+  google.protobuf.Timestamp ends_at = 7;
+  string timezone = 8;
+  string created_by = 9;
+  bool active = 10;
+}
+
+message CreateFreezeWindowResponse {
+  FreezeWindow freeze_window = 1;
+}
+
+message GetFreezeWindowRequest {
+  string id = 1;
+}
+
+message GetFreezeWindowResponse {
+  FreezeWindow freeze_window = 1;
+}
+
+message UpdateFreezeWindowRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  FreezeType type = 4;
+  FreezeScopeType scope_type = 5;
+  repeated string scope_ids = 6;
+  google.protobuf.Timestamp starts_at = 7;
+  google.protobuf.Timestamp ends_at = 8;
+  string timezone = 9;
+  string created_by = 10;
+  bool active = 11;
+}
+
+message UpdateFreezeWindowResponse {
+  FreezeWindow freeze_window = 1;
+}
+
+message DeleteFreezeWindowRequest {
+  string id = 1;
+}
+
+message DeleteFreezeWindowResponse {
+  string message = 1;
+  string id = 2;
+  int64 count = 3;
+}
+
+message ListFreezeWindowsRequest {
+  google.protobuf.UInt32Value per_page = 1;
+  google.protobuf.Int32Value page = 2;
+}
+
+message ListFreezeWindowsResponse {
+  repeated FreezeWindow freeze_windows = 1;
+  uint32 total_count = 2;
+}

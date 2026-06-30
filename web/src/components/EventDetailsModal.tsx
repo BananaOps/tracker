@@ -16,6 +16,9 @@ import Toast from './Toast'
 import EventChangelog from './EventChangelog'
 import LockIndicator from './LockIndicator'
 import { DateTimePicker } from './ui/date-time-picker'
+import { useFreezeWindows } from '../hooks/useFreezeWindows'
+import { resolveFreezeImpact } from '../lib/freezeWindowUtils'
+import { FreezeReasonBanner } from './FreezeConflictBadge'
 
 interface EventDetailsModalProps {
   event: Event
@@ -43,7 +46,26 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   const [approvalUser, setApprovalUser] = useState('')
   const [approvalUserError, setApprovalUserError] = useState(false)
   const [approvingEvent, setApprovingEvent] = useState(false)
-  
+
+  // Freeze windows context
+  const { windows: freezeWindows } = useFreezeWindows()
+  const freezeImpact = useMemo(() => {
+    const startDate = editedEvent.attributes.startDate
+    const endDate = editedEvent.attributes.endDate
+    if (!startDate || !endDate) return null
+    return resolveFreezeImpact(
+      {
+        id: editedEvent.metadata?.id ?? '',
+        title: editedEvent.title,
+        environment: editedEvent.attributes.environment,
+        serviceId: editedEvent.attributes.service,
+        startsAt: startDate,
+        endsAt: endDate,
+      },
+      freezeWindows,
+    )
+  }, [editedEvent.attributes.startDate, editedEvent.attributes.endDate, editedEvent.attributes.environment, editedEvent.attributes.service, freezeWindows, editedEvent.metadata?.id, editedEvent.title])
+
   // Convertir les nombres en strings enum si nécessaire
   const normalizedEvent = useMemo(() => {
     const normalized = convertEventFromAPI(event)
@@ -676,6 +698,11 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       </div>
                     </div>
                   </div>
+                )}
+
+                {/* Freeze conflict banner — shown in read-only view when event overlaps a freeze window */}
+                {!isEditing && freezeImpact && freezeImpact.impacted && (
+                  <FreezeReasonBanner impact={freezeImpact} />
                 )}
 
                 {/* Editing: owner + selects */}

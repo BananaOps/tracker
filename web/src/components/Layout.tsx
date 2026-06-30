@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus, Snowflake } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
@@ -36,9 +36,10 @@ const navigationSections = [
   {
     label: 'Infrastructure',
     items: [
-      { name: 'Drifts',    href: '/drifts', icon: GitBranch },
-      { name: 'RPA Usage', href: '/rpa',    icon: Bot },
-      { name: 'Locks',     href: '/locks',  icon: Lock },
+      { name: 'Drifts',          href: '/drifts',          icon: GitBranch },
+      { name: 'RPA Usage',       href: '/rpa',             icon: Bot },
+      { name: 'Locks',           href: '/locks',           icon: Lock },
+      { name: 'Freeze Windows',  href: '/freeze-windows',  icon: Snowflake },
     ],
   },
   {

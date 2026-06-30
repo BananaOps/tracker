@@ -7,6 +7,7 @@ import (
 type Database struct {
 	EventCollection   string
 	LockCollection    string
+	FreezeCollection  string
 	CatalogCollection string
 	Host              string
 	Port              string
@@ -33,6 +34,7 @@ var ConfigGeneral = General{
 var ConfigDatabase = Database{
 	EventCollection:   "events",
 	LockCollection:    "locks",
+	FreezeCollection:  "freeze_windows",
 	CatalogCollection: "catalog",
 	Host:              "127.0.0.1",
 	Port:              "27017",
@@ -53,6 +55,9 @@ func init() {
 	}
 	if os.Getenv("DB_LOCK_COLLECTION") != "" {
 		ConfigDatabase.Name = os.Getenv("DB_LOCK_COLLECTION")
+	}
+	if os.Getenv("DB_FREEZE_COLLECTION") != "" {
+		ConfigDatabase.FreezeCollection = os.Getenv("DB_FREEZE_COLLECTION")
 	}
 	if os.Getenv("DB_NAME") != "" {
 		ConfigDatabase.Name = os.Getenv("DB_NAME")

@@ -18,6 +18,7 @@ import (
 
 	catalog "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
+	freeze "github.com/bananaops/tracker/generated/proto/freeze/v1alpha1"
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/middleware"
@@ -49,6 +50,10 @@ var serv = &cobra.Command{
 		locks := server.NewLock()
 		lock.RegisterLockServiceServer(grpcServer, locks)
 
+		// register freeze window service
+		freezes := server.NewFreezeWindow()
+		freeze.RegisterFreezeWindowServiceServer(grpcServer, freezes)
+
 		// register catalog service
 		catalogs := server.NewCatalog()
 		catalog.RegisterCatalogServiceServer(grpcServer, catalogs)
@@ -75,6 +80,11 @@ var serv = &cobra.Command{
 		}
 
 		err = lock.RegisterLockServiceHandlerServer(ctx, mux, locks)
+		if err != nil {
+			panic(err)
+		}
+
+		err = freeze.RegisterFreezeWindowServiceHandlerServer(ctx, mux, freezes)
 		if err != nil {
 			panic(err)
 		}

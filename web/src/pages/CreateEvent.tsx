@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, useMemo, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
@@ -13,6 +13,9 @@ import FormPanel from '../components/FormPanel'
 import ChipSelect, { type ChipOption } from '../components/ChipSelect'
 import { getEnvVisual, getStatusVisual, getPriorityVisual, getTypeVisual } from '../components/Badges'
 import { getEnvironmentLabel, getStatusLabel, getEventTypeLabel } from '../lib/eventUtils'
+import { useFreezeWindows } from '../hooks/useFreezeWindows'
+import { resolveFreezeImpact } from '../lib/freezeWindowUtils'
+import { FreezeReasonBanner } from '../components/FreezeConflictBadge'
 
 interface CreateEventProps {
   asPanel?: boolean
@@ -61,6 +64,25 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
   // Find downstream dependencies for the selected service
   const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
   const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
+
+  // Compute freeze conflict for current scheduling inputs
+  const { windows: freezeWindows } = useFreezeWindows()
+  const freezeImpact = useMemo(() => {
+    const startDate = formData.attributes.startDate
+    const endDate = formData.attributes.endDate
+    if (!startDate || !endDate) return null
+    return resolveFreezeImpact(
+      {
+        id: '',
+        title: formData.title,
+        environment: formData.attributes.environment,
+        serviceId: formData.attributes.service,
+        startsAt: startDate,
+        endsAt: endDate,
+      },
+      freezeWindows,
+    )
+  }, [formData.attributes.startDate, formData.attributes.endDate, formData.attributes.environment, formData.attributes.service, formData.title, freezeWindows])
 
   const createMutation = useMutation({
     mutationFn: eventsApi.create,
@@ -435,6 +457,11 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
                   </div>
                 </div>
               </section>
+
+              {/* Freeze window conflict warning — shown when selected dates overlap a freeze */}
+              {freezeImpact?.impacted && (
+                <FreezeReasonBanner impact={freezeImpact} />
+              )}
 
               {/* Section: Resources */}
               <section className="p-8 rounded-xl" style={{ background: hud.surface }}>

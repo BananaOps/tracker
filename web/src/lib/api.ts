@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ListCatalogsResponse } from '../types/api'
-import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
+import type { FreezeWindowDraft, FreezeWindow as UIFreezeWindow, FreezeType, FreezeScope } from '../types/freezeWindow'
+import { staticEventsApi, staticCatalogApi, staticLocksApi, staticFreezeWindowsApi } from './staticApi'
 import { convertCatalogForAPI, convertCatalogFromAPI, convertCommunicationChannelsFromAPI } from './apiConverters'
 
 // Détecter si on est en mode statique (GitHub Pages)
@@ -458,9 +459,118 @@ const realLocksApi = {
   },
 }
 
+interface FreezeWindowApi {
+  id: string
+  title: string
+  description?: string
+  type: number | string
+  scope_type: number | string
+  scope_ids?: string[]
+  starts_at: string | { seconds: number; nanos?: number }
+  ends_at: string | { seconds: number; nanos?: number }
+  timezone?: string
+  created_by?: string
+  created_at?: string | { seconds: number; nanos?: number }
+  updated_at?: string | { seconds: number; nanos?: number }
+  active?: boolean
+}
+
+interface ListFreezeWindowsResponseApi {
+  freeze_windows?: FreezeWindowApi[]
+  total_count?: number
+}
+
+const freezeTypeToApi = (type: FreezeType): number => (type === 'hard' ? 1 : 2)
+const freezeScopeToApi = (scope: FreezeScope): number => (
+  scope === 'global' ? 1 :
+    scope === 'environment' ? 2 :
+      scope === 'service' ? 3 : 4
+)
+
+const parseFreezeType = (type: number | string): FreezeType => {
+  if (type === 1 || type === 'FREEZE_TYPE_HARD' || type === 'HARD' || type === 'hard') return 'hard'
+  return 'soft'
+}
+
+const parseFreezeScope = (scope: number | string): FreezeScope => {
+  if (scope === 1 || scope === 'FREEZE_SCOPE_GLOBAL' || scope === 'GLOBAL' || scope === 'global') return 'global'
+  if (scope === 2 || scope === 'FREEZE_SCOPE_ENVIRONMENT' || scope === 'ENVIRONMENT' || scope === 'environment') return 'environment'
+  if (scope === 3 || scope === 'FREEZE_SCOPE_SERVICE' || scope === 'SERVICE' || scope === 'service') return 'service'
+  return 'domain'
+}
+
+const toIsoString = (value?: string | { seconds: number; nanos?: number }): string | undefined => {
+  if (!value) return undefined
+  if (typeof value === 'string') return value
+  return new Date((value.seconds ?? 0) * 1000).toISOString()
+}
+
+const convertFreezeFromApi = (f: FreezeWindowApi): UIFreezeWindow => ({
+  id: f.id,
+  title: f.title,
+  description: f.description,
+  type: parseFreezeType(f.type),
+  scopeType: parseFreezeScope(f.scope_type),
+  scopeIds: f.scope_ids ?? [],
+  startsAt: toIsoString(f.starts_at) ?? new Date().toISOString(),
+  endsAt: toIsoString(f.ends_at) ?? new Date().toISOString(),
+  timezone: f.timezone,
+  createdBy: f.created_by,
+  createdAt: toIsoString(f.created_at),
+  updatedAt: toIsoString(f.updated_at),
+  active: f.active ?? true,
+})
+
+const convertFreezeToApi = (f: FreezeWindowDraft) => ({
+  title: f.title,
+  description: f.description ?? '',
+  type: freezeTypeToApi(f.type),
+  scope_type: freezeScopeToApi(f.scopeType),
+  scope_ids: f.scopeIds ?? [],
+  starts_at: f.startsAt,
+  ends_at: f.endsAt,
+  timezone: f.timezone ?? '',
+  created_by: f.createdBy ?? '',
+  active: f.active ?? true,
+})
+
+const realFreezeWindowsApi = {
+  list: async () => {
+    const { data } = await axiosInstance.get<ListFreezeWindowsResponseApi>('/freeze-windows/list')
+    const freezeWindows = (data.freeze_windows ?? []).map(convertFreezeFromApi)
+    return {
+      freezeWindows,
+      totalCount: data.total_count ?? freezeWindows.length,
+    }
+  },
+
+  get: async (id: string) => {
+    const { data } = await axiosInstance.get<{ freeze_window: FreezeWindowApi }>(`/freeze-window/${id}`)
+    return convertFreezeFromApi(data.freeze_window)
+  },
+
+  create: async (freezeWindow: FreezeWindowDraft) => {
+    const payload = convertFreezeToApi(freezeWindow)
+    const { data } = await axiosInstance.post<{ freeze_window: FreezeWindowApi }>('/freeze-window', payload)
+    return convertFreezeFromApi(data.freeze_window)
+  },
+
+  update: async (id: string, freezeWindow: FreezeWindowDraft) => {
+    const payload = { id, ...convertFreezeToApi(freezeWindow) }
+    const { data } = await axiosInstance.put<{ freeze_window: FreezeWindowApi }>(`/freeze-window/${id}`, payload)
+    return convertFreezeFromApi(data.freeze_window)
+  },
+
+  delete: async (id: string) => {
+    const { data } = await axiosInstance.delete(`/freeze-window/${id}`)
+    return data
+  },
+}
+
 // Exporter les APIs appropriées selon le mode
 export const eventsApi = isStaticMode ? staticEventsApi : realEventsApi
 export const catalogApi = isStaticMode ? staticCatalogApi : realCatalogApi
 export const locksApi = isStaticMode ? staticLocksApi : realLocksApi
+export const freezeWindowsApi = isStaticMode ? staticFreezeWindowsApi : realFreezeWindowsApi
 
 export default axiosInstance

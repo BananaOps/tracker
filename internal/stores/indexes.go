@@ -25,6 +25,11 @@ func EnsureIndexes(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
+	// Index pour la collection freeze windows
+	if err := ensureFreezeWindowIndexes(ctx, db, logger); err != nil {
+		return err
+	}
+
 	// Index pour la collection catalogs
 	if err := ensureCatalogIndexes(ctx, db, logger); err != nil {
 		return err
@@ -173,6 +178,42 @@ func ensureCatalogIndexes(ctx context.Context, db *mongo.Database, logger *slog.
 	}
 
 	return createIndexes(ctx, collection, indexes, logger, "catalogs")
+}
+
+func ensureFreezeWindowIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
+	collection := db.Collection("freeze_windows")
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "id", Value: 1}},
+			Options: options.Index().
+				SetUnique(true).
+				SetName("idx_freeze_id").
+				SetPartialFilterExpression(bson.D{
+					{Key: "id", Value: bson.D{{Key: "$gt", Value: ""}}},
+				}),
+		},
+		{
+			Keys:    bson.D{{Key: "active", Value: 1}},
+			Options: options.Index().SetName("idx_freeze_active"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "scope_type", Value: 1},
+				{Key: "scope_ids", Value: 1},
+			},
+			Options: options.Index().SetName("idx_freeze_scope"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "starts_at.seconds", Value: 1},
+				{Key: "ends_at.seconds", Value: 1},
+			},
+			Options: options.Index().SetName("idx_freeze_window"),
+		},
+	}
+
+	return createIndexes(ctx, collection, indexes, logger, "freeze_windows")
 }
 
 func ensureLinksIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {

@@ -12,6 +12,9 @@
       "name": "EventService"
     },
     {
+      "name": "FreezeWindowService"
+    },
+    {
       "name": "LockService"
     }
   ],
@@ -634,7 +637,8 @@
               "close",
               "done",
               "in_progress",
-              "planned"
+              "planned",
+              "waiting_approval"
             ],
             "default": "STATUS_UNSPECIFIED"
           },
@@ -810,7 +814,8 @@
                 "close",
                 "done",
                 "in_progress",
-                "planned"
+                "planned",
+                "waiting_approval"
               ]
             },
             "collectionFormat": "multi"
@@ -951,7 +956,8 @@
                 "close",
                 "done",
                 "in_progress",
-                "planned"
+                "planned",
+                "waiting_approval"
               ]
             },
             "collectionFormat": "multi"
@@ -1016,6 +1022,170 @@
         ],
         "tags": [
           "EventService"
+        ]
+      }
+    },
+    "/api/v1alpha1/freeze-window": {
+      "post": {
+        "operationId": "FreezeWindowService_CreateFreezeWindow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateFreezeWindowResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateFreezeWindowRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FreezeWindowService"
+        ]
+      }
+    },
+    "/api/v1alpha1/freeze-window/{id}": {
+      "get": {
+        "operationId": "FreezeWindowService_GetFreezeWindow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetFreezeWindowResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FreezeWindowService"
+        ]
+      },
+      "delete": {
+        "operationId": "FreezeWindowService_DeleteFreezeWindow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1DeleteFreezeWindowResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FreezeWindowService"
+        ]
+      },
+      "put": {
+        "operationId": "FreezeWindowService_UpdateFreezeWindow",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateFreezeWindowResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FreezeWindowServiceUpdateFreezeWindowBody"
+            }
+          }
+        ],
+        "tags": [
+          "FreezeWindowService"
+        ]
+      }
+    },
+    "/api/v1alpha1/freeze-windows/list": {
+      "get": {
+        "operationId": "FreezeWindowService_ListFreezeWindows",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListFreezeWindowsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "FreezeWindowService"
         ]
       }
     },
@@ -1248,6 +1418,46 @@
       },
       "title": "Request to add a Slack ID to an existing event"
     },
+    "FreezeWindowServiceUpdateFreezeWindowBody": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1alpha1FreezeType"
+        },
+        "scope_type": {
+          "$ref": "#/definitions/v1alpha1FreezeScopeType"
+        },
+        "scope_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "starts_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ends_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
     "LockServiceUpdateLockBody": {
       "type": "object",
       "properties": {
@@ -1284,7 +1494,8 @@
         "close",
         "done",
         "in_progress",
-        "planned"
+        "planned",
+        "waiting_approval"
       ],
       "default": "STATUS_UNSPECIFIED"
     },
@@ -1600,6 +1811,54 @@
         }
       }
     },
+    "v1alpha1CreateFreezeWindowRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1alpha1FreezeType"
+        },
+        "scope_type": {
+          "$ref": "#/definitions/v1alpha1FreezeScopeType"
+        },
+        "scope_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "starts_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ends_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1alpha1CreateFreezeWindowResponse": {
+      "type": "object",
+      "properties": {
+        "freeze_window": {
+          "$ref": "#/definitions/v1alpha1FreezeWindow"
+        }
+      }
+    },
     "v1alpha1CreateLockRequest": {
       "type": "object",
       "properties": {
@@ -1790,6 +2049,21 @@
         }
       }
     },
+    "v1alpha1DeleteFreezeWindowResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "count": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "v1alpha1DeliverableComplianceStats": {
       "type": "object",
       "properties": {
@@ -1972,6 +2246,77 @@
         }
       }
     },
+    "v1alpha1FreezeScopeType": {
+      "type": "string",
+      "enum": [
+        "FREEZE_SCOPE_UNSPECIFIED",
+        "FREEZE_SCOPE_GLOBAL",
+        "FREEZE_SCOPE_ENVIRONMENT",
+        "FREEZE_SCOPE_SERVICE",
+        "FREEZE_SCOPE_DOMAIN"
+      ],
+      "default": "FREEZE_SCOPE_UNSPECIFIED"
+    },
+    "v1alpha1FreezeType": {
+      "type": "string",
+      "enum": [
+        "FREEZE_TYPE_UNSPECIFIED",
+        "FREEZE_TYPE_HARD",
+        "FREEZE_TYPE_SOFT"
+      ],
+      "default": "FREEZE_TYPE_UNSPECIFIED"
+    },
+    "v1alpha1FreezeWindow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1alpha1FreezeType"
+        },
+        "scope_type": {
+          "$ref": "#/definitions/v1alpha1FreezeScopeType"
+        },
+        "scope_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "starts_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ends_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1alpha1GetCatalogResponse": {
       "type": "object",
       "properties": {
@@ -2043,6 +2388,14 @@
         }
       },
       "title": "Response for event statistics count"
+    },
+    "v1alpha1GetFreezeWindowResponse": {
+      "type": "object",
+      "properties": {
+        "freeze_window": {
+          "$ref": "#/definitions/v1alpha1FreezeWindow"
+        }
+      }
     },
     "v1alpha1GetLockResponse": {
       "type": "object",
@@ -2198,6 +2551,22 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1alpha1Event"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v1alpha1ListFreezeWindowsResponse": {
+      "type": "object",
+      "properties": {
+        "freeze_windows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1FreezeWindow"
           }
         },
         "total_count": {
@@ -2451,6 +2820,14 @@
       "properties": {
         "event": {
           "$ref": "#/definitions/v1alpha1Event"
+        }
+      }
+    },
+    "v1alpha1UpdateFreezeWindowResponse": {
+      "type": "object",
+      "properties": {
+        "freeze_window": {
+          "$ref": "#/definitions/v1alpha1FreezeWindow"
         }
       }
     },

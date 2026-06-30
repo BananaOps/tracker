@@ -13,9 +13,19 @@ import { Input } from '../components/ui/input'
 import { Badge } from '../components/ui/badge'
 import { Separator } from '../components/ui/separator'
 import { ScrollArea } from '../components/ui/scroll-area'
+import { useFreezeWindows } from '../hooks/useFreezeWindows'
+import { getFreezeWindowsForDay, resolveFreezeImpact, getFreezePalette } from '../lib/freezeWindowUtils'
+import { FreezeWindowDayOverlay, FreezeWindowPill, FreezeWindowListItem } from '../components/FreezeWindowOverlay'
+import { FreezeConflictBadge } from '../components/FreezeConflictBadge'
+import { FreezeWindowDrawer } from '../components/FreezeWindowDrawer'
+import type { FreezeWindow } from '../types/freezeWindow'
 
 export default function EventsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const { windows: freezeWindows, add: addFreeze, update: updateFreeze, remove: removeFreeze, toggle: toggleFreeze } = useFreezeWindows()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editingFreeze, setEditingFreeze] = useState<FreezeWindow | undefined>(undefined)
+  const [showFreezePanel, setShowFreezePanel] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showSidebar, setShowSidebar] = useState(false) // Fermé par défaut
@@ -52,6 +62,24 @@ export default function EventsCalendar() {
 
   const allEvents = data?.events || []
   const catalogs = catalogData?.catalogs || []
+
+  // Filtrer les freeze windows selon les filtres actifs (env/service)
+  // Une freeze globale est toujours visible ; une freeze env/service n'est visible
+  // que si son scope correspond aux filtres actifs — ou si aucun filtre n'est actif.
+  const visibleFreezeWindows = useMemo(() => {
+    const hasEnvFilter = selectedEnvironments.length > 0
+    const hasSvcFilter = selectedServices.length > 0
+    if (!hasEnvFilter && !hasSvcFilter) return freezeWindows
+    return freezeWindows.filter(fw => {
+      if (fw.scopeType === 'global') return true
+      if (fw.scopeType === 'environment' && hasEnvFilter)
+        return fw.scopeIds?.some(id => selectedEnvironments.includes(id)) ?? false
+      if (fw.scopeType === 'service' && hasSvcFilter)
+        return fw.scopeIds?.some(id => selectedServices.includes(id)) ?? false
+      // domain scope: always show when no dedicated domain filter exists yet
+      return true
+    })
+  }, [freezeWindows, selectedEnvironments, selectedServices])
 
   // Extraire les services du catalogue
   const catalogServices = useMemo(() => {
@@ -618,6 +646,31 @@ export default function EventsCalendar() {
                 <span style={{ color: 'rgb(var(--hud-on-surface-var))' }}>·</span>
                 <span className="font-medium" style={{ color: '#166534' }}>{completedEventsCount} completed</span>
               </div>
+              <div className="ml-auto flex items-center gap-2">
+                {/* Freeze windows legend */}
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(239,68,68,0.5)' }} />
+                  <span style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Hard freeze</span>
+                  <span className="w-2.5 h-2.5 rounded-sm inline-block ml-1" style={{ background: 'rgba(245,158,11,0.25)', border: '1px solid rgba(245,158,11,0.5)' }} />
+                  <span style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Soft freeze</span>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowFreezePanel(p => !p)}
+                  className="text-[10px] h-7 px-2.5 gap-1.5"
+                >
+                  🔒 {visibleFreezeWindows.filter(fw => fw.active !== false).length} freeze{visibleFreezeWindows.filter(fw => fw.active !== false).length !== 1 ? 's' : ''}
+                </Button>
+                <Button
+                  size="sm"
+                  className="text-[10px] h-7 px-2.5"
+                  onClick={() => { setEditingFreeze(undefined); setDrawerOpen(true) }}
+                  style={{ background: 'rgb(var(--hud-primary))', color: '#fff' }}
+                >
+                  + New freeze
+                </Button>
+              </div>
             </div>
             <div className="flex gap-4 flex-1 min-h-0">
             {/* Calendar Grid */}
@@ -657,18 +710,34 @@ export default function EventsCalendar() {
                         const isWeekend = dayIndex >= 5
                         const visibleEventCount = dayEvents.length > maxEventLinesPerDay ? maxEventLinesPerDay - 1 : dayEvents.length
                         const hiddenEventCount = dayEvents.length - visibleEventCount
+                        const dayFreezes = getFreezeWindowsForDay(day, visibleFreezeWindows)
+                        const hasFreeze = dayFreezes.length > 0
 
                         return (
                           <button
                             key={day.toISOString()}
                             onClick={() => setSelectedDate(day)}
-                            className={`p-1 rounded-lg transition-colors flex flex-col overflow-hidden text-left ${isWeekend ? 'opacity-55' : ''}`}
+                            className={`relative p-1 rounded-lg transition-colors flex flex-col overflow-hidden text-left ${isWeekend ? 'opacity-55' : ''}`}
                             style={{ background: isSelected && !isCurrentDay ? '#EFF4FF' : 'transparent' }}
                           >
-                            <div className={`w-6 h-6 mb-0.5 rounded-full flex items-center justify-center text-xs font-medium ${isCurrentDay ? '' : ''}`} style={{ background: isCurrentDay ? '#1B3575' : 'transparent', color: isCurrentDay ? '#FFFFFF' : isSelected ? '#1B3575' : '#6E7891' }}>
+                            {/* Freeze overlay — sits behind day content */}
+                            {hasFreeze && <FreezeWindowDayOverlay freezeWindows={dayFreezes} />}
+
+                            <div className={`relative z-10 w-6 h-6 mb-0.5 rounded-full flex items-center justify-center text-xs font-medium`} style={{ background: isCurrentDay ? '#1B3575' : 'transparent', color: isCurrentDay ? '#FFFFFF' : isSelected ? '#1B3575' : '#6E7891' }}>
                               {format(day, 'd')}
                             </div>
-                            <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
+                            <div className="relative z-10 flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
+                              {/* Freeze pills — one per distinct freeze covering this day */}
+                              {dayFreezes.slice(0, 1).map(fw => (
+                                <FreezeWindowPill
+                                  key={fw.id}
+                                  freeze={fw}
+                                  onClick={e => { e.stopPropagation(); setEditingFreeze(fw); setDrawerOpen(true) }}
+                                />
+                              ))}
+                              {dayFreezes.length > 1 && (
+                                <span className="text-[9px] px-1" style={{ color: '#9CA3AF' }}>+{dayFreezes.length - 1} freeze</span>
+                              )}
                               {dayEvents.slice(0, visibleEventCount).map((event: any, idx: number) => {
                                 const envPalette = getEnvironmentPalette(event.attributes.environment)
                                 return (
@@ -699,6 +768,32 @@ export default function EventsCalendar() {
                 </div>
               </div>
             </div>
+
+            {/* Freeze Windows Side Panel */}
+            {showFreezePanel && (
+              <div className="w-[260px] rounded-xl flex flex-col overflow-hidden min-h-0 shrink-0" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
+                <div className="px-4 py-3 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
+                  <span className="text-xs font-semibold" style={{ color: 'rgb(var(--hud-on-surface))' }}>Freeze Windows</span>
+                  <button onClick={() => setShowFreezePanel(false)} className="text-[10px] opacity-60 hover:opacity-100" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>✕</button>
+                </div>
+                <ScrollArea className="flex-1 overflow-y-auto">
+                  <div className="p-3 flex flex-col gap-2">
+                    {freezeWindows.length === 0 && (
+                      <p className="text-xs text-center py-6" style={{ color: '#9CA3AF' }}>No freeze windows defined</p>
+                    )}
+                    {freezeWindows.map(fw => (
+                      <FreezeWindowListItem
+                        key={fw.id}
+                        freeze={fw}
+                        onEdit={fw => { setEditingFreeze(fw); setDrawerOpen(true) }}
+                        onToggle={toggleFreeze}
+                        onDelete={removeFreeze}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             {/* Event Details Panel */}
             <div className="w-[288px] rounded-xl flex flex-col overflow-hidden min-h-0 shrink-0" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
@@ -755,7 +850,7 @@ export default function EventsCalendar() {
                             style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.08)' }}
                             onClick={() => setSelectedEvent(event)}
                           >
-                            <div className="flex items-center gap-1.5 mb-1">
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                               {(() => {
                                 const st = getStatusPalette(event.attributes.status)
                                 return (
@@ -768,6 +863,17 @@ export default function EventsCalendar() {
                                     </span>
                                   </span>
                                 )
+                              })()}
+                              {/* Freeze conflict badge */}
+                              {(() => {
+                                const startDate = event.attributes.startDate || event.metadata?.createdAt
+                                const endDate = event.attributes.endDate || startDate
+                                if (!startDate || !endDate) return null
+                                const impact = resolveFreezeImpact(
+                                  { id: event.metadata?.id ?? '', title: event.title, environment: event.attributes.environment, serviceId: event.attributes.service, startsAt: startDate, endsAt: endDate },
+                                  visibleFreezeWindows,
+                                )
+                                return <FreezeConflictBadge impact={impact} variant="compact" />
                               })()}
                             </div>
                             <p className="text-xs font-medium leading-snug mb-1 transition-colors hover:text-[#1B3575]" style={{ color: 'rgb(var(--hud-on-surface))' }}>
@@ -835,6 +941,20 @@ export default function EventsCalendar() {
           onClose={() => setSelectedEvent(null)}
         />
       )}
+
+      {/* Freeze Window Drawer */}
+      <FreezeWindowDrawer
+        open={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setEditingFreeze(undefined) }}
+        initial={editingFreeze}
+        onSubmit={draft => {
+          if (editingFreeze) {
+            updateFreeze(editingFreeze.id, draft)
+          } else {
+            addFreeze(draft)
+          }
+        }}
+      />
     </div>
   )
 }
