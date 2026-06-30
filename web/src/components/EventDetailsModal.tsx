@@ -47,6 +47,14 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   const [approvalUserError, setApprovalUserError] = useState(false)
   const [approvingEvent, setApprovingEvent] = useState(false)
 
+  // Convertir les nombres en strings enum si nécessaire
+  const normalizedEvent = useMemo(() => {
+    const normalized = convertEventFromAPI(event)
+    return normalized
+  }, [event])
+  const [editedEvent, setEditedEvent] = useState(normalizedEvent)
+  const queryClient = useQueryClient()
+
   // Freeze windows context
   const { windows: freezeWindows } = useFreezeWindows()
   const freezeImpact = useMemo(() => {
@@ -65,14 +73,6 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       freezeWindows,
     )
   }, [editedEvent.attributes.startDate, editedEvent.attributes.endDate, editedEvent.attributes.environment, editedEvent.attributes.service, freezeWindows, editedEvent.metadata?.id, editedEvent.title])
-
-  // Convertir les nombres en strings enum si nécessaire
-  const normalizedEvent = useMemo(() => {
-    const normalized = convertEventFromAPI(event)
-    return normalized
-  }, [event])
-  const [editedEvent, setEditedEvent] = useState(normalizedEvent)
-  const queryClient = useQueryClient()
   
   // Vérifier si l'événement a été approuvé
   const isApproved = useMemo(() => {

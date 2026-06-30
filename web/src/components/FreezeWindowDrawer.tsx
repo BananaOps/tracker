@@ -374,15 +374,34 @@ function MultiSelectScope({
   onToggle: (value: string) => void
   emptyMessage: string
 }) {
+  const [search, setSearch] = useState('')
+
   if (options.length === 0) {
     return <p className="text-[11px]" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>{emptyMessage}</p>
   }
 
+  const filteredOptions = options.filter((opt) =>
+    opt.label.toLowerCase().includes(search.toLowerCase()) ||
+    opt.value.toLowerCase().includes(search.toLowerCase()),
+  )
+
   return (
     <div className="space-y-2">
-      <div className="max-h-40 overflow-y-auto rounded-md p-2 border" style={{ borderColor: 'rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}>
+      <div className="relative">
+        <i className="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px]" style={{ color: 'rgb(var(--hud-on-surface-var))' }} />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search..."
+          className="w-full pl-8 pr-3 py-1.5 rounded-md text-xs"
+          style={{ border: '1px solid rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))', color: 'rgb(var(--hud-on-surface))' }}
+        />
+      </div>
+
+      <div className="max-h-44 overflow-y-auto rounded-md p-2 border" style={{ borderColor: 'rgb(var(--hud-outline-var) / 0.3)', background: 'rgb(var(--hud-surface-high))' }}>
         <div className="flex flex-wrap gap-1.5">
-          {options.map((opt) => {
+          {filteredOptions.map((opt) => {
             const active = selected.includes(opt.value)
             return (
               <button
@@ -398,10 +417,13 @@ function MultiSelectScope({
               </button>
             )
           })}
+          {filteredOptions.length === 0 && (
+            <p className="text-[11px] px-1" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>No result</p>
+          )}
         </div>
       </div>
       <p className="text-[10px]" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
-        {selected.length} selected
+        {selected.length} selected{search ? ` · ${filteredOptions.length} shown` : ''}
       </p>
     </div>
   )

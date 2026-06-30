@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, AlertTriangle, Bot, Calendar, Clock, Flame, GitBranch, LayoutDashboard, Radio, Rocket, Settings, Wrench } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMeteor } from '@fortawesome/free-solid-svg-icons'
-import { eventsApi } from '../lib/api'
+import { eventsApi, freezeWindowsApi } from '../lib/api'
 import { Priority } from '../types/api'
 import type { Event } from '../types/api'
+import type { FreezeWindow } from '../types/freezeWindow'
 import { getEventTypeIcon, getEventTypeLabel, getPriorityLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 
@@ -107,6 +108,23 @@ function timeLabel(date?: Date) {
 
 function hourFloat(date: Date) {
   return date.getHours() + date.getMinutes() / 60
+}
+
+function normalizeEnvKey(raw?: string) {
+  const value = String(raw || '').toLowerCase()
+  if (value === 'production' || value === '7') return 'production'
+  if (value === 'preproduction' || value === '6') return 'preproduction'
+  return 'other'
+}
+
+function freezeTargetsEnv(freeze: FreezeWindow, env: TimelineBucket) {
+  if (freeze.scopeType === 'global') return true
+  if (freeze.scopeType === 'environment') {
+    const ids = freeze.scopeIds ?? []
+    return ids.some((id) => normalizeEnvKey(id) === env)
+  }
+  // service/domain scopes are not tied to a single env in this view
+  return env !== 'other'
 }
 
 function OperationalTypeIcon({ type, color }: { type: string; color: string }) {
@@ -304,8 +322,15 @@ export default function Dashboard() {
     refetchInterval: 30000,
   })
 
+  const { data: freezeData } = useQuery({
+    queryKey: ['freeze-windows', 'dashboard'],
+    queryFn: () => freezeWindowsApi.list(),
+    refetchInterval: 30000,
+  })
+
   const events: Event[] = useMemo(() => (todayEvents?.events || []) as Event[], [todayEvents])
   const allEvents: Event[] = useMemo(() => (allEventsData?.events || []) as Event[], [allEventsData])
+  const freezeWindows: FreezeWindow[] = useMemo(() => (freezeData?.freezeWindows || []) as FreezeWindow[], [freezeData])
 
   const derived = useMemo(() => {
     const toDerivedRow = (event: Event): DerivedRow => {
@@ -374,6 +399,24 @@ export default function Dashboard() {
   }, [events, allEvents])
 
   const nowHour = new Date().getHours() + new Date().getMinutes() / 60
+  const dayStart = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+  const dayEnd = useMemo(() => {
+    const d = new Date(dayStart)
+    d.setHours(23, 59, 59, 999)
+    return d
+  }, [dayStart])
+  const visibleFreezeWindows = useMemo(() => {
+    return freezeWindows.filter((freeze) => {
+      if (freeze.active === false) return false
+      const start = new Date(freeze.startsAt)
+      const end = new Date(freeze.endsAt)
+      return start <= dayEnd && end >= dayStart
+    })
+  }, [freezeWindows, dayStart, dayEnd])
 
   return (
     <>
@@ -434,10 +477,15 @@ export default function Dashboard() {
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${a('outlineVar', 0.1)}` }}>
                 <div>
                   <h2 className="text-[13px] font-semibold">Operational window</h2>
-                  <p className="text-[11px] mt-0.5" style={{ color: T.onSurfaceVar }}>00:00–24:00 · by environment</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: T.onSurfaceVar }}>00:00–24:00 · by environment · freeze overlays enabled</p>
                 </div>
-                <div className="px-2.5 py-1 text-[10px] font-medium rounded-md" style={{ color: C.accentDark, background: `${C.accent}14`, border: `1px solid ${C.accent}4d` }}>
-                  {derived.overlapCount} conflicts
+                <div className="flex items-center gap-2">
+                  <div className="px-2.5 py-1 text-[10px] font-medium rounded-md" style={{ color: C.accentDark, background: `${C.accent}14`, border: `1px solid ${C.accent}4d` }}>
+                    {derived.overlapCount} conflicts
+                  </div>
+                  <div className="px-2.5 py-1 text-[10px] font-medium rounded-md" style={{ color: '#B84400', background: '#FFF0E8', border: '1px solid #FFC8A0' }}>
+                    {visibleFreezeWindows.length} freezes
+                  </div>
                 </div>
               </div>
               <div className="flex-1 px-5 py-5 flex flex-col gap-5 overflow-y-auto">
@@ -474,9 +522,39 @@ export default function Dashboard() {
                       return (
                         <div className="flex-1 relative" style={{ height: `${rowHeight}px` }}>
                           <div className="absolute inset-0 rounded-md" style={{ background: a('surfaceHigh', 0.22), border: `1px solid ${a('outlineVar', 0.14)}` }} />
-                      {[4, 8, 12, 16, 20].map((h) => (
+                          {[4, 8, 12, 16, 20].map((h) => (
                             <div key={h} className="absolute top-0 bottom-0 w-px" style={{ left: `${tlPct(h)}%`, background: a('outlineVar', 0.12) }} />
-                      ))}
+                          ))}
+                          {visibleFreezeWindows
+                            .filter((freeze) => freezeTargetsEnv(freeze, group.env as TimelineBucket))
+                            .map((freeze) => {
+                              const start = new Date(freeze.startsAt)
+                              const end = new Date(freeze.endsAt)
+                              const clippedStart = start < dayStart ? dayStart : start
+                              const clippedEnd = end > dayEnd ? dayEnd : end
+                              const left = tlPct(hourFloat(clippedStart))
+                              const right = tlPct(hourFloat(clippedEnd))
+                              const width = Math.max(right - left, 1.8)
+                              const hard = freeze.type === 'hard'
+                              return (
+                                <div
+                                  key={`freeze-${group.label}-${freeze.id}`}
+                                  className="absolute rounded-sm px-1 text-[8px] font-semibold overflow-hidden pointer-events-none flex items-center gap-1"
+                                  style={{
+                                    top: '2px',
+                                    height: '12px',
+                                    left: `${left}%`,
+                                    width: `${width}%`,
+                                    background: hard ? 'rgba(239,68,68,0.22)' : 'rgba(245,158,11,0.2)',
+                                    color: hard ? '#B84400' : '#8C5A00',
+                                    border: hard ? '1px solid rgba(239,68,68,0.55)' : '1px solid rgba(245,158,11,0.5)',
+                                  }}
+                                >
+                                  <i className={`fa-solid ${hard ? 'fa-lock' : 'fa-triangle-exclamation'} text-[7px]`} />
+                                  <span className="truncate">{freeze.title}</span>
+                                </div>
+                              )
+                            })}
                           {placed.map(({ row, laneIndex }) => {
                         const left = tlPct(hourFloat(row.start))
                         const right = tlPct(hourFloat(row.end))
