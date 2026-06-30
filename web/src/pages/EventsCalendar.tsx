@@ -43,11 +43,13 @@ export default function EventsCalendar() {
       endDate: monthEnd.toISOString(),
     }),
     staleTime: 60_000,
+    refetchInterval: 30_000,
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['catalogs', 'list'],
     queryFn: () => catalogApi.list({ perPage: 1000 }),
+    refetchInterval: 30_000,
   })
 
   const allEvents = data?.events || []

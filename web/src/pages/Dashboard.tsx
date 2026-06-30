@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -291,6 +291,8 @@ function EnvBadge({ env }: { env?: string }) {
 
 export default function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [lastUpdated, setLastUpdated] = useState(new Date())
+  const [countdown, setCountdown] = useState(30)
 
   const { data: todayEvents } = useQuery({
     queryKey: ['events', 'today'],
@@ -303,6 +305,20 @@ export default function Dashboard() {
     queryFn: () => eventsApi.list({ perPage: 1000, page: 1 }),
     refetchInterval: 30000,
   })
+
+  // Update lastUpdated timestamp whenever data changes
+  useEffect(() => {
+    setLastUpdated(new Date())
+    setCountdown(30)
+  }, [todayEvents, allEventsData])
+
+  // Countdown timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(prev => (prev <= 1 ? 30 : prev - 1))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const events: Event[] = useMemo(() => (todayEvents?.events || []) as Event[], [todayEvents])
   const allEvents: Event[] = useMemo(() => (allEventsData?.events || []) as Event[], [allEventsData])
@@ -379,6 +395,15 @@ export default function Dashboard() {
     <>
       <div className="min-h-full overflow-auto" style={{ background: T.bg, color: T.onSurface }}>
         <main className="px-6 py-5 pb-16 flex flex-col gap-4 min-h-full">
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-[11px] tabular-nums" style={{ color: T.onSurfaceVar }}>
+              Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium tabular-nums" style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar, border: `1px solid ${a('outlineVar', 0.15)}` }}>
+              <span className="w-1.5 h-1.5 rounded-full fa-fade" style={{ background: countdown <= 5 ? C.accent : '#22c55e', display: 'inline-block' }} />
+              {countdown}s
+            </span>
+          </div>
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <article className="rounded-xl p-5 border" style={{ ...PANEL, borderColor: a('outlineVar', 0.2) }}>
               <div className="flex items-center justify-between mb-4">
