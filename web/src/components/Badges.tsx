@@ -23,7 +23,7 @@ export function StatusBadge({ status }: { status?: string | number }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className="w-6 h-6 rounded-md flex items-center justify-center border shrink-0" style={{ background: v.bg, color: v.text, borderColor }}>
-        <i className={`fa-solid ${v.icon} text-[10px]`} />
+        <i className={`fa-solid ${v.icon} text-[10px]${v.icon === 'fa-satellite-dish' ? ' fa-fade' : ''}`} />
       </span>
       <span className="text-[10px] font-semibold uppercase" style={{ color: v.text }}>{getStatusLabel(status as never)}</span>
     </span>

@@ -949,7 +949,7 @@ export default function EventsStreamline() {
                                         {event.title}
                                       </div>
                                       {event.attributes.impact && (
-                                        <i className="fa-solid fa-meteor text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84' }} />
+                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' }} />
                                       )}
                                       {approved && <i className="fa-solid fa-circle-check text-[10px] ml-1 flex-shrink-0" style={{ color: '#16A34A' }} />}
                                       {spanCount > 2 && viewMode === 'week' && (

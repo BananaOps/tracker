@@ -680,7 +680,7 @@ export default function EventsCalendar() {
                                       {getEventTypeIcon(event.attributes.type, 'w-2.5 h-2.5')}
                                     </span>
                                     {getImpactLabel(event.attributes.impact) && (
-                                      <i className="fa-solid fa-meteor text-[9px] shrink-0" />
+                                      <i className="fa-solid fa-meteor fa-beat-fade text-[9px] shrink-0" style={{ '--fa-animation-duration': '2s' }} />
                                     )}
                                     <span className="truncate">{event.title}</span>
                                   </div>
@@ -760,7 +760,7 @@ export default function EventsCalendar() {
                                 return (
                                   <span className="inline-flex items-center gap-1.5">
                                     <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: st.bg, color: st.text, borderColor: st.border }}>
-                                      <i className={`fa-solid ${st.icon} text-[10px]`} />
+                                      <i className={`fa-solid ${st.icon} text-[10px]${st.icon === 'fa-satellite-dish' ? ' fa-fade' : ''}`} />
                                     </span>
                                     <span className="text-[10px] font-semibold uppercase" style={{ color: st.text }}>
                                       {st.label}
@@ -802,7 +802,7 @@ export default function EventsCalendar() {
                               {getImpactLabel(event.attributes.impact) && (
                                 <span className="inline-flex items-center gap-1.5">
                                   <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: '#FFF0E8', color: '#B84400', borderColor: '#FFC8A0' }}>
-                                    <i className="fa-solid fa-meteor text-[10px]" />
+                                    <i className="fa-solid fa-meteor fa-beat-fade text-[10px]" style={{ '--fa-animation-duration': '2s' }} />
                                   </span>
                                   <span className="text-[10px] font-semibold uppercase" style={{ color: '#B84400' }}>{getImpactLabel(event.attributes.impact)}</span>
                                 </span>

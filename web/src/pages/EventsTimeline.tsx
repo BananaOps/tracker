@@ -788,7 +788,7 @@ export default function EventsTimeline() {
                                 className="w-7 h-7 rounded-md flex items-center justify-center border"
                                 style={{ background: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
                               >
-                                <i className={`fa-solid ${statusIconClass} text-[11px]`} />
+                                <i className={`fa-solid ${statusIconClass} text-[11px]${statusIconClass === 'fa-satellite-dish' ? ' fa-fade' : ''}`} />
                               </span>
                               <span className="text-[10px] font-semibold uppercase" style={{ color: statusStyle.text }}>
                                 {statusStyle.label}
@@ -833,7 +833,10 @@ export default function EventsTimeline() {
                                   ? { background: '#FFF0E8', color: '#B84400', borderColor: '#FFC8A0' }
                                   : { background: '#EEF1F8', color: '#6E7891', borderColor: '#D5DBE8' }}
                               >
-                                <i className="fa-solid fa-meteor text-[11px]" />
+                                <i
+                                  className={`fa-solid fa-meteor text-[11px]${hasImpact ? ' fa-beat-fade' : ''}`}
+                                  style={hasImpact ? { '--fa-animation-duration': '2s' } : undefined}
+                                />
                               </span>
                               <span
                                 className="text-[10px] font-semibold uppercase"
