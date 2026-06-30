@@ -2,10 +2,10 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { Package, Globe, Filter, X, Calendar, Clock, ChevronDown, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react'
 import type { Event } from '../types/api'
-import { getEnvironmentLabel, getEventTypeLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
+import { getEnvironmentLabel, getEventTypeIcon, getEventTypeLabel, getPriorityLabel, getStatusLabel, isEventApproved } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 
 type GroupBy = 'service' | 'environment'
@@ -149,8 +149,9 @@ export default function EventsStreamline() {
 
   // Calculer la période affichée basée sur les dates sélectionnées
   const today = new Date()
-  const dayStart = startOfDay(startDate)
-  const dayEnd = endOfDay(endDate)
+  const focusedDay = viewMode === 'day' ? endDate : startDate
+  const dayStart = startOfDay(focusedDay)
+  const dayEnd = endOfDay(focusedDay)
   
   const handleTimeRangeSelect = (range: TimeRange) => {
     const { start, end } = range.getValue()
@@ -189,8 +190,8 @@ export default function EventsStreamline() {
   // Grouper et filtrer les événements
   const groupedEvents = useMemo(() => {
     const groups: Record<string, Event[]> = {}
-    const start = startOfDay(startDate)
-    const end = endOfDay(endDate)
+    const start = viewMode === 'day' ? dayStart : startOfDay(startDate)
+    const end = viewMode === 'day' ? dayEnd : endOfDay(endDate)
     
     // Filtrer les événements de la période
     const periodEvents = events.filter(event => {
@@ -211,7 +212,7 @@ export default function EventsStreamline() {
     })
 
     return groups
-  }, [events, groupBy, startDate, endDate])
+  }, [events, groupBy, viewMode, startDate, endDate, dayStart, dayEnd])
 
   // Fonctions pour gérer les filtres
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
@@ -258,14 +259,38 @@ export default function EventsStreamline() {
     groupedEvents[b].length - groupedEvents[a].length
   )
 
-  const getEventHexColor = (type: string) => {
+  const getTypeVisual = (type: string) => {
     const t = String(type).toLowerCase()
-    if (t === 'deployment' || t === '1') return '#40ceed'
-    if (t === 'incident'   || t === '4') return '#ff6e84'
-    if (t === 'drift'      || t === '3') return '#f5c842'
-    if (t === 'operation'  || t === '2') return '#bd9dff'
-    if (t === 'rpa_usage'  || t === '5') return '#818cf8'
-    return '#a78bfa'
+    if (t === 'deployment' || t === '1') return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
+    if (t === 'operation' || t === '2') return { bg: '#F3EEFF', text: '#5B3AAE', border: '#D9CCFF' }
+    if (t === 'incident' || t === '4') return { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }
+    if (t === 'drift' || t === '3') return { bg: '#EAFBFA', text: '#0F766E', border: '#BDECE8' }
+    if (t === 'rpa_usage' || t === '5') return { bg: '#FFF4EA', text: '#C2410C', border: '#FFD5B0' }
+    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
+  }
+
+  const getEnvironmentBadgeStyle = (environment?: string) => {
+    const env = String(environment || '').toLowerCase()
+    if (env === 'production' || env === '7') return { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }
+    if (env === 'preproduction' || env === '6') return { bg: '#FFF4EA', text: '#C2410C', border: '#FFD5B0' }
+    if (env === 'development' || env === '1' || env === 'integration' || env === '2') return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
+    return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
+  }
+
+  const getPriorityBadgeStyle = (priority?: string) => {
+    const p = String(priority || '').toLowerCase()
+    if (p === 'p1' || p === '1') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
+    if (p === 'p2' || p === '2') return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0' }
+    if (p === 'p3' || p === '3') return { bg: '#FDFCE8', text: '#6B6000', border: '#F0EA90' }
+    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
+  }
+
+  const getStatusBadgeStyle = (status?: string) => {
+    const s = String(status || '').toLowerCase()
+    if (s === 'success' || s === '3' || s === 'done' || s === '11') return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
+    if (s === 'failure' || s === '2' || s === 'error' || s === '5') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
+    if (s === 'start' || s === '1' || s === 'in_progress' || s === '12') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
+    return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
   }
 
   const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
@@ -283,14 +308,14 @@ export default function EventsStreamline() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: T.bg, color: T.onSurface }}>
+    <div className="flex flex-1 min-h-0 overflow-hidden" style={{ background: T.bg, color: T.onSurface }}>
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-64 flex flex-col shrink-0" style={{ background: T.surfaceLow, borderRight: `1px solid ${a('outline-var', 0.15)}` }}>
+        <div className="w-64 flex flex-col shrink-0" style={{ background: T.surface, borderRight: `1px solid ${a('outline-var', 0.22)}` }}>
 
           {/* Sidebar Header */}
-          <div className="p-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.12)}` }}>
+          <div className="p-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.2)}`, background: T.surfaceHigh }}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: T.onSurface }}>
                 <SlidersHorizontal className="w-4 h-4" />
@@ -313,20 +338,24 @@ export default function EventsStreamline() {
               <div className="space-y-2">
                 {uniqueTypes.map(type => {
                   const checked = selectedTypes.includes(String(type))
-                  const color = getEventHexColor(String(type))
+                  const typeStyle = getTypeVisual(String(type))
                   return (
-                    <label key={String(type)} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={String(type)}
+                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
+                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
+                    >
                       <div
                         onClick={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
                         className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                         style={{
-                          background: checked ? color : a('outline-var', 0.1),
-                          border: `1.5px solid ${checked ? color : a('outline-var', 0.4)}`
+                          background: checked ? typeStyle.bg : a('outline-var', 0.2),
+                          border: `1.5px solid ${checked ? typeStyle.border : a('outline-var', 0.55)}`
                         }}
                       >
-                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: typeStyle.text }} />}
                       </div>
-                      <span className="text-sm" style={{ color: T.onSurface }}>{getEventTypeLabel(String(type))}</span>
+                     <span className="text-sm font-medium" style={{ color: checked ? typeStyle.text : T.onSurface }}>{getEventTypeLabel(String(type))}</span>
                     </label>
                   )
                 })}
@@ -341,19 +370,24 @@ export default function EventsStreamline() {
               <div className="space-y-2">
                 {uniqueEnvironments.map(env => {
                   const checked = selectedEnvironments.includes(String(env))
+                  const envStyle = getEnvironmentBadgeStyle(String(env))
                   return (
-                    <label key={String(env)} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={String(env)}
+                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
+                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
+                    >
                       <div
                         onClick={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
                         className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                         style={{
-                          background: checked ? T.primary : a('outline-var', 0.1),
-                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                          background: checked ? envStyle.bg : a('outline-var', 0.2),
+                          border: `1.5px solid ${checked ? envStyle.border : a('outline-var', 0.55)}`
                         }}
                       >
-                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: envStyle.text }} />}
                       </div>
-                      <span className="text-sm" style={{ color: T.onSurface }}>{getEnvironmentLabel(String(env))}</span>
+                     <span className="text-sm font-medium" style={{ color: checked ? envStyle.text : T.onSurface }}>{getEnvironmentLabel(String(env))}</span>
                     </label>
                   )
                 })}
@@ -368,19 +402,24 @@ export default function EventsStreamline() {
               <div className="space-y-2">
                 {uniquePriorities.map(priority => {
                   const checked = selectedPriorities.includes(String(priority))
+                  const prStyle = getPriorityBadgeStyle(String(priority))
                   return (
-                    <label key={String(priority)} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={String(priority)}
+                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
+                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
+                    >
                       <div
                         onClick={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
                         className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                         style={{
-                          background: checked ? T.primary : a('outline-var', 0.1),
-                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                          background: checked ? prStyle.bg : a('outline-var', 0.2),
+                          border: `1.5px solid ${checked ? prStyle.border : a('outline-var', 0.55)}`
                         }}
                       >
-                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: prStyle.text }} />}
                       </div>
-                      <span className="text-sm" style={{ color: T.onSurface }}>{getPriorityLabel(String(priority))}</span>
+                     <span className="text-sm font-medium" style={{ color: checked ? prStyle.text : T.onSurface }}>{getPriorityLabel(String(priority))}</span>
                     </label>
                   )
                 })}
@@ -395,19 +434,24 @@ export default function EventsStreamline() {
               <div className="space-y-2">
                 {uniqueStatuses.map(status => {
                   const checked = selectedStatuses.includes(String(status))
+                  const stStyle = getStatusBadgeStyle(String(status))
                   return (
-                    <label key={String(status)} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={String(status)}
+                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
+                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
+                    >
                       <div
                         onClick={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
                         className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                         style={{
-                          background: checked ? T.primary : a('outline-var', 0.1),
-                          border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                          background: checked ? stStyle.bg : a('outline-var', 0.2),
+                          border: `1.5px solid ${checked ? stStyle.border : a('outline-var', 0.55)}`
                         }}
                       >
-                        {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: stStyle.text }} />}
                       </div>
-                      <span className="text-sm" style={{ color: T.onSurface }}>{getStatusLabel(String(status))}</span>
+                     <span className="text-sm font-medium" style={{ color: checked ? stStyle.text : T.onSurface }}>{getStatusLabel(String(status))}</span>
                     </label>
                   )
                 })}
@@ -428,7 +472,7 @@ export default function EventsStreamline() {
                       value={serviceSearchQuery}
                       onChange={(e) => setServiceSearchQuery(e.target.value)}
                       className="w-full px-7 py-1.5 rounded-lg text-xs"
-                      style={{ background: a('outline-var', 0.07), color: T.onSurface, border: 'none', outline: 'none' }}
+                      style={{ background: a('outline-var', 0.14), color: T.onSurface, border: 'none', outline: 'none' }}
                     />
                     {serviceSearchQuery && (
                       <button
@@ -445,18 +489,22 @@ export default function EventsStreamline() {
                       filteredCatalogServices.map(service => {
                         const checked = selectedServices.includes(service)
                         return (
-                          <label key={service} className="flex items-center gap-2 cursor-pointer">
+                          <label
+                            key={service}
+                            className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
+                            style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
+                          >
                             <div
                               onClick={() => toggleFilter(service, selectedServices, setSelectedServices)}
                               className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
                               style={{
-                                background: checked ? T.primary : a('outline-var', 0.1),
-                                border: `1.5px solid ${checked ? T.primary : a('outline-var', 0.4)}`
+                                background: checked ? a('primary', 0.16) : a('outline-var', 0.2),
+                                border: `1.5px solid ${checked ? a('primary', 0.6) : a('outline-var', 0.55)}`
                               }}
                             >
-                              {checked && <div className="w-2 h-2 rounded-sm bg-white" />}
+                              {checked && <div className="w-2 h-2 rounded-sm" style={{ background: T.primary }} />}
                             </div>
-                            <span className="text-sm truncate" style={{ color: T.onSurface }} title={service}>{service}</span>
+                            <span className="text-sm font-medium truncate" style={{ color: checked ? T.primary : T.onSurface }} title={service}>{service}</span>
                           </label>
                         )
                       })
@@ -475,10 +523,10 @@ export default function EventsStreamline() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden p-4 gap-4" style={{ background: T.bg }}>
 
         {/* Top Bar */}
-        <div className="px-6 py-4 flex-shrink-0" style={{ background: T.surface, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
+        <div className="px-6 py-4 flex-shrink-0 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
@@ -491,9 +539,14 @@ export default function EventsStreamline() {
             >
               <Filter className="w-4 h-4" />
             </button>
-            <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
-              Events Streamline
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
+                Events Streamline
+              </h2>
+              <p className="text-xs" style={{ color: T.onSurfaceVar }}>
+                Operational planning view grouped by {groupBy === 'service' ? 'service' : 'environment'}
+              </p>
+            </div>
           </div>
 
           {/* Active Filter Pills */}
@@ -501,28 +554,28 @@ export default function EventsStreamline() {
             <div className="flex items-center gap-2 flex-wrap">
               {selectedTypes.map(type => (
                 <span key={type} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
+                  style={{ background: getTypeVisual(type).bg, color: getTypeVisual(type).text, border: `1px solid ${getTypeVisual(type).border}` }}>
                   {getEventTypeLabel(type)}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
                 </span>
               ))}
               {selectedEnvironments.map(env => (
                 <span key={env} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
+                  style={{ background: getEnvironmentBadgeStyle(env).bg, color: getEnvironmentBadgeStyle(env).text, border: `1px solid ${getEnvironmentBadgeStyle(env).border}` }}>
                   {getEnvironmentLabel(env)}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
                 </span>
               ))}
               {selectedPriorities.map(priority => (
                 <span key={priority} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
+                  style={{ background: getPriorityBadgeStyle(priority).bg, color: getPriorityBadgeStyle(priority).text, border: `1px solid ${getPriorityBadgeStyle(priority).border}` }}>
                   {getPriorityLabel(priority)}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
                 </span>
               ))}
               {selectedStatuses.map(status => (
                 <span key={status} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
+                  style={{ background: getStatusBadgeStyle(status).bg, color: getStatusBadgeStyle(status).text, border: `1px solid ${getStatusBadgeStyle(status).border}` }}>
                   {getStatusLabel(status)}
                   <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
                 </span>
@@ -539,8 +592,8 @@ export default function EventsStreamline() {
         </div>
 
         {/* Time Controls Bar */}
-        <div className="px-6 py-3 flex items-center justify-between flex-shrink-0"
-          style={{ background: a('outline-var', 0.04), borderBottom: `1px solid ${a('outline-var', 0.12)}` }}>
+        <div className="px-6 py-3 flex items-center justify-between flex-shrink-0 rounded-xl"
+          style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
 
           {/* Left: Time Range Picker */}
           <div ref={timeRangeRef} className="relative">
@@ -605,9 +658,15 @@ export default function EventsStreamline() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm">
               <Calendar className="w-4 h-4" style={{ color: T.primary }} />
-              <span className="font-medium" style={{ color: T.onSurface }}>
-                {format(startDate, 'MMM dd', { locale: fr })} - {format(endDate, 'MMM dd, yyyy', { locale: fr })}
-              </span>
+              {viewMode === 'day' ? (
+                <span className="font-medium tabular-nums" style={{ color: T.onSurface }}>
+                  {format(dayStart, 'MMM dd, yyyy', { locale: enUS })}
+                </span>
+              ) : (
+                <span className="font-medium tabular-nums" style={{ color: T.onSurface }}>
+                  {format(startDate, 'MMM dd', { locale: enUS })} - {format(endDate, 'MMM dd, yyyy', { locale: enUS })}
+                </span>
+              )}
             </div>
             <div className="flex items-center rounded-lg p-0.5" style={{ background: a('outline-var', 0.08) }}>
               <button
@@ -668,7 +727,7 @@ export default function EventsStreamline() {
         </div>
 
         {/* Gantt Grid */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
           <div className={viewMode === 'week' ? '' : 'overflow-x-auto'}>
 
             {/* Header */}
@@ -686,7 +745,7 @@ export default function EventsStreamline() {
                     {viewMode === 'week' ? (
                       <>
                         <div className="text-xs font-medium" style={{ color: isCurrent ? T.primary : T.onSurfaceVar }}>
-                          {format(slot, 'EEE', { locale: fr })}
+                          {format(slot, 'EEE', { locale: enUS })}
                         </div>
                         <div className="text-sm font-semibold" style={{ color: isCurrent ? T.primary : T.onSurface }}>
                           {format(slot, 'dd')}
@@ -811,17 +870,14 @@ export default function EventsStreamline() {
                                 </div>
                                 {hasOverlaps && (
                                   <div className="relative flex-shrink-0" title="Overlapping events detected">
-                                    <AlertTriangle className="w-4 h-4 text-orange-400 animate-pulse" />
-                                    <div className="absolute inset-0 animate-ping">
-                                      <AlertTriangle className="w-4 h-4 text-orange-400 opacity-75" />
-                                    </div>
+                                    <AlertTriangle className="w-4 h-4" style={{ color: '#E8580A' }} />
                                   </div>
                                 )}
                               </div>
                               <div className="text-xs" style={{ color: T.onSurfaceVar }}>
                                 {totalEvents} event{totalEvents > 1 ? 's' : ''}
                                 {hasOverlaps && (
-                                  <span className="ml-1 text-orange-400 font-medium">
+                                  <span className="ml-1 font-medium" style={{ color: '#E8580A' }}>
                                     • {maxTrack + 1} concurrent
                                   </span>
                                 )}
@@ -863,36 +919,41 @@ export default function EventsStreamline() {
                                   const endDate = endDateStr ? new Date(endDateStr) : startDate
 
                                   const spanCount = indices.end - indices.start + 1
-                                  const c = getEventHexColor(event.attributes.type)
+                                  const envStyle = getEnvironmentBadgeStyle(event.attributes.environment)
+                                  const approved = isEventApproved(event)
 
                                   return (
                                     <div
                                       key={event.metadata?.id}
                                       onClick={() => setSelectedEvent(event)}
-                                      className="absolute pointer-events-auto cursor-pointer hover:opacity-90 hover:shadow-md transition-all"
+                                      className="absolute pointer-events-auto cursor-pointer hover:shadow-md transition-all"
                                       style={{
                                         left: '2px',
                                         right: spanCount > 1 ? `calc(-${(spanCount - 1) * 100}% - ${(spanCount - 1) * 0.5}rem + 2px)` : '2px',
                                         top: `${track * 32}px`,
-                                        height: '26px',
+                                        height: '28px',
                                         display: 'flex',
                                         alignItems: 'center',
                                         zIndex: 10,
-                                        background: `${c}22`,
-                                        borderLeft: `3px solid ${c}`,
-                                        borderRadius: '0 6px 6px 0',
+                                        background: envStyle.bg,
+                                        border: `1px solid ${envStyle.border}`,
+                                        borderRadius: '8px',
                                         padding: '0 8px',
                                       }}
                                       title={`${event.title} - ${format(startDate, 'HH:mm')} to ${format(endDate, 'HH:mm')}`}
                                     >
-                                      <div className="truncate flex-1 text-xs font-semibold" style={{ color: c, fontFamily: "'Space Grotesk', sans-serif" }}>
+                                      <span className="w-5 h-5 rounded-md flex items-center justify-center border mr-1.5 shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', color: envStyle.text, borderColor: envStyle.border }}>
+                                        {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
+                                      </span>
+                                      <div className="truncate flex-1 text-xs font-semibold" style={{ color: envStyle.text, fontFamily: "'Space Grotesk', sans-serif" }}>
                                         {event.title}
                                       </div>
                                       {event.attributes.impact && (
-                                        <i className="fa-solid fa-meteor text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84' }} />
+                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' }} />
                                       )}
+                                      {approved && <i className="fa-solid fa-circle-check text-[10px] ml-1 flex-shrink-0" style={{ color: '#16A34A' }} />}
                                       {spanCount > 2 && viewMode === 'week' && (
-                                        <div className="text-[10px] opacity-75 ml-2" style={{ color: c }}>
+                                        <div className="text-[10px] opacity-75 ml-2 tabular-nums" style={{ color: envStyle.text }}>
                                           {format(startDate, 'HH:mm')}
                                         </div>
                                       )}

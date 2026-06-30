@@ -6,25 +6,25 @@ export default function ThemeTest() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dark Mode Test Page</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <h2 className="text-3xl font-bold text-hud-on-surface">Dark Mode Test Page</h2>
+        <p className="mt-1 text-sm text-hud-on-surface-var">
           Test the dark mode implementation
         </p>
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Theme Status</h3>
+        <h3 className="text-lg font-semibold text-hud-on-surface mb-4">Theme Status</h3>
         <div className="space-y-2">
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-hud-on-surface-var">
             <strong>Selected Theme:</strong> {theme}
           </p>
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-hud-on-surface-var">
             <strong>Effective Theme:</strong> {effectiveTheme}
           </p>
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-hud-on-surface-var">
             <strong>HTML Class:</strong> {document.documentElement.className}
           </p>
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-hud-on-surface-var">
             <strong>System Preference:</strong>{' '}
             {window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'}
           </p>
@@ -32,7 +32,7 @@ export default function ThemeTest() {
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Theme Switch</h3>
+        <h3 className="text-lg font-semibold text-hud-on-surface mb-4">Quick Theme Switch</h3>
         <div className="flex space-x-3">
           <button onClick={() => setTheme('light')} className="btn-primary">
             Set Light
@@ -48,29 +48,29 @@ export default function ThemeTest() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="card">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Text Colors</h4>
+          <h4 className="font-semibold text-hud-on-surface mb-2">Text Colors</h4>
           <div className="space-y-1">
-            <p className="text-gray-900 dark:text-gray-100">Gray 900 / 100</p>
-            <p className="text-gray-700 dark:text-gray-300">Gray 700 / 300</p>
-            <p className="text-gray-500 dark:text-gray-400">Gray 500 / 400</p>
+            <p className="text-hud-on-surface">Primary</p>
+            <p className="text-hud-on-surface-var">Muted</p>
+            <p className="text-hud-on-surface-var/80">Subtle</p>
           </div>
         </div>
 
         <div className="card">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Backgrounds</h4>
+          <h4 className="font-semibold text-hud-on-surface mb-2">Backgrounds</h4>
           <div className="space-y-2">
-            <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
-              <p className="text-sm text-gray-900 dark:text-gray-100">Gray 50 / 700</p>
+            <div className="p-2 bg-hud-surface-low rounded">
+              <p className="text-sm text-hud-on-surface">Surface low</p>
             </div>
-            <div className="p-2 bg-gray-100 dark:bg-gray-600 rounded">
-              <p className="text-sm text-gray-900 dark:text-gray-100">Gray 100 / 600</p>
+            <div className="p-2 bg-hud-surface-high rounded">
+              <p className="text-sm text-hud-on-surface">Surface high</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Form Elements</h4>
+        <h4 className="font-semibold text-hud-on-surface mb-2">Form Elements</h4>
         <div className="space-y-3">
           <input type="text" className="input" placeholder="Test input field" />
           <select className="select">
@@ -89,10 +89,10 @@ export default function ThemeTest() {
         </div>
       </div>
 
-      <div className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Card with explicit classes</h4>
-        <p className="text-gray-700 dark:text-gray-300">
-          This card has explicit dark mode classes to ensure proper styling.
+      <div className="card bg-hud-surface border border-hud-outline-var/60">
+        <h4 className="font-semibold text-hud-on-surface mb-2">Card with explicit classes</h4>
+        <p className="text-hud-on-surface-var">
+          This card uses Tracker theme tokens directly.
         </p>
       </div>
     </div>

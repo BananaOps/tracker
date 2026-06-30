@@ -228,11 +228,11 @@ export default function Insights() {
   }
 
   return (
-    <div className="min-h-full overflow-auto" style={{ background: T.bg, color: T.onSurface }}>
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
+    <div className="min-h-full overflow-auto p-4 lg:p-6" style={{ background: T.bg, color: T.onSurface }}>
+      <div className="w-full space-y-6">
 
         {/* Header */}
-        <div>
+        <div className="p-5 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
           <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Insights
           </h1>
@@ -246,7 +246,7 @@ export default function Insights() {
         </div>
 
         {/* Filters */}
-        <div className="p-5 rounded-xl" style={{ background: T.surface }}>
+        <div className="p-5 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-5 flex-wrap">
               <Filter className="w-4 h-4 flex-shrink-0" style={{ color: T.onSurfaceVar }} />
@@ -321,22 +321,20 @@ export default function Insights() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label: 'Deployments', value: metrics.deployments, color: COLORS.deployments, pct: metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0 },
-            { label: 'Incidents', value: metrics.incidents, color: COLORS.incidents, pct: metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0 },
-            { label: 'Operations', value: metrics.operations, color: COLORS.operations, pct: metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0 },
-            { label: 'Drifts', value: metrics.drifts, color: COLORS.drifts, pct: metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0 },
-          ].map(({ label, value, color, pct }) => (
+            { label: 'Deployments', value: metrics.deployments, pct: metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0 },
+            { label: 'Incidents', value: metrics.incidents, pct: metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0 },
+            { label: 'Operations', value: metrics.operations, pct: metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0 },
+            { label: 'Drifts', value: metrics.drifts, pct: metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0 },
+          ].map(({ label, value, pct }) => (
             <div key={label} className="relative p-6 rounded-xl overflow-hidden"
-              style={{ background: T.surfaceLow, borderLeft: `2px solid ${color}` }}>
-              <div className="absolute top-3 right-3 w-14 h-14 rounded-full blur-xl opacity-15 pointer-events-none"
-                style={{ background: color }} />
+              style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.18)}` }}>
               <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
-              <p className="text-4xl font-black mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</p>
+              <p className="text-4xl font-black mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color: T.onSurface }}>{value}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: a('outline-var', 0.2) }}>
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: color }} />
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: T.primary }} />
                 </div>
                 <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>{pct}%</span>
               </div>
@@ -345,9 +343,9 @@ export default function Insights() {
         </div>
 
         {/* Timeline + Top Projects */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Timeline */}
-          <div className="lg:col-span-2 p-6 rounded-xl" style={{ background: T.surface }}>
+          <div className="xl:col-span-2 p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -382,7 +380,7 @@ export default function Insights() {
           </div>
 
           {/* Top Projects */}
-          <div className="p-6 rounded-xl" style={{ background: T.surface }}>
+          <div className="p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <h3 className="text-lg font-bold mb-5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               Top Projects
             </h3>
@@ -419,12 +417,13 @@ export default function Insights() {
 
         {/* Distribution chart */}
         {pieData.length > 0 && (
-          <div className="p-6 rounded-xl" style={{ background: T.surface }}>
+          <div className="p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <h3 className="text-lg font-bold mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               Event Distribution
             </h3>
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <ResponsiveContainer width={300} height={250}>
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+              <div className="w-full max-w-[340px]">
+                <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100}
                     paddingAngle={3} dataKey="value">
@@ -434,7 +433,8 @@ export default function Insights() {
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              </div>
               <div className="flex flex-col gap-3">
                 {pieData.map(({ name, value, color }) => (
                   <div key={name} className="flex items-center gap-3">
