@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Filter, X, Search, SlidersHorizontal } from 'lucide-react'
@@ -680,7 +681,7 @@ export default function EventsCalendar() {
                                       {getEventTypeIcon(event.attributes.type, 'w-2.5 h-2.5')}
                                     </span>
                                     {getImpactLabel(event.attributes.impact) && (
-                                      <i className="fa-solid fa-meteor fa-beat-fade text-[9px] shrink-0" style={{ '--fa-animation-duration': '2s' }} />
+                                      <i className="fa-solid fa-meteor fa-beat-fade text-[9px] shrink-0" style={{ '--fa-animation-duration': '2s' } as CSSProperties} />
                                     )}
                                     <span className="truncate">{event.title}</span>
                                   </div>
@@ -802,7 +803,7 @@ export default function EventsCalendar() {
                               {getImpactLabel(event.attributes.impact) && (
                                 <span className="inline-flex items-center gap-1.5">
                                   <span className="w-6 h-6 rounded-md flex items-center justify-center border" style={{ background: '#FFF0E8', color: '#B84400', borderColor: '#FFC8A0' }}>
-                                    <i className="fa-solid fa-meteor fa-beat-fade text-[10px]" style={{ '--fa-animation-duration': '2s' }} />
+                                    <i className="fa-solid fa-meteor fa-beat-fade text-[10px]" style={{ '--fa-animation-duration': '2s' } as CSSProperties} />
                                   </span>
                                   <span className="text-[10px] font-semibold uppercase" style={{ color: '#B84400' }}>{getImpactLabel(event.attributes.impact)}</span>
                                 </span>

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { X, Edit2, Save, History, Lock, Unlock, CheckCircle, Maximize2, Minimize2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
@@ -630,7 +631,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                               : { background: '#EEF1F8', color: '#6E7891', borderColor: '#D5DBE8' }}>
                             <i
                               className={`fa-solid fa-meteor text-[11px]${editedEvent.attributes.impact ? ' fa-beat-fade' : ''}`}
-                              style={editedEvent.attributes.impact ? { '--fa-animation-duration': '2s' } : undefined}
+                              style={editedEvent.attributes.impact ? ({ '--fa-animation-duration': '2s' } as CSSProperties) : undefined}
                             />
                           </span>
                           <span className="text-[10px] font-semibold uppercase" style={{ color: editedEvent.attributes.impact ? '#B84400' : '#6E7891' }}>
@@ -740,7 +741,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       <i
                         className={`fa-solid fa-meteor${editedEvent.attributes.impact ? ' fa-beat-fade' : ''}`}
                         style={editedEvent.attributes.impact
-                          ? { color: '#ff6e84', '--fa-animation-duration': '2s' }
+                          ? ({ color: '#ff6e84', '--fa-animation-duration': '2s' } as CSSProperties)
                           : { color: '#34d399' }}
                       />
                       <span className="text-sm font-medium">{editedEvent.attributes.impact ? 'Has Impact' : 'No Impact'}</span>

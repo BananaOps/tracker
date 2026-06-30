@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { CSSProperties } from 'react'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, subDays, startOfDay, endOfDay, subHours, isToday, isYesterday } from 'date-fns'
 import { enUS } from 'date-fns/locale'
@@ -835,7 +836,7 @@ export default function EventsTimeline() {
                               >
                                 <i
                                   className={`fa-solid fa-meteor text-[11px]${hasImpact ? ' fa-beat-fade' : ''}`}
-                                  style={hasImpact ? { '--fa-animation-duration': '2s' } : undefined}
+                                  style={hasImpact ? ({ '--fa-animation-duration': '2s' } as CSSProperties) : undefined}
                                 />
                               </span>
                               <span

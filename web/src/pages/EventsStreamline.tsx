@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
@@ -949,7 +950,7 @@ export default function EventsStreamline() {
                                         {event.title}
                                       </div>
                                       {event.attributes.impact && (
-                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' }} />
+                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' } as CSSProperties} />
                                       )}
                                       {approved && <i className="fa-solid fa-circle-check text-[10px] ml-1 flex-shrink-0" style={{ color: '#16A34A' }} />}
                                       {spanCount > 2 && viewMode === 'week' && (
