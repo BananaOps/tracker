@@ -545,7 +545,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={handleCancel} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ background: hud.surfaceHigh, color: hud.onSurface }}>Cancel</button>
                 <button onClick={handleSave} disabled={updateMutation.isPending} className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
-                  style={{ background: hud.primary, color: '#1a0050' }}>
+                  style={{ background: hud.primary, color: '#ffffff' }}>
                   <Save className="w-4 h-4" /> {updateMutation.isPending ? 'Saving...' : 'Save'}
                 </button>
               </div>
@@ -628,7 +628,10 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                             style={editedEvent.attributes.impact
                               ? { background: '#FFF0E8', color: '#B84400', borderColor: '#FFC8A0' }
                               : { background: '#EEF1F8', color: '#6E7891', borderColor: '#D5DBE8' }}>
-                            <i className="fa-solid fa-meteor text-[11px]" />
+                            <i
+                              className={`fa-solid fa-meteor text-[11px]${editedEvent.attributes.impact ? ' fa-beat-fade' : ''}`}
+                              style={editedEvent.attributes.impact ? { '--fa-animation-duration': '2s' } : undefined}
+                            />
                           </span>
                           <span className="text-[10px] font-semibold uppercase" style={{ color: editedEvent.attributes.impact ? '#B84400' : '#6E7891' }}>
                             {editedEvent.attributes.impact ? 'Impact' : 'No Impact'}
@@ -640,7 +643,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Status</span>
                         <button onClick={() => setShowStatusDropdown(!showStatusDropdown)} className="flex items-center gap-1.5 self-start">
                           <span className="w-7 h-7 rounded-md flex items-center justify-center border" style={{ background: statusVisual.bg, color: statusVisual.text, borderColor: statusVisual.border }}>
-                            <i className={`fa-solid ${statusIconClass} text-[11px]`} />
+                            <i className={`fa-solid ${statusIconClass} text-[11px]${statusIconClass === 'fa-satellite-dish' ? ' fa-fade' : ''}`} />
                           </span>
                           <span className="text-[10px] font-semibold uppercase" style={{ color: statusVisual.text }}>{statusVisual.label}</span>
                           <svg className={`w-3.5 h-3.5 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} style={{ color: hud.onSurfaceVar }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -734,7 +737,12 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       <input type="checkbox" checked={editedEvent.attributes.impact || false}
                         onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, impact: e.target.checked } })}
                         className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
-                      <i className="fa-solid fa-meteor" style={{ color: editedEvent.attributes.impact ? '#ff6e84' : '#34d399' }} />
+                      <i
+                        className={`fa-solid fa-meteor${editedEvent.attributes.impact ? ' fa-beat-fade' : ''}`}
+                        style={editedEvent.attributes.impact
+                          ? { color: '#ff6e84', '--fa-animation-duration': '2s' }
+                          : { color: '#34d399' }}
+                      />
                       <span className="text-sm font-medium">{editedEvent.attributes.impact ? 'Has Impact' : 'No Impact'}</span>
                     </label>
                     {/* Links */}

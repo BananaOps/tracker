@@ -176,7 +176,7 @@ function TimelineStyleStatusBadge({ status }: { status: DashStatus }) {
         className="w-7 h-7 rounded-md flex items-center justify-center border"
         style={{ background: style.bg, color: style.text, borderColor: style.border }}
       >
-        <i className={`fa-solid ${style.icon} text-[11px]`} />
+        <i className={`fa-solid ${style.icon} text-[11px]${style.icon === 'fa-satellite-dish' ? ' fa-fade' : ''}`} />
       </span>
       <span className="text-[10px] font-semibold uppercase" style={{ color: style.text }}>
         {style.label}
@@ -583,8 +583,10 @@ export default function Dashboard() {
                               >
                                 <FontAwesomeIcon
                                   icon={faMeteor}
-                                  className="text-[12px]"
-                                  style={{ color: row.event.attributes.impact ? C.accent : T.onSurfaceVar }}
+                                  className={`text-[12px]${row.event.attributes.impact ? ' fa-beat-fade' : ''}`}
+                                  style={row.event.attributes.impact
+                                    ? { color: C.accent, '--fa-animation-duration': '2s' }
+                                    : { color: T.onSurfaceVar }}
                                 />
                               </span>
                             </td>
