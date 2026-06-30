@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, AlertTriangle, Bot, Calendar, Clock, Flame, GitBranch, LayoutDashboard, Radio, Rocket, Settings, Wrench } from 'lucide-react'
@@ -585,7 +586,7 @@ export default function Dashboard() {
                                   icon={faMeteor}
                                   className={`text-[12px]${row.event.attributes.impact ? ' fa-beat-fade' : ''}`}
                                   style={row.event.attributes.impact
-                                    ? { color: C.accent, '--fa-animation-duration': '2s' }
+                                    ? ({ color: C.accent, '--fa-animation-duration': '2s' } as CSSProperties)
                                     : { color: T.onSurfaceVar }}
                                 />
                               </span>
