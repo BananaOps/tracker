@@ -24,6 +24,20 @@ type TimeRange = {
   getValue: () => { start: Date; end: Date }
 }
 
+type SortField = 'createdAt' | 'startDate' | 'endDate'
+
+const getEventDateForSort = (event: Event, field: SortField): Date | null => {
+  const dateCandidate = field === 'createdAt'
+    ? event.metadata?.createdAt
+    : field === 'startDate'
+      ? event.attributes.startDate || event.metadata?.createdAt
+      : event.attributes.endDate || event.attributes.startDate || event.metadata?.createdAt
+
+  if (!dateCandidate) return null
+  const parsedDate = new Date(dateCandidate)
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate
+}
+
 const timeRanges: TimeRange[] = [
   { label: 'Last 24 hours', getValue: () => ({ start: subHours(new Date(), 24), end: new Date() }) },
   { label: 'Last 2 days', getValue: () => ({ start: subDays(new Date(), 2), end: new Date() }) },
@@ -41,6 +55,7 @@ export default function EventsTimeline() {
   const [showSidebar, setShowSidebar] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [sortField, setSortField] = useState<SortField>('startDate')
   const [searchQuery, setSearchQuery] = useState('')
   const [serviceSearchQuery, setServiceSearchQuery] = useState('')
   const [customStartDate, setCustomStartDate] = useState('')
@@ -145,8 +160,8 @@ export default function EventsTimeline() {
 
   const events = useMemo(() => {
     const filtered = allEvents.filter((event: Event) => {
-      if (!event.metadata?.createdAt) return false
-      const eventDate = new Date(event.metadata.createdAt)
+      const eventDate = getEventDateForSort(event, sortField)
+      if (!eventDate) return false
       if (eventDate < startDate || eventDate > endDate) return false
 
       // Search filter
@@ -190,13 +205,13 @@ export default function EventsTimeline() {
     })
     
     const sorted = [...filtered].sort((a, b) => {
-      const dateA = a.metadata?.createdAt ? new Date(a.metadata.createdAt).getTime() : 0
-      const dateB = b.metadata?.createdAt ? new Date(b.metadata.createdAt).getTime() : 0
+      const dateA = getEventDateForSort(a, sortField)?.getTime() ?? 0
+      const dateB = getEventDateForSort(b, sortField)?.getTime() ?? 0
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB
     })
     
     return sorted
-  }, [allEvents, startDate, endDate, searchQuery, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder])
+  }, [allEvents, startDate, endDate, searchQuery, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder, sortField])
 
   const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
     if (selected.includes(value)) {
@@ -237,20 +252,20 @@ export default function EventsTimeline() {
     const groups: Record<string, { label: string; sortKey: number; events: Event[] }> = {}
 
     events.forEach((event) => {
-      if (!event.metadata?.createdAt) return
-      const createdAt = new Date(event.metadata.createdAt)
-      const groupKey = format(createdAt, 'yyyy-MM-dd')
+      const groupedDate = getEventDateForSort(event, sortField)
+      if (!groupedDate) return
+      const groupKey = format(groupedDate, 'yyyy-MM-dd')
 
       if (!groups[groupKey]) {
-        const label = isToday(createdAt)
-          ? `Today — ${format(createdAt, 'MMM dd', { locale: enUS })}`
-          : isYesterday(createdAt)
-            ? `Yesterday — ${format(createdAt, 'MMM dd', { locale: enUS })}`
-            : format(createdAt, 'MMM dd, yyyy', { locale: enUS })
+        const label = isToday(groupedDate)
+          ? `Today — ${format(groupedDate, 'MMM dd', { locale: enUS })}`
+          : isYesterday(groupedDate)
+            ? `Yesterday — ${format(groupedDate, 'MMM dd', { locale: enUS })}`
+            : format(groupedDate, 'MMM dd, yyyy', { locale: enUS })
 
         groups[groupKey] = {
           label,
-          sortKey: createdAt.getTime(),
+          sortKey: groupedDate.getTime(),
           events: [],
         }
       }
@@ -258,8 +273,8 @@ export default function EventsTimeline() {
       groups[groupKey].events.push(event)
     })
 
-    return Object.values(groups).sort((a, b) => b.sortKey - a.sortKey)
-  }, [events])
+    return Object.values(groups).sort((a, b) => sortOrder === 'desc' ? b.sortKey - a.sortKey : a.sortKey - b.sortKey)
+  }, [events, sortOrder, sortField])
 
   const getEnvironmentBadgeStyle = (environment?: string) => {
     const e = String(environment || '').toLowerCase()
@@ -704,6 +719,25 @@ export default function EventsTimeline() {
               </div>
 
               <div className="flex items-center justify-end">
+                <div className="flex items-center h-9 rounded-md overflow-hidden mr-2" style={{ background: '#F3F6FC', border: '1px solid #D7E0F0' }}>
+                  {([
+                    { value: 'createdAt', label: 'Created' },
+                    { value: 'startDate', label: 'Start' },
+                    { value: 'endDate', label: 'End' },
+                  ] as Array<{ value: SortField; label: string }>).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setSortField(option.value)}
+                      className="h-full px-2.5 text-xs border-r last:border-r-0 transition-colors"
+                      style={sortField === option.value
+                        ? { background: '#1B3575', color: '#FFFFFF', borderColor: '#D7E0F0' }
+                        : { color: '#1B3575', borderColor: '#D7E0F0' }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -766,6 +800,7 @@ export default function EventsTimeline() {
                           : statusStyle.label === 'Live'
                             ? 'fa-satellite-dish'
                             : 'fa-clock'
+                      const displayDate = getEventDateForSort(event, sortField)
                       return (
                         <button
                           key={event.metadata?.id}
@@ -860,7 +895,7 @@ export default function EventsTimeline() {
                                 <span className="text-[11px] truncate max-w-[150px]">{event.attributes.owner || '-'}</span>
                               </div>
                               <div className="text-[10px] tabular-nums" style={{ color: '#9CA3AF' }}>
-                                {event.metadata?.createdAt ? format(new Date(event.metadata.createdAt), 'HH:mm', { locale: enUS }) : '--:--'}
+                                {displayDate ? format(displayDate, 'HH:mm', { locale: enUS }) : '--:--'}
                               </div>
                             </div>
                           </div>
