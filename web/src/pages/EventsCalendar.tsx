@@ -4,14 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Filter, X, Search, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Event } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import PageFiltersHeader from '../components/filters/PageFiltersHeader'
+import FiltersSidebar from '../components/filters/FiltersSidebar'
 import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Badge } from '../components/ui/badge'
-import { Separator } from '../components/ui/separator'
 import { ScrollArea } from '../components/ui/scroll-area'
 
 export default function EventsCalendar() {
@@ -284,6 +283,14 @@ export default function EventsCalendar() {
   const activeFiltersCount = selectedEnvironments.length + selectedServices.length + 
     selectedPriorities.length + selectedStatuses.length + selectedTypes.length
 
+  const activeFilterTags = useMemo(() => ([
+    ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
+    ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
+    ...selectedPriorities.map((priority) => ({ key: `priority-${priority}`, label: `Priority: ${getPriorityLabel(priority)}`, onRemove: () => toggleFilter(priority, selectedPriorities, setSelectedPriorities) })),
+    ...selectedStatuses.map((status) => ({ key: `status-${status}`, label: `Status: ${getStatusLabel(status)}`, onRemove: () => toggleFilter(status, selectedStatuses, setSelectedStatuses) })),
+    ...selectedServices.map((service) => ({ key: `service-${service}`, label: `Service: ${service}`, onRemove: () => toggleFilter(service, selectedServices, setSelectedServices) })),
+  ]), [selectedTypes, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
+
   const getTypePalette = (type?: string) => {
     const t = String(type || '').toLowerCase()
     if (t === 'deployment' || t === 'release' || t === '1') return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF', solid: '#1B3575' }
@@ -328,285 +335,108 @@ export default function EventsCalendar() {
     return `Impact ${String(impact).toUpperCase()}`
   }
 
+  const sidebarSections = [
+    {
+      title: 'Event Type',
+      options: uniqueTypes.map((type) => {
+        const value = String(type)
+        const checked = selectedTypes.includes(value)
+        return {
+          key: `type-${value}`,
+          label: getEventTypeLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedTypes, setSelectedTypes),
+          palette: getTypePalette(value),
+        }
+      }),
+    },
+    {
+      title: 'Environment',
+      options: uniqueEnvironments.map((env) => {
+        const value = String(env)
+        const checked = selectedEnvironments.includes(value)
+        return {
+          key: `environment-${value}`,
+          label: getEnvironmentLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
+          palette: getEnvironmentPalette(value),
+        }
+      }),
+    },
+    {
+      title: 'Priority',
+      options: uniquePriorities.map((priority) => {
+        const value = String(priority)
+        const checked = selectedPriorities.includes(value)
+        return {
+          key: `priority-${value}`,
+          label: getPriorityLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedPriorities, setSelectedPriorities),
+          palette: getPriorityPalette(value),
+        }
+      }),
+    },
+    {
+      title: 'Status',
+      options: uniqueStatuses.map((status) => {
+        const value = String(status)
+        const checked = selectedStatuses.includes(value)
+        return {
+          key: `status-${value}`,
+          label: getStatusLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedStatuses, setSelectedStatuses),
+          palette: getStatusPalette(value),
+        }
+      }),
+    },
+  ]
+
   return (
-    <div className="flex flex-1 min-h-0 overflow-hidden">
+    <div className="flex flex-1 min-h-0 overflow-hidden gap-4 p-4" style={{ background: 'rgb(var(--hud-bg))' }}>
       {/* Sidebar Filters - Style Datadog */}
       {showSidebar && (
-        <div className="w-64 flex flex-col shrink-0 transition-all duration-300" style={{ borderRight: '1px solid rgb(var(--hud-outline-var) / 0.25)', background: 'rgb(var(--hud-surface))' }}>
-          {/* Sidebar Header */}
-          <div className="p-3" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.2)', background: 'rgb(var(--hud-surface-high))' }}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'rgb(var(--hud-on-surface))' }}>
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
-              </h3>
-              {activeFiltersCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
-                  Clear all
-                </Button>
-              )}
-            </div>
-            
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'rgb(var(--hud-on-surface-var))' }} />
-              <Input
-                placeholder="Search events..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9"
-              />
-            </div>
-          </div>
-
-          {/* Filters Content */}
-          <ScrollArea className="flex-1">
-            <div className="p-3 space-y-4">
-              {/* Type Filter */}
-              <div>
-                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Event Type</h4>
-                <div className="space-y-2">
-                  {uniqueTypes.map(type => (
-                    <label
-                      key={type}
-                      className="flex items-center space-x-2 cursor-pointer group rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: selectedTypes.includes(String(type)) ? 'rgb(var(--hud-primary) / 0.08)' : 'rgb(var(--hud-outline-var) / 0.06)' }}
-                    >
-                      {(() => {
-                        const checked = selectedTypes.includes(String(type))
-                        const pal = getTypePalette(String(type))
-                        return (
-                          <div
-                            onClick={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                            style={{ background: checked ? pal.bg : 'rgb(var(--hud-outline-var) / 0.2)', border: `1.5px solid ${checked ? pal.border : 'rgb(var(--hud-outline-var) / 0.55)'}` }}
-                          >
-                            {checked && <div className="w-2 h-2 rounded-sm" style={{ background: pal.text }} />}
-                          </div>
-                        )
-                      })()}
-                      <span className="text-sm font-medium group-hover:opacity-100" style={{ color: selectedTypes.includes(String(type)) ? getTypePalette(String(type)).text : 'rgb(var(--hud-on-surface))' }}>
-                        {getEventTypeLabel(type)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Environment Filter */}
-              <div>
-                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Environment</h4>
-                <div className="space-y-2">
-                  {uniqueEnvironments.map(env => (
-                    <label
-                      key={env}
-                      className="flex items-center space-x-2 cursor-pointer group rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: selectedEnvironments.includes(String(env)) ? 'rgb(var(--hud-primary) / 0.08)' : 'rgb(var(--hud-outline-var) / 0.06)' }}
-                    >
-                      {(() => {
-                        const checked = selectedEnvironments.includes(String(env))
-                        const pal = getEnvironmentPalette(String(env))
-                        return (
-                          <div
-                            onClick={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                            style={{ background: checked ? pal.bg : 'rgb(var(--hud-outline-var) / 0.2)', border: `1.5px solid ${checked ? pal.border : 'rgb(var(--hud-outline-var) / 0.55)'}` }}
-                          >
-                            {checked && <div className="w-2 h-2 rounded-sm" style={{ background: pal.text }} />}
-                          </div>
-                        )
-                      })()}
-                      <span className="text-sm font-medium group-hover:opacity-100" style={{ color: selectedEnvironments.includes(String(env)) ? getEnvironmentPalette(String(env)).text : 'rgb(var(--hud-on-surface))' }}>
-                        {getEnvironmentLabel(env)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Priority Filter */}
-              <div>
-                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Priority</h4>
-                <div className="space-y-2">
-                  {uniquePriorities.map(priority => (
-                    <label
-                      key={priority}
-                      className="flex items-center space-x-2 cursor-pointer group rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: selectedPriorities.includes(String(priority)) ? 'rgb(var(--hud-primary) / 0.08)' : 'rgb(var(--hud-outline-var) / 0.06)' }}
-                    >
-                      {(() => {
-                        const checked = selectedPriorities.includes(String(priority))
-                        const pal = getPriorityPalette(String(priority))
-                        return (
-                          <div
-                            onClick={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                            style={{ background: checked ? pal.bg : 'rgb(var(--hud-outline-var) / 0.2)', border: `1.5px solid ${checked ? pal.border : 'rgb(var(--hud-outline-var) / 0.55)'}` }}
-                          >
-                            {checked && <div className="w-2 h-2 rounded-sm" style={{ background: pal.text }} />}
-                          </div>
-                        )
-                      })()}
-                      <span className="text-sm font-medium group-hover:opacity-100" style={{ color: selectedPriorities.includes(String(priority)) ? getPriorityPalette(String(priority)).text : 'rgb(var(--hud-on-surface))' }}>
-                        {getPriorityLabel(priority)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Status Filter */}
-              <div>
-                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Status</h4>
-                <div className="space-y-2">
-                  {uniqueStatuses.map(status => (
-                    <label
-                      key={status}
-                      className="flex items-center space-x-2 cursor-pointer group rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: selectedStatuses.includes(String(status)) ? 'rgb(var(--hud-primary) / 0.08)' : 'rgb(var(--hud-outline-var) / 0.06)' }}
-                    >
-                      {(() => {
-                        const checked = selectedStatuses.includes(String(status))
-                        const pal = getStatusPalette(String(status))
-                        return (
-                          <div
-                            onClick={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                            style={{ background: checked ? pal.bg : 'rgb(var(--hud-outline-var) / 0.2)', border: `1.5px solid ${checked ? pal.border : 'rgb(var(--hud-outline-var) / 0.55)'}` }}
-                          >
-                            {checked && <div className="w-2 h-2 rounded-sm" style={{ background: pal.text }} />}
-                          </div>
-                        )
-                      })()}
-                      <span className="text-sm font-medium group-hover:opacity-100" style={{ color: selectedStatuses.includes(String(status)) ? getStatusPalette(String(status)).text : 'rgb(var(--hud-on-surface))' }}>
-                        {getStatusLabel(status)}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Service Filter */}
-              <div>
-                <h4 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
-                  Service
-                  {catalogLoading && <span className="ml-2 text-xs normal-case" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Loading...</span>}
-                </h4>
-                {catalogServices.length > 0 ? (
-                  <>
-                    <div className="relative mb-2">
-                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: 'rgb(var(--hud-on-surface-var))' }} />
-                      <Input
-                        placeholder="Search..."
-                        value={serviceSearch}
-                        onChange={(e) => setServiceSearch(e.target.value)}
-                        className="pl-7 h-8 text-xs"
-                      />
-                    </div>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {filteredCatalogServices.map((service: string) => (
-                        <label
-                          key={service}
-                          className="flex items-center space-x-2 cursor-pointer group rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                          style={{ background: selectedServices.includes(service) ? 'rgb(var(--hud-primary) / 0.08)' : 'rgb(var(--hud-outline-var) / 0.06)' }}
-                        >
-                          {(() => {
-                            const checked = selectedServices.includes(service)
-                            return (
-                              <div
-                                onClick={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                                className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                                style={{ background: checked ? 'rgb(var(--hud-primary) / 0.18)' : 'rgb(var(--hud-outline-var) / 0.2)', border: `1.5px solid ${checked ? 'rgb(var(--hud-primary) / 0.6)' : 'rgb(var(--hud-outline-var) / 0.55)'}` }}
-                              >
-                                {checked && <div className="w-2 h-2 rounded-sm" style={{ background: 'rgb(var(--hud-primary))' }} />}
-                              </div>
-                            )
-                          })()}
-                          <span className="text-sm font-medium truncate group-hover:opacity-100" style={{ color: selectedServices.includes(service) ? 'rgb(var(--hud-primary))' : 'rgb(var(--hud-on-surface))' }} title={service}>
-                            {service}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-xs italic" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>No services</p>
-                )}
-              </div>
-            </div>
-          </ScrollArea>
-        </div>
+        <FiltersSidebar
+          activeFiltersCount={activeFiltersCount}
+          onClearAllFilters={clearAllFilters}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          sections={sidebarSections}
+          serviceFilter={{
+            title: 'Service',
+            searchQuery: serviceSearch,
+            onSearchQueryChange: setServiceSearch,
+            options: filteredCatalogServices.map((service: string) => ({
+              key: `service-${service}`,
+              label: service,
+              checked: selectedServices.includes(service),
+              onToggle: () => toggleFilter(service, selectedServices, setSelectedServices),
+            })),
+            emptyText: 'No services found',
+            noDataText: catalogLoading ? 'Loading...' : 'No services',
+          }}
+        />
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden gap-4 min-w-0">
         {/* Header */}
-        <div className="p-4" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.25)', background: '#EEF1F8' }}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="h-9 w-9"
-              >
-                <Filter className="w-4 h-4" />
-              </Button>
-              <div>
-                <h2 className="text-2xl font-bold" style={{ color: 'rgb(var(--hud-on-surface))' }}>Events Calendar</h2>
-                <p className="text-sm" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
-                  {events.length} event{events.length > 1 ? 's' : ''}
-                  {activeFiltersCount > 0 && ` • ${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''}`}
-                </p>
-              </div>
-            </div>
-          </div>
-          {activeFiltersCount > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {selectedTypes.map((type: string) => (
-                <Badge key={type} variant="secondary" className="gap-1 cursor-pointer" style={{ background: 'rgb(var(--hud-surface-high))' }}>
-                  {getEventTypeLabel(type)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
-                </Badge>
-              ))}
-              {selectedEnvironments.map((env: string) => (
-                <Badge key={env} variant="secondary" className="gap-1 cursor-pointer" style={{ background: 'rgb(var(--hud-surface-high))' }}>
-                  {getEnvironmentLabel(env)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
-                </Badge>
-              ))}
-              {selectedPriorities.map((priority: string) => (
-                <Badge key={priority} variant="secondary" className="gap-1 cursor-pointer" style={{ background: 'rgb(var(--hud-surface-high))' }}>
-                  {getPriorityLabel(priority)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
-                </Badge>
-              ))}
-              {selectedStatuses.map((status: string) => (
-                <Badge key={status} variant="secondary" className="gap-1 cursor-pointer" style={{ background: 'rgb(var(--hud-surface-high))' }}>
-                  {getStatusLabel(status)}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
-                </Badge>
-              ))}
-              {selectedServices.map((service: string) => (
-                <Badge key={service} variant="secondary" className="gap-1 cursor-pointer" style={{ background: 'rgb(var(--hud-surface-high))' }}>
-                  {service}
-                  <X className="w-3 h-3" onClick={() => toggleFilter(service, selectedServices, setSelectedServices)} />
-                </Badge>
-              ))}
-            </div>
-          )}
+        <div>
+          <PageFiltersHeader
+            title="Events Calendar"
+            subtitle={`${events.length} event${events.length > 1 ? 's' : ''}${activeFiltersCount > 0 ? ` • ${activeFiltersCount} active` : ''}`}
+            filterCount={activeFiltersCount}
+            isSidebarOpen={showSidebar}
+            onToggleSidebar={() => setShowSidebar(!showSidebar)}
+            onClearAllFilters={clearAllFilters}
+            tags={activeFilterTags}
+          />
         </div>
 
         {/* Calendar Content */}
-        <div className="flex-1 overflow-hidden p-4 flex flex-col gap-4" style={{ background: 'rgb(var(--hud-bg))' }}>
+        <div className="flex-1 overflow-hidden flex flex-col gap-4">
             <div className="flex items-center gap-5 shrink-0 rounded-xl px-4 py-3" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
               <div className="flex items-baseline gap-2">
                 <span className="text-[28px] font-semibold tabular-nums" style={{ color: 'rgb(var(--hud-on-surface))' }}>{totalEventsInMonth}</span>

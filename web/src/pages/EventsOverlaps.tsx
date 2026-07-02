@@ -236,121 +236,118 @@ export default function EventsOverlaps() {
     <div className="min-h-full overflow-auto" style={{ background: T.bg, color: T.onSurface }}>
       <div className="p-10 space-y-10">
 
-        {/* ── Header ── */}
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Overlaps</h1>
-            <p className="text-sm mt-1" style={{ color: T.onSurfaceVar }}>
-              {overlaps.length} conflict{overlaps.length !== 1 ? 's' : ''} detected over {format(startDate, 'dd MMM', { locale: fr })} – {format(endDate, 'dd MMM yyyy', { locale: fr })}
-            </p>
-          </div>
-
-          {/* Period Nav */}
-          <div className="flex items-center gap-3 flex-wrap">
-            {!isCustomPeriod && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={goToPreviousPeriod}
-                  className="p-2 rounded-lg transition-all"
-                  style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar }}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={goToToday}
-                  className="px-3 py-2 rounded-lg text-xs font-bold transition-all"
-                  style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar }}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={goToNextPeriod}
-                  className="p-2 rounded-lg transition-all"
-                  style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar }}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+        {/* ── Header + Filters ── */}
+        <div className="space-y-4">
+          <div className="rounded-xl p-5" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div>
+                <h1 className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Overlaps</h1>
+                <p className="text-sm mt-1" style={{ color: T.onSurfaceVar }}>
+                  {overlaps.length} conflict{overlaps.length !== 1 ? 's' : ''} detected over {format(startDate, 'dd MMM', { locale: fr })} – {format(endDate, 'dd MMM yyyy', { locale: fr })}
+                </p>
               </div>
-            )}
 
-            <select
-              value={isCustomPeriod ? -1 : selectedDays}
-              onChange={(e) => handlePeriodChange(Number(e.target.value))}
-              className="px-3 py-2 rounded-lg text-xs font-bold focus:outline-none"
-              style={{
-                background: a('outlineVar', 0.08),
-                color: T.onSurface,
-                border: `1px solid ${a('outlineVar', 0.2)}`,
-              }}
-            >
-              <option value={1}>1 day</option>
-              <option value={3}>3 days</option>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
-              <option value={-1}>Custom</option>
-            </select>
+              <div className="flex items-center gap-2 flex-wrap">
+                {!isCustomPeriod && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={goToPreviousPeriod}
+                      className="h-9 w-9 rounded-md inline-flex items-center justify-center transition-all"
+                      style={{ background: '#F3F6FC', color: '#1B3575', border: '1px solid #D7E0F0' }}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={goToToday}
+                      className="h-9 px-3 rounded-md text-xs font-semibold transition-all"
+                      style={{ background: '#F3F6FC', color: '#1B3575', border: '1px solid #D7E0F0' }}
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={goToNextPeriod}
+                      className="h-9 w-9 rounded-md inline-flex items-center justify-center transition-all"
+                      style={{ background: '#F3F6FC', color: '#1B3575', border: '1px solid #D7E0F0' }}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <select
+                  value={isCustomPeriod ? -1 : selectedDays}
+                  onChange={(e) => handlePeriodChange(Number(e.target.value))}
+                  className="h-9 px-3 rounded-md text-xs font-semibold focus:outline-none"
+                  style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
+                >
+                  <option value={1}>1 day</option>
+                  <option value={3}>3 days</option>
+                  <option value={7}>7 days</option>
+                  <option value={14}>14 days</option>
+                  <option value={30}>30 days</option>
+                  <option value={-1}>Custom</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Custom date inputs */}
-        {isCustomPeriod && (
-          <div className="flex items-center gap-4 flex-wrap p-4 rounded-xl" style={{ background: T.surfaceLow, border: `1px solid ${a('outlineVar', 0.12)}` }}>
-            <CalendarIcon className="w-4 h-4" style={{ color: T.onSurfaceVar }} />
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>From</span>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-1.5 rounded-lg text-xs focus:outline-none"
-                style={{ background: a('outlineVar', 0.08), color: T.onSurface, border: `1px solid ${a('outlineVar', 0.2)}` }}
-              />
+          {isCustomPeriod && (
+            <div className="flex items-center gap-4 flex-wrap p-4 rounded-xl" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
+              <CalendarIcon className="w-4 h-4" style={{ color: T.onSurfaceVar }} />
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: T.onSurfaceVar }}>From</span>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="h-9 px-3 rounded-md text-xs focus:outline-none"
+                  style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: T.onSurfaceVar }}>To</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="h-9 px-3 rounded-md text-xs focus:outline-none"
+                  style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
+                />
+              </div>
+              <button
+                onClick={() => { setIsCustomPeriod(false); setSelectedDays(7) }}
+                className="h-9 px-3 rounded-md text-xs font-semibold transition-all"
+                style={{ background: '#FFF0E8', color: '#B84400', border: '1px solid #FFC8A0' }}
+              >
+                Cancel
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>To</span>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-1.5 rounded-lg text-xs focus:outline-none"
-                style={{ background: a('outlineVar', 0.08), color: T.onSurface, border: `1px solid ${a('outlineVar', 0.2)}` }}
-              />
-            </div>
+          )}
+
+          <div className="flex items-center gap-1.5 p-1 rounded-xl w-fit" style={{ background: '#F3F6FC', border: '1px solid #D7E0F0' }}>
             <button
-              onClick={() => { setIsCustomPeriod(false); setSelectedDays(7) }}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-              style={{ background: a('error', 0.1), color: T.error, border: `1px solid ${a('error', 0.2)}` }}
+              onClick={() => setOverlapMode('strict')}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+              style={overlapMode === 'strict'
+                ? { background: '#1B3575', color: '#FFFFFF' }
+                : { background: 'transparent', color: '#1B3575' }
+              }
             >
-              Cancel
+              <Layers className="w-3.5 h-3.5" />
+              Same service + environment
+            </button>
+            <button
+              onClick={() => setOverlapMode('env-only')}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+              style={overlapMode === 'env-only'
+                ? { background: '#1B3575', color: '#FFFFFF' }
+                : { background: 'transparent', color: '#1B3575' }
+              }
+            >
+              <Globe className="w-3.5 h-3.5" />
+              Same environment only
             </button>
           </div>
-        )}
-
-        {/* ── Overlap Mode Toggle ── */}
-        <div className="flex items-center gap-2 p-1 rounded-xl w-fit" style={{ background: T.surfaceLow }}>
-          <button
-            onClick={() => setOverlapMode('strict')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all"
-            style={overlapMode === 'strict'
-              ? { background: T.surface, color: T.onSurface, boxShadow: `0 2px 8px ${a('outlineVar', 0.2)}` }
-              : { background: 'transparent', color: T.onSurfaceVar }
-            }
-          >
-            <Layers className="w-3.5 h-3.5" />
-            Same service + environment
-          </button>
-          <button
-            onClick={() => setOverlapMode('env-only')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all"
-            style={overlapMode === 'env-only'
-              ? { background: T.surface, color: T.onSurface, boxShadow: `0 2px 8px ${a('outlineVar', 0.2)}` }
-              : { background: 'transparent', color: T.onSurfaceVar }
-            }
-          >
-            <Globe className="w-3.5 h-3.5" />
-            Same environment only
-          </button>
         </div>
 
         {/* ── KPI Cards ── */}

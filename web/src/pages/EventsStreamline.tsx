@@ -4,10 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
-import { Package, Globe, Filter, X, Calendar, Clock, ChevronDown, AlertTriangle, Search, SlidersHorizontal } from 'lucide-react'
+import { Package, Globe, Calendar, Clock, ChevronDown, AlertTriangle } from 'lucide-react'
 import type { Event } from '../types/api'
 import { getEnvironmentLabel, getEventTypeIcon, getEventTypeLabel, getPriorityLabel, getStatusLabel, isEventApproved } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import PageFiltersHeader from '../components/filters/PageFiltersHeader'
+import FiltersSidebar from '../components/filters/FiltersSidebar'
 
 type GroupBy = 'service' | 'environment'
 type ViewMode = 'week' | 'day'
@@ -31,7 +33,7 @@ export default function EventsStreamline() {
   const [groupBy, setGroupBy] = useState<GroupBy>('service')
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('Last 7 days')
@@ -237,6 +239,14 @@ export default function EventsStreamline() {
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
 
+  const activeFilterTags = useMemo(() => ([
+    ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
+    ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
+    ...selectedPriorities.map((priority) => ({ key: `priority-${priority}`, label: `Priority: ${getPriorityLabel(priority)}`, onRemove: () => toggleFilter(priority, selectedPriorities, setSelectedPriorities) })),
+    ...selectedStatuses.map((status) => ({ key: `status-${status}`, label: `Status: ${getStatusLabel(status)}`, onRemove: () => toggleFilter(status, selectedStatuses, setSelectedStatuses) })),
+    ...selectedServices.map((service) => ({ key: `service-${service}`, label: `Service: ${service}`, onRemove: () => toggleFilter(service, selectedServices, setSelectedServices) })),
+  ]), [selectedTypes, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
+
   const [showTimeRangePicker, setShowTimeRangePicker] = useState(false)
   const timeRangeRef = useRef<HTMLDivElement>(null)
 
@@ -296,6 +306,65 @@ export default function EventsStreamline() {
     return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
   }
 
+  const sidebarSections = [
+    {
+      title: 'Event Type',
+      options: uniqueTypes.map((type) => {
+        const value = String(type)
+        const checked = selectedTypes.includes(value)
+        return {
+          key: `type-${value}`,
+          label: getEventTypeLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedTypes, setSelectedTypes),
+          palette: getTypeVisual(value),
+        }
+      }),
+    },
+    {
+      title: 'Environment',
+      options: uniqueEnvironments.map((env) => {
+        const value = String(env)
+        const checked = selectedEnvironments.includes(value)
+        return {
+          key: `environment-${value}`,
+          label: getEnvironmentLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
+          palette: getEnvironmentBadgeStyle(value),
+        }
+      }),
+    },
+    {
+      title: 'Priority',
+      options: uniquePriorities.map((priority) => {
+        const value = String(priority)
+        const checked = selectedPriorities.includes(value)
+        return {
+          key: `priority-${value}`,
+          label: getPriorityLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedPriorities, setSelectedPriorities),
+          palette: getPriorityBadgeStyle(value),
+        }
+      }),
+    },
+    {
+      title: 'Status',
+      options: uniqueStatuses.map((status) => {
+        const value = String(status)
+        const checked = selectedStatuses.includes(value)
+        return {
+          key: `status-${value}`,
+          label: getStatusLabel(value),
+          checked,
+          onToggle: () => toggleFilter(value, selectedStatuses, setSelectedStatuses),
+          palette: getStatusBadgeStyle(value),
+        }
+      }),
+    },
+  ]
+
   const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
   const T = {
     bg:           'rgb(var(--hud-bg))',
@@ -311,288 +380,43 @@ export default function EventsStreamline() {
   }
 
   return (
-    <div className="flex flex-1 min-h-0 overflow-hidden" style={{ background: T.bg, color: T.onSurface }}>
+    <div className="flex flex-1 min-h-0 overflow-hidden gap-4 p-4" style={{ background: T.bg, color: T.onSurface }}>
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-64 flex flex-col shrink-0" style={{ background: T.surface, borderRight: `1px solid ${a('outline-var', 0.22)}` }}>
-
-          {/* Sidebar Header */}
-          <div className="p-4" style={{ borderBottom: `1px solid ${a('outline-var', 0.2)}`, background: T.surfaceHigh }}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: T.onSurface }}>
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
-              </h3>
-              {activeFiltersCount > 0 && (
-                <button onClick={clearAllFilters} className="text-xs font-medium" style={{ color: T.primary }}>
-                  Clear all
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filters scrollable */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
-
-            {/* Event Type */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Event Type</div>
-              <div className="space-y-2">
-                {uniqueTypes.map(type => {
-                  const checked = selectedTypes.includes(String(type))
-                  const typeStyle = getTypeVisual(String(type))
-                  return (
-                    <label
-                      key={String(type)}
-                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
-                    >
-                      <div
-                        onClick={() => toggleFilter(String(type), selectedTypes, setSelectedTypes)}
-                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                        style={{
-                          background: checked ? typeStyle.bg : a('outline-var', 0.2),
-                          border: `1.5px solid ${checked ? typeStyle.border : a('outline-var', 0.55)}`
-                        }}
-                      >
-                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: typeStyle.text }} />}
-                      </div>
-                     <span className="text-sm font-medium" style={{ color: checked ? typeStyle.text : T.onSurface }}>{getEventTypeLabel(String(type))}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
-
-            {/* Environment */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Environment</div>
-              <div className="space-y-2">
-                {uniqueEnvironments.map(env => {
-                  const checked = selectedEnvironments.includes(String(env))
-                  const envStyle = getEnvironmentBadgeStyle(String(env))
-                  return (
-                    <label
-                      key={String(env)}
-                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
-                    >
-                      <div
-                        onClick={() => toggleFilter(String(env), selectedEnvironments, setSelectedEnvironments)}
-                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                        style={{
-                          background: checked ? envStyle.bg : a('outline-var', 0.2),
-                          border: `1.5px solid ${checked ? envStyle.border : a('outline-var', 0.55)}`
-                        }}
-                      >
-                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: envStyle.text }} />}
-                      </div>
-                     <span className="text-sm font-medium" style={{ color: checked ? envStyle.text : T.onSurface }}>{getEnvironmentLabel(String(env))}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
-
-            {/* Priority */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Priority</div>
-              <div className="space-y-2">
-                {uniquePriorities.map(priority => {
-                  const checked = selectedPriorities.includes(String(priority))
-                  const prStyle = getPriorityBadgeStyle(String(priority))
-                  return (
-                    <label
-                      key={String(priority)}
-                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
-                    >
-                      <div
-                        onClick={() => toggleFilter(String(priority), selectedPriorities, setSelectedPriorities)}
-                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                        style={{
-                          background: checked ? prStyle.bg : a('outline-var', 0.2),
-                          border: `1.5px solid ${checked ? prStyle.border : a('outline-var', 0.55)}`
-                        }}
-                      >
-                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: prStyle.text }} />}
-                      </div>
-                     <span className="text-sm font-medium" style={{ color: checked ? prStyle.text : T.onSurface }}>{getPriorityLabel(String(priority))}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
-
-            {/* Status */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Status</div>
-              <div className="space-y-2">
-                {uniqueStatuses.map(status => {
-                  const checked = selectedStatuses.includes(String(status))
-                  const stStyle = getStatusBadgeStyle(String(status))
-                  return (
-                    <label
-                      key={String(status)}
-                      className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                      style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
-                    >
-                      <div
-                        onClick={() => toggleFilter(String(status), selectedStatuses, setSelectedStatuses)}
-                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                        style={{
-                          background: checked ? stStyle.bg : a('outline-var', 0.2),
-                          border: `1.5px solid ${checked ? stStyle.border : a('outline-var', 0.55)}`
-                        }}
-                      >
-                        {checked && <div className="w-2 h-2 rounded-sm" style={{ background: stStyle.text }} />}
-                      </div>
-                     <span className="text-sm font-medium" style={{ color: checked ? stStyle.text : T.onSurface }}>{getStatusLabel(String(status))}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid ' + a('outline-var', 0.12) }} />
-
-            {/* Service */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Service</div>
-              {catalogServices.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: T.onSurfaceVar }} />
-                    <input
-                      placeholder="Search services..."
-                      value={serviceSearchQuery}
-                      onChange={(e) => setServiceSearchQuery(e.target.value)}
-                      className="w-full px-7 py-1.5 rounded-lg text-xs"
-                      style={{ background: a('outline-var', 0.14), color: T.onSurface, border: 'none', outline: 'none' }}
-                    />
-                    {serviceSearchQuery && (
-                      <button
-                        onClick={() => setServiceSearchQuery('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                        style={{ color: T.onSurfaceVar }}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {filteredCatalogServices.length > 0 ? (
-                      filteredCatalogServices.map(service => {
-                        const checked = selectedServices.includes(service)
-                        return (
-                          <label
-                            key={service}
-                            className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 transition-all hover:brightness-105"
-                            style={{ background: checked ? a('primary', 0.08) : a('outline-var', 0.06) }}
-                          >
-                            <div
-                              onClick={() => toggleFilter(service, selectedServices, setSelectedServices)}
-                              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
-                              style={{
-                                background: checked ? a('primary', 0.16) : a('outline-var', 0.2),
-                                border: `1.5px solid ${checked ? a('primary', 0.6) : a('outline-var', 0.55)}`
-                              }}
-                            >
-                              {checked && <div className="w-2 h-2 rounded-sm" style={{ background: T.primary }} />}
-                            </div>
-                            <span className="text-sm font-medium truncate" style={{ color: checked ? T.primary : T.onSurface }} title={service}>{service}</span>
-                          </label>
-                        )
-                      })
-                    ) : (
-                      <p className="text-xs italic" style={{ color: T.onSurfaceVar }}>No services found</p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm italic" style={{ color: T.onSurfaceVar }}>No services</p>
-              )}
-            </div>
-
-          </div>
-        </div>
+        <FiltersSidebar
+          activeFiltersCount={activeFiltersCount}
+          onClearAllFilters={clearAllFilters}
+          sections={sidebarSections}
+          serviceFilter={{
+            title: 'Service',
+            searchQuery: serviceSearchQuery,
+            onSearchQueryChange: setServiceSearchQuery,
+            options: filteredCatalogServices.map((service) => ({
+              key: `service-${service}`,
+              label: service,
+              checked: selectedServices.includes(service),
+              onToggle: () => toggleFilter(service, selectedServices, setSelectedServices),
+            })),
+            emptyText: 'No services found',
+            noDataText: 'No services',
+          }}
+        />
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden p-4 gap-4" style={{ background: T.bg }}>
+      <div className="flex-1 flex flex-col overflow-hidden gap-4 min-w-0" style={{ background: T.bg }}>
 
         {/* Top Bar */}
-        <div className="px-6 py-4 flex-shrink-0 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
-          <div className="flex items-center gap-3 mb-3">
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-              style={{
-                background: showSidebar ? a('primary', 0.12) : a('outline-var', 0.08),
-                border: `1px solid ${showSidebar ? a('primary', 0.25) : 'transparent'}`,
-                color: showSidebar ? T.primary : T.onSurfaceVar
-              }}
-            >
-              <Filter className="w-4 h-4" />
-            </button>
-            <div>
-              <h2 className="text-2xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
-                Events Streamline
-              </h2>
-              <p className="text-xs" style={{ color: T.onSurfaceVar }}>
-                Operational planning view grouped by {groupBy === 'service' ? 'service' : 'environment'}
-              </p>
-            </div>
-          </div>
-
-          {/* Active Filter Pills */}
-          {activeFiltersCount > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {selectedTypes.map(type => (
-                <span key={type} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: getTypeVisual(type).bg, color: getTypeVisual(type).text, border: `1px solid ${getTypeVisual(type).border}` }}>
-                  {getEventTypeLabel(type)}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)} />
-                </span>
-              ))}
-              {selectedEnvironments.map(env => (
-                <span key={env} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: getEnvironmentBadgeStyle(env).bg, color: getEnvironmentBadgeStyle(env).text, border: `1px solid ${getEnvironmentBadgeStyle(env).border}` }}>
-                  {getEnvironmentLabel(env)}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(env, selectedEnvironments, setSelectedEnvironments)} />
-                </span>
-              ))}
-              {selectedPriorities.map(priority => (
-                <span key={priority} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: getPriorityBadgeStyle(priority).bg, color: getPriorityBadgeStyle(priority).text, border: `1px solid ${getPriorityBadgeStyle(priority).border}` }}>
-                  {getPriorityLabel(priority)}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(priority, selectedPriorities, setSelectedPriorities)} />
-                </span>
-              ))}
-              {selectedStatuses.map(status => (
-                <span key={status} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: getStatusBadgeStyle(status).bg, color: getStatusBadgeStyle(status).text, border: `1px solid ${getStatusBadgeStyle(status).border}` }}>
-                  {getStatusLabel(status)}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(status, selectedStatuses, setSelectedStatuses)} />
-                </span>
-              ))}
-              {selectedServices.map(service => (
-                <span key={service} className="px-2.5 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
-                  style={{ background: a('primary', 0.12), color: T.primary, border: `1px solid ${a('primary', 0.25)}` }}>
-                  {service}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => toggleFilter(service, selectedServices, setSelectedServices)} />
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        <PageFiltersHeader
+          title="Events Streamline"
+          subtitle={`Operational planning view grouped by ${groupBy === 'service' ? 'service' : 'environment'}${activeFiltersCount > 0 ? ` • ${activeFiltersCount} active` : ''}`}
+          filterCount={activeFiltersCount}
+          isSidebarOpen={showSidebar}
+          onToggleSidebar={() => setShowSidebar(!showSidebar)}
+          onClearAllFilters={clearAllFilters}
+          tags={activeFilterTags}
+        />
 
         {/* Time Controls Bar */}
         <div className="px-6 py-3 flex items-center justify-between flex-shrink-0 rounded-xl"
