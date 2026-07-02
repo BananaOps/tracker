@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.20.1](https://github.com/BananaOps/tracker/compare/v0.20.0...v0.20.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* add auto refresh and indicator ([#183](https://github.com/BananaOps/tracker/issues/183)) ([7f2ad0b](https://github.com/BananaOps/tracker/commit/7f2ad0b5b53fa161d7840f341ad70e289d69feaf))
+* add effect on icon impat and status live ([#179](https://github.com/BananaOps/tracker/issues/179)) ([e0a0150](https://github.com/BananaOps/tracker/commit/e0a0150f174190be3d4bf4118a311edf0916a7b1))
+* shot timeline by start date and add order bouton ([#184](https://github.com/BananaOps/tracker/issues/184)) ([8c2a6fc](https://github.com/BananaOps/tracker/commit/8c2a6fcc114b6eea7e0cd75ff3453f8b7485a2af))
+* update deps golang and typescript ([#181](https://github.com/BananaOps/tracker/issues/181)) ([4939a3e](https://github.com/BananaOps/tracker/commit/4939a3e82df44a351b14a763e591f45c955652a4))
+
 ## [0.20.0](https://github.com/BananaOps/tracker/compare/v0.19.1...v0.20.0) (2026-06-26)
 
 
