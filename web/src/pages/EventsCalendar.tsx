@@ -5,11 +5,12 @@ import type { CSSProperties } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { Event } from '../types/api'
+import type { Event, Catalog } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 import PageFiltersHeader from '../components/filters/PageFiltersHeader'
 import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { RiskScoreBadge, buildRiskContext, assessAppEvent, getRiskLevelVisual } from '@/features/risk-engine'
 import { Button } from '../components/ui/button'
 import { ScrollArea } from '../components/ui/scroll-area'
 
@@ -283,6 +284,8 @@ export default function EventsCalendar() {
   const activeFiltersCount = selectedEnvironments.length + selectedServices.length + 
     selectedPriorities.length + selectedStatuses.length + selectedTypes.length
 
+  const riskContext = useMemo(() => buildRiskContext(events, (catalogData?.catalogs ?? []) as Catalog[]), [events, catalogData])
+
   const activeFilterTags = useMemo(() => ([
     ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
     ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
@@ -503,12 +506,18 @@ export default function EventsCalendar() {
                             <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
                               {dayEvents.slice(0, visibleEventCount).map((event: any, idx: number) => {
                                 const envPalette = getEnvironmentPalette(event.attributes.environment)
+                                const chipRisk = assessAppEvent(event, riskContext)
                                 return (
                                   <div
                                     key={idx}
                                     className="text-[10px] font-medium px-1.5 py-1 rounded-md truncate leading-tight flex items-center gap-1.5 border"
                                     style={{ background: envPalette.bg, color: envPalette.text, borderColor: envPalette.border }}
                                   >
+                                    <span
+                                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                                      style={{ background: getRiskLevelVisual(chipRisk.level).color }}
+                                      title={`Risk: ${chipRisk.level} (${chipRisk.score}/100)`}
+                                    />
                                     <span className="w-4 h-4 rounded-[4px] flex items-center justify-center border shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', borderColor: envPalette.border, color: envPalette.text }}>
                                       {getEventTypeIcon(event.attributes.type, 'w-2.5 h-2.5')}
                                     </span>
@@ -587,7 +596,7 @@ export default function EventsCalendar() {
                             style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.08)' }}
                             onClick={() => setSelectedEvent(event)}
                           >
-                            <div className="flex items-center gap-1.5 mb-1">
+                            <div className="flex items-center justify-between gap-1.5 mb-1">
                               {(() => {
                                 const st = getStatusPalette(event.attributes.status)
                                 return (
@@ -600,6 +609,10 @@ export default function EventsCalendar() {
                                     </span>
                                   </span>
                                 )
+                              })()}
+                              {(() => {
+                                const rk = assessAppEvent(event, riskContext)
+                                return <RiskScoreBadge level={rk.level} score={rk.score} />
                               })()}
                             </div>
                             <p className="text-xs font-medium leading-snug mb-1 transition-colors hover:text-[#1B3575]" style={{ color: 'rgb(var(--hud-on-surface))' }}>
@@ -665,6 +678,7 @@ export default function EventsCalendar() {
         <EventDetailsModal 
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
+          riskContext={riskContext}
         />
       )}
     </div>

@@ -5,11 +5,12 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { Package, Globe, Calendar, Clock, ChevronDown, AlertTriangle } from 'lucide-react'
-import type { Event } from '../types/api'
+import type { Event, Catalog } from '../types/api'
 import { getEnvironmentLabel, getEventTypeIcon, getEventTypeLabel, getPriorityLabel, getStatusLabel, isEventApproved } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 import PageFiltersHeader from '../components/filters/PageFiltersHeader'
 import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { buildRiskContext, assessAppEvent, getRiskLevelVisual } from '@/features/risk-engine'
 
 type GroupBy = 'service' | 'environment'
 type ViewMode = 'week' | 'day'
@@ -238,6 +239,8 @@ export default function EventsStreamline() {
 
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
+
+  const riskContext = useMemo(() => buildRiskContext(events, (catalogData?.catalogs ?? []) as Catalog[]), [events, catalogData])
 
   const activeFilterTags = useMemo(() => ([
     ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
@@ -748,6 +751,7 @@ export default function EventsStreamline() {
                                   const spanCount = indices.end - indices.start + 1
                                   const envStyle = getEnvironmentBadgeStyle(event.attributes.environment)
                                   const approved = isEventApproved(event)
+                                  const risk = assessAppEvent(event, riskContext)
 
                                   return (
                                     <div
@@ -767,8 +771,13 @@ export default function EventsStreamline() {
                                         borderRadius: '8px',
                                         padding: '0 8px',
                                       }}
-                                      title={`${event.title} - ${format(startDate, 'HH:mm')} to ${format(endDate, 'HH:mm')}`}
+                                      title={`${event.title} - ${format(startDate, 'HH:mm')} to ${format(endDate, 'HH:mm')} — risk ${risk.level}`}
                                     >
+                                      <span
+                                        className="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0"
+                                        style={{ background: getRiskLevelVisual(risk.level).color }}
+                                        title={`Risk: ${risk.level} (${risk.score}/100)`}
+                                      />
                                       <span className="w-5 h-5 rounded-md flex items-center justify-center border mr-1.5 shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', color: envStyle.text, borderColor: envStyle.border }}>
                                         {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
                                       </span>
@@ -813,6 +822,7 @@ export default function EventsStreamline() {
         <EventDetailsModal
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
+          riskContext={riskContext}
         />
       )}
     </div>

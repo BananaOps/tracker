@@ -16,13 +16,21 @@ import Toast from './Toast'
 import EventChangelog from './EventChangelog'
 import LockIndicator from './LockIndicator'
 import { DateTimePicker } from './ui/date-time-picker'
+import { RiskScoreCard, assessAppEvent } from '@/features/risk-engine'
+import type { RiskEngineContext } from '@/features/risk-engine'
 
 interface EventDetailsModalProps {
   event: Event
   onClose: () => void
+  /**
+   * Shared risk context (service profiles) so the modal's risk score matches
+   * the badge shown in the originating list/calendar view. When omitted, the
+   * engine falls back to prudent defaults.
+   */
+  riskContext?: RiskEngineContext
 }
 
-export default function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
+export default function EventDetailsModal({ event, onClose, riskContext }: EventDetailsModalProps) {
   const { effectiveTheme } = useTheme()
   const [isEditing, setIsEditing] = useState(false)
   const [showToast, setShowToast] = useState(false)
@@ -50,6 +58,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     return normalized
   }, [event])
   const [editedEvent, setEditedEvent] = useState(normalizedEvent)
+  const riskAssessment = useMemo(() => assessAppEvent(editedEvent, riskContext), [editedEvent, riskContext])
   const queryClient = useQueryClient()
   
   // Vérifier si l'événement a été approuvé
@@ -894,6 +903,9 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
 
               {/* Right Column: Recent activity + Lock */}
               <div className={`space-y-6 ${expanded ? 'xl:col-span-4' : ''}`}>
+                {/* Risk assessment */}
+                <RiskScoreCard assessment={riskAssessment} />
+
                 {/* Recent activity */}
                 <div className="rounded-2xl p-5" style={{ background: blockBg, border: `1px solid ${ha('outline-var', 0.12)}` }}>
                   <div className="flex items-center justify-between mb-4">

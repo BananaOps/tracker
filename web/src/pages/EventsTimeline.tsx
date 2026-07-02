@@ -3,8 +3,8 @@ import type { CSSProperties } from 'react'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, subDays, startOfDay, endOfDay, subHours, isToday, isYesterday } from 'date-fns'
 import { enUS } from 'date-fns/locale'
-import type { Event } from '../types/api'
-import { 
+import type { Event, Catalog } from '../types/api'
+import {
   ArrowUp, ArrowDown, Calendar,
   ChevronRight, CheckCircle, Clock 
 } from 'lucide-react'
@@ -13,6 +13,7 @@ import { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
 import PageFiltersHeader from '../components/filters/PageFiltersHeader'
 import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { RiskScoreBadge, buildRiskContext, assessAppEvent } from '@/features/risk-engine'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -233,6 +234,8 @@ export default function EventsTimeline() {
 
   const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
     selectedPriorities.length + selectedStatuses.length + selectedServices.length
+
+  const riskContext = useMemo(() => buildRiskContext(events, (catalogData?.catalogs ?? []) as Catalog[]), [events, catalogData])
 
   const activeFilterTags = useMemo(() => ([
     ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
@@ -609,6 +612,7 @@ export default function EventsTimeline() {
                             ? 'fa-satellite-dish'
                             : 'fa-clock'
                       const displayDate = getEventDateForSort(event, sortField)
+                      const risk = assessAppEvent(event, riskContext)
                       return (
                         <button
                           key={event.metadata?.id}
@@ -645,6 +649,9 @@ export default function EventsTimeline() {
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <code className="text-[11px] truncate" style={{ color: '#9CA3AF' }}>{event.attributes.service}</code>
                               </div>
+                            </div>
+                            <div className="shrink-0 w-[104px] flex items-center justify-start">
+                              <RiskScoreBadge level={risk.level} score={risk.score} />
                             </div>
                             {isEventApproved(event) && (
                               <div className="shrink-0 w-[120px] flex items-center justify-start gap-1.5 text-left">
@@ -725,6 +732,7 @@ export default function EventsTimeline() {
         <EventDetailsModal 
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
+          riskContext={riskContext}
         />
       )}
     </div>
