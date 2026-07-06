@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/go-openapi/runtime v0.29.5
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.82.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )
