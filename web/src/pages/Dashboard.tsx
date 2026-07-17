@@ -13,7 +13,6 @@ import EventDetailsModal from '../components/EventDetailsModal'
 
 type DashStatus = 'ONGOING' | 'SCHEDULED' | 'COMPLETED' | 'CONFLICT'
 type DashImpact = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
-type TimelineBucket = 'production' | 'preproduction' | 'other'
 
 interface DerivedRow {
   event: Event
@@ -366,13 +365,33 @@ export default function Dashboard() {
       }
     }
 
-    const byEnv = (name: TimelineBucket) =>
+    // Ordered list of known environments (display order)
+    const ENV_ORDER: Array<{ key: string; label: string; matches: string[] }> = [
+      { key: 'production',    label: 'Production',    matches: ['production', '7'] },
+      { key: 'preproduction', label: 'Pre-production', matches: ['preproduction', '6'] },
+      { key: 'recette',       label: 'Testing',        matches: ['recette', '5'] },
+      { key: 'uat',           label: 'UAT',            matches: ['uat', '4'] },
+      { key: 'tnr',           label: 'TNR',            matches: ['tnr', '3'] },
+      { key: 'integration',   label: 'Integration',    matches: ['integration', '2'] },
+      { key: 'development',   label: 'Development',    matches: ['development', '1'] },
+      { key: 'mco',           label: 'MCO',            matches: ['mco', '8'] },
+    ]
+
+    const byEnvKey = (matches: string[]) =>
       rows.filter((row: DerivedRow) => {
         const env = String(row.event.attributes.environment || '').toLowerCase()
-        if (name === 'production') return env === 'production' || env === '7'
-        if (name === 'preproduction') return env === 'preproduction' || env === '6'
-        return env !== 'production' && env !== '7' && env !== 'preproduction' && env !== '6'
+        return matches.includes(env)
       })
+
+    // Always show production & preproduction; other envs only if they have events today
+    const ALWAYS_SHOWN = ['production', 'preproduction']
+    const timeline = ENV_ORDER
+      .map((envDef) => ({
+        label: envDef.label,
+        env: envDef.key,
+        events: byEnvKey(envDef.matches).slice(0, 8),
+      }))
+      .filter((group) => ALWAYS_SHOWN.includes(group.env) || group.events.length > 0)
 
     return {
       rows,
@@ -382,10 +401,7 @@ export default function Dashboard() {
       overlapCount,
       nextCritical,
       services: (Object.values(serviceCount) as ServiceSummary[]).sort((aRow: ServiceSummary, bRow: ServiceSummary) => bRow.count - aRow.count).slice(0, 5),
-      timeline: [
-        { label: 'Production', env: 'production', events: byEnv('production').slice(0, 8) },
-        { label: 'Pre-production', env: 'preproduction', events: byEnv('preproduction').slice(0, 8) },
-      ],
+      timeline,
     }
   }, [events, allEvents])
 
