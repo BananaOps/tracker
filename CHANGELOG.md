@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.1](https://github.com/BananaOps/tracker/compare/v0.21.0...v0.21.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **layout:** correct banner and vertical bar in demo mode ([#195](https://github.com/BananaOps/tracker/issues/195)) ([8cf7106](https://github.com/BananaOps/tracker/commit/8cf71065937d95a44f71e67af86c0b5f73a79f0e))
+* refresh test data configuration ([#193](https://github.com/BananaOps/tracker/issues/193)) ([c5513ec](https://github.com/BananaOps/tracker/commit/c5513ecbc4a5789e01a5860aaa476867d77613f7))
+
 ## [0.21.0](https://github.com/BananaOps/tracker/compare/v0.20.0...v0.21.0) (2026-07-17)
 
 
