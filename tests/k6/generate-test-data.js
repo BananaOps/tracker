@@ -1,19 +1,19 @@
 import http from 'k6/http';
 import { sleep } from 'k6';
 
-const BASE_URL = __ENV.BASE_URL || 'http://127.0.0.1:8080';
+const BASE_URL = __ENV.BASE_URL || 'https://tracker-demo.bananaops.cloud';
 const API_URL = `${BASE_URL}/api/v1alpha1`;
 
 // Configuration des données
 const config = {
   teams: [
-    { name: 'Platform', services: ['payment-service', 'user-management', 'api-gateway', 'notification-service'], owner: 'platform-team' },
-    { name: 'Data', services: ['analytics-engine', 'data-warehouse', 'etl-jobs'], owner: 'data-team' },
-    { name: 'Frontend', services: ['web-frontend', 'mobile-app', 'admin-dashboard'], owner: 'frontend-team' },
-    { name: 'Infrastructure', services: ['database-service', 'monitoring', 'logging', 'backup-service'], owner: 'infra-team' },
-    { name: 'Security', services: ['auth-service', 'firewall', 'vpn-service', 'audit-service'], owner: 'security-team' },
+    { name: 'Platform', services: ['api-gateway', 'auth-service', 'notification-service'], owner: 'platform-team' },
+    { name: 'Data', services: ['data-pipeline', 'analytics-service', 'etl-jobs'], owner: 'data-team' },
+    { name: 'Frontend', services: ['web-app', 'mobile-app', 'admin-portal'], owner: 'frontend-team' },
+    { name: 'Infrastructure', services: ['monitoring', 'logging', 'backup-service'], owner: 'infra-team' },
+    { name: 'Security', services: ['firewall', 'vpn-service', 'audit-service'], owner: 'security-team' },
   ],
-  environments: ['development', 'integration', 'tnr', 'uat', 'preproduction', 'production', 'mco'],
+  environments: ['development', 'integration', 'TNR', 'UAT', 'recette', 'preproduction', 'production', 'mco'],
   priorities: { p1: 1, p2: 2, p3: 3, p4: 4, p5: 5 },
   statuses: {
     deployment: ['planned', 'start', 'success', 'failure'],
@@ -658,24 +658,6 @@ export default function () {
   // Champs valides : service, who, environment, resource (deployment | operation)
   const activeLocks = [
     {
-      service: 'payment-service',
-      who: 'platform-team',
-      environment: 'production',
-      resource: 'deployment',
-    },
-    {
-      service: 'user-management',
-      who: 'security-team',
-      environment: 'preproduction',
-      resource: 'deployment',
-    },
-    {
-      service: 'analytics-engine',
-      who: 'data-team',
-      environment: 'production',
-      resource: 'operation',
-    },
-    {
       service: 'api-gateway',
       who: 'platform-team',
       environment: 'production',
@@ -684,17 +666,35 @@ export default function () {
     {
       service: 'auth-service',
       who: 'security-team',
+      environment: 'preproduction',
+      resource: 'deployment',
+    },
+    {
+      service: 'analytics-service',
+      who: 'data-team',
+      environment: 'production',
+      resource: 'operation',
+    },
+    {
+      service: 'notification-service',
+      who: 'platform-team',
+      environment: 'production',
+      resource: 'deployment',
+    },
+    {
+      service: 'firewall',
+      who: 'security-team',
       environment: 'integration',
       resource: 'deployment',
     },
     {
-      service: 'data-warehouse',
+      service: 'data-pipeline',
       who: 'data-team',
       environment: 'preproduction',
       resource: 'operation',
     },
     {
-      service: 'web-frontend',
+      service: 'web-app',
       who: 'frontend-team',
       environment: 'production',
       resource: 'deployment',
@@ -720,9 +720,9 @@ export default function () {
   console.log('--- Génération des événements ---');
   let eventCount = 0;
   
-  // Générer des événements sur les 35 derniers jours (couvre la vue Insights 30j + historique)
-  for (let day = -35; day <= 0; day++) {
-    const eventsPerDay = randomInt(3, 10);
+  // Générer des événements sur 35 jours (5 jours passés + 30 jours futurs)
+  for (let day = -5; day <= 30; day++) {
+    const eventsPerDay = randomInt(3, 8);
     
     for (let i = 0; i < eventsPerDay; i++) {
       const team = randomElement(config.teams);
@@ -736,7 +736,7 @@ export default function () {
       
       if (eventTypeRand < 0.35) {
         // 35% Deployments
-        const version = `${randomInt(1, 3)}.${randomInt(0, 9)}.${randomInt(0, 20)}`;
+        const version = randomElement(['1.2.3', '1.2.4', '1.3.0', '2.0.0', '2.1.0']);
         const status = randomElement(config.statuses.deployment);
         const duration = status !== 'start' ? randomInt(5, 60) : 0;
         
@@ -744,7 +744,7 @@ export default function () {
           title: `Deploy ${service} v${version} to ${env}`,
           attributes: {
             message: `Deployment of ${service} version ${version}`,
-            source: randomElement(['github_actions', 'gitlab_ci', 'argocd']),
+            source: randomElement(['github_actions', 'gitlab_ci', 'jenkins', 'argocd']),
             type: 'deployment',
             priority: env === 'production' ? randomElement([1, 2]) : randomElement([3, 4]),
             service: service,
@@ -782,7 +782,7 @@ export default function () {
           title: `[${env.toUpperCase()}] ${incident} - ${service}`,
           attributes: {
             message: `Incident: ${incident} on ${service}`,
-            source: randomElement(['prometheus', 'datadog', 'manual']),
+            source: randomElement(['prometheus', 'datadog', 'newrelic', 'manual']),
             type: 'incident',
             priority: env === 'production' ? 1 : 2,
             service: service,
@@ -821,7 +821,7 @@ export default function () {
             message: `Configuration drift: ${drift}`,
             source: 'terraform',
             type: 'drift',
-            priority: randomElement([2, 3]),
+            priority: randomElement([2, 3, 4]),
             service: service,
             status: status,
             environment: env,
@@ -857,7 +857,7 @@ export default function () {
             message: `RPA process "${process}" executed`,
             source: 'uipath',
             type: 'rpa_usage',
-            priority: randomElement([3, 4]),
+            priority: randomElement([3, 4, 5]),
             service: service,
             status: status,
             environment: env,
@@ -895,7 +895,7 @@ export default function () {
             message: `Operation: ${operation}`,
             source: randomElement(['manual', 'scheduled', 'automated']),
             type: 'operation',
-            priority: randomElement([2, 3]),
+            priority: randomElement([2, 3, 4]),
             service: service,
             status: status,
             environment: env,
@@ -933,8 +933,8 @@ export default function () {
   console.log('  • Deliverables avec versions (availableVersions, latestVersion, referenceVersion)');
   console.log('  • Projets avec usedDeliverables, SLA, plateforme, dépendances');
   console.log('  • Locks actifs (champs: service, who, environment, resource)');
-  console.log('  • Événements sur les 35 derniers jours (vue Insights 30j alimentée)');
-  console.log('  • Environnements: development, integration, tnr, uat, preproduction, production, mco');
+  console.log('  • Événements sur 35 jours (5 jours passés + 30 jours futurs)');
+  console.log('  • Environnements: development, integration, TNR, UAT, recette, preproduction, production, mco');
   console.log('');
   console.log('🔍 Vérification:');
   console.log(`  Catalogues: curl ${BASE_URL}/api/v1alpha1/catalogs/list | jq '.totalCount'`);
