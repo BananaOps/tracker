@@ -3,7 +3,7 @@ import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Packag
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
-import { useState, type MouseEvent } from 'react'
+import { useState, useRef, useEffect, type MouseEvent } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -54,6 +54,20 @@ export default function Layout() {
   const location = useLocation()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { open } = useCreatePanel()
+  const bannersRef = useRef<HTMLDivElement>(null)
+  const [bannersHeight, setBannersHeight] = useState(0)
+
+  // Mesurer la hauteur des banneaux et la mettre à jour si elle change
+  useEffect(() => {
+    const el = bannersRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      setBannersHeight(el.offsetHeight)
+    })
+    observer.observe(el)
+    setBannersHeight(el.offsetHeight)
+    return () => observer.disconnect()
+  }, [])
 
   const isActiveRoute = (href: string) => location.pathname === href
 
@@ -63,17 +77,22 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-hud-bg">
-      <div>
+      {/* Banneaux sticky en haut */}
+      <div ref={bannersRef} className="fixed top-0 left-0 right-0 z-50">
         <DemoBanner />
         <OpenSourceBanner />
         <StaticModeBanner />
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar — fixed, décalée sous les banneaux */}
         <aside
-          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed h-screen z-40 transition-all duration-200 bg-[#0F1629]`}
-          style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}
+          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed z-40 transition-all duration-200 bg-[#0F1629]`}
+          style={{
+            borderRight: '1px solid rgba(255,255,255,0.06)',
+            top: bannersHeight,
+            height: `calc(100vh - ${bannersHeight}px)`,
+          }}
         >
           {/* Logo */}
           <div
@@ -162,8 +181,11 @@ export default function Layout() {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <div className={`flex-1 ${isCollapsed ? 'ml-[56px]' : 'ml-[220px]'} flex flex-col h-screen overflow-hidden transition-all duration-200`}>
+        {/* Main Content — décalé sous les banneaux et à droite de la sidebar */}
+        <div
+          className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-200 ${isCollapsed ? 'ml-[56px]' : 'ml-[220px]'}`}
+          style={{ paddingTop: bannersHeight }}
+        >
           {/* Top Bar */}
           <header
             className="h-[52px] shrink-0 flex items-center justify-between px-5 relative z-50"
