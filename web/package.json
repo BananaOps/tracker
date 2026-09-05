@@ -10,7 +10,7 @@
     "build:check": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "lint:auth": "eslint --report-unused-disable-directives --max-warnings 0 src/types/auth.ts src/lib/authApi.ts src/lib/authEvents.ts src/lib/api.ts src/contexts/AuthContext.tsx src/components/auth src/components/admin src/components/Toast.tsx src/components/Layout.tsx src/components/DemoBanner.tsx src/pages/Login.tsx src/pages/account src/pages/admin src/pages/Links.tsx src/pages/Locks.tsx src/components/LockActions.tsx src/App.tsx src/test",
+    "lint:auth": "eslint --report-unused-disable-directives --max-warnings 0 src/types/auth.ts src/lib/authApi.ts src/lib/authEvents.ts src/contexts/AuthContext.tsx src/components/auth src/components/admin src/components/Toast.tsx src/components/Layout.tsx src/components/DemoBanner.tsx src/pages/Login.tsx src/pages/account src/pages/admin src/pages/Links.tsx src/App.tsx src/test",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

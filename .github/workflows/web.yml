@@ -1,0 +1,53 @@
+name: Web
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/web.yml
+      - web/**
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Check out code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint auth modules
+        run: npm run lint:auth
+
+      - name: Type check auth modules
+        # The web tree carries pre-existing type errors outside the auth
+        # modules; the full log is kept for visibility and only errors in
+        # the files owned by the auth work fail the job.
+        run: |
+          set -o pipefail
+          npx tsc --noEmit --pretty false 2>&1 | tee tsc.log || true
+          if grep -E '^src/(types/auth\.ts|lib/authApi(\.test)?\.ts|lib/authEvents(\.test)?\.ts|lib/api\.ts|contexts/AuthContext(\.test)?\.tsx|components/auth/[A-Za-z.]+\.tsx|components/admin/[A-Za-z.]+\.tsx|components/Toast\.tsx|components/Layout\.tsx|components/DemoBanner\.tsx|components/LockActions\.tsx|pages/Login(\.test)?\.tsx|pages/account/[A-Za-z.]+\.tsx|pages/admin/[A-Za-z.]+\.tsx|pages/Links\.tsx|pages/Locks\.tsx|App(\.test)?\.tsx|test/[A-Za-z.]+\.tsx?)\(' tsc.log; then
+            echo "type errors in auth modules" >&2
+            exit 1
+          fi
+          echo "auth modules type check clean ($(grep -c 'error TS' tsc.log || true) pre-existing errors elsewhere)"
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
