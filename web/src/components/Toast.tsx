@@ -27,7 +27,7 @@ export default function Toast({ message, onClose, duration = 3000, variant = 'su
   const Icon = variant === 'error' ? AlertCircle : CheckCircle
 
   return (
-    <div className="fixed top-4 right-4 z-60 animate-slide-in" role="status">
+    <div className="fixed top-4 right-4 z-60 animate-slide-in" role={variant === 'error' ? 'alert' : 'status'}>
       <div className={`${styles[variant].box} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-3 min-w-[300px]`}>
         <Icon className="w-5 h-5 shrink-0" />
         <span className="flex-1 font-medium">{message}</span>

@@ -76,6 +76,23 @@ describe('ApiKeysPage', () => {
     expect(await screen.findByText('trk_zzzz.supersecret')).toBeInTheDocument()
   })
 
+  it('shows the create form, not the previous secret, when reopened', async () => {
+    mocked.createApiKey.mockResolvedValue({ apiKey: { ...keys[0], id: 'k9', prefix: 'trk_zzzz', name: 'new-key' }, secret: 'trk_zzzz.supersecret' })
+    renderWithProviders(<ApiKeysPage />, { route: '/admin/api-keys' })
+    await screen.findByText('trk_aaaa')
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'New API key' }))
+    await user.type(within(screen.getByRole('dialog')).getByLabelText('Name'), 'new-key')
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Create key' }))
+    expect(await screen.findByText('trk_zzzz.supersecret')).toBeInTheDocument()
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Done' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'New API key' }))
+    const reopened = screen.getByRole('dialog')
+    expect(within(reopened).getByLabelText('Name')).toBeInTheDocument()
+    expect(within(reopened).queryByText('trk_zzzz.supersecret')).not.toBeInTheDocument()
+  })
+
   it('revokes a key after confirmation', async () => {
     mocked.revokeApiKey.mockResolvedValue(undefined)
     renderWithProviders(<ApiKeysPage />, { route: '/admin/api-keys' })

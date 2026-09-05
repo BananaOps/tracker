@@ -3,11 +3,14 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import TeamsPage from './TeamsPage'
+import { QUERY_KEYS } from '../../components/admin/adminUi'
 import type { Team, User } from '../../types/auth'
 
 const teams: Team[] = [
   { id: 't-admin', name: 'Administrators', description: 'Built-in', permissions: ['access:manage'], scopeAll: true, scopeServices: [], oidcGroups: [], builtin: true },
-  { id: 't-plat', name: 'Platform', description: 'Platform team', permissions: ['event:read', 'event:write'], scopeAll: true, scopeServices: [], oidcGroups: ['platform-eng'], builtin: false },
+  // 'legacy:custom' is not in the frontend's Permission union: it stands in
+  // for a permission the backend knows about that this build does not yet.
+  { id: 't-plat', name: 'Platform', description: 'Platform team', permissions: ['event:read', 'event:write', 'legacy:custom'], scopeAll: true, scopeServices: [], oidcGroups: ['platform-eng'], builtin: false },
 ]
 const users: User[] = [
   { id: 'u-admin', username: 'admin', email: '', displayName: 'admin', source: 'local', teamIds: ['t-admin'], disabled: false, mustChangePassword: false },
@@ -94,9 +97,10 @@ describe('TeamsPage', () => {
     )
   })
 
-  it('deletes a team after confirmation', async () => {
+  it('deletes a team after confirmation and refreshes users and API keys too', async () => {
     mocked.deleteTeam.mockResolvedValue(undefined)
-    renderWithProviders(<TeamsPage />, { route: '/admin/teams' })
+    const { queryClient } = renderWithProviders(<TeamsPage />, { route: '/admin/teams' })
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     const platRow = (await screen.findByText('Platform')).closest('tr') as HTMLElement
     const user = userEvent.setup()
     await user.click(within(platRow).getByRole('button', { name: 'Delete' }))
@@ -104,5 +108,32 @@ describe('TeamsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Delete team' }))
     await waitFor(() => expect(mocked.deleteTeam).toHaveBeenCalledWith('t-plat'))
     expect(await screen.findByRole('status')).toHaveTextContent('Team deleted')
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.users })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.apiKeys })
+  })
+
+  it('preserves a permission unknown to this build when toggling another one', async () => {
+    mocked.updateTeam.mockResolvedValue(teams[1])
+    const { queryClient } = renderWithProviders(<TeamsPage />, { route: '/admin/teams' })
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const platRow = (await screen.findByText('Platform')).closest('tr') as HTMLElement
+    const user = userEvent.setup()
+    await user.click(within(platRow).getByRole('button', { name: 'Edit' }))
+    const dialog = screen.getByRole('dialog')
+    await user.click(within(dialog).getByLabelText('catalog:read'))
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mocked.updateTeam).toHaveBeenCalledWith('t-plat', {
+        name: 'Platform',
+        description: 'Platform team',
+        permissions: ['event:read', 'event:write', 'catalog:read', 'legacy:custom'],
+        scopeAll: true,
+        scopeServices: [],
+        oidcGroups: ['platform-eng'],
+      }),
+    )
+    expect(await screen.findByRole('status')).toHaveTextContent('Team updated')
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.users })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: QUERY_KEYS.apiKeys })
   })
 })

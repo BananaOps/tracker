@@ -15,9 +15,9 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', destructive = false, pending = false, onConfirm, onClose }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle><span id="confirm-dialog-title">{title}</span></DialogTitle>
           <DialogClose onClick={onClose} />
         </DialogHeader>
         <div className="px-5 py-4 space-y-4">

@@ -43,8 +43,12 @@ export function TeamFormDialog({ open, team, members, pending, error, onSubmit, 
   const togglePermission = (perm: string, checked: boolean) => {
     setPermissions((current) => {
       const next = checked ? [...current, perm] : current.filter((p) => p !== perm)
-      // Keep the canonical order so the payload is stable.
-      return ALL_PERMISSIONS.filter((p) => next.includes(p))
+      // Keep the canonical order so the payload is stable, but preserve any
+      // permission string the frontend union does not know about yet
+      // (appended after the canonical ones) instead of silently dropping it.
+      const known = ALL_PERMISSIONS.filter((p) => next.includes(p))
+      const unknown = next.filter((p) => !(ALL_PERMISSIONS as readonly string[]).includes(p))
+      return [...known, ...unknown]
     })
   }
 

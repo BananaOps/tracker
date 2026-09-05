@@ -173,7 +173,7 @@ describe('AuthProvider', () => {
     )
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
     act(() => emitForbidden('/event'))
-    expect(await screen.findByRole('status')).toHaveTextContent('Access denied')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Access denied')
   })
 
   it('signs out, adopts the server anonymous principal and lands on plain /login', async () => {
@@ -205,7 +205,7 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
     mocked.logout.mockRejectedValueOnce({ status: 500 })
     await userEvent.setup().click(screen.getByRole('button', { name: 'Sign out' }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Sign out failed')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sign out failed')
     expect(screen.getByTestId('user')).toHaveTextContent('alice')
     expect(screen.getByTestId('location')).toHaveTextContent('/dashboard')
   })

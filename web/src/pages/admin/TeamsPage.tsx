@@ -33,8 +33,12 @@ export default function TeamsPage() {
     setError(null)
   }, [])
 
-  const onSuccess = (message: string) => {
+  // A team rename or removal can also invalidate what users/apiKeys have
+  // cached (team names shown inline, ids that stop resolving), so those two
+  // callers pass their query keys along; a fresh team never appears there.
+  const onSuccess = (message: string, alsoInvalidate: (readonly unknown[])[] = []) => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teams })
+    for (const queryKey of alsoInvalidate) void queryClient.invalidateQueries({ queryKey })
     closeDialog()
     setDeleting(null)
     setToast(message)
@@ -47,12 +51,12 @@ export default function TeamsPage() {
   })
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: TeamInput }) => authApi.updateTeam(id, input),
-    onSuccess: () => onSuccess('Team updated'),
+    onSuccess: () => onSuccess('Team updated', [QUERY_KEYS.users, QUERY_KEYS.apiKeys]),
     onError: (err) => setError(getApiErrorMessage(err, 'Could not update the team')),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: string) => authApi.deleteTeam(id),
-    onSuccess: () => onSuccess('Team deleted'),
+    onSuccess: () => onSuccess('Team deleted', [QUERY_KEYS.users, QUERY_KEYS.apiKeys]),
     onError: (err) => {
       setDeleting(null)
       setToast(getApiErrorMessage(err, 'Could not delete the team'))

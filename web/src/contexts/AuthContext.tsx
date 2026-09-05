@@ -26,7 +26,7 @@ export interface AuthContextValue {
   status: 'loading' | 'ready'
   principal: Principal
   config: AuthConfig
-  hasPermission: (perm: Permission | string) => boolean
+  hasPermission: (perm: Permission) => boolean
   inScope: (service: string) => boolean
   logout: () => Promise<void>
   reload: () => Promise<Principal>
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate])
 
   const hasPermission = useCallback(
-    (perm: Permission | string) => principal.permissions.includes(perm),
+    (perm: Permission) => principal.permissions.includes(perm),
     [principal.permissions],
   )
 

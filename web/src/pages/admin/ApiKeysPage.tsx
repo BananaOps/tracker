@@ -46,12 +46,6 @@ export default function ApiKeysPage() {
     return (id: string) => map.get(id) ?? id
   }, [teamsQuery.data])
 
-  const closeDialog = useCallback(() => {
-    setDialogOpen(false)
-    setResult(null)
-    setError(null)
-  }, [])
-
   const createMutation = useMutation({
     mutationFn: (input: CreateApiKeyInput) => authApi.createApiKey(input),
     onSuccess: (created) => {
@@ -61,6 +55,13 @@ export default function ApiKeysPage() {
     },
     onError: (err) => setError(getApiErrorMessage(err, 'Could not create the API key')),
   })
+
+  const closeDialog = useCallback(() => {
+    setDialogOpen(false)
+    setResult(null)
+    setError(null)
+    createMutation.reset()
+  }, [createMutation])
 
   const revokeMutation = useMutation({
     mutationFn: (id: string) => authApi.revokeApiKey(id),
