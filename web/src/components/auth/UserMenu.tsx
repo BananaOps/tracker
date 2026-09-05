@@ -12,7 +12,7 @@ function initials(name: string): string {
 }
 
 export function UserMenu() {
-  const { principal, logout, showToast } = useAuth()
+  const { principal, config, logout, showToast } = useAuth()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -41,6 +41,10 @@ export function UserMenu() {
   }
 
   if (principal.kind !== 'user') {
+    // No sign-in method is reachable (static build, or a backend with both
+    // local login and OIDC turned off): a link into /login would just show
+    // its own "no sign-in method" message, so skip it entirely here.
+    if (!config.localLoginEnabled && !config.oidcEnabled) return null
     return (
       <Link to={loginPathFor(location)} className={buttonClass} style={buttonStyle}>
         <LogIn className="w-3 h-3" />

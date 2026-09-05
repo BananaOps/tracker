@@ -74,7 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   locationRef.current = location
 
   const reload = useCallback(async (): Promise<Principal> => {
-    if (isStaticMode) return ANONYMOUS_FALLBACK
+    if (isStaticMode) {
+      // No backend to sign in against on the static (GitHub Pages) build:
+      // advertising a local sign-in form there would post to an endpoint
+      // that does not exist.
+      setConfig({ ...DEFAULT_CONFIG, localLoginEnabled: false })
+      setStatus('ready')
+      return ANONYMOUS_FALLBACK
+    }
     const [cfg, me] = await Promise.allSettled([authApi.getConfig(), authApi.me()])
     if (cfg.status === 'fulfilled') setConfig(cfg.value)
     const resolved = me.status === 'fulfilled' ? me.value : principalAfterMeFailure(me.reason)

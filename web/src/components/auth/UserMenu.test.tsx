@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import { UserMenu } from './UserMenu'
 import type { AuthContextValue } from '../../contexts/AuthContext'
-import type { Principal } from '../../types/auth'
+import type { AuthConfig, Principal } from '../../types/auth'
 
 const anonymous: Principal = {
   authenticated: false,
@@ -21,6 +21,7 @@ const anonymous: Principal = {
   isAdmin: false,
 }
 let current: Principal = anonymous
+let currentConfig: AuthConfig = { localLoginEnabled: true, oidcEnabled: false, oidcButtonLabel: '', anonymousPermissions: [], demoMode: false }
 const logout = vi.fn(async () => {})
 const showToast = vi.fn()
 
@@ -28,7 +29,7 @@ vi.mock('../../contexts/AuthContext', () => ({
   useAuth: (): AuthContextValue => ({
     status: 'ready',
     principal: current,
-    config: { localLoginEnabled: true, oidcEnabled: false, oidcButtonLabel: '', anonymousPermissions: [], demoMode: false },
+    config: currentConfig,
     hasPermission: (p: string) => current.permissions.includes(p),
     inScope: () => true,
     logout,
@@ -39,6 +40,7 @@ vi.mock('../../contexts/AuthContext', () => ({
 
 beforeEach(() => {
   showToast.mockClear()
+  currentConfig = { localLoginEnabled: true, oidcEnabled: false, oidcButtonLabel: '', anonymousPermissions: [], demoMode: false }
 })
 
 describe('UserMenu', () => {
@@ -46,6 +48,14 @@ describe('UserMenu', () => {
     current = anonymous
     renderWithProviders(<UserMenu />, { route: '/locks?env=prod' })
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login?redirect=%2Flocks%3Fenv%3Dprod')
+  })
+
+  it('renders nothing when no sign-in method is enabled', () => {
+    current = anonymous
+    currentConfig = { ...currentConfig, localLoginEnabled: false, oidcEnabled: false }
+    renderWithProviders(<UserMenu />, { route: '/locks' })
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('shows the account, source and actions for a local user', async () => {
