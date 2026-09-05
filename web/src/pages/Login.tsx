@@ -35,7 +35,8 @@ export default function Login() {
   const [pending, setPending] = useState(false)
 
   if (principal.kind === 'user') {
-    return <Navigate to={target} replace />
+    const to = principal.mustChangePassword ? `/account/password?redirect=${encodeURIComponent(target)}` : target
+    return <Navigate to={to} replace />
   }
 
   const handleSubmit = async (e: FormEvent) => {
