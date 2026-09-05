@@ -13,6 +13,7 @@ import EventChangelog from '../components/EventChangelog'
 import LockIndicator from '../components/LockIndicator'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
+import { Can } from '../components/auth/Can'
 
 export default function EventDetail() {
   const { eventId } = useParams<{ eventId: string }>()
@@ -197,14 +198,16 @@ export default function EventDetail() {
         <div className="flex items-center space-x-3">
           {!isEditing ? (
             <>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-2"
-              >
-                <Edit2 className="w-4 h-4" />
-                <span>Edit</span>
-              </Button>
+              <Can perm="event:write">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center space-x-2"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span>Edit</span>
+                </Button>
+              </Can>
             </>
           ) : (
             <>
