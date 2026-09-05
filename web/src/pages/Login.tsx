@@ -45,11 +45,11 @@ export default function Login() {
     try {
       await authApi.login(username.trim(), password)
       const me = await authApi.me()
+      await reload()
       if (me.mustChangePassword) {
         navigate(`/account/password?redirect=${encodeURIComponent(target)}`, { replace: true })
         return
       }
-      await reload()
       navigate(target, { replace: true })
     } catch (err) {
       setError(messageFor(err))
