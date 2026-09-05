@@ -73,6 +73,30 @@ export interface Principal {
   isAdmin: boolean
 }
 
+/** PR 1 transitional default: anonymous may do everything except administer access. */
+export const ANONYMOUS_FALLBACK: Principal = {
+  authenticated: false,
+  kind: 'anonymous',
+  userId: '',
+  username: '',
+  displayName: '',
+  source: '',
+  teams: [],
+  permissions: ALL_PERMISSIONS.filter((p) => p !== 'access:manage'),
+  scopeAll: true,
+  scopeServices: [],
+  mustChangePassword: false,
+  isAdmin: false,
+}
+
+export const DEFAULT_CONFIG: AuthConfig = {
+  localLoginEnabled: true,
+  oidcEnabled: false,
+  oidcButtonLabel: 'Sign in with SSO',
+  anonymousPermissions: ANONYMOUS_FALLBACK.permissions,
+  demoMode: false,
+}
+
 export interface User {
   id: string
   username: string
