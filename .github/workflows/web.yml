@@ -36,10 +36,23 @@ jobs:
       - name: Type check auth modules
         # The web tree carries pre-existing type errors outside the auth
         # modules; the full log is kept for visibility and only errors in
-        # the files owned by the auth work fail the job.
+        # the files owned by the auth work fail the job. LockActions.tsx is
+        # excluded from the filter below: it carries a pre-existing TS2322
+        # on main (line 39) that predates and is unrelated to the auth work.
         run: |
           set -o pipefail
-          npx tsc --noEmit --pretty false 2>&1 | tee tsc.log || true
+          # tsc exits 2 when it finds type errors: that is a normal outcome
+          # here, handled by the grep gate below. Disable -e around the
+          # pipeline itself so a real failure (missing binary, broken
+          # tsconfig, OOM) does not abort the script before PIPESTATUS is read.
+          set +e
+          npx tsc --noEmit --pretty false 2>&1 | tee tsc.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ] && [ "$status" -ne 2 ]; then
+            echo "tsc failed to run (exit $status)" >&2
+            exit 1
+          fi
           if grep -E '^src/(types/auth\.ts|lib/authApi(\.test)?\.ts|lib/authEvents(\.test)?\.ts|lib/api\.ts|contexts/AuthContext(\.test)?\.tsx|components/auth/[A-Za-z.]+\.tsx|components/admin/[A-Za-z.]+\.tsx|components/Toast\.tsx|components/Layout\.tsx|components/DemoBanner\.tsx|pages/Login(\.test)?\.tsx|pages/account/[A-Za-z.]+\.tsx|pages/admin/[A-Za-z.]+\.tsx|pages/Links\.tsx|pages/Locks\.tsx|App(\.test)?\.tsx|test/[A-Za-z.]+\.tsx?)\(' tsc.log; then
             echo "type errors in auth modules" >&2
             exit 1
