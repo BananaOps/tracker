@@ -40,7 +40,7 @@ jobs:
         run: |
           set -o pipefail
           npx tsc --noEmit --pretty false 2>&1 | tee tsc.log || true
-          if grep -E '^src/(types/auth\.ts|lib/authApi(\.test)?\.ts|lib/authEvents(\.test)?\.ts|lib/api\.ts|contexts/AuthContext(\.test)?\.tsx|components/auth/[A-Za-z.]+\.tsx|components/admin/[A-Za-z.]+\.tsx|components/Toast\.tsx|components/Layout\.tsx|components/DemoBanner\.tsx|components/LockActions\.tsx|pages/Login(\.test)?\.tsx|pages/account/[A-Za-z.]+\.tsx|pages/admin/[A-Za-z.]+\.tsx|pages/Links\.tsx|pages/Locks\.tsx|App(\.test)?\.tsx|test/[A-Za-z.]+\.tsx?)\(' tsc.log; then
+          if grep -E '^src/(types/auth\.ts|lib/authApi(\.test)?\.ts|lib/authEvents(\.test)?\.ts|lib/api\.ts|contexts/AuthContext(\.test)?\.tsx|components/auth/[A-Za-z.]+\.tsx|components/admin/[A-Za-z.]+\.tsx|components/Toast\.tsx|components/Layout\.tsx|components/DemoBanner\.tsx|pages/Login(\.test)?\.tsx|pages/account/[A-Za-z.]+\.tsx|pages/admin/[A-Za-z.]+\.tsx|pages/Links\.tsx|pages/Locks\.tsx|App(\.test)?\.tsx|test/[A-Za-z.]+\.tsx?)\(' tsc.log; then
             echo "type errors in auth modules" >&2
             exit 1
           fi
