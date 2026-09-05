@@ -12,7 +12,7 @@ function initials(name: string): string {
 }
 
 export function UserMenu() {
-  const { principal, logout } = useAuth()
+  const { principal, logout, showToast } = useAuth()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -113,7 +113,7 @@ export function UserMenu() {
               type="button"
               onClick={() => {
                 setOpen(false)
-                void logout()
+                logout().catch(() => showToast('Sign out failed'))
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-hud-on-surface hover:bg-hud-surface-high"
             >

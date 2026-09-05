@@ -31,7 +31,8 @@ vi.mock('../../contexts/AuthContext', () => ({
     hasPermission: (p: string) => current.permissions.includes(p),
     inScope: () => true,
     logout: async () => {},
-    reload: async () => {},
+    reload: async () => current,
+    showToast: vi.fn(),
   }),
 }))
 

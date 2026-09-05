@@ -23,7 +23,7 @@ const anonymous: Principal = {
 
 const alice: Principal = { ...anonymous, authenticated: true, kind: 'user', userId: 'u1', username: 'alice', displayName: 'Alice', source: 'local' }
 
-const reload = vi.fn(async () => {})
+const reload = vi.fn(async () => alice)
 let oidcEnabled = false
 
 vi.mock('../contexts/AuthContext', () => ({
@@ -35,6 +35,7 @@ vi.mock('../contexts/AuthContext', () => ({
     inScope: () => true,
     logout: async () => {},
     reload,
+    showToast: vi.fn(),
   }),
 }))
 
@@ -98,7 +99,7 @@ describe('Login', () => {
 
   it('sends a user who must change their password to the password page', async () => {
     mocked.login.mockResolvedValue(undefined)
-    mocked.me.mockResolvedValue({ ...alice, mustChangePassword: true })
+    reload.mockResolvedValueOnce({ ...alice, mustChangePassword: true })
     renderWithProviders(<Login />, { route: '/login?redirect=%2Fcatalog' })
     await fillAndSubmit('admin', 'temporary')
     await waitFor(() =>

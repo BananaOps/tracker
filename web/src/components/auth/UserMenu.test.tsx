@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../test/renderWithProviders'
 import { UserMenu } from './UserMenu'
@@ -22,6 +22,7 @@ const anonymous: Principal = {
 }
 let current: Principal = anonymous
 const logout = vi.fn(async () => {})
+const showToast = vi.fn()
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: (): AuthContextValue => ({
@@ -31,9 +32,14 @@ vi.mock('../../contexts/AuthContext', () => ({
     hasPermission: (p: string) => current.permissions.includes(p),
     inScope: () => true,
     logout,
-    reload: async () => {},
+    reload: async () => current,
+    showToast,
   }),
 }))
+
+beforeEach(() => {
+  showToast.mockClear()
+})
 
 describe('UserMenu', () => {
   it('offers a sign-in link that comes back to the current page', () => {
@@ -61,5 +67,15 @@ describe('UserMenu', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /Bob/ }))
     expect(screen.queryByRole('menuitem', { name: 'Change password' })).not.toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeInTheDocument()
+  })
+
+  it('surfaces a toast when sign-out fails', async () => {
+    current = { ...anonymous, authenticated: true, kind: 'user', username: 'alice', displayName: 'Alice Doe', source: 'local' }
+    logout.mockRejectedValueOnce(new Error('logout failed'))
+    renderWithProviders(<UserMenu />, { route: '/dashboard' })
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Alice Doe/ }))
+    await user.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+    await waitFor(() => expect(showToast).toHaveBeenCalledWith('Sign out failed'))
   })
 })

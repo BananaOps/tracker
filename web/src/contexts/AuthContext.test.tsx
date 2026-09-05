@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../test/renderWithProviders'
 import { AuthProvider, useAuth } from './AuthContext'
 import { emitForbidden, emitUnauthorized } from '../lib/authEvents'
@@ -46,16 +47,33 @@ const alice: Principal = {
   isAdmin: false,
 }
 
+const loggedOutByServer: Principal = {
+  authenticated: false,
+  kind: 'anonymous',
+  userId: '',
+  username: '',
+  displayName: '',
+  source: '',
+  teams: [],
+  permissions: ['event:read'],
+  scopeAll: false,
+  scopeServices: [],
+  mustChangePassword: false,
+  isAdmin: false,
+}
+
 function Probe() {
-  const { status, principal, hasPermission, inScope } = useAuth()
+  const { status, principal, hasPermission, inScope, logout, showToast } = useAuth()
   return (
     <div>
       <span data-testid="status">{status}</span>
       <span data-testid="user">{principal.username || 'anonymous'}</span>
       <span data-testid="event-read">{String(hasPermission('event:read'))}</span>
       <span data-testid="event-write">{String(hasPermission('event:write'))}</span>
+      <span data-testid="access-manage">{String(hasPermission('access:manage'))}</span>
       <span data-testid="scope-payments">{String(inScope('payments'))}</span>
       <span data-testid="scope-billing">{String(inScope('billing'))}</span>
+      <button onClick={() => logout().catch(() => showToast('Sign out failed'))}>Sign out</button>
     </div>
   )
 }
@@ -104,7 +122,21 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
     expect(screen.getByTestId('user')).toHaveTextContent('anonymous')
     expect(screen.getByTestId('event-write')).toHaveTextContent('true')
+    expect(screen.getByTestId('access-manage')).toHaveTextContent('false')
     expect(warn).toHaveBeenCalled()
+  })
+
+  it('grants no permission when /auth/me is refused with 401', async () => {
+    mocked.me.mockRejectedValue({ status: 401 })
+    renderWithProviders(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    )
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+    expect(screen.getByTestId('event-read')).toHaveTextContent('false')
+    expect(screen.getByTestId('event-write')).toHaveTextContent('false')
+    expect(screen.getByTestId('access-manage')).toHaveTextContent('false')
   })
 
   it('redirects to /login with the current location on an unauthorized event', async () => {
@@ -142,5 +174,39 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
     act(() => emitForbidden('/event'))
     expect(await screen.findByRole('status')).toHaveTextContent('Access denied')
+  })
+
+  it('signs out, adopts the server anonymous principal and lands on plain /login', async () => {
+    mocked.me.mockResolvedValueOnce(alice)
+    renderWithProviders(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+      { route: '/locks?env=prod' },
+    )
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+    expect(screen.getByTestId('user')).toHaveTextContent('alice')
+    mocked.me.mockResolvedValueOnce(loggedOutByServer)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Sign out' }))
+    expect(mocked.logout).toHaveBeenCalled()
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/login'))
+    expect(screen.getByTestId('location')).not.toHaveTextContent('?')
+    expect(screen.getByTestId('user')).toHaveTextContent('anonymous')
+  })
+
+  it('keeps the session and shows a toast when sign-out fails', async () => {
+    mocked.me.mockResolvedValueOnce(alice)
+    renderWithProviders(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+      { route: '/dashboard' },
+    )
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+    mocked.logout.mockRejectedValueOnce({ status: 500 })
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Sign out' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Sign out failed')
+    expect(screen.getByTestId('user')).toHaveTextContent('alice')
+    expect(screen.getByTestId('location')).toHaveTextContent('/dashboard')
   })
 })

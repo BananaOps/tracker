@@ -15,15 +15,18 @@ const keys: ApiKey[] = [
   { id: 'k3', prefix: 'trk_cccc', name: 'expired', teamId: 't-plat', createdBy: 'admin', createdAt: '2026-01-01T10:00:00Z', expiresAt: '2026-02-01T10:00:00Z' },
 ]
 
+const adminPrincipal = { authenticated: true, kind: 'user' as const, userId: 'u-admin', username: 'admin', displayName: 'admin', source: 'local', teams: [], permissions: ['access:manage'], scopeAll: true, scopeServices: [], mustChangePassword: false, isAdmin: true }
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: (): AuthContextValue => ({
     status: 'ready',
-    principal: { authenticated: true, kind: 'user', userId: 'u-admin', username: 'admin', displayName: 'admin', source: 'local', teams: [], permissions: ['access:manage'], scopeAll: true, scopeServices: [], mustChangePassword: false, isAdmin: true },
+    principal: adminPrincipal,
     config: { localLoginEnabled: true, oidcEnabled: false, oidcButtonLabel: '', anonymousPermissions: [], demoMode: false },
     hasPermission: () => true,
     inScope: () => true,
     logout: async () => {},
-    reload: async () => {},
+    reload: async () => adminPrincipal,
+    showToast: vi.fn(),
   }),
 }))
 

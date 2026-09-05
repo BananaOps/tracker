@@ -15,15 +15,18 @@ const users: User[] = [
   { id: 'u-bob', username: 'bob', email: 'bob@x.io', displayName: 'Bob', source: 'oidc', teamIds: ['t-plat'], disabled: true, mustChangePassword: false },
 ]
 
+const adminPrincipal = { authenticated: true, kind: 'user' as const, userId: 'u-admin', username: 'admin', displayName: 'admin', source: 'local', teams: [{ id: 't-admin', name: 'Administrators' }], permissions: ['access:manage'], scopeAll: true, scopeServices: [], mustChangePassword: false, isAdmin: true }
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: (): AuthContextValue => ({
     status: 'ready',
-    principal: { authenticated: true, kind: 'user', userId: 'u-admin', username: 'admin', displayName: 'admin', source: 'local', teams: [{ id: 't-admin', name: 'Administrators' }], permissions: ['access:manage'], scopeAll: true, scopeServices: [], mustChangePassword: false, isAdmin: true },
+    principal: adminPrincipal,
     config: { localLoginEnabled: true, oidcEnabled: false, oidcButtonLabel: '', anonymousPermissions: [], demoMode: false },
     hasPermission: () => true,
     inScope: () => true,
     logout: async () => {},
-    reload: async () => {},
+    reload: async () => adminPrincipal,
+    showToast: vi.fn(),
   }),
 }))
 

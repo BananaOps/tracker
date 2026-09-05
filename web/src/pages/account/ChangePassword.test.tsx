@@ -20,7 +20,7 @@ let current: Principal = {
   mustChangePassword: true,
   isAdmin: true,
 }
-const reload = vi.fn(async () => {})
+const reload = vi.fn(async () => current)
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: (): AuthContextValue => ({
@@ -31,6 +31,7 @@ vi.mock('../../contexts/AuthContext', () => ({
     inScope: () => true,
     logout: async () => {},
     reload,
+    showToast: vi.fn(),
   }),
 }))
 

@@ -29,10 +29,26 @@ export interface AuthContextValue {
   hasPermission: (perm: Permission | string) => boolean
   inScope: (service: string) => boolean
   logout: () => Promise<void>
-  reload: () => Promise<void>
+  reload: () => Promise<Principal>
+  showToast: (message: string) => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+/**
+ * Resolves the principal after a rejected `/auth/me`: a refused session
+ * (401/403) gets no permission at all, never the permissive fallback;
+ * anything else (network, 5xx) falls back to the transitional anonymous
+ * principal so the app stays usable while the backend is unreachable.
+ */
+function principalAfterMeFailure(reason: unknown): Principal {
+  const httpStatus = getApiErrorStatus(reason)
+  if (httpStatus === 401 || httpStatus === 403) {
+    return { ...ANONYMOUS_FALLBACK, permissions: [] }
+  }
+  console.warn('auth: /auth/me unreachable, using the transitional anonymous principal', reason)
+  return ANONYMOUS_FALLBACK
+}
 
 function LoadingScreen() {
   return (
@@ -57,23 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const locationRef = useRef(location)
   locationRef.current = location
 
-  const reload = useCallback(async () => {
-    if (isStaticMode) return
+  const reload = useCallback(async (): Promise<Principal> => {
+    if (isStaticMode) return ANONYMOUS_FALLBACK
     const [cfg, me] = await Promise.allSettled([authApi.getConfig(), authApi.me()])
     if (cfg.status === 'fulfilled') setConfig(cfg.value)
-    if (me.status === 'fulfilled') {
-      setPrincipal(me.value)
-    } else {
-      const httpStatus = getApiErrorStatus(me.reason)
-      if (httpStatus === 401 || httpStatus === 403) {
-        // The backend refused an anonymous Me: no permission at all.
-        setPrincipal({ ...ANONYMOUS_FALLBACK, permissions: [] })
-      } else {
-        console.warn('auth: /auth/me unreachable, using the transitional anonymous principal', me.reason)
-        setPrincipal(ANONYMOUS_FALLBACK)
-      }
-    }
+    const resolved = me.status === 'fulfilled' ? me.value : principalAfterMeFailure(me.reason)
+    setPrincipal(resolved)
     setStatus('ready')
+    return resolved
   }, [])
 
   useEffect(() => {
@@ -106,19 +113,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const logout = useCallback(async () => {
+    // authApi.logout() rejecting propagates as-is: the session is still
+    // alive server-side, so neither the principal nor the location change.
+    await authApi.logout()
+    let me: Principal
     try {
-      await authApi.logout()
-    } finally {
-      await reload()
-      navigate('/login', { replace: true })
+      me = await authApi.me()
+    } catch (err) {
+      me = principalAfterMeFailure(err)
     }
-  }, [navigate, reload])
+    // Set the anonymous principal and navigate in the same synchronous
+    // block (no await between them) so React batches both: no protected
+    // page gets a chance to render with an anonymous principal and its own
+    // route guard's `/login?redirect=...`, only the plain `/login` below.
+    setPrincipal(me)
+    navigate('/login', { replace: true })
+  }, [navigate])
 
+  const showToast = useCallback((message: string) => setToast(message), [])
   const closeToast = useCallback(() => setToast(null), [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, principal, config, hasPermission, inScope, logout, reload }),
-    [status, principal, config, hasPermission, inScope, logout, reload],
+    () => ({ status, principal, config, hasPermission, inScope, logout, reload, showToast }),
+    [status, principal, config, hasPermission, inScope, logout, reload, showToast],
   )
 
   return (
