@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../test/renderWithProviders'
+import { Route, Routes } from 'react-router-dom'
+import { RequirePermission } from '../components/auth/RequirePermission'
 import { AuthProvider, useAuth } from './AuthContext'
 import { emitForbidden, emitUnauthorized } from '../lib/authEvents'
 import type { AuthConfig, Principal } from '../types/auth'
@@ -191,6 +193,35 @@ describe('AuthProvider', () => {
     expect(mocked.logout).toHaveBeenCalled()
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/login'))
     expect(screen.getByTestId('location')).not.toHaveTextContent('?')
+    // The routed tree is hidden while the sign-out navigation is in flight.
+    await waitFor(() => expect(screen.getByTestId('user')).toHaveTextContent('anonymous'))
+    expect(screen.getByTestId('status')).toHaveTextContent('ready')
+  })
+
+  it('signs out from a guarded route without letting the guard add a redirect', async () => {
+    mocked.me.mockResolvedValueOnce({ ...alice, permissions: ['access:manage'] })
+    renderWithProviders(
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/admin/users"
+            element={
+              <RequirePermission perm="access:manage">
+                <Probe />
+              </RequirePermission>
+            }
+          />
+          <Route path="/login" element={<Probe />} />
+        </Routes>
+      </AuthProvider>,
+      { route: '/admin/users' },
+    )
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+    mocked.me.mockResolvedValueOnce(loggedOutByServer)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Sign out' }))
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/login'))
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/login$/)
     expect(screen.getByTestId('user')).toHaveTextContent('anonymous')
   })
 

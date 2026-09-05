@@ -72,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // latest value through a ref so the listener is registered once.
   const locationRef = useRef(location)
   locationRef.current = location
+  // Set while a sign-out navigation is in flight; see logout().
+  const pendingLogout = useRef(false)
 
   const reload = useCallback(async (): Promise<Principal> => {
     if (isStaticMode) {
@@ -129,13 +131,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       me = principalAfterMeFailure(err)
     }
-    // Set the anonymous principal and navigate in the same synchronous
-    // block (no await between them) so React batches both: no protected
-    // page gets a chance to render with an anonymous principal and its own
-    // route guard's `/login?redirect=...`, only the plain `/login` below.
+    // Route changes are React transitions (v7_startTransition), so they
+    // commit after urgent state updates: a protected page would re-render
+    // with the anonymous principal first and its route guard would push its
+    // own `/login?redirect=...`. Unmount the routed tree (status loading)
+    // until the location has actually reached /login, then show it again.
+    if (locationRef.current.pathname !== '/login') {
+      pendingLogout.current = true
+      setStatus('loading')
+    }
     setPrincipal(me)
     navigate('/login', { replace: true })
   }, [navigate])
+
+  useEffect(() => {
+    if (pendingLogout.current && location.pathname === '/login') {
+      pendingLogout.current = false
+      setStatus('ready')
+    }
+  }, [location.pathname])
 
   const showToast = useCallback((message: string) => setToast(message), [])
   const closeToast = useCallback(() => setToast(null), [])
