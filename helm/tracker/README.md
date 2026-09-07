@@ -258,24 +258,32 @@ autoscaling:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `podSecurityContext` | Pod security context | `{}` |
-| `securityContext` | Container security context | `{}` |
+| `podSecurityContext` | Pod security context | see below |
+| `securityContext` | Container security context | see below |
 | `podAnnotations` | Pod annotations | `{}` |
 
-**Security Example:**
+The defaults comply with the Kubernetes Pod Security Standard `restricted` profile, so the chart
+deploys as-is in namespaces enforcing `pod-security.kubernetes.io/enforce: restricted`.
+The image runs as the dedicated unprivileged user `tracker` (UID/GID 65532), owns no writable
+files and never writes to disk, so a read-only root filesystem is safe.
+
+**Default security settings:**
 
 ```yaml
 podSecurityContext:
-  fsGroup: 2000
   runAsNonRoot: true
-  runAsUser: 1000
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
 
 securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
   capabilities:
     drop:
-    - ALL
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
+      - ALL
 ```
 
 ### Node Assignment

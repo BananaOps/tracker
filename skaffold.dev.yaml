@@ -10,7 +10,7 @@ build:
       sync:
         manual:
           - src: 'web/dist/**/*'
-            dest: /root/web/dist
+            dest: /app/web/dist
   tagPolicy:
     sha256: {}
   local:
@@ -29,6 +29,12 @@ deploy:
           helm: {}
         setValues:
           replicaCount: 1
+          # Dev only: file sync writes into the container, which the hardened
+          # defaults (non-root user, read-only root filesystem) forbid.
+          podSecurityContext.runAsNonRoot: "false"
+          podSecurityContext.runAsUser: "0"
+          podSecurityContext.runAsGroup: "0"
+          securityContext.readOnlyRootFilesystem: "false"
           resources.requests.cpu: "100m"
           resources.requests.memory: "128Mi"
           resources.limits.cpu: "500m"
