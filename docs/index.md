@@ -9,6 +9,7 @@ Tracker est une API de gestion d'événements, de catalogues et de verrous const
 ### 📚 Documentation générale
 - [README](./README.md) - Vue d'ensemble et architecture
 - [Spécification API](./api-specification.md) - OpenAPI et Protobuf
+- [Authentication](./AUTHENTICATION.md) - Users, teams, permissions and API keys
 
 ### 🔧 APIs par service  
 - [Events API](./events.md) - Gestion des événements

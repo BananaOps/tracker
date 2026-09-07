@@ -10,6 +10,7 @@ import (
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
@@ -102,6 +103,9 @@ func (e *Event) CreateEvent(
 	ctx context.Context,
 	i *v1alpha1.CreateEventRequest,
 ) (*v1alpha1.CreateEventResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var event = &v1alpha1.Event{
 		Title: i.Title,
@@ -164,6 +168,15 @@ func (e *Event) CreateEvent(
 			EventId:     "", // Sera mis à jour après la création de l'événement
 		}
 
+		// This is an internal call: it reuses the request context, so the
+		// method name authz sees stays "/tracker.event.v1alpha1.EventService/
+		// CreateEvent", not CreateLock. The lock is therefore authorized by
+		// event:write, not lock:write, even though spec 3.1 files CreateLock
+		// under lock:write. That is deliberate: creating an event that locks a
+		// service is one operation from the caller's point of view.
+		// Side effect: tracker_auth_requests_total counts such a request twice
+		// under the same method label, once for CreateEvent and once for the
+		// nested Authorize below. Same for the UpdateLock call further down.
 		_, err := e.lockService.CreateLock(ctx, lockReq)
 		if err != nil {
 			e.logger.Error("failed to create lock",
@@ -201,6 +214,9 @@ func (e *Event) CreateEvent(
 
 		existingLock, err2 := e.lockService.store.Get(ctx, filter)
 		if err2 == nil && existingLock != nil && existingLock.Id != "" {
+			// Internal call on the request context, see the comment above the
+			// CreateLock call: authorized by event:write and counted a second
+			// time in tracker_auth_requests_total under CreateEvent.
 			_, errUpd := e.lockService.UpdateLock(ctx, &lock.UpdateLockRequest{
 				Id:      existingLock.Id,
 				EventId: eventResult.Event.Metadata.Id,
@@ -254,6 +270,9 @@ func (e *Event) GetEvent(
 	ctx context.Context,
 	i *v1alpha1.GetEventRequest,
 ) (*v1alpha1.GetEventResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var eventResult = &v1alpha1.GetEventResponse{}
 	var err error
@@ -277,6 +296,9 @@ func (e *Event) SearchEvents(
 	ctx context.Context,
 	i *v1alpha1.SearchEventsRequest,
 ) (*v1alpha1.SearchEventsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	filter, err := utils.CreateFilter(i)
 	if err != nil {
@@ -297,6 +319,9 @@ func (e *Event) ListEvents(
 	ctx context.Context,
 	i *v1alpha1.ListEventsRequest,
 ) (*v1alpha1.ListEventsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var eventsResult = &v1alpha1.ListEventsResponse{}
 	var err error
@@ -314,6 +339,9 @@ func (e *Event) TodayEvents(
 	ctx context.Context,
 	i *v1alpha1.TodayEventsRequest,
 ) (*v1alpha1.TodayEventsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	today := time.Now().Format("2006-01-02")
 
@@ -341,6 +369,9 @@ func (e *Event) UpdateEvent(
 	ctx context.Context,
 	i *v1alpha1.UpdateEventRequest,
 ) (*v1alpha1.UpdateEventResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var eventResult = &v1alpha1.UpdateEventResponse{}
 	var eventDatabase = &v1alpha1.GetEventResponse{}
@@ -529,10 +560,17 @@ func (e *Event) UpdateEvent(
 	return eventResult, nil
 }
 
-func (e *Event) DeleteEvent(
+// DeleteEvents implements the EventService.DeleteEvents RPC. The method is
+// named DeleteEvents (plural) to match the generated EventServiceServer
+// interface; the previous DeleteEvent (singular) name never satisfied that
+// interface, so the RPC always fell back to the embedded unimplemented stub.
+func (e *Event) DeleteEvents(
 	ctx context.Context,
 	i *v1alpha1.DeleteEventRequest,
 ) (*v1alpha1.DeleteEventResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var eventResult = &v1alpha1.DeleteEventResponse{}
 
@@ -548,6 +586,9 @@ func (e *Event) AddChangelogEntry(
 	ctx context.Context,
 	i *v1alpha1.AddChangelogEntryRequest,
 ) (*v1alpha1.AddChangelogEntryResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Retrieve the existing event
 	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
@@ -595,6 +636,9 @@ func (e *Event) GetEventChangelog(
 	ctx context.Context,
 	i *v1alpha1.GetEventChangelogRequest,
 ) (*v1alpha1.GetEventChangelogResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Retrieve the existing event
 	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
@@ -655,6 +699,9 @@ func (e *Event) AddSlackId(
 	ctx context.Context,
 	i *v1alpha1.AddSlackIdRequest,
 ) (*v1alpha1.AddSlackIdResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Retrieve the existing event
 	eventDatabase, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
@@ -721,6 +768,9 @@ func (e *Event) GetEventStats(
 	ctx context.Context,
 	i *v1alpha1.GetEventStatsRequest,
 ) (*v1alpha1.GetEventStatsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Build filter from request
 	statsFilter := &utils.StatsFilter{
@@ -801,6 +851,9 @@ func (e *Event) GetEventStatsByMonth(
 	ctx context.Context,
 	i *v1alpha1.GetEventStatsByMonthRequest,
 ) (*v1alpha1.GetEventStatsByMonthResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Build filter from request
 	statsFilter := &utils.StatsFilter{

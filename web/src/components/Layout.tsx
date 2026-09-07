@@ -1,9 +1,9 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus } from 'lucide-react'
+import { Outlet, Link, useLocation, Navigate } from 'react-router-dom'
+import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Package, AlertTriangle, BookOpen, MessageSquare, Lock, BarChart3, ChevronLeft, ChevronRight, Link as LinkIcon, Plus, Users, Shield, KeyRound } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
-import { useState, useRef, useEffect, type MouseEvent } from 'react'
+import { useState, useRef, useEffect, type MouseEvent, type ComponentType } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -13,39 +13,64 @@ import LinksSearch from './LinksSearch'
 import CreatePanelHost from './CreatePanelHost'
 import { useCreatePanel } from '../contexts/CreatePanelContext'
 import { getSlackEventsChannelUrl } from '../config'
+import { useAuth } from '../contexts/AuthContext'
+import { Can } from './auth/Can'
+import { UserMenu } from './auth/UserMenu'
+import type { Permission } from '../types/auth'
 
-const navigationSections = [
+interface NavItem {
+  name: string
+  href: string
+  icon: ComponentType<{ className?: string }>
+  /** Hidden from the sidebar when the principal lacks it. Public when omitted. */
+  permission?: Permission
+}
+
+interface NavSection {
+  label: string
+  items: NavItem[]
+}
+
+const navigationSections: NavSection[] = [
   {
     label: 'Operations',
     items: [
-      { name: 'Dashboard',   href: '/dashboard',         icon: LayoutDashboard },
-      { name: 'Timeline',    href: '/events/timeline',   icon: Clock },
-      { name: 'Streamline',  href: '/events/streamline', icon: Package },
-      { name: 'Calendar',    href: '/events/calendar',   icon: Calendar },
-      { name: 'Overlaps',    href: '/events/overlaps',   icon: AlertTriangle },
-      { name: 'Insights',    href: '/insights',          icon: BarChart3 },
+      { name: 'Dashboard',   href: '/dashboard',         icon: LayoutDashboard, permission: 'event:read' },
+      { name: 'Timeline',    href: '/events/timeline',   icon: Clock,           permission: 'event:read' },
+      { name: 'Streamline',  href: '/events/streamline', icon: Package,         permission: 'event:read' },
+      { name: 'Calendar',    href: '/events/calendar',   icon: Calendar,        permission: 'event:read' },
+      { name: 'Overlaps',    href: '/events/overlaps',   icon: AlertTriangle,   permission: 'event:read' },
+      { name: 'Insights',    href: '/insights',          icon: BarChart3,       permission: 'event:read' },
     ],
   },
   {
     label: 'Services',
     items: [
-      { name: 'Catalog',      href: '/catalog',                    icon: Table },
-      { name: 'Architecture', href: '/catalog/dependencies',       icon: ({ className }: { className?: string }) => <span className={`inline-flex items-center justify-center ${className || ''}`}><i className="fa-solid fa-chart-diagram text-[13px]" /></span> },
+      { name: 'Catalog',      href: '/catalog',              icon: Table, permission: 'catalog:read' },
+      { name: 'Architecture', href: '/catalog/dependencies', icon: ({ className }: { className?: string }) => <span className={`inline-flex items-center justify-center ${className || ''}`}><i className="fa-solid fa-chart-diagram text-[13px]" /></span>, permission: 'catalog:read' },
     ],
   },
   {
     label: 'Infrastructure',
     items: [
-      { name: 'Drifts',    href: '/drifts', icon: GitBranch },
-      { name: 'RPA Usage', href: '/rpa',    icon: Bot },
-      { name: 'Locks',     href: '/locks',  icon: Lock },
+      { name: 'Drifts',    href: '/drifts', icon: GitBranch, permission: 'event:read' },
+      { name: 'RPA Usage', href: '/rpa',    icon: Bot,       permission: 'event:read' },
+      { name: 'Locks',     href: '/locks',  icon: Lock,      permission: 'lock:read' },
     ],
   },
   {
     label: 'Resources',
     items: [
-      { name: 'Links', href: '/links', icon: LinkIcon },
+      { name: 'Links', href: '/links', icon: LinkIcon, permission: 'links:read' },
       { name: 'Docs',  href: '/docs',  icon: BookOpen },
+    ],
+  },
+  {
+    label: 'Administration',
+    items: [
+      { name: 'Users',    href: '/admin/users',    icon: Users,    permission: 'access:manage' },
+      { name: 'Teams',    href: '/admin/teams',    icon: Shield,   permission: 'access:manage' },
+      { name: 'API keys', href: '/admin/api-keys', icon: KeyRound, permission: 'access:manage' },
     ],
   },
 ]
@@ -56,6 +81,13 @@ export default function Layout() {
   const { open } = useCreatePanel()
   const bannersRef = useRef<HTMLDivElement>(null)
   const [bannersHeight, setBannersHeight] = useState(0)
+  const { principal, hasPermission } = useAuth()
+  const visibleSections = navigationSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.permission || hasPermission(item.permission)),
+    }))
+    .filter((section) => section.items.length > 0)
 
   // Mesurer la hauteur des banneaux et la mettre à jour si elle change
   useEffect(() => {
@@ -74,6 +106,10 @@ export default function Layout() {
   const navItem = 'flex items-center px-2.5 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-150 cursor-pointer select-none'
   const navActive = 'bg-white/10 text-white'
   const navInactive = 'text-white/45 hover:text-white/80 hover:bg-white/[0.06]'
+
+  if (principal.mustChangePassword && location.pathname !== '/account/password') {
+    return <Navigate to="/account/password" replace />
+  }
 
   return (
     <div className="min-h-screen bg-hud-bg">
@@ -130,7 +166,7 @@ export default function Layout() {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-4 no-scrollbar">
-            {navigationSections.map((section) => (
+            {visibleSections.map((section) => (
               <div key={section.label}>
                 {!isCollapsed && (
                   <p className="px-2 mb-2 text-[10px] font-medium text-white/25 tracking-widest uppercase select-none">
@@ -202,13 +238,13 @@ export default function Layout() {
               {/* Secondary actions */}
               {(
                 [
-                  { panel: 'lock',        icon: Lock,    label: 'New Lock' },
-                  { panel: 'drift',       icon: null,    label: 'New Drift',    faIcon: faCodeBranch },
-                  { panel: 'rpa',         icon: null,    label: 'New RPA',      faIcon: faRobot },
-                  { panel: 'service',     icon: Package, label: 'New Service' },
+                  { panel: 'lock',    icon: Lock,    label: 'New Lock',    faIcon: null,         permission: 'lock:write' },
+                  { panel: 'drift',   icon: null,    label: 'New Drift',   faIcon: faCodeBranch, permission: 'event:write' },
+                  { panel: 'rpa',     icon: null,    label: 'New RPA',     faIcon: faRobot,      permission: 'event:write' },
+                  { panel: 'service', icon: Package, label: 'New Service', faIcon: null,         permission: 'catalog:write' },
                 ] as const
-              ).map((item: any) => {
-                const { to, panel, icon: Icon, label, faIcon } = item
+              ).map((item) => {
+                const { panel, icon: Icon, label, faIcon, permission } = item
                 const className = "flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150"
                 const style = {
                   color: 'rgb(var(--hud-on-surface-var))',
@@ -223,45 +259,40 @@ export default function Layout() {
                   ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-surface))'
                   ;(e.currentTarget as HTMLElement).style.borderColor = 'rgb(var(--hud-outline-var))'
                 }
-                const content = (
-                  <>
-                    {faIcon ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
-                    {label}
-                  </>
-                )
-                if (panel) {
-                  return (
-                    <button key={label} type="button" onClick={() => open(panel)} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-                      {content}
-                    </button>
-                  )
-                }
                 return (
-                  <Link key={to} to={to} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-                    {content}
-                  </Link>
+                  <Can key={label} perm={permission}>
+                    <button type="button" onClick={() => open(panel)} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+                      {faIcon ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" /> : Icon ? <Icon className="w-3 h-3" /> : null}
+                      {label}
+                    </button>
+                  </Can>
                 )
               })}
 
               {/* Primary CTA */}
-              <button
-                type="button"
-                onClick={() => open('event')}
-                className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-white"
-                style={{
-                  background: 'rgb(var(--hud-primary))',
-                  boxShadow: '0 1px 2px rgb(var(--hud-primary) / 0.3)',
-                }}
-                onMouseEnter={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary-dim))'
-                }}
-                onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary))'
-                }}
-              >
-                <Plus className="w-3.5 h-3.5" />
-                New Event
-              </button>
+              <Can perm="event:write">
+                <button
+                  type="button"
+                  onClick={() => open('event')}
+                  className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-white"
+                  style={{
+                    background: 'rgb(var(--hud-primary))',
+                    boxShadow: '0 1px 2px rgb(var(--hud-primary) / 0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary-dim))'
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'rgb(var(--hud-primary))'
+                  }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  New Event
+                </button>
+              </Can>
+
+              <span className="w-px h-5 mx-1" style={{ background: 'rgb(var(--hud-outline-var))' }} />
+              <UserMenu />
             </div>
           </header>
 

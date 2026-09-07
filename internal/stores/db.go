@@ -24,13 +24,17 @@ var cert tls.Certificate
 var mongoDatabase *mongo.Database
 
 func NewClient(collection string) (c *mongo.Collection) {
+	ctx := context.Background()
+	if mongoDatabase != nil {
+		ensureCollection(ctx, mongoDatabase, collection)
+		return mongoDatabase.Collection(collection)
+	}
 
 	config := config.ConfigDatabase
 	var m *mongo.Client
 	var err error
 
 	uri := createMongoUri(config)
-	ctx := context.Background()
 
 	if config.CAFile != "" {
 		tlsConfig := loadTlsCerts(config)
@@ -45,17 +49,17 @@ func NewClient(collection string) (c *mongo.Collection) {
 		}
 	}
 
-	// Stocker la database pour l'initialisation des index
+	// Stocker la database pour l'initialisation des index et les stores suivants
 	mongoDatabase = m.Database(config.Name)
+	ensureCollection(ctx, mongoDatabase, collection)
+	return mongoDatabase.Collection(collection)
+}
 
-	// init client collection
-	err = mongoDatabase.CreateCollection(ctx, collection)
-	if err != nil {
+func ensureCollection(ctx context.Context, db *mongo.Database, collection string) {
+	if err := db.CreateCollection(ctx, collection); err != nil {
 		// Ignorer l'erreur si la collection existe déjà
 		log.Printf("collection %s may already exist: %v", collection, err)
 	}
-
-	return mongoDatabase.Collection(collection)
 }
 
 // GetDatabase retourne l'instance de la base de données MongoDB

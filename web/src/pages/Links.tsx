@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { getLinksConfig, getHomerUrl, type LinkGroup, type LinkItem } from '../config'
 import { linksApi, type StoredLink } from '../lib/linksApi'
 import LinkFormDialog from '../components/LinkFormDialog'
+import { Can } from '../components/auth/Can'
 
 interface HomerLink { name: string; url: string; icon?: string; logo?: string }
 interface HomerServiceItem { name: string; url: string; subtitle?: string; logo?: string; icon?: string }
@@ -182,10 +183,12 @@ export default function Links() {
               Refresh
             </Button>
           )}
-          <Button size="sm" onClick={openAdd} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Link
-          </Button>
+          <Can perm="links:write">
+            <Button size="sm" onClick={openAdd} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Link
+            </Button>
+          </Can>
         </div>
       </div>
 
@@ -371,20 +374,22 @@ function LinkRow({ item, stored, onEdit, onDelete }: LinkRowProps) {
         )}
         {stored ? (
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onEdit(stored)}
-              className="p-1 rounded text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title="Edit"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(stored.id!)}
-              className="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title="Delete"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <Can perm="links:write">
+              <button
+                onClick={() => onEdit(stored)}
+                className="p-1 rounded text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                title="Edit"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(stored.id!)}
+                className="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                title="Delete"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </Can>
           </div>
         ) : !item._fromHomer && (
           <ExternalLink className="w-3 h-3 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />

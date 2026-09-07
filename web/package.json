@@ -9,7 +9,11 @@
     "build:static": "vite build --mode static",
     "build:check": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:auth": "eslint --report-unused-disable-directives --max-warnings 0 src/types/auth.ts src/lib/authApi.ts src/lib/authEvents.ts src/contexts/AuthContext.tsx src/components/auth src/components/admin src/components/Toast.tsx src/components/Layout.tsx src/components/DemoBanner.tsx src/pages/Login.tsx src/pages/account src/pages/admin src/pages/Links.tsx src/App.tsx src/test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -43,6 +47,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.0.8",
     "@types/react": "^19.2.4",
@@ -57,9 +65,11 @@
     "eslint-plugin-react-refresh": "^0.4.14",
     "glob": "^12.0.0",
     "globals": "^15.12.0",
+    "jsdom": "^30.0.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.7.2",
-    "vite": "^8.0.5"
+    "vite": "^8.0.5",
+    "vitest": "^5.0.0"
   }
 }

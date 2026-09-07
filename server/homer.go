@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bananaops/tracker/internal/auth"
+	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"gopkg.in/yaml.v3"
 )
@@ -90,7 +92,7 @@ func RegisterHomerHandler(mux *runtime.ServeMux, homerURL string) {
 		return
 	}
 
-	err := mux.HandlePath("GET", "/api/homer-links", func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+	err := mux.HandlePath("GET", "/api/homer-links", authz.RequireHTTP(auth.PermLinksRead, func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 		result, fetchErr := FetchHomerLinks(homerURL)
 		if fetchErr != nil {
 			slog.Error("Failed to fetch Homer links", "error", fetchErr)
@@ -103,7 +105,7 @@ func RegisterHomerHandler(mux *runtime.ServeMux, homerURL string) {
 		if encErr := json.NewEncoder(w).Encode(result); encErr != nil {
 			slog.Error("Failed to encode homer links response", "error", encErr)
 		}
-	})
+	}))
 	if err != nil {
 		slog.Error("Failed to register /api/homer-links handler", "error", err)
 	}

@@ -16,6 +16,7 @@ import Toast from './Toast'
 import EventChangelog from './EventChangelog'
 import LockIndicator from './LockIndicator'
 import { DateTimePicker } from './ui/date-time-picker'
+import { Can } from './auth/Can'
 
 interface EventDetailsModalProps {
   event: Event
@@ -519,20 +520,24 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             </div>
             {!isEditing && (
               <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <button onClick={handleStartEdit} className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium"
-                  style={{ background: hud.surfaceHigh, color: hud.onSurface, border: `1px solid ${ha('outline-var', 0.2)}` }}>
-                  <Edit2 className="w-4 h-4" /> Edit
-                </button>
-                <button onClick={handleApprove} disabled={approvingEvent || isApproved}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg disabled:opacity-50"
-                  style={{ background: hud.primary, color: '#ffffff', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
-                  <CheckCircle className="w-4 h-4" /> {isApproved ? 'Approved' : 'Approve'}
-                </button>
-                <button onClick={existingLock ? handleUnlock : handleLock} disabled={lockingService || checkingLock}
-                  className="p-2.5 rounded-lg transition-all disabled:opacity-50"
-                  style={{ background: existingLock ? 'rgba(52,211,153,0.1)' : ha('error', 0.1), color: existingLock ? '#34d399' : hud.error, border: `1px solid ${existingLock ? 'rgba(52,211,153,0.2)' : ha('error', 0.2)}` }}>
-                  {existingLock ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                </button>
+                <Can perm="event:write">
+                  <button onClick={handleStartEdit} className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-medium"
+                    style={{ background: hud.surfaceHigh, color: hud.onSurface, border: `1px solid ${ha('outline-var', 0.2)}` }}>
+                    <Edit2 className="w-4 h-4" /> Edit
+                  </button>
+                  <button onClick={handleApprove} disabled={approvingEvent || isApproved}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg disabled:opacity-50"
+                    style={{ background: hud.primary, color: '#ffffff', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
+                    <CheckCircle className="w-4 h-4" /> {isApproved ? 'Approved' : 'Approve'}
+                  </button>
+                </Can>
+                <Can perm="lock:write">
+                  <button onClick={existingLock ? handleUnlock : handleLock} disabled={lockingService || checkingLock}
+                    className="p-2.5 rounded-lg transition-all disabled:opacity-50"
+                    style={{ background: existingLock ? 'rgba(52,211,153,0.1)' : ha('error', 0.1), color: existingLock ? '#34d399' : hud.error, border: `1px solid ${existingLock ? 'rgba(52,211,153,0.2)' : ha('error', 0.2)}` }}>
+                    {existingLock ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                  </button>
+                </Can>
                 <button onClick={() => setExpanded(!expanded)} title={expanded ? 'Collapse panel' : 'Expand to full width'}
                   className="hidden md:flex p-2.5 rounded-lg transition-all" style={{ background: hud.surfaceHigh, color: hud.onSurfaceVar, border: `1px solid ${ha('outline-var', 0.2)}` }}>
                   {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

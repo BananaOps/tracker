@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -32,6 +33,11 @@ func EnsureIndexes(ctx context.Context, db *mongo.Database) error {
 
 	// Index pour la collection links
 	if err := ensureLinksIndexes(ctx, db, logger); err != nil {
+		return err
+	}
+
+	// Index pour les collections auth_*
+	if err := ensureAuthIndexes(ctx, db, logger); err != nil {
 		return err
 	}
 
@@ -190,6 +196,38 @@ func ensureLinksIndexes(ctx context.Context, db *mongo.Database, logger *slog.Lo
 	}
 
 	return createIndexes(ctx, collection, indexes, logger, "links")
+}
+
+func ensureAuthIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
+	users := []mongo.IndexModel{
+		{Keys: bson.D{{Key: "usernameLower", Value: 1}}, Options: options.Index().SetUnique(true).SetName("idx_username_lower")},
+		{
+			Keys: bson.D{{Key: "oidcIssuer", Value: 1}, {Key: "oidcSubject", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("idx_oidc_identity").
+				SetPartialFilterExpression(bson.D{{Key: "oidcSubject", Value: bson.D{{Key: "$exists", Value: true}}}}),
+		},
+		{Keys: bson.D{{Key: "teams", Value: 1}}, Options: options.Index().SetName("idx_user_teams")},
+	}
+	if _, err := db.Collection(authUsersCollection).Indexes().CreateMany(ctx, users); err != nil {
+		return fmt.Errorf("create %s indexes: %w", authUsersCollection, err)
+	}
+
+	teams := []mongo.IndexModel{
+		{Keys: bson.D{{Key: "nameLower", Value: 1}}, Options: options.Index().SetUnique(true).SetName("idx_team_name_lower")},
+	}
+	if _, err := db.Collection(authTeamsCollection).Indexes().CreateMany(ctx, teams); err != nil {
+		return fmt.Errorf("create %s indexes: %w", authTeamsCollection, err)
+	}
+
+	keys := []mongo.IndexModel{
+		{Keys: bson.D{{Key: "prefix", Value: 1}}, Options: options.Index().SetUnique(true).SetName("idx_apikey_prefix")},
+		{Keys: bson.D{{Key: "teamId", Value: 1}}, Options: options.Index().SetName("idx_apikey_team")},
+	}
+	if _, err := db.Collection(authAPIKeysCollection).Indexes().CreateMany(ctx, keys); err != nil {
+		return fmt.Errorf("create %s indexes: %w", authAPIKeysCollection, err)
+	}
+	logger.Info("Auth indexes ensured")
+	return nil
 }
 
 func createIndexes(ctx context.Context, collection *mongo.Collection, indexes []mongo.IndexModel, logger *slog.Logger, collectionName string) error {

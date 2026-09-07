@@ -246,6 +246,7 @@ npm run dev
 - [🚀 Installation Guide](./docs/INSTALLATION.md) - Complete installation instructions
 - [⚙️ Configuration Guide](./docs/CONFIGURATION.md) - Environment variables and settings
 - [🔧 Development Guide](./docs/DEVELOPMENT.md) - Set up development environment
+- [🔐 Authentication](./docs/AUTHENTICATION.md) - Users, teams, permissions, API keys and the admin UI
 
 ### User Guides
 - [📖 User Guide](./docs/USER_GUIDE.md) - How to use Tracker

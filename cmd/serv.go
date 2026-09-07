@@ -16,9 +16,13 @@ import (
 	"syscall"
 	"time"
 
+	authv1 "github.com/bananaops/tracker/generated/proto/auth/v1alpha1"
 	catalog "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
 	event "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth"
+	"github.com/bananaops/tracker/internal/auth/identity"
+	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -34,9 +38,60 @@ var serv = &cobra.Command{
 	Short: "Run tracker server",
 	Run: func(cmd *cobra.Command, args []string) {
 
+		ctx := context.TODO()
+
+		// Authentication: configuration, stores, bootstrap and principal resolver.
+		authCfg, err := auth.LoadConfig(os.LookupEnv)
+		if err != nil {
+			log.Fatalf("invalid authentication configuration: %v", err)
+		}
+		if authCfg.AnonymousDefaulted {
+			slog.Warn("AUTH_ANONYMOUS_PERMISSIONS is not set: anonymous callers keep every permission except access:manage. This default becomes empty in the next major release.")
+		}
+		userStore := store.NewAuthUserStore()
+		teamStore := store.NewAuthTeamStore()
+		keyStore := store.NewAuthAPIKeyStore()
+		settingsStore := store.NewAuthSettingsStore()
+
+		sessionSecret := authCfg.SessionSecret
+		if sessionSecret == nil {
+			sessionSecret, err = settingsStore.SessionSecret(ctx)
+			if err != nil {
+				log.Fatalf("cannot load session secret: %v", err)
+			}
+			slog.Info("AUTH_SESSION_SECRET is not set, using the secret persisted in MongoDB")
+		}
+		sessions, err := auth.NewSessionManager(sessionSecret, authCfg.SessionTTL)
+		if err != nil {
+			log.Fatalf("cannot create session manager: %v", err)
+		}
+
+		bootstrap, err := identity.Bootstrap(ctx, userStore, teamStore, authCfg.AdminPassword)
+		if err != nil {
+			log.Fatalf("authentication bootstrap failed: %v", err)
+		}
+		if bootstrap.AdminCreated {
+			if bootstrap.GeneratedPassword != "" {
+				slog.Warn("Initial admin account created with a generated password. Change it at first login.", "username", "admin", "password", bootstrap.GeneratedPassword)
+			} else {
+				slog.Info("Initial admin account created from AUTH_ADMIN_PASSWORD", "username", "admin")
+			}
+		}
+
+		resolver := &identity.Resolver{
+			Users:                userStore,
+			Teams:                teamStore,
+			Keys:                 keyStore,
+			Sessions:             sessions,
+			AnonymousPermissions: authCfg.AnonymousPermissions,
+		}
+
 		// Set up gRPC server
 		grpcServerEndpoint := "localhost:8765"
-		grpcServer := grpc.NewServer()
+		grpcServer := grpc.NewServer(
+			grpc.ChainUnaryInterceptor(auth.UnaryInterceptor(resolver)),
+			grpc.ChainStreamInterceptor(auth.StreamInterceptor(resolver)),
+		)
 
 		// register reflection API https://github.com/grpc/grpc/blob/master/doc/server-reflection.md
 		reflection.Register(grpcServer)
@@ -53,11 +108,13 @@ var serv = &cobra.Command{
 		catalogs := server.NewCatalog()
 		catalog.RegisterCatalogServiceServer(grpcServer, catalogs)
 
+		// register auth service
+		authService := server.NewAuth(userStore, teamStore, keyStore, authCfg)
+		authv1.RegisterAuthServiceServer(grpcServer, authService)
+
 		// register health checK service
 		//healthCheckService := &server.HealthCheckService{}
 		//health.RegisterHealthServer(grpcServer, healthCheckService)
-
-		ctx := context.TODO()
 
 		// Initialiser les index MongoDB après la première connexion
 		db := server.GetDatabaseConnection()
@@ -69,7 +126,7 @@ var serv = &cobra.Command{
 		mux := runtime.NewServeMux()
 
 		// Register generated routes to mux
-		err := event.RegisterEventServiceHandlerServer(ctx, mux, events)
+		err = event.RegisterEventServiceHandlerServer(ctx, mux, events)
 		if err != nil {
 			panic(err)
 		}
@@ -83,6 +140,14 @@ var serv = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
+
+		err = authv1.RegisterAuthServiceHandlerServer(ctx, mux, authService)
+		if err != nil {
+			panic(err)
+		}
+
+		// Cookie based auth endpoints (login, logout, password change)
+		server.NewAuthHTTP(userStore, sessions, authCfg).Register(mux)
 
 		// Register Homer proxy endpoint
 		server.RegisterHomerHandler(mux, os.Getenv("HOMER_URL"))
@@ -227,6 +292,9 @@ var serv = &cobra.Command{
 			slog.Warn("Frontend directory not found, serving API only", "path", frontendDir)
 			httpHandler = mux
 		}
+
+		// Resolve the principal of every HTTP request (SPA, API and custom handlers)
+		httpHandler = auth.HTTPMiddleware(resolver, authCfg)(httpHandler)
 
 		httpServer := &http.Server{
 			Addr:              "0.0.0.0:8080",
