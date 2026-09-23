@@ -177,6 +177,19 @@ DELETE /api/v1alpha1/event/{id}
 curl -X DELETE http://localhost:8080/api/v1alpha1/event/507f1f77bcf86cd799439011
 ```
 
+> **Behaviour change.** Up to and including `0.21.x` this route never deleted
+> anything. The server method was named `DeleteEvent` while the generated
+> `EventServiceServer` interface declares `DeleteEvents`, so the implementation
+> never satisfied the interface and the embedded unimplemented stub answered
+> every call with `501 Unimplemented`. The method is now named `DeleteEvents`
+> and the route deletes the event for real.
+>
+> Check anything that calls it, a cleanup script, a CI job, a crawler, before
+> upgrading: a request that used to be a harmless no-op now destroys data.
+> Deletion requires `event:write`, which the transitional
+> `AUTH_ANONYMOUS_PERMISSIONS` default grants to anonymous callers; set that
+> variable to restrict it. See [Authentication](./AUTHENTICATION.md).
+
 ### List Events
 
 ```bash
