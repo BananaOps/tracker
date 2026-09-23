@@ -23,6 +23,10 @@ type Principal struct {
 	IsAdmin bool
 	// KeyPrefix is set when Kind is KindAPIKey, for logging.
 	KeyPrefix string
+	// CredentialRejected is true when the request presented an explicit
+	// credential that could not be honoured. Authorization turns it into a
+	// 401 whatever the permission asked for, including a public one.
+	CredentialRejected bool
 }
 
 // Anonymous returns the principal used for unauthenticated requests.
@@ -32,6 +36,30 @@ func Anonymous(perms []Permission) Principal {
 		Username:    "anonymous",
 		Permissions: NewPermissionSet(perms...),
 		Scope:       ScopeAll(),
+	}
+}
+
+// RejectedCredential is the principal of a request that presented an explicit
+// credential, an API key or a bearer token, which could not be honoured:
+// malformed, unknown, revoked or expired.
+//
+// It is deliberately not the anonymous principal. Falling back to anonymous
+// would hand the caller whatever AUTH_ANONYMOUS_PERMISSIONS grants, which
+// under the transitional default is more than most credentials carry: a key
+// restricted to event:read would silently gain event:write the moment it is
+// revoked. A dead credential must be refused, not upgraded.
+//
+// An absent credential is not rejected, and neither is a session cookie that
+// no longer resolves: the cookie is ambient, and a browser holding a stale one
+// must still be able to load the SPA and its login page. See
+// Credentials.FromCookie.
+func RejectedCredential() Principal {
+	return Principal{
+		Kind:               KindAnonymous,
+		Username:           "anonymous",
+		Permissions:        NewPermissionSet(),
+		Scope:              ScopeAll(),
+		CredentialRejected: true,
 	}
 }
 

@@ -93,6 +93,13 @@ func Check(p auth.Principal, method string) error {
 
 // CheckPermission is the pure decision for a principal and a permission.
 func CheckPermission(p auth.Principal, perm auth.Permission) error {
+	// A credential that was presented and refused loses even public routes.
+	// The caller asked to be identified and could not be, so it must hear
+	// about it rather than be quietly served as an anonymous visitor: see
+	// auth.RejectedCredential.
+	if p.CredentialRejected {
+		return status.Error(codes.Unauthenticated, "invalid or expired credentials")
+	}
 	switch perm {
 	case auth.PermPublic:
 		return nil

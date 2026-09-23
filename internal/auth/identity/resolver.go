@@ -58,19 +58,29 @@ func (r *Resolver) anonymous() auth.Principal {
 	return auth.Anonymous(r.AnonymousPermissions)
 }
 
-// Resolve never fails: any invalid credential yields the anonymous principal.
+// Resolve never returns an error: a credential it cannot honour yields
+// auth.RejectedCredential, which authorization refuses with a 401.
+//
+// The one exception is the session cookie. It is ambient, so a browser keeps
+// sending it long after it went stale, and refusing it would serve a 401 for
+// the SPA itself, including the login page that would let the user recover.
+// A cookie that no longer resolves therefore falls back to anonymous, exactly
+// as if it had not been sent. Explicit credentials get no such indulgence.
 func (r *Resolver) Resolve(ctx context.Context, creds auth.Credentials) auth.Principal {
 	if creds.APIKey != "" {
 		if p, ok := r.resolveAPIKey(ctx, creds.APIKey); ok {
 			return p
 		}
-		return r.anonymous()
+		return auth.RejectedCredential()
 	}
 	if creds.SessionToken != "" {
 		if p, ok := r.resolveSession(ctx, creds.SessionToken); ok {
 			return p
 		}
-		return r.anonymous()
+		if creds.FromCookie {
+			return r.anonymous()
+		}
+		return auth.RejectedCredential()
 	}
 	return r.anonymous()
 }

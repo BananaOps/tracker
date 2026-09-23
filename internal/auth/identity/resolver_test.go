@@ -95,13 +95,32 @@ func TestResolveSession(t *testing.T) {
 	assert.False(t, p.Scope.Allows("web"))
 	assert.False(t, p.IsAdmin)
 
+	// A bearer token is explicit: once it stops resolving it is refused.
 	stale, _, _ := r.Sessions.Issue(user.ID.Hex(), user.SessionVersion-1)
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{SessionToken: stale}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{SessionToken: stale}).CredentialRejected)
 
 	user.Disabled = true
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{SessionToken: token}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{SessionToken: token}).CredentialRejected)
+	user.Disabled = false
 
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{SessionToken: "garbage"}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{SessionToken: "garbage"}).CredentialRejected)
+}
+
+// The session cookie is ambient: a browser keeps sending a stale one, and
+// refusing it would serve a 401 for the SPA itself, login page included. It
+// must degrade to anonymous, unlike the same token sent as a bearer.
+func TestResolveStaleCookieFallsBackToAnonymous(t *testing.T) {
+	r, user, _, _ := newFixture(t)
+	stale, _, _ := r.Sessions.Issue(user.ID.Hex(), user.SessionVersion-1)
+
+	p := r.Resolve(context.Background(), auth.Credentials{SessionToken: stale, FromCookie: true})
+	assert.Equal(t, auth.KindAnonymous, p.Kind)
+	assert.False(t, p.CredentialRejected)
+	assert.True(t, p.Has(auth.PermLinksRead), "anonymous permissions still apply")
+
+	p = r.Resolve(context.Background(), auth.Credentials{SessionToken: "garbage", FromCookie: true})
+	assert.Equal(t, auth.KindAnonymous, p.Kind)
+	assert.False(t, p.CredentialRejected)
 }
 
 func TestResolveAPIKey(t *testing.T) {
@@ -124,16 +143,20 @@ func TestResolveAPIKey(t *testing.T) {
 	assert.Equal(t, 1, keys.touched)
 
 	wrong := gen.Secret[:len(gen.Secret)-1] + "x"
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{APIKey: wrong}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{APIKey: wrong}).CredentialRejected)
 
+	// A revoked key must not inherit the anonymous permissions, which under
+	// the transitional default are wider than what the key itself carried.
 	revoked := now
 	keys.byPrefix[gen.Prefix].RevokedAt = &revoked
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{APIKey: gen.Secret}).Kind)
+	rejected := r.Resolve(context.Background(), auth.Credentials{APIKey: gen.Secret})
+	assert.True(t, rejected.CredentialRejected)
+	assert.False(t, rejected.Has(auth.PermLinksRead), "a dead key gains nothing from AUTH_ANONYMOUS_PERMISSIONS")
 	keys.byPrefix[gen.Prefix].RevokedAt = nil
 
 	past := now.Add(-time.Minute)
 	keys.byPrefix[gen.Prefix].ExpiresAt = &past
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{APIKey: gen.Secret}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{APIKey: gen.Secret}).CredentialRejected)
 	keys.byPrefix[gen.Prefix].ExpiresAt = nil
 
 	// Global key.
@@ -145,8 +168,8 @@ func TestResolveAPIKey(t *testing.T) {
 	assert.True(t, p.Has(auth.PermAccessManage))
 
 	// Unknown prefix and malformed key.
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{APIKey: "trk_zzzzzzzz_nothing"}).Kind)
-	assert.Equal(t, auth.KindAnonymous, r.Resolve(context.Background(), auth.Credentials{APIKey: "trk_bad"}).Kind)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{APIKey: "trk_zzzzzzzz_nothing"}).CredentialRejected)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{APIKey: "trk_bad"}).CredentialRejected)
 }
 
 // A key attached to the built-in Administrators team is an administrator

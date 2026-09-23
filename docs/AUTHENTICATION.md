@@ -81,6 +81,13 @@ of the connection, unless `AUTH_TRUST_PROXY=true`, in which case it is the last
 entry of `X-Forwarded-For`, the one appended by the reverse proxy. The earlier
 entries are client controlled and must not be trusted.
 
+A session token that no longer resolves, because it expired, was signed with
+another secret, or its user was disabled or bumped, is refused with `401` when
+it arrives in an `Authorization: Bearer` header. In the `tracker_session`
+cookie it falls back to anonymous instead: the cookie is ambient, a browser
+keeps sending a stale one on its own, and a `401` there would also cover the
+SPA and the login page the user needs to recover.
+
 Logout is stateless: it only clears the cookie, so a session token stolen
 beforehand stays valid until its own expiry (`AUTH_SESSION_TTL`, 12 hours by
 default). Changing the user's password, disabling the user or resetting its
@@ -162,12 +169,16 @@ Authorization: Bearer trk_...
 For gRPC, send the same value in the `x-api-key` or `authorization`
 metadata.
 
-An API key that is malformed, unknown, revoked or expired does not produce an
-error: the caller falls back to the anonymous principal. Under the
-transitional default, where the anonymous principal holds every permission but
-`access:manage`, a client whose key was revoked therefore keeps working on
-those routes and never learns that its key is dead. Narrowing
-`AUTH_ANONYMOUS_PERMISSIONS` makes revocation visible as a `401`.
+An API key that is malformed, unknown, revoked or expired is refused with
+`401 Unauthorized` (gRPC `UNAUTHENTICATED`) on every route, public ones
+included. It does **not** fall back to the anonymous principal: that would
+hand a dead credential whatever `AUTH_ANONYMOUS_PERMISSIONS` grants, which
+under the transitional default is wider than most keys carry. Revoking a key
+limited to `event:read` would then silently promote it to `event:write`
+instead of shutting it down.
+
+Presenting no credential at all is unchanged: the caller is anonymous and gets
+the anonymous permissions.
 
 ## Metrics
 

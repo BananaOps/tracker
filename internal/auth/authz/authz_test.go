@@ -102,3 +102,41 @@ func TestRequireHTTP(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.True(t, called)
 }
+
+// A credential that was presented and refused is denied everywhere, including
+// on the public routes and on permissions the anonymous principal would hold.
+// Otherwise revoking a narrow API key would widen it to
+// AUTH_ANONYMOUS_PERMISSIONS instead of shutting it down.
+func TestRejectedCredentialIsAlwaysUnauthenticated(t *testing.T) {
+	rejected := auth.RejectedCredential()
+
+	for _, perm := range []auth.Permission{auth.PermPublic, auth.PermAuthenticated, auth.PermEventRead} {
+		err := CheckPermission(rejected, perm)
+		assert.Equal(t, codes.Unauthenticated, status.Code(err), "permission %s", perm)
+	}
+
+	assert.Equal(t, codes.Unauthenticated, status.Code(Check(rejected, getAuthConfig)))
+	assert.Equal(t, codes.Unauthenticated, status.Code(Check(rejected, listEvents)))
+
+	// The same principal carrying no rejection is served normally.
+	anon := auth.Anonymous([]auth.Permission{auth.PermEventRead})
+	require.NoError(t, CheckPermission(anon, auth.PermPublic))
+	require.NoError(t, CheckPermission(anon, auth.PermEventRead))
+}
+
+// RequireHTTP guards the hand-written routes (/api/links, /api/homer-links),
+// so it must refuse a rejected credential with a 401 too.
+func TestRequireHTTPRefusesRejectedCredential(t *testing.T) {
+	called := false
+	h := RequireHTTP(auth.PermLinksRead, func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
+		called = true
+	})
+
+	r := httptest.NewRequest(http.MethodGet, "/api/links", nil)
+	r = r.WithContext(auth.WithPrincipal(r.Context(), auth.RejectedCredential()))
+	w := httptest.NewRecorder()
+	h(w, r, nil)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.False(t, called, "the handler must not run")
+}
