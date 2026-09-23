@@ -21,15 +21,15 @@ jobs:
     steps:
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: stable
 
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v7
+      uses: golangci/golangci-lint-action@v9
       with:
         args: --timeout=30m
 
@@ -39,10 +39,10 @@ jobs:
     steps:
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
+      uses: securego/gosec@v2.29.0
       with:
         args: -exclude=G103,G115 -exclude-generated ./...
 
@@ -62,10 +62,10 @@ jobs:
     steps:
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up Go 1.x
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: stable
 
