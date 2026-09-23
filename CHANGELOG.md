@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.22.0](https://github.com/BananaOps/tracker/compare/v0.21.1...v0.22.0) (2026-09-23)
+
+
+### Features
+
+* **auth:** local accounts, teams, permissions and API keys ([#200](https://github.com/BananaOps/tracker/issues/200)) ([31259c3](https://github.com/BananaOps/tracker/commit/31259c30e506bd9406f8166472b3f61803ae6b36))
+
+
+### Bug Fixes
+
+* **deps:** upgrade react-router-dom to v7 and patch vulnerable transitive packages ([#202](https://github.com/BananaOps/tracker/issues/202)) ([a4f9afc](https://github.com/BananaOps/tracker/commit/a4f9afc4a4c1f5f1c8756654aa4decbebae3a03c))
+* **docker:** run container as non-root user ([#198](https://github.com/BananaOps/tracker/issues/198)) ([1769020](https://github.com/BananaOps/tracker/commit/176902037d35dcdec1c72aa7815730edc94d8426))
+
 ## [0.21.1](https://github.com/BananaOps/tracker/compare/v0.21.0...v0.21.1) (2026-07-27)
 
 
