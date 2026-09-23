@@ -11,6 +11,8 @@ on:
       - go.mod
       - go.sum
       - main.go
+      - server/**
+      - proto/**
 
 jobs:
   linting:
@@ -42,11 +44,21 @@ jobs:
     - name: Run Gosec Security Scanner
       uses: securego/gosec@master
       with:
-        args: -exclude=G103,G115 ./...
+        args: -exclude=G103,G115 -exclude-generated ./...
 
   test:
     name: Go test
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
 
     - name: Check out code into the Go module directory
@@ -61,4 +73,6 @@ jobs:
       run: go mod download -x
 
     - name: Test
+      env:
+        MONGO_TEST_URI: mongodb://127.0.0.1:27017
       run: go test -v ./...

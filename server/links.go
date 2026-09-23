@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/bananaops/tracker/internal/auth"
+	"github.com/bananaops/tracker/internal/auth/authz"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
@@ -23,19 +25,19 @@ func RegisterLinksHandler(mux *runtime.ServeMux) {
 	initLinksStore()
 
 	// GET /api/links
-	if err := mux.HandlePath("GET", "/api/links", handleListLinks); err != nil {
+	if err := mux.HandlePath("GET", "/api/links", authz.RequireHTTP(auth.PermLinksRead, handleListLinks)); err != nil {
 		slog.Error("Failed to register GET /api/links", "error", err)
 	}
 	// POST /api/links
-	if err := mux.HandlePath("POST", "/api/links", handleCreateLink); err != nil {
+	if err := mux.HandlePath("POST", "/api/links", authz.RequireHTTP(auth.PermLinksWrite, handleCreateLink)); err != nil {
 		slog.Error("Failed to register POST /api/links", "error", err)
 	}
 	// PUT /api/links/{id}
-	if err := mux.HandlePath("PUT", "/api/links/{id}", handleUpdateLink); err != nil {
+	if err := mux.HandlePath("PUT", "/api/links/{id}", authz.RequireHTTP(auth.PermLinksWrite, handleUpdateLink)); err != nil {
 		slog.Error("Failed to register PUT /api/links/{id}", "error", err)
 	}
 	// DELETE /api/links/{id}
-	if err := mux.HandlePath("DELETE", "/api/links/{id}", handleDeleteLink); err != nil {
+	if err := mux.HandlePath("DELETE", "/api/links/{id}", authz.RequireHTTP(auth.PermLinksWrite, handleDeleteLink)); err != nil {
 		slog.Error("Failed to register DELETE /api/links/{id}", "error", err)
 	}
 }

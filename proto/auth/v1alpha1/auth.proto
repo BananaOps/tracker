@@ -1,0 +1,227 @@
+syntax = "proto3";
+
+package tracker.auth.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "proto/auth/v1alpha1";
+
+// AuthService exposes the current identity and the administration of users,
+// teams and API keys. Login, logout and password change are plain HTTP
+// handlers because they set cookies.
+service AuthService {
+  rpc GetAuthConfig(GetAuthConfigRequest) returns (GetAuthConfigResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/auth/config"};
+  }
+  rpc Me(MeRequest) returns (MeResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/auth/me"};
+  }
+
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/auth/users"};
+  }
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/auth/users"
+      body: "*"
+    };
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/auth/users/{id}"
+      body: "*"
+    };
+  }
+
+  rpc ListTeams(ListTeamsRequest) returns (ListTeamsResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/auth/teams"};
+  }
+  rpc CreateTeam(CreateTeamRequest) returns (CreateTeamResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/auth/teams"
+      body: "*"
+    };
+  }
+  rpc UpdateTeam(UpdateTeamRequest) returns (UpdateTeamResponse) {
+    option (google.api.http) = {
+      put: "/api/v1alpha1/auth/teams/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteTeam(DeleteTeamRequest) returns (DeleteTeamResponse) {
+    option (google.api.http) = {delete: "/api/v1alpha1/auth/teams/{id}"};
+  }
+
+  rpc ListApiKeys(ListApiKeysRequest) returns (ListApiKeysResponse) {
+    option (google.api.http) = {get: "/api/v1alpha1/auth/api-keys"};
+  }
+  rpc CreateApiKey(CreateApiKeyRequest) returns (CreateApiKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1alpha1/auth/api-keys"
+      body: "*"
+    };
+  }
+  rpc RevokeApiKey(RevokeApiKeyRequest) returns (RevokeApiKeyResponse) {
+    option (google.api.http) = {delete: "/api/v1alpha1/auth/api-keys/{id}"};
+  }
+}
+
+message GetAuthConfigRequest {}
+
+message GetAuthConfigResponse {
+  bool local_login_enabled = 1;
+  bool oidc_enabled = 2;
+  string oidc_button_label = 3;
+  repeated string anonymous_permissions = 4;
+  bool demo_mode = 5;
+}
+
+message MeRequest {}
+
+message TeamRef {
+  string id = 1;
+  string name = 2;
+}
+
+message MeResponse {
+  bool authenticated = 1;
+  // "anonymous", "user" or "apikey"
+  string kind = 2;
+  string user_id = 3;
+  string username = 4;
+  string display_name = 5;
+  // "local" or "oidc", empty for API keys and anonymous
+  string source = 6;
+  repeated TeamRef teams = 7;
+  repeated string permissions = 8;
+  bool scope_all = 9;
+  repeated string scope_services = 10;
+  bool must_change_password = 11;
+  bool is_admin = 12;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string display_name = 4;
+  string source = 5;
+  repeated string team_ids = 6;
+  bool disabled = 7;
+  bool must_change_password = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp last_login_at = 10;
+}
+
+message ListUsersRequest {}
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string display_name = 3;
+  // Temporary password, the user must change it at first login.
+  string password = 4;
+  repeated string team_ids = 5;
+}
+message CreateUserResponse {
+  User user = 1;
+}
+
+// UpdateUserRequest replaces email, display_name, team_ids and disabled.
+// new_password, when set, resets the password and invalidates sessions.
+message UpdateUserRequest {
+  string id = 1;
+  string email = 2;
+  string display_name = 3;
+  repeated string team_ids = 4;
+  bool disabled = 5;
+  string new_password = 6;
+}
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message Team {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string permissions = 4;
+  bool scope_all = 5;
+  repeated string scope_services = 6;
+  repeated string oidc_groups = 7;
+  bool builtin = 8;
+}
+
+message ListTeamsRequest {}
+message ListTeamsResponse {
+  repeated Team teams = 1;
+}
+
+message CreateTeamRequest {
+  string name = 1;
+  string description = 2;
+  repeated string permissions = 3;
+  bool scope_all = 4;
+  repeated string scope_services = 5;
+  repeated string oidc_groups = 6;
+}
+message CreateTeamResponse {
+  Team team = 1;
+}
+
+message UpdateTeamRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string permissions = 4;
+  bool scope_all = 5;
+  repeated string scope_services = 6;
+  repeated string oidc_groups = 7;
+}
+message UpdateTeamResponse {
+  Team team = 1;
+}
+
+message DeleteTeamRequest {
+  string id = 1;
+}
+message DeleteTeamResponse {}
+
+message ApiKey {
+  string id = 1;
+  string prefix = 2;
+  string name = 3;
+  // Empty for a global key.
+  string team_id = 4;
+  string created_by = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  google.protobuf.Timestamp last_used_at = 8;
+  google.protobuf.Timestamp revoked_at = 9;
+}
+
+message ListApiKeysRequest {}
+message ListApiKeysResponse {
+  repeated ApiKey api_keys = 1;
+}
+
+message CreateApiKeyRequest {
+  string name = 1;
+  // Empty creates a global key, allowed only for Administrators members.
+  string team_id = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+message CreateApiKeyResponse {
+  ApiKey api_key = 1;
+  // Shown once, never stored.
+  string secret = 2;
+}
+
+message RevokeApiKeyRequest {
+  string id = 1;
+}
+message RevokeApiKeyResponse {}

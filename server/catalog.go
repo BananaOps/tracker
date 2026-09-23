@@ -7,6 +7,7 @@ import (
 	"os"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -30,6 +31,9 @@ func (e *Catalog) CreateUpdateCatalog(
 	ctx context.Context,
 	i *v1alpha1.CreateUpdateCatalogRequest,
 ) (*v1alpha1.CreateUpdateCatalogResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Validation des champs requis
 	if i.Name == "" {
@@ -117,6 +121,9 @@ func (e *Catalog) GetCatalog(
 	ctx context.Context,
 	i *v1alpha1.GetCatalogRequest,
 ) (*v1alpha1.GetCatalogResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var catalogResult = &v1alpha1.GetCatalogResponse{}
 	var err error
@@ -132,6 +139,9 @@ func (e *Catalog) ListCatalogs(
 	ctx context.Context,
 	i *v1alpha1.ListCatalogsRequest,
 ) (*v1alpha1.ListCatalogsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var catalogsResult = &v1alpha1.ListCatalogsResponse{}
 	var err error
@@ -149,6 +159,9 @@ func (e *Catalog) DeleteCatalog(
 	ctx context.Context,
 	i *v1alpha1.DeleteCatalogRequest,
 ) (*v1alpha1.DeleteCatalogResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var catalogResult = &v1alpha1.DeleteCatalogResponse{}
 
@@ -164,6 +177,9 @@ func (e *Catalog) GetVersionCompliance(
 	ctx context.Context,
 	i *v1alpha1.GetVersionComplianceRequest,
 ) (*v1alpha1.GetVersionComplianceResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var response = &v1alpha1.GetVersionComplianceResponse{}
 	var projectCompliances []*v1alpha1.ProjectCompliance
@@ -304,6 +320,9 @@ func (e *Catalog) UpdateVersions(
 	ctx context.Context,
 	i *v1alpha1.UpdateVersionsRequest,
 ) (*v1alpha1.UpdateVersionsResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	e.logger.Info("🔧 Updating versions for service",
 		"name", i.Name,
@@ -348,6 +367,9 @@ func (e *Catalog) UpdateDependencies(
 	ctx context.Context,
 	i *v1alpha1.UpdateDependenciesRequest,
 ) (*v1alpha1.UpdateDependenciesResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Validation
 	if i.Name == "" {

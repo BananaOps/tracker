@@ -1,10 +1,14 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "proto/catalog/v1alpha1/catalog.proto",
+    "title": "proto/auth/v1alpha1/auth.proto",
     "version": "version not set"
   },
   "tags": [
+    {
+      "name": "AuthService",
+      "description": "AuthService exposes the current identity and the administration of users,\nteams and API keys. Login, logout and password change are plain HTTP\nhandlers because they set cookies."
+    },
     {
       "name": "CatalogService"
     },
@@ -22,6 +26,340 @@
     "application/json"
   ],
   "paths": {
+    "/api/v1alpha1/auth/api-keys": {
+      "get": {
+        "operationId": "AuthService_ListApiKeys",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListApiKeysResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "post": {
+        "operationId": "AuthService_CreateApiKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateApiKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateApiKeyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/api-keys/{id}": {
+      "delete": {
+        "operationId": "AuthService_RevokeApiKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1RevokeApiKeyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/config": {
+      "get": {
+        "operationId": "AuthService_GetAuthConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1GetAuthConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/me": {
+      "get": {
+        "operationId": "AuthService_Me",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1MeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/teams": {
+      "get": {
+        "operationId": "AuthService_ListTeams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListTeamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "post": {
+        "operationId": "AuthService_CreateTeam",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateTeamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateTeamRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/teams/{id}": {
+      "delete": {
+        "operationId": "AuthService_DeleteTeam",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1DeleteTeamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "put": {
+        "operationId": "AuthService_UpdateTeam",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateTeamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthServiceUpdateTeamBody"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/users": {
+      "get": {
+        "operationId": "AuthService_ListUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1ListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "post": {
+        "operationId": "AuthService_CreateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1alpha1CreateUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/api/v1alpha1/auth/users/{id}": {
+      "put": {
+        "operationId": "AuthService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1UpdateUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googleRpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthServiceUpdateUserBody"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
     "/api/v1alpha1/catalog": {
       "get": {
         "operationId": "CatalogService_GetCatalog",
@@ -634,7 +972,8 @@
               "close",
               "done",
               "in_progress",
-              "planned"
+              "planned",
+              "waiting_approval"
             ],
             "default": "STATUS_UNSPECIFIED"
           },
@@ -810,7 +1149,8 @@
                 "close",
                 "done",
                 "in_progress",
-                "planned"
+                "planned",
+                "waiting_approval"
               ]
             },
             "collectionFormat": "multi"
@@ -951,7 +1291,8 @@
                 "close",
                 "done",
                 "in_progress",
-                "planned"
+                "planned",
+                "waiting_approval"
               ]
             },
             "collectionFormat": "multi"
@@ -1187,6 +1528,62 @@
     }
   },
   "definitions": {
+    "AuthServiceUpdateTeamBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_all": {
+          "type": "boolean"
+        },
+        "scope_services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "oidc_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "AuthServiceUpdateUserBody": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "team_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "new_password": {
+          "type": "string"
+        }
+      },
+      "description": "UpdateUserRequest replaces email, display_name, team_ids and disabled.\nnew_password, when set, resets the password and invalidates sessions."
+    },
     "CatalogServiceUpdateDependenciesBody": {
       "type": "object",
       "properties": {
@@ -1284,7 +1681,8 @@
         "close",
         "done",
         "in_progress",
-        "planned"
+        "planned",
+        "waiting_approval"
       ],
       "default": "STATUS_UNSPECIFIED"
     },
@@ -1359,6 +1757,43 @@
         }
       },
       "title": "Response returns the updated event"
+    },
+    "v1alpha1ApiKey": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string",
+          "description": "Empty for a global key."
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_used_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revoked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
     },
     "v1alpha1Catalog": {
       "type": "object",
@@ -1545,7 +1980,7 @@
         "telegram"
       ],
       "default": "COMMUNICATION_TYPE_UNSPECIFIED",
-      "title": "- slack: Slack channel\n - teams: Microsoft Teams channel\n - email: Email address\n - discord: Discord channel\n - mattermost: Mattermost channel\n - telegram: Telegram group/channel"
+      "description": "- slack: Slack channel\n - teams: Microsoft Teams channel\n - email: Email address\n - discord: Discord channel\n - mattermost: Mattermost channel\n - telegram: Telegram group/channel"
     },
     "v1alpha1ComplianceSummary": {
       "type": "object",
@@ -1572,6 +2007,34 @@
             "type": "object",
             "$ref": "#/definitions/v1alpha1DeliverableComplianceStats"
           }
+        }
+      }
+    },
+    "v1alpha1CreateApiKeyRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string",
+          "description": "Empty creates a global key, allowed only for Administrators members."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1alpha1CreateApiKeyResponse": {
+      "type": "object",
+      "properties": {
+        "api_key": {
+          "$ref": "#/definitions/v1alpha1ApiKey"
+        },
+        "secret": {
+          "type": "string",
+          "description": "Shown once, never stored."
         }
       }
     },
@@ -1625,6 +2088,46 @@
       "properties": {
         "lock": {
           "$ref": "#/definitions/v1alpha1Lock"
+        }
+      }
+    },
+    "v1alpha1CreateTeamRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_all": {
+          "type": "boolean"
+        },
+        "scope_services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "oidc_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1alpha1CreateTeamResponse": {
+      "type": "object",
+      "properties": {
+        "team": {
+          "$ref": "#/definitions/v1alpha1Team"
         }
       }
     },
@@ -1729,6 +2232,38 @@
         }
       }
     },
+    "v1alpha1CreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string",
+          "description": "Temporary password, the user must change it at first login."
+        },
+        "team_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1alpha1CreateUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1alpha1User"
+        }
+      }
+    },
     "v1alpha1DashboardLink": {
       "type": "object",
       "properties": {
@@ -1766,7 +2301,7 @@
         "custom"
       ],
       "default": "DASHBOARD_TYPE_UNSPECIFIED",
-      "title": "- grafana: Grafana dashboard\n - datadog: Datadog dashboard\n - newrelic: New Relic dashboard\n - prometheus: Prometheus dashboard\n - kibana: Kibana dashboard\n - splunk: Splunk dashboard\n - dynatrace: Dynatrace dashboard\n - appdynamics: AppDynamics dashboard\n - custom: Custom dashboard platform"
+      "description": "- grafana: Grafana dashboard\n - datadog: Datadog dashboard\n - newrelic: New Relic dashboard\n - prometheus: Prometheus dashboard\n - kibana: Kibana dashboard\n - splunk: Splunk dashboard\n - dynatrace: Dynatrace dashboard\n - appdynamics: AppDynamics dashboard\n - custom: Custom dashboard platform"
     },
     "v1alpha1DeleteCatalogResponse": {
       "type": "object",
@@ -1789,6 +2324,9 @@
           "type": "string"
         }
       }
+    },
+    "v1alpha1DeleteTeamResponse": {
+      "type": "object"
     },
     "v1alpha1DeliverableComplianceStats": {
       "type": "object",
@@ -1969,6 +2507,29 @@
         },
         "slack_id": {
           "type": "string"
+        }
+      }
+    },
+    "v1alpha1GetAuthConfigResponse": {
+      "type": "object",
+      "properties": {
+        "local_login_enabled": {
+          "type": "boolean"
+        },
+        "oidc_enabled": {
+          "type": "boolean"
+        },
+        "oidc_button_label": {
+          "type": "string"
+        },
+        "anonymous_permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "demo_mode": {
+          "type": "boolean"
         }
       }
     },
@@ -2174,6 +2735,18 @@
       ],
       "default": "LANGUAGES_UNSPECIFIED"
     },
+    "v1alpha1ListApiKeysResponse": {
+      "type": "object",
+      "properties": {
+        "api_keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1ApiKey"
+          }
+        }
+      }
+    },
     "v1alpha1ListCatalogsResponse": {
       "type": "object",
       "properties": {
@@ -2222,6 +2795,30 @@
         }
       }
     },
+    "v1alpha1ListTeamsResponse": {
+      "type": "object",
+      "properties": {
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1Team"
+          }
+        }
+      }
+    },
+    "v1alpha1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1User"
+          }
+        }
+      }
+    },
     "v1alpha1Lock": {
       "type": "object",
       "properties": {
@@ -2249,6 +2846,59 @@
         "event_id": {
           "type": "string",
           "title": "Associated event ID"
+        }
+      }
+    },
+    "v1alpha1MeResponse": {
+      "type": "object",
+      "properties": {
+        "authenticated": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string",
+          "title": "\"anonymous\", \"user\" or \"apikey\""
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "title": "\"local\" or \"oidc\", empty for API keys and anonymous"
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1alpha1TeamRef"
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_all": {
+          "type": "boolean"
+        },
+        "scope_services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "must_change_password": {
+          "type": "boolean"
+        },
+        "is_admin": {
+          "type": "boolean"
         }
       }
     },
@@ -2340,6 +2990,9 @@
         }
       }
     },
+    "v1alpha1RevokeApiKeyResponse": {
+      "type": "object"
+    },
     "v1alpha1SLA": {
       "type": "object",
       "properties": {
@@ -2383,6 +3036,55 @@
         "total_count": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v1alpha1Team": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_all": {
+          "type": "boolean"
+        },
+        "scope_services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "oidc_groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "builtin": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1alpha1TeamRef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -2462,6 +3164,22 @@
         }
       }
     },
+    "v1alpha1UpdateTeamResponse": {
+      "type": "object",
+      "properties": {
+        "team": {
+          "$ref": "#/definitions/v1alpha1Team"
+        }
+      }
+    },
+    "v1alpha1UpdateUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1alpha1User"
+        }
+      }
+    },
     "v1alpha1UpdateVersionsResponse": {
       "type": "object",
       "properties": {
@@ -2492,6 +3210,46 @@
         }
       },
       "title": "Used deliverable in a project"
+    },
+    "v1alpha1User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "team_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "must_change_password": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_login_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
     },
     "v1alpha1VulnerabilitySource": {
       "type": "object",

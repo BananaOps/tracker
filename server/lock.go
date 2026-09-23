@@ -8,6 +8,7 @@ import (
 
 	eventv1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -33,6 +34,9 @@ func (e *Lock) CreateLock(
 	ctx context.Context,
 	i *v1alpha1.CreateLockRequest,
 ) (*v1alpha1.CreateLockResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var lock = &v1alpha1.Lock{
 		Service:     i.Service,
@@ -118,6 +122,9 @@ func (e *Lock) GetLock(
 	ctx context.Context,
 	i *v1alpha1.GetLockRequest,
 ) (*v1alpha1.GetLockResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var lockResult = &v1alpha1.GetLockResponse{}
 	var err error
@@ -133,6 +140,9 @@ func (e *Lock) UpdateLock(
 	ctx context.Context,
 	i *v1alpha1.UpdateLockRequest,
 ) (*v1alpha1.UpdateLockResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	// Retrieve existing lock by id
 	existing, err := e.store.Get(ctx, map[string]interface{}{"id": i.Id})
@@ -179,6 +189,9 @@ func (e *Lock) UnLock(
 	ctx context.Context,
 	i *v1alpha1.UnLockRequest,
 ) (*v1alpha1.UnLockResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var lockResult = &v1alpha1.GetLockResponse{}
 	var err error
@@ -240,6 +253,9 @@ func (e *Lock) ListLocks(
 	ctx context.Context,
 	i *v1alpha1.ListLocksRequest,
 ) (*v1alpha1.ListLocksResponse, error) {
+	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
 
 	var LocksResult = &v1alpha1.ListLocksResponse{}
 	var err error
