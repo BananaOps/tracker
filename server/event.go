@@ -296,10 +296,12 @@ func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, co
 	return created, conflict, nil
 }
 
-// observeLock takes the lock when take is true and nobody holds it, in the
-// same write as eventId when the caller already knows it (an empty eventId
-// leaves the lock unattached; the caller links it once the event exists). A
-// lock held by someone else is reported, never returned as an error.
+// observeLock takes the lock when take is true and nobody holds it, with
+// eventID already set in the same write: every observe-mode caller knows
+// the event id up front (observeLockAfterCreate once the event is created,
+// the processor's update path from the claim it already correlated), so
+// there is no separate attach step. A lock held by someone else is
+// reported, never returned as an error.
 func (e *Event) observeLock(ctx context.Context, service, environment, resource, who, eventID string, take bool) (string, *lockConflict, error) {
 	if held := e.lockService.findLock(ctx, service, environment, resource); held != nil {
 		return "", &lockConflict{Who: held.Who}, nil

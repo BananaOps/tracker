@@ -52,7 +52,8 @@ func (o Observation) Title(service string) string {
 
 // Rank orders statuses for the same instant: 1 for start, 2 for terminal
 // statuses, 0 for anything else, including waiting_approval, which is
-// ranked below start so a later start always takes over an approval.
+// ranked below start so a later start always takes over an approval. A
+// later waiting_approval, conversely, never moves an event back from start.
 func Rank(s eventv1.Status) int {
 	switch s {
 	case eventv1.Status_start:

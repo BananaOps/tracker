@@ -294,6 +294,62 @@ func TestProcessApprovalThenStartTakesLock(t *testing.T) {
 	require.Len(t, locks, 0)
 }
 
+// TestProcessApprovalThenRunningSameInstantTakesLock covers waiting_approval
+// and start sharing the same status_changed_at second: start's higher rank
+// (1 vs 0) still applies and takes the lock, exactly as when they are a few
+// seconds apart.
+func TestProcessApprovalThenRunningSameInstantTakesLock(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+	t0 := time.Now().UTC().Truncate(time.Second)
+
+	res, err := env.proc.Process(ctx, obs(eventv1.Status_waiting_approval, t0))
+	require.NoError(t, err)
+	require.Equal(t, outcomeRecorded, res.Outcome)
+
+	res2, err := env.proc.Process(ctx, obs(eventv1.Status_start, t0))
+	require.NoError(t, err)
+	require.Equal(t, outcomeRecorded, res2.Outcome)
+	require.Equal(t, res.EventID, res2.EventID)
+
+	ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": res.EventID})
+	require.NoError(t, err)
+	require.Equal(t, eventv1.Status_start, ev.Attributes.Status)
+
+	locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
+	require.NoError(t, err)
+	require.Len(t, locks, 1)
+	require.Equal(t, "payments", locks[0].Service)
+	require.Equal(t, "production", locks[0].Environment)
+	require.Equal(t, res.EventID, locks[0].EventId)
+}
+
+// TestProcessRunningThenLaterApprovalIsRejected covers the opposite
+// ordering: a waiting_approval arriving after start must never move the
+// event back, regardless of how much later it is.
+func TestProcessRunningThenLaterApprovalIsRejected(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+	t0 := time.Now().UTC().Truncate(time.Second)
+
+	res, err := env.proc.Process(ctx, obs(eventv1.Status_start, t0))
+	require.NoError(t, err)
+	require.Equal(t, outcomeRecorded, res.Outcome)
+
+	res2, err := env.proc.Process(ctx, obs(eventv1.Status_waiting_approval, t0.Add(5*time.Second)))
+	require.NoError(t, err)
+	require.Equal(t, outcomeStale, res2.Outcome)
+
+	ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": res.EventID})
+	require.NoError(t, err)
+	require.Equal(t, eventv1.Status_start, ev.Attributes.Status)
+
+	locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
+	require.NoError(t, err)
+	require.Len(t, locks, 1)
+	require.Equal(t, res.EventID, locks[0].EventId)
+}
+
 func TestProcessUpdateFailureReverts(t *testing.T) {
 	env := newProcEnv(t)
 	ctx := context.Background()
