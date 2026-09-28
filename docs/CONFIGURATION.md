@@ -99,6 +99,37 @@ AUTH_OIDC_CLIENT_SECRET=<from your secret store>
 # Redirect URI to register: https://tracker.example.com/api/v1alpha1/auth/oidc/callback
 ```
 
+### Deployment integrations
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `INTEGRATION_GITLAB_SIGNING_TOKEN` | - | GitLab signing token, `whsec_<base64>`. When set, the `webhook-signature` header is required and `INTEGRATION_GITLAB_SECRET_TOKEN` is ignored. |
+| `INTEGRATION_GITLAB_SECRET_TOKEN` | - | Legacy GitLab secret token, compared against `X-Gitlab-Token`. Ignored when the signing token is set. |
+| `INTEGRATION_FLUX_HMAC_KEY` | - | HMAC key shared with the Flux `Provider` Secret (key `token`). Enables the Flux webhook endpoint. |
+| `INTEGRATION_WEBHOOK_TOLERANCE` | `5m` | Freshness window (Go duration) for GitLab's `webhook-timestamp` and Flux's event `timestamp`. |
+| `INTEGRATION_ENVIRONMENTS` | `production=production,staging=preproduction` | Comma separated `source=tracker` pairs mapping a GitLab or Flux environment name to a Tracker environment. Source keys are matched case-insensitively. |
+
+An invalid value stops Tracker at startup, with an error that never includes the secret itself:
+
+- `INTEGRATION_GITLAB_SIGNING_TOKEN` not prefixed with `whsec_`, or the part after the prefix is
+  not valid base64, or decodes to an empty value.
+- `INTEGRATION_GITLAB_SECRET_TOKEN` shorter than 16 characters.
+- `INTEGRATION_FLUX_HMAC_KEY` shorter than 32 bytes.
+- `INTEGRATION_WEBHOOK_TOLERANCE` not a positive Go duration (for example `5m`).
+- `INTEGRATION_ENVIRONMENTS` malformed (an entry without `=`, an empty key, or a duplicate key),
+  or a value that is not one of the Tracker environment names: `development`, `integration`,
+  `TNR`, `UAT`, `recette`, `preproduction`, `production`, `mco` (these are case-sensitive).
+
+See [INTEGRATIONS.md](INTEGRATIONS.md) for the GitLab and Flux setup this configures.
+
+**Example:**
+```bash
+INTEGRATION_GITLAB_SIGNING_TOKEN=whsec_<base64-value-from-secret-manager>
+INTEGRATION_FLUX_HMAC_KEY=<32-byte-value-from-secret-manager>
+INTEGRATION_WEBHOOK_TOLERANCE=5m
+INTEGRATION_ENVIRONMENTS=production=production,staging=preproduction
+```
+
 ### Slack Integration
 
 | Variable | Default | Description |
