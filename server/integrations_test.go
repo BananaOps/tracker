@@ -429,6 +429,26 @@ func TestGitLabReplayTenTimes(t *testing.T) {
 	require.Len(t, env.locks(t), 1)
 }
 
+func TestGitLabReplayWithDifferentInstanceHeaderIsDuplicate(t *testing.T) {
+	env := newIntegrationEnv(t, fullIntegrationConfig(t))
+
+	req := env.gitlabRequest(t, gitlabDeploymentBody(t, 601, "running", time.Now(), "production"), env.now)
+	rec := env.do(req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	// Same signed delivery (id, timestamp, signature and body all unchanged,
+	// still within the replay window): only X-Gitlab-Instance differs. The
+	// correlation key is derived from project.web_url, not this header, so
+	// replaying it must still be recognized as a duplicate of the same
+	// deployment instead of minting a second event.
+	req.Header.Set(integrations.HeaderGitLabInstance, "https://attacker.example.com")
+	rec2 := env.do(req)
+	require.Equal(t, http.StatusAccepted, rec2.Code)
+	require.JSONEq(t, `{"status":"ignored","reason":"duplicate"}`, rec2.Body.String())
+
+	env.onlyEvent(t)
+}
+
 func TestFluxInvalidSignatureAndStaleTimestamp(t *testing.T) {
 	env := newIntegrationEnv(t, fullIntegrationConfig(t))
 

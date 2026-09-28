@@ -64,10 +64,10 @@ var gitlabStatuses = map[string]gitlabStatus{
 var gitlabTimeLayouts = []string{time.RFC3339, "2006-01-02 15:04:05 -0700", "2006-01-02 15:04:05 MST"}
 
 // ParseGitLab maps a GitLab "Deployment Hook" payload to an Observation.
-// eventHeader and instanceHeader are the X-Gitlab-Event and X-Gitlab-Instance
-// header values. It returns *IgnoredError for a notification Tracker does
-// not record, and *InvalidError for a malformed or incomplete payload.
-func ParseGitLab(eventHeader, instanceHeader string, body []byte, cfg Config) (Observation, error) {
+// eventHeader is the X-Gitlab-Event header value. It returns *IgnoredError
+// for a notification Tracker does not record, and *InvalidError for a
+// malformed or incomplete payload.
+func ParseGitLab(eventHeader string, body []byte, cfg Config) (Observation, error) {
 	if strings.TrimSpace(eventHeader) != GitLabDeploymentHook {
 		return Observation{}, &IgnoredError{Reason: ReasonUnsupportedEvent}
 	}
@@ -103,9 +103,9 @@ func ParseGitLab(eventHeader, instanceHeader string, body []byte, cfg Config) (O
 		return Observation{}, &InvalidError{Reason: "status_changed_at is not a valid date"}
 	}
 
-	host := gitlabHost(instanceHeader, p.Project.WebURL)
+	host := gitlabWebURLHost(p.Project.WebURL)
 	if host == "" {
-		return Observation{}, &InvalidError{Reason: "cannot determine the GitLab instance host"}
+		return Observation{}, &InvalidError{Reason: "missing field project.web_url"}
 	}
 
 	environment, ok := lookupGitLabEnvironment(cfg, p.Environment, p.EnvironmentTier)
@@ -155,21 +155,23 @@ func parseGitLabTime(v string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("status_changed_at is not a valid date")
 }
 
-// gitlabHost returns the lower-cased host of the first of instance and
-// webURL that parses to a non-empty host.
-func gitlabHost(instance, webURL string) string {
-	for _, v := range []string{instance, webURL} {
-		v = strings.TrimSpace(v)
-		if v == "" {
-			continue
-		}
-		u, err := url.Parse(v)
-		if err != nil || u.Host == "" {
-			continue
-		}
-		return strings.ToLower(u.Host)
+// gitlabWebURLHost returns the lower-cased host of project.web_url, the
+// signed field the correlation key is derived from. X-Gitlab-Instance is not
+// part of the Standard Webhooks signed content (webhook-id.webhook-
+// timestamp.body) and is deliberately not consulted here: keying on it would
+// let a captured, still-valid signed delivery be replayed with a different
+// instance header to mint a new correlation key, defeating the replay
+// window's idempotency guarantee.
+func gitlabWebURLHost(webURL string) string {
+	webURL = strings.TrimSpace(webURL)
+	if webURL == "" {
+		return ""
 	}
-	return ""
+	u, err := url.Parse(webURL)
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	return strings.ToLower(u.Host)
 }
 
 // lookupGitLabEnvironment resolves a GitLab environment to a Tracker

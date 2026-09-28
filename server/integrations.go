@@ -151,7 +151,7 @@ func (h *integrationHandler) handleGitLab(w http.ResponseWriter, r *http.Request
 		return integrations.VerifyGitLabSecretToken(h.cfg.GitLabSecretToken, header.Get(integrations.HeaderGitLabToken))
 	}
 	parse := func(header http.Header, body []byte) (integrations.Observation, error) {
-		return integrations.ParseGitLab(header.Get(integrations.HeaderGitLabEvent), header.Get(integrations.HeaderGitLabInstance), body, h.cfg)
+		return integrations.ParseGitLab(header.Get(integrations.HeaderGitLabEvent), body, h.cfg)
 	}
 	h.serve(w, r, integrations.SourceGitLab, verify, parse)
 }
