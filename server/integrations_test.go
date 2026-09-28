@@ -108,9 +108,13 @@ func TestGitLabTimestampOutsideTolerance(t *testing.T) {
 		env.now.Add(-5*time.Minute - time.Second),
 		env.now.Add(5*time.Minute + time.Second),
 	} {
+		before := testutil.ToFloat64(integrationWebhooks.WithLabelValues("gitlab", "unauthorized"))
 		req := env.gitlabRequest(t, body, ts)
 		rec := env.do(req)
 		require.Equal(t, http.StatusUnauthorized, rec.Code, "ts %s", ts)
+		require.JSONEq(t, `{"error":"invalid signature"}`, rec.Body.String(), "ts %s", ts)
+		after := testutil.ToFloat64(integrationWebhooks.WithLabelValues("gitlab", "unauthorized"))
+		require.Equal(t, before+1, after, "ts %s", ts)
 	}
 
 	require.Equal(t, int64(0), env.count(t, "events"))
@@ -153,6 +157,8 @@ func TestGitLabBodyTooLarge(t *testing.T) {
 
 	after := testutil.ToFloat64(integrationWebhooks.WithLabelValues("gitlab", "invalid"))
 	require.Equal(t, before+1, after)
+	require.Equal(t, int64(0), env.count(t, "events"))
+	require.Equal(t, int64(0), env.count(t, "integration_deployments"))
 }
 
 func TestGitLabInvalidJSON(t *testing.T) {
@@ -165,6 +171,25 @@ func TestGitLabInvalidJSON(t *testing.T) {
 
 	after := testutil.ToFloat64(integrationWebhooks.WithLabelValues("gitlab", "invalid"))
 	require.Equal(t, before+1, after)
+}
+
+// TestGitLabUnsignedPushHookIsUnauthorized enforces the verify-then-parse
+// order: an unsigned request whose event would otherwise be ignored (202)
+// must still be rejected as unauthorized before parsing ever runs.
+func TestGitLabUnsignedPushHookIsUnauthorized(t *testing.T) {
+	env := newIntegrationEnv(t, fullIntegrationConfig(t))
+
+	body := gitlabDeploymentBody(t, 47, "running", time.Now(), "production")
+	req, err := http.NewRequest(http.MethodPost, integrationGitLabPath, bytes.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(integrations.HeaderGitLabEvent, "Push Hook")
+
+	rec := env.do(req)
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
+	require.JSONEq(t, `{"error":"invalid signature"}`, rec.Body.String())
+	require.Equal(t, int64(0), env.count(t, "events"))
+	require.Equal(t, int64(0), env.count(t, "integration_deployments"))
 }
 
 func TestIntegrationIgnoredCases(t *testing.T) {
@@ -452,6 +477,8 @@ func TestGitLabReplayWithDifferentInstanceHeaderIsDuplicate(t *testing.T) {
 func TestFluxInvalidSignatureAndStaleTimestamp(t *testing.T) {
 	env := newIntegrationEnv(t, fullIntegrationConfig(t))
 
+	before := testutil.ToFloat64(integrationWebhooks.WithLabelValues("flux", "unauthorized"))
+
 	body := fluxEventBody(t, "info", "Progressing", env.now, "main@sha1:abcdef1234567890abcdef1234567890abcdef12")
 	badKeyReq, err := http.NewRequest(http.MethodPost, integrationFluxPath, bytes.NewReader(body))
 	require.NoError(t, err)
@@ -461,10 +488,15 @@ func TestFluxInvalidSignatureAndStaleTimestamp(t *testing.T) {
 	badKeyReq.Header.Set(integrations.HeaderFluxSignature, sig)
 	rec := env.do(badKeyReq)
 	require.Equal(t, http.StatusUnauthorized, rec.Code)
+	require.JSONEq(t, `{"error":"invalid signature"}`, rec.Body.String())
 
 	staleBody := fluxEventBody(t, "info", "Progressing", env.now.Add(-5*time.Minute-time.Second), "main@sha1:abcdef1234567890abcdef1234567890abcdef12")
 	rec2 := env.do(env.fluxRequest(t, staleBody))
 	require.Equal(t, http.StatusUnauthorized, rec2.Code)
+	require.JSONEq(t, `{"error":"invalid signature"}`, rec2.Body.String())
+
+	after := testutil.ToFloat64(integrationWebhooks.WithLabelValues("flux", "unauthorized"))
+	require.Equal(t, before+2, after)
 
 	require.Equal(t, int64(0), env.count(t, "events"))
 	require.Equal(t, int64(0), env.count(t, "integration_deployments"))
@@ -551,6 +583,8 @@ func TestGitLabClaimPendingReturns500(t *testing.T) {
 
 	after := testutil.ToFloat64(integrationWebhooks.WithLabelValues("gitlab", "error"))
 	require.Equal(t, before+1, after)
+
+	require.Contains(t, env.logs.String(), `"reason":"deployment creation still in progress"`)
 }
 
 func TestGitLabCatalogResolution(t *testing.T) {

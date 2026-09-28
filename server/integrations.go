@@ -143,6 +143,19 @@ type integrationVerify func(header http.Header, body []byte) error
 // integrations.ErrStaleTimestamp.
 type integrationParse func(header http.Header, body []byte) (integrations.Observation, error)
 
+// maxLoggedHeaderBytes bounds a delivery identifier logged before the
+// request is authenticated, so an anonymous caller cannot inflate log
+// volume by sending an oversized header.
+const maxLoggedHeaderBytes = 64
+
+// truncateHeader bounds v to maxLoggedHeaderBytes for logging.
+func truncateHeader(v string) string {
+	if len(v) <= maxLoggedHeaderBytes {
+		return v
+	}
+	return v[:maxLoggedHeaderBytes]
+}
+
 func (h *integrationHandler) handleGitLab(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 	verify := func(header http.Header, body []byte) error {
 		if len(h.cfg.GitLabSigningKey) > 0 {
@@ -174,9 +187,10 @@ func (h *integrationHandler) serve(w http.ResponseWriter, r *http.Request, sourc
 	baseAttrs := []any{"source", source}
 	if source == integrations.SourceGitLab {
 		baseAttrs = append(baseAttrs,
-			"idempotencyKey", r.Header.Get("Idempotency-Key"),
-			"gitlabEventUUID", r.Header.Get("X-Gitlab-Event-UUID"),
-			"webhookId", r.Header.Get(integrations.HeaderWebhookID),
+			"idempotencyKey", truncateHeader(r.Header.Get("Idempotency-Key")),
+			"gitlabEventUUID", truncateHeader(r.Header.Get("X-Gitlab-Event-UUID")),
+			"webhookId", truncateHeader(r.Header.Get(integrations.HeaderWebhookID)),
+			"gitlabInstance", truncateHeader(r.Header.Get(integrations.HeaderGitLabInstance)),
 		)
 	}
 
@@ -240,10 +254,10 @@ func (h *integrationHandler) serve(w http.ResponseWriter, r *http.Request, sourc
 	res, err := h.processor.Process(ctx, obs)
 	if err != nil {
 		if errors.Is(err, errClaimPending) {
-			finish(http.StatusInternalServerError, resultError, integrationError{Error: "deployment is being recorded, retry later"}, "key", obs.Key)
+			finish(http.StatusInternalServerError, resultError, integrationError{Error: "deployment is being recorded, retry later"}, "key", obs.Key, "reason", err.Error())
 			return
 		}
-		finish(http.StatusInternalServerError, resultError, integrationError{Error: "storage failure"}, "key", obs.Key)
+		finish(http.StatusInternalServerError, resultError, integrationError{Error: "storage failure"}, "key", obs.Key, "reason", err.Error())
 		return
 	}
 
