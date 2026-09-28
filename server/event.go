@@ -45,13 +45,26 @@ type Event struct {
 	logger      *slog.Logger
 }
 
-func NewEvent() *Event {
+func newEventFromStores(events *store.EventStoreClient, locks *store.LockStoreClient, logger *slog.Logger) *Event {
 	return &Event{
 		UnimplementedEventServiceServer: v1alpha1.UnimplementedEventServiceServer{},
-		store:                           store.NewStoreEvent(config.ConfigDatabase.EventCollection),
-		lockService:                     NewLock(),
-		logger:                          slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		store:                           events,
+		lockService: &Lock{
+			UnimplementedLockServiceServer: lock.UnimplementedLockServiceServer{},
+			store:                          *locks,
+			eventStore:                     events,
+			logger:                         logger,
+		},
+		logger: logger,
 	}
+}
+
+func NewEvent() *Event {
+	return newEventFromStores(
+		store.NewStoreEvent(config.ConfigDatabase.EventCollection),
+		store.NewStoreLock(config.ConfigDatabase.LockCollection),
+		slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	)
 }
 
 // addChangelogEntry adds a new entry to the event's changelog
@@ -97,6 +110,24 @@ func getResourceType(eventType v1alpha1.Type) string {
 	default:
 		return "unknown"
 	}
+}
+
+// lockMode tells createEvent what to do when the service is already locked.
+type lockMode int
+
+const (
+	// lockStrict is the RPC behaviour: a conflict makes the creation fail.
+	lockStrict lockMode = iota
+	// lockObserve is the integration behaviour: the conflict is recorded,
+	// the event is created without a lock.
+	lockObserve
+)
+
+// lockConflict names the holder of the lock an observed deployment could not take.
+type lockConflict struct{ Who string }
+
+func lockConflictComment(service, environment, who string) string {
+	return fmt.Sprintf("Deployed while %s was locked in %s by %s", service, environment, who)
 }
 
 func (e *Event) CreateEvent(
@@ -149,121 +180,159 @@ func (e *Event) CreateEvent(
 
 	}
 
-	eventCounter.With(prometheus.Labels{"status": i.Attributes.Status.String(), "service": i.Attributes.Service, "environment": i.Attributes.Environment.String()}).Inc()
-
-	// Add initial changelog entry
 	user := "system"
 	if i.Attributes.Owner != "" {
 		user = i.Attributes.Owner
 	}
-	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
 
-	// Vérifier et créer un lock si nécessaire AVANT de créer l'événement
-	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
-		lockReq := &lock.CreateLockRequest{
-			Service:     i.Attributes.Service,
-			Who:         user,
-			Environment: i.Attributes.Environment.String(),
-			Resource:    getResourceType(i.Attributes.Type),
-			EventId:     "", // Sera mis à jour après la création de l'événement
-		}
-
-		// This is an internal call: it reuses the request context, so the
-		// method name authz sees stays "/tracker.event.v1alpha1.EventService/
-		// CreateEvent", not CreateLock. The lock is therefore authorized by
-		// event:write, not lock:write, even though spec 3.1 files CreateLock
-		// under lock:write. That is deliberate: creating an event that locks a
-		// service is one operation from the caller's point of view.
-		// Side effect: tracker_auth_requests_total counts such a request twice
-		// under the same method label, once for CreateEvent and once for the
-		// nested Authorize below. Same for the UpdateLock call further down.
-		_, err := e.lockService.CreateLock(ctx, lockReq)
-		if err != nil {
-			e.logger.Error("failed to create lock",
-				"service", i.Attributes.Service,
-				"environment", i.Attributes.Environment.String(),
-				"resource", getResourceType(i.Attributes.Type),
-				"error", err,
-			)
-
-			// Améliorer le message d'erreur pour être plus explicite
-			if strings.Contains(err.Error(), "already locked") {
-				return nil, fmt.Errorf("cannot create event: service %s is already locked in %s. Please unlock it first",
-					i.Attributes.Service, i.Attributes.Environment.String())
-			}
-
-			return nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
-		}
-	}
-
-	var eventResult = &v1alpha1.CreateEventResponse{}
-	var err error
-	eventResult.Event, err = e.store.Create(context.Background(), event)
+	// The lock taken for a deployment or an operation is part of creating the
+	// event: it is covered by the event:write check above and goes through the
+	// unauthorized lock core, so the request counts a single decision in
+	// tracker_auth_requests_total.
+	created, _, err := e.createEvent(ctx, event, user, "", lockStrict)
 	if err != nil {
 		return nil, err
 	}
+	return &v1alpha1.CreateEventResponse{Event: created}, nil
+}
 
-	// Mettre à jour le lock avec l'event_id
-	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
-		// Récupérer le lock correspondant et mettre à jour son event_id
-		filter := map[string]interface{}{
-			"service":     i.Attributes.Service,
-			"environment": i.Attributes.Environment.String(),
-			"resource":    getResourceType(i.Attributes.Type),
-		}
+// createEvent is CreateEvent without authorization. mode controls what
+// happens when the service is already locked: lockStrict fails the creation
+// (the RPC behaviour), lockObserve records the conflict on the event instead
+// (the integration behaviour) and creates it without taking the lock.
+func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, comment string, mode lockMode) (*v1alpha1.Event, *lockConflict, error) {
+	attrs := event.Attributes
+	environment := attrs.Environment.String()
+	resource := getResourceType(attrs.Type)
 
-		existingLock, err2 := e.lockService.store.Get(ctx, filter)
-		if err2 == nil && existingLock != nil && existingLock.Id != "" {
-			// Internal call on the request context, see the comment above the
-			// CreateLock call: authorized by event:write and counted a second
-			// time in tracker_auth_requests_total under CreateEvent.
-			_, errUpd := e.lockService.UpdateLock(ctx, &lock.UpdateLockRequest{
-				Id:      existingLock.Id,
-				EventId: eventResult.Event.Metadata.Id,
+	eventCounter.With(prometheus.Labels{"status": attrs.Status.String(), "service": attrs.Service, "environment": environment}).Inc()
+
+	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
+
+	var lockID string
+	var conflict *lockConflict
+	switch mode {
+	case lockStrict:
+		if shouldCreateLock(attrs.Type, attrs.Status) {
+			res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{
+				Service:     attrs.Service,
+				Who:         user,
+				Environment: environment,
+				Resource:    resource,
+				EventId:     "",
 			})
-			if errUpd != nil {
-				e.logger.Warn("failed to update lock with event_id",
-					"lock_id", existingLock.Id,
-					"event_id", eventResult.Event.Metadata.Id,
-					"service", i.Attributes.Service,
-					"environment", i.Attributes.Environment.String(),
-					"error", errUpd,
+			if err != nil {
+				e.logger.Error("failed to create lock",
+					"service", attrs.Service,
+					"environment", environment,
+					"resource", resource,
+					"error", err,
 				)
-			} else {
-				e.logger.Info("lock updated with event_id",
-					"lock_id", existingLock.Id,
-					"event_id", eventResult.Event.Metadata.Id,
-					"service", i.Attributes.Service,
-					"environment", i.Attributes.Environment.String(),
+
+				if strings.Contains(err.Error(), "already locked") {
+					return nil, nil, fmt.Errorf("cannot create event: service %s is already locked in %s. Please unlock it first",
+						attrs.Service, environment)
+				}
+
+				return nil, nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
+			}
+			lockID = res.Lock.Id
+		}
+	case lockObserve:
+		if resource != "unknown" {
+			var err error
+			lockID, conflict, err = e.observeLock(ctx, attrs.Service, environment, resource, user, shouldCreateLock(attrs.Type, attrs.Status))
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+	}
+
+	if conflict != nil {
+		addChangelogEntry(event, v1alpha1.ChangeType_commented, user, "", "", "", lockConflictComment(attrs.Service, environment, conflict.Who))
+	}
+	if comment != "" {
+		addChangelogEntry(event, v1alpha1.ChangeType_commented, user, "", "", "", comment)
+	}
+
+	created, err := e.store.Create(context.Background(), event)
+	if err != nil {
+		if mode == lockObserve && lockID != "" {
+			if _, unlockErr := e.lockService.store.Unlock(ctx, map[string]interface{}{"id": lockID}); unlockErr != nil {
+				e.logger.Error("failed to release lock after failed event creation",
+					"lock_id", lockID,
+					"service", attrs.Service,
+					"environment", environment,
+					"error", unlockErr,
 				)
 			}
+		}
+		return nil, nil, err
+	}
+
+	if lockID != "" {
+		_, errUpd := e.lockService.updateLock(ctx, &lock.UpdateLockRequest{
+			Id:      lockID,
+			EventId: created.Metadata.Id,
+		})
+		if errUpd != nil {
+			e.logger.Warn("failed to update lock with event_id",
+				"lock_id", lockID,
+				"event_id", created.Metadata.Id,
+				"service", attrs.Service,
+				"environment", environment,
+				"error", errUpd,
+			)
 		} else {
-			e.logger.Warn("lock not found for event to update",
-				"service", i.Attributes.Service,
-				"environment", i.Attributes.Environment.String(),
-				"resource", getResourceType(i.Attributes.Type),
-				"error", err2,
+			e.logger.Info("lock updated with event_id",
+				"lock_id", lockID,
+				"event_id", created.Metadata.Id,
+				"service", attrs.Service,
+				"environment", environment,
 			)
 		}
 	}
 
 	// log event to json format
 	e.logger.Info("event created",
-		"title", eventResult.Event.Title,
-		"message", eventResult.Event.Attributes.Message,
-		"priority", eventResult.Event.Attributes.Priority.String(),
-		"environment", eventResult.Event.Attributes.Environment.String(),
-		"owner", eventResult.Event.Attributes.Owner,
-		"impact", eventResult.Event.Attributes.Impact,
-		"service", eventResult.Event.Attributes.Service,
-		"status", eventResult.Event.Attributes.Status.String(),
-		"type", eventResult.Event.Attributes.Type.String(),
-		"pull_request", eventResult.Event.Links.PullRequestLink,
-		"id", eventResult.Event.Metadata.Id,
-		"created_at", eventResult.Event.Metadata.CreatedAt.AsTime(),
+		"title", created.Title,
+		"message", created.Attributes.Message,
+		"priority", created.Attributes.Priority.String(),
+		"environment", created.Attributes.Environment.String(),
+		"owner", created.Attributes.Owner,
+		"impact", created.Attributes.Impact,
+		"service", created.Attributes.Service,
+		"status", created.Attributes.Status.String(),
+		"type", created.Attributes.Type.String(),
+		"pull_request", created.Links.PullRequestLink,
+		"id", created.Metadata.Id,
+		"created_at", created.Metadata.CreatedAt.AsTime(),
 	)
 
-	return eventResult, nil
+	return created, conflict, nil
+}
+
+// observeLock takes the lock when take is true and nobody holds it. A lock
+// held by someone else is reported, never returned as an error.
+func (e *Event) observeLock(ctx context.Context, service, environment, resource, who string, take bool) (string, *lockConflict, error) {
+	if held := e.lockService.findLock(ctx, service, environment, resource); held != nil {
+		return "", &lockConflict{Who: held.Who}, nil
+	}
+	if !take {
+		return "", nil, nil
+	}
+	res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{Service: service, Who: who, Environment: environment, Resource: resource})
+	if err != nil {
+		if strings.Contains(err.Error(), "already locked") {
+			holder := "unknown"
+			if held := e.lockService.findLock(ctx, service, environment, resource); held != nil {
+				holder = held.Who
+			}
+			return "", &lockConflict{Who: holder}, nil
+		}
+		return "", nil, fmt.Errorf("cannot create lock: %w", err)
+	}
+	return res.Lock.Id, nil, nil
 }
 
 func (e *Event) GetEvent(
@@ -373,7 +442,6 @@ func (e *Event) UpdateEvent(
 		return nil, err
 	}
 
-	var eventResult = &v1alpha1.UpdateEventResponse{}
 	var eventDatabase = &v1alpha1.GetEventResponse{}
 	var err error
 
@@ -425,104 +493,10 @@ func (e *Event) UpdateEvent(
 		},
 	}
 
-	if event.Attributes.Status == 2 || event.Attributes.Status == 3 {
-		duration := time.Since(eventDatabase.Event.Metadata.CreatedAt.AsTime())
-		event.Metadata.Duration = durationpb.New(duration)
-		if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
-			recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
-		}
-	}
-
-	// Preserve existing changelog
-	event.Changelog = eventDatabase.Event.Changelog
-
 	// Track changes and add changelog entries
 	user := "system"
 	if i.Attributes.Owner != "" {
 		user = i.Attributes.Owner
-	}
-
-	// Detect if this is an approval (only owner changed, nothing else)
-	isApproval := eventDatabase.Event.Attributes.Owner != event.Attributes.Owner &&
-		eventDatabase.Event.Attributes.Status == event.Attributes.Status &&
-		eventDatabase.Event.Attributes.Priority == event.Attributes.Priority &&
-		eventDatabase.Event.Title == event.Title
-
-	// Check for status change
-	if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
-		addChangelogEntry(
-			event,
-			v1alpha1.ChangeType_status_changed,
-			user,
-			"status",
-			eventDatabase.Event.Attributes.Status.String(),
-			event.Attributes.Status.String(),
-			"Status updated",
-		)
-	}
-
-	// Check for ticket link change
-	if eventDatabase.Event.Links.Ticket != event.Links.Ticket && event.Links.Ticket != "" {
-		addChangelogEntry(
-			event,
-			v1alpha1.ChangeType_linked,
-			user,
-			"ticket",
-			eventDatabase.Event.Links.Ticket,
-			event.Links.Ticket,
-			"Jira ticket linked",
-		)
-	}
-
-	// Check for priority change
-	if eventDatabase.Event.Attributes.Priority != event.Attributes.Priority {
-		addChangelogEntry(
-			event,
-			v1alpha1.ChangeType_updated,
-			user,
-			"priority",
-			eventDatabase.Event.Attributes.Priority.String(),
-			event.Attributes.Priority.String(),
-			"Priority updated",
-		)
-	}
-
-	// Check for title change
-	if eventDatabase.Event.Title != event.Title {
-		addChangelogEntry(
-			event,
-			v1alpha1.ChangeType_updated,
-			user,
-			"title",
-			eventDatabase.Event.Title,
-			event.Title,
-			"Title updated",
-		)
-	}
-
-	// Add general update entry if no specific changes were tracked
-	if len(event.Changelog) == len(eventDatabase.Event.Changelog) {
-		if isApproval {
-			addChangelogEntry(
-				event,
-				v1alpha1.ChangeType_approved,
-				user,
-				"",
-				"",
-				"",
-				fmt.Sprintf("Event approved by %s", user),
-			)
-		} else {
-			addChangelogEntry(
-				event,
-				v1alpha1.ChangeType_updated,
-				user,
-				"",
-				"",
-				"",
-				"Event updated",
-			)
-		}
 	}
 
 	// Use the appropriate filter based on whether SlackId or Id is provided
@@ -533,31 +507,142 @@ func (e *Event) UpdateEvent(
 		filter = map[string]interface{}{"metadata.id": i.Id}
 	}
 
-	eventResult.Event, err = e.store.Update(context.Background(), filter, event)
+	updated, err := e.updateEvent(ctx, eventDatabase.Event, event, filter, user, "", time.Now())
 	if err != nil {
 		return nil, err
 	}
 
 	// Libérer le lock si l'événement se termine
 	if shouldReleaseLock(event.Attributes.Type, event.Attributes.Status) {
-		err = e.lockService.UnlockByEventId(ctx, eventResult.Event.Metadata.Id)
+		err = e.lockService.UnlockByEventId(ctx, updated.Metadata.Id)
 		if err != nil {
 			e.logger.Warn("failed to release lock",
-				"event_id", eventResult.Event.Metadata.Id,
+				"event_id", updated.Metadata.Id,
 				"service", event.Attributes.Service,
 				"error", err,
 			)
 			// Ne pas retourner d'erreur, l'événement est déjà mis à jour
 		} else {
 			e.logger.Info("lock released for event",
-				"event_id", eventResult.Event.Metadata.Id,
+				"event_id", updated.Metadata.Id,
 				"service", event.Attributes.Service,
 				"status", event.Attributes.Status.String(),
 			)
 		}
 	}
 
-	return eventResult, nil
+	return &v1alpha1.UpdateEventResponse{Event: updated}, nil
+}
+
+// updateEvent is UpdateEvent without authorization. current is the event as
+// stored, next is the requested state (metadata already carries the id,
+// created_at and previous duration); at is the instant the duration is
+// measured against, and comment, when set, is appended as a final changelog
+// entry after the update summary. Only callers of the server package that
+// already authorized or authenticated the operation may use it.
+func (e *Event) updateEvent(ctx context.Context, current, next *v1alpha1.Event, filter map[string]interface{}, user, comment string, at time.Time) (*v1alpha1.Event, error) {
+	if next.Attributes.Status == v1alpha1.Status_failure || next.Attributes.Status == v1alpha1.Status_success {
+		duration := at.Sub(current.Metadata.CreatedAt.AsTime())
+		if duration < 0 {
+			duration = 0
+		}
+		next.Metadata.Duration = durationpb.New(duration)
+		if current.Attributes.Status != next.Attributes.Status {
+			recordEvent(next.Attributes.Status.String(), next.Attributes.Service, next.Attributes.Environment.String(), duration)
+		}
+	}
+
+	// Preserve existing changelog
+	next.Changelog = current.Changelog
+
+	// Detect if this is an approval (only owner changed, nothing else)
+	isApproval := current.Attributes.Owner != next.Attributes.Owner &&
+		current.Attributes.Status == next.Attributes.Status &&
+		current.Attributes.Priority == next.Attributes.Priority &&
+		current.Title == next.Title
+
+	// Check for status change
+	if current.Attributes.Status != next.Attributes.Status {
+		addChangelogEntry(
+			next,
+			v1alpha1.ChangeType_status_changed,
+			user,
+			"status",
+			current.Attributes.Status.String(),
+			next.Attributes.Status.String(),
+			"Status updated",
+		)
+	}
+
+	// Check for ticket link change
+	if current.Links.Ticket != next.Links.Ticket && next.Links.Ticket != "" {
+		addChangelogEntry(
+			next,
+			v1alpha1.ChangeType_linked,
+			user,
+			"ticket",
+			current.Links.Ticket,
+			next.Links.Ticket,
+			"Jira ticket linked",
+		)
+	}
+
+	// Check for priority change
+	if current.Attributes.Priority != next.Attributes.Priority {
+		addChangelogEntry(
+			next,
+			v1alpha1.ChangeType_updated,
+			user,
+			"priority",
+			current.Attributes.Priority.String(),
+			next.Attributes.Priority.String(),
+			"Priority updated",
+		)
+	}
+
+	// Check for title change
+	if current.Title != next.Title {
+		addChangelogEntry(
+			next,
+			v1alpha1.ChangeType_updated,
+			user,
+			"title",
+			current.Title,
+			next.Title,
+			"Title updated",
+		)
+	}
+
+	// Add general update entry if no specific changes were tracked
+	if len(next.Changelog) == len(current.Changelog) {
+		if isApproval {
+			addChangelogEntry(
+				next,
+				v1alpha1.ChangeType_approved,
+				user,
+				"",
+				"",
+				"",
+				fmt.Sprintf("Event approved by %s", user),
+			)
+		} else {
+			addChangelogEntry(
+				next,
+				v1alpha1.ChangeType_updated,
+				user,
+				"",
+				"",
+				"",
+				"Event updated",
+			)
+		}
+	}
+
+	if comment != "" {
+		addChangelogEntry(next, v1alpha1.ChangeType_commented, user, "", "", "", comment)
+	}
+
+	return e.store.Update(context.Background(), filter, next)
 }
 
 // DeleteEvents implements the EventService.DeleteEvents RPC. The method is
