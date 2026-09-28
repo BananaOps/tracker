@@ -98,8 +98,8 @@ func ParseGitLab(eventHeader string, body []byte, cfg Config) (Observation, erro
 		return Observation{}, &InvalidError{Reason: "missing field project.path_with_namespace"}
 	}
 
-	at, err := parseGitLabTime(p.StatusChangedAt)
-	if err != nil {
+	at, ok := parseGitLabTime(p.StatusChangedAt)
+	if !ok {
 		return Observation{}, &InvalidError{Reason: "status_changed_at is not a valid date"}
 	}
 
@@ -145,14 +145,15 @@ func ParseGitLab(eventHeader string, body []byte, cfg Config) (Observation, erro
 }
 
 // parseGitLabTime parses v with the first layout in gitlabTimeLayouts that
-// matches, and returns it in UTC.
-func parseGitLabTime(v string) (time.Time, error) {
+// matches, and returns it in UTC. ok is false when no layout matches; the
+// caller builds its own InvalidError, so no error value is built here.
+func parseGitLabTime(v string) (t time.Time, ok bool) {
 	for _, layout := range gitlabTimeLayouts {
 		if t, err := time.Parse(layout, v); err == nil {
-			return t.UTC(), nil
+			return t.UTC(), true
 		}
 	}
-	return time.Time{}, fmt.Errorf("status_changed_at is not a valid date")
+	return time.Time{}, false
 }
 
 // gitlabWebURLHost returns the lower-cased host of project.web_url, the

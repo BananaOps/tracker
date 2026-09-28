@@ -26,6 +26,11 @@ func TestNormalizeRepoURL(t *testing.T) {
 		{"unsupported scheme", "ftp://host/x", ""},
 		{"no path", "https://gitlab.example.com", ""},
 		{"root path only", "https://gitlab.example.com/", ""},
+		{"explicit default https port dropped", "https://gitlab.example.com:443/team/payments", "https://gitlab.example.com/team/payments"},
+		{"explicit default http port dropped", "http://gitlab.local:80/team/payments", "http://gitlab.local/team/payments"},
+		{"non-default https port on http scheme kept", "http://gitlab.local:443/team/payments", "http://gitlab.local:443/team/payments"},
+		{"uppercase git suffix", "https://gitlab.example.com/team/payments.GIT", "https://gitlab.example.com/team/payments"},
+		{"mixed case git suffix", "https://gitlab.example.com/team/payments.Git", "https://gitlab.example.com/team/payments"},
 	}
 
 	for _, tt := range cases {
