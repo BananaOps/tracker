@@ -80,7 +80,7 @@ async function fillAndSubmit(username: string, password: string) {
  */
 function renderLoginRoutes(entry: string) {
   return render(
-    <MemoryRouter initialEntries={[entry]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter initialEntries={[entry]}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/catalog" element={<div>Catalog page</div>} />

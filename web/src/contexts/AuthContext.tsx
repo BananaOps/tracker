@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       me = principalAfterMeFailure(err)
     }
-    // Route changes are React transitions (v7_startTransition), so they
+    // Route changes are React transitions (react-router 7), so they
     // commit after urgent state updates: a protected page would re-render
     // with the anonymous principal first and its route guard would push its
     // own `/login?redirect=...`. Unmount the routed tree (status loading)
