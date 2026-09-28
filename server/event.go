@@ -198,8 +198,12 @@ func (e *Event) CreateEvent(
 
 // createEvent is CreateEvent without authorization. mode controls what
 // happens when the service is already locked: lockStrict fails the creation
-// (the RPC behaviour), lockObserve records the conflict on the event instead
-// (the integration behaviour) and creates it without taking the lock.
+// (the RPC behaviour, unchanged) and takes its lock before creating the
+// event, attaching it afterward once the id is known. lockObserve (the
+// integration behaviour) creates the event first, then takes the lock with
+// the event id already known, in the same write: a conflict with an
+// existing lock is recorded as a changelog comment instead of failing the
+// creation, and any other failure taking the lock is only logged.
 func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, comment string, mode lockMode) (*v1alpha1.Event, *lockConflict, error) {
 	attrs := event.Attributes
 	environment := attrs.Environment.String()
@@ -210,65 +214,38 @@ func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, co
 	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
 
 	var lockID string
-	var conflict *lockConflict
-	switch mode {
-	case lockStrict:
-		if shouldCreateLock(attrs.Type, attrs.Status) {
-			res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{
-				Service:     attrs.Service,
-				Who:         user,
-				Environment: environment,
-				Resource:    resource,
-				EventId:     "",
-			})
-			if err != nil {
-				e.logger.Error("failed to create lock",
-					"service", attrs.Service,
-					"environment", environment,
-					"resource", resource,
-					"error", err,
-				)
+	if mode == lockStrict && shouldCreateLock(attrs.Type, attrs.Status) {
+		res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{
+			Service:     attrs.Service,
+			Who:         user,
+			Environment: environment,
+			Resource:    resource,
+			EventId:     "",
+		})
+		if err != nil {
+			e.logger.Error("failed to create lock",
+				"service", attrs.Service,
+				"environment", environment,
+				"resource", resource,
+				"error", err,
+			)
 
-				if strings.Contains(err.Error(), "already locked") {
-					return nil, nil, fmt.Errorf("cannot create event: service %s is already locked in %s. Please unlock it first",
-						attrs.Service, environment)
-				}
+			if strings.Contains(err.Error(), "already locked") {
+				return nil, nil, fmt.Errorf("cannot create event: service %s is already locked in %s. Please unlock it first",
+					attrs.Service, environment)
+			}
 
-				return nil, nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
-			}
-			lockID = res.Lock.Id
+			return nil, nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
 		}
-	case lockObserve:
-		if resource != "unknown" {
-			// The event does not have an id yet at this point, so the lock
-			// (if taken) is attached to it below, once the event is created.
-			var err error
-			lockID, conflict, err = e.observeLock(ctx, attrs.Service, environment, resource, user, "", shouldCreateLock(attrs.Type, attrs.Status))
-			if err != nil {
-				return nil, nil, err
-			}
-		}
+		lockID = res.Lock.Id
 	}
 
-	if conflict != nil {
-		addChangelogEntry(event, v1alpha1.ChangeType_commented, user, "", "", "", lockConflictComment(attrs.Service, environment, conflict.Who))
-	}
 	if comment != "" {
 		addChangelogEntry(event, v1alpha1.ChangeType_commented, user, "", "", "", comment)
 	}
 
 	created, err := e.store.Create(context.Background(), event)
 	if err != nil {
-		if mode == lockObserve && lockID != "" {
-			if _, unlockErr := e.lockService.store.Unlock(ctx, map[string]interface{}{"id": lockID}); unlockErr != nil {
-				e.logger.Error("failed to release lock after failed event creation",
-					"lock_id", lockID,
-					"service", attrs.Service,
-					"environment", environment,
-					"error", unlockErr,
-				)
-			}
-		}
 		return nil, nil, err
 	}
 
@@ -293,6 +270,11 @@ func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, co
 				"environment", environment,
 			)
 		}
+	}
+
+	var conflict *lockConflict
+	if mode == lockObserve && resource != "unknown" {
+		created, conflict = e.observeLockAfterCreate(ctx, created, user, shouldCreateLock(attrs.Type, attrs.Status))
 	}
 
 	// log event to json format
@@ -337,6 +319,61 @@ func (e *Event) observeLock(ctx context.Context, service, environment, resource,
 		return "", nil, fmt.Errorf("cannot create lock: %w", err)
 	}
 	return res.Lock.Id, nil, nil
+}
+
+// observeLockAfterCreate takes the lock for an event that was just created,
+// with the event id already known, in the same write. It never fails the
+// creation: a conflict with an existing lock is recorded as a changelog
+// comment on the event, and any other failure is only logged. It returns
+// the event as currently stored, reloaded when the lock or the comment
+// changed it.
+func (e *Event) observeLockAfterCreate(ctx context.Context, created *v1alpha1.Event, user string, take bool) (*v1alpha1.Event, *lockConflict) {
+	attrs := created.Attributes
+	environment := attrs.Environment.String()
+	resource := getResourceType(attrs.Type)
+
+	lockID, conflict, err := e.observeLock(ctx, attrs.Service, environment, resource, user, created.Metadata.Id, take)
+	if err != nil {
+		e.logger.Warn("failed to take lock after creating event",
+			"service", attrs.Service,
+			"environment", environment,
+			"resource", resource,
+			"event_id", created.Metadata.Id,
+			"error", err,
+		)
+		return created, nil
+	}
+
+	if conflict != nil {
+		ev, gerr := e.store.Get(context.Background(), map[string]interface{}{"metadata.id": created.Metadata.Id})
+		if gerr != nil {
+			e.logger.Warn("failed to reload event to record lock conflict comment", "event_id", created.Metadata.Id, "error", gerr)
+			return created, conflict
+		}
+		addChangelogEntry(ev, v1alpha1.ChangeType_commented, user, "", "", "", lockConflictComment(attrs.Service, environment, conflict.Who))
+		// Update returns the document as it was before the $set (no
+		// ReturnDocument(After) option), so the caller gets the locally
+		// mutated copy, not that stale snapshot.
+		if _, uerr := e.store.Update(context.Background(), map[string]interface{}{"metadata.id": created.Metadata.Id}, ev); uerr != nil {
+			e.logger.Warn("failed to record lock conflict comment", "event_id", created.Metadata.Id, "error", uerr)
+			return created, conflict
+		}
+		return ev, conflict
+	}
+
+	if lockID == "" {
+		return created, nil
+	}
+
+	// createLock already appended the "Service locked in %s" changelog entry
+	// since the event id was set in the same write: reload so the returned
+	// event reflects it.
+	ev, gerr := e.store.Get(context.Background(), map[string]interface{}{"metadata.id": created.Metadata.Id})
+	if gerr != nil {
+		e.logger.Warn("failed to reload event after taking lock", "event_id", created.Metadata.Id, "error", gerr)
+		return created, nil
+	}
+	return ev, nil
 }
 
 func (e *Event) GetEvent(

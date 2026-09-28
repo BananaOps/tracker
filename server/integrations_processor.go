@@ -299,6 +299,19 @@ func (p *IntegrationProcessor) create(ctx context.Context, obs integrations.Obse
 		return ProcessResult{}, err
 	}
 
+	// A lock taken while creating the event may already be stale by the time
+	// the claim carries the event id: re-read it and release the lock right
+	// away if it has gone terminal, same as the update path.
+	if shouldCreateLock(eventv1.Type_deployment, obs.Status) {
+		if reread, rerr := p.store.Get(ctx, obs.Key); rerr != nil {
+			p.logger.Warn("integration: cannot re-read claim after creating event", "key", obs.Key, "eventId", created.Metadata.Id, "error", rerr)
+		} else if terminalStatus(reread.Status) {
+			if err := p.events.lockService.UnlockByEventId(ctx, created.Metadata.Id); err != nil {
+				p.logger.Warn("integration: cannot release lock taken for an already terminal claim", "key", obs.Key, "eventId", created.Metadata.Id, "error", err)
+			}
+		}
+	}
+
 	p.converge(ctx, obs.Key, created.Metadata.Id, obs.Status, obs.At, integrations.Rank(obs.Status))
 
 	return ProcessResult{Outcome: outcomeFor(conflict), EventID: created.Metadata.Id}, nil
@@ -356,7 +369,11 @@ func (p *IntegrationProcessor) update(ctx context.Context, obs integrations.Obse
 
 	var conflict *lockConflict
 	comment := obs.Comment
-	takeLock := obs.Status == eventv1.Status_start && current.Attributes.Status != eventv1.Status_start
+	// takeLock is derived from the claim state read before this Advance
+	// (prev), never from the event's current status: converge can rewrite
+	// the event to a later claim state concurrently, which would otherwise
+	// make this decision flicker.
+	takeLock := obs.Status == eventv1.Status_start && prev.Status != eventv1.Status_start.String() && !terminalStatus(prev.Status)
 	if takeLock {
 		if held := p.events.lockService.findLock(ctx, service, environment, integrationLockResource); held != nil {
 			conflict = &lockConflict{Who: held.Who}
@@ -391,7 +408,7 @@ func (p *IntegrationProcessor) update(ctx context.Context, obs integrations.Obse
 				if _, unlockErr := p.events.lockService.store.Unlock(ctx, map[string]interface{}{"id": lockID}); unlockErr != nil {
 					p.logger.Warn("integration: cannot release lock after a failed re-read", "key", obs.Key, "eventId", prev.EventID, "lockId", lockID, "error", unlockErr)
 				}
-			} else if val, ok := eventv1.Status_value[reread.Status]; ok && integrations.IsTerminal(eventv1.Status(val)) {
+			} else if terminalStatus(reread.Status) {
 				if err := p.events.lockService.UnlockByEventId(ctx, prev.EventID); err != nil {
 					p.logger.Warn("integration: cannot release lock taken for an already terminal claim", "key", obs.Key, "eventId", prev.EventID, "error", err)
 				}
@@ -432,12 +449,11 @@ func (p *IntegrationProcessor) converge(ctx context.Context, key, eventID string
 			return
 		}
 
-		claimStatusValue, ok := eventv1.Status_value[claim.Status]
+		claimStatus, ok := parseStatus(claim.Status)
 		if !ok {
 			p.logger.Warn("integration: unknown claim status while converging", "key", key, "eventId", eventID, "status", claim.Status)
 			return
 		}
-		claimStatus := eventv1.Status(claimStatusValue)
 		terminal := integrations.IsTerminal(claimStatus)
 
 		current, err := p.events.store.Get(ctx, map[string]interface{}{"metadata.id": eventID})
@@ -509,4 +525,18 @@ func outcomeFor(conflict *lockConflict) string {
 		return outcomeLockConflict
 	}
 	return outcomeRecorded
+}
+
+// parseStatus turns a claim's stored status string back into eventv1.Status.
+// ok is false for a string that names no known status.
+func parseStatus(status string) (s eventv1.Status, ok bool) {
+	val, known := eventv1.Status_value[status]
+	return eventv1.Status(val), known
+}
+
+// terminalStatus reports whether a claim's stored status string names a
+// terminal eventv1.Status. An unrecognized string is treated as not terminal.
+func terminalStatus(status string) bool {
+	s, ok := parseStatus(status)
+	return ok && integrations.IsTerminal(s)
 }

@@ -61,6 +61,16 @@ func newProcEnv(t *testing.T) *procEnv {
 	return &procEnv{db: db, events: events, store: st, proc: proc, cat: cat}
 }
 
+// assertNoLockForService fails the test if any lock exists for
+// service/environment at all, regardless of which event id (if any) it
+// carries.
+func assertNoLockForService(t *testing.T, ctx context.Context, db *mongo.Database, service, environment string) {
+	t.Helper()
+	count, err := db.Collection("locks").CountDocuments(ctx, bson.M{"service": service, "environment": environment})
+	require.NoError(t, err)
+	require.Equal(t, int64(0), count, "expected no lock for %s/%s", service, environment)
+}
+
 func obs(status eventv1.Status, at time.Time) integrations.Observation {
 	return integrations.Observation{
 		Key:           "gitlab:gitlab.example.com:42",
@@ -452,11 +462,7 @@ func TestProcessConcurrentSameInstantConvergesOnSuccess(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, eventv1.Status_success, ev.Attributes.Status, "iteration %d", i)
 
-		locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
-		require.NoError(t, err)
-		for _, l := range locks {
-			require.NotEqual(t, doc.EventID, l.EventId, "iteration %d: lock still attached to event", i)
-		}
+		assertNoLockForService(t, ctx, env.db, "payments", "production")
 	}
 }
 
@@ -489,11 +495,103 @@ func TestProcessOutOfOrderSuccessBeforeRunningStaysSuccess(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, eventv1.Status_success, ev.Attributes.Status)
 
+	assertNoLockForService(t, ctx, env.db, "payments", "production")
+}
+
+// TestProcessUpdatePathRaceAfterApproval processes "blocked" (waiting
+// approval, no lock) first so the claim and event both exist, then fires
+// "running" and "success" concurrently for the same instant: the update
+// path's takeLock, derived from the claim state read before Advance, and
+// convergence must always settle on exactly one event at status success and
+// no lock left over.
+func TestProcessUpdatePathRaceAfterApproval(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+
+	for i := 0; i < 20; i++ {
+		key := fmt.Sprintf("gitlab:gitlab.example.com:update-race-%d", i)
+		rev := fmt.Sprintf("uprev%d", i)
+		t0 := time.Now().UTC().Truncate(time.Second)
+
+		blocked := obs(eventv1.Status_waiting_approval, t0)
+		blocked.Key, blocked.ShortRevision = key, rev
+		res, err := env.proc.Process(ctx, blocked)
+		require.NoError(t, err, "iteration %d", i)
+		require.Equal(t, outcomeRecorded, res.Outcome, "iteration %d", i)
+		assertNoLockForService(t, ctx, env.db, "payments", "production")
+
+		t1 := t0.Add(5 * time.Second)
+		running := obs(eventv1.Status_start, t1)
+		running.Key, running.ShortRevision = key, rev
+		success := obs(eventv1.Status_success, t1)
+		success.Key, success.ShortRevision = key, rev
+
+		var wg sync.WaitGroup
+		errs := make([]error, 2)
+		wg.Add(2)
+		go func() { defer wg.Done(); _, errs[0] = env.proc.Process(ctx, running) }()
+		go func() { defer wg.Done(); _, errs[1] = env.proc.Process(ctx, success) }()
+		wg.Wait()
+		require.NoError(t, errs[0], "iteration %d", i)
+		require.NoError(t, errs[1], "iteration %d", i)
+
+		title := "Deploy payments " + rev + " to production"
+		count, err := env.db.Collection("events").CountDocuments(ctx, bson.M{"title": title})
+		require.NoError(t, err)
+		require.Equal(t, int64(1), count, "iteration %d: expected exactly one event", i)
+
+		doc, err := env.store.Get(ctx, key)
+		require.NoError(t, err)
+		require.Equal(t, "success", doc.Status, "iteration %d", i)
+
+		ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": doc.EventID})
+		require.NoError(t, err)
+		require.Equal(t, eventv1.Status_success, ev.Attributes.Status, "iteration %d", i)
+
+		assertNoLockForService(t, ctx, env.db, "payments", "production")
+	}
+}
+
+// TestProcessCreatePathLockConflictKeepsOneLock exercises the observe-mode
+// create path when the service is already locked: the event is created and
+// recorded regardless, the conflict is recorded as a changelog comment, the
+// result is lock_conflict, and the existing lock is left as the only one for
+// that service/environment (no second lock taken).
+func TestProcessCreatePathLockConflictKeepsOneLock(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+	t0 := time.Now().UTC().Truncate(time.Second)
+
+	_, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).Create(ctx, &lockv1.Lock{
+		Service: "payments", Environment: "production", Resource: "deployment", Who: "alice",
+	})
+	require.NoError(t, err)
+
+	res, err := env.proc.Process(ctx, obs(eventv1.Status_start, t0))
+	require.NoError(t, err)
+	require.Equal(t, outcomeLockConflict, res.Outcome)
+	require.NotEmpty(t, res.EventID)
+
+	ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": res.EventID})
+	require.NoError(t, err)
+	var commented *eventv1.ChangelogEntry
+	for _, e := range ev.Changelog {
+		if e.ChangeType == eventv1.ChangeType_commented {
+			commented = e
+		}
+	}
+	require.NotNil(t, commented)
+	require.Equal(t, "Deployed while payments was locked in production by alice", commented.Comment)
+
+	count, err := env.db.Collection("locks").CountDocuments(ctx, bson.M{"service": "payments", "environment": "production"})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count, "expected the existing lock to be the only one")
+
 	locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
 	require.NoError(t, err)
-	for _, l := range locks {
-		require.NotEqual(t, doc.EventID, l.EventId)
-	}
+	require.Len(t, locks, 1)
+	require.Equal(t, "alice", locks[0].Who)
+	require.Equal(t, "", locks[0].EventId)
 }
 
 func TestServiceResolver(t *testing.T) {
