@@ -50,11 +50,12 @@ func (o Observation) Title(service string) string {
 	return strings.Join(parts, " ")
 }
 
-// Rank orders statuses for the same instant: 1 for start and
-// waiting_approval, 2 for terminal statuses, 0 for anything else.
+// Rank orders statuses for the same instant: 1 for start, 2 for terminal
+// statuses, 0 for anything else, including waiting_approval, which is
+// ranked below start so a later start always takes over an approval.
 func Rank(s eventv1.Status) int {
 	switch s {
-	case eventv1.Status_start, eventv1.Status_waiting_approval:
+	case eventv1.Status_start:
 		return 1
 	case eventv1.Status_success, eventv1.Status_failure, eventv1.Status_warning, eventv1.Status_close:
 		return 2

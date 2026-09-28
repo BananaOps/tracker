@@ -14,7 +14,7 @@ func TestRank(t *testing.T) {
 		want   int
 	}{
 		{eventv1.Status_start, 1},
-		{eventv1.Status_waiting_approval, 1},
+		{eventv1.Status_waiting_approval, 0},
 		{eventv1.Status_success, 2},
 		{eventv1.Status_failure, 2},
 		{eventv1.Status_warning, 2},
