@@ -81,8 +81,9 @@ No change is needed in your `.gitlab-ci.yml`: the deployment jobs already declar
 | anything else | (none) | | `202`, reason `unsupported status` |
 
 Title, message and changelog: the event title is `Deploy <service> <short_sha> to <environment>`,
-the message lists the commit title, short SHA, commit URL, deployment job URL and GitLab
-environment name. The changelog entry and lock owner are attributed to `gitlab:<username>`.
+the message lists the commit title, short SHA, commit URL, deployment job URL, GitLab environment
+name and, when the payload carries one, `URL: <environment_external_url>`. The changelog entry and
+lock owner are attributed to `gitlab:<username>`.
 
 ## Flux
 
@@ -200,7 +201,7 @@ The catalog snapshot used for this matching is cached for 60 seconds.
 | `401` | Authentication failure: missing or invalid signature, timestamp outside the tolerance window, or a rejected API key. |
 | `404` | This source is not configured: the endpoint does not exist. |
 | `413` | Request body larger than 1 MiB. |
-| `500` | Storage failure. The sender should retry; retries are safe (see the reasons below). |
+| `500` | Storage failure. Retrying is safe: the correlation key makes a retried notification a `duplicate` or a `stale` no-op once the original attempt actually succeeded. See [Retries](#retries) for what actually happens next, which differs between Flux and GitLab. |
 
 ### `202` reasons
 
@@ -216,6 +217,7 @@ The catalog snapshot used for this matching is cached for 60 seconds.
 | `missing revision` | The Flux event has no `kustomize.toolkit.fluxcd.io/revision` or `helm.toolkit.fluxcd.io/revision` metadata. | Check the Kustomization or HelmRelease reports a revision; some early `Progressing` events do not. |
 | `duplicate` | Same status, same timestamp as the last one applied. | No action; the sender likely retried a delivery. |
 | `stale` | An older or already superseded notification for this deployment. | No action; out-of-order or replayed delivery, correctly discarded. |
+| `event deleted` | The Tracker event this deployment was correlated with was deleted (RPC or UI) since the last notification. | No action; the deployment's remaining notifications are ignored the same way. To keep tracking it, deployments would need to start a new event, which does not happen automatically. |
 
 ### Metric
 
@@ -224,6 +226,33 @@ The catalog snapshot used for this matching is cached for 60 seconds.
 `unauthorized`, `invalid`, `error` or `lock_conflict` (`lock_conflict` replaces `recorded` for
 that request; `duplicate` also covers `stale`; `invalid` covers both `400` and `413`). A rejected
 API key presented on these routes is counted only in `tracker_auth_requests_total`, not here.
+
+### Retries
+
+What happens after a `500` differs by sender:
+
+- **Flux**: notification-controller retries a failed notification on its own; nothing to do.
+- **GitLab**: a single failed delivery is *not* retried automatically. GitLab only disables the
+  webhook after repeated consecutive failures (temporarily at first, with a backoff that grows up
+  to 24h; permanently after 40 consecutive failures), which re-enables itself once a manual test
+  request succeeds. If a `success`, `failure` or another terminal notification is lost this way,
+  the event stays open (`start` or `waiting_approval`) with its lock held until someone resends
+  it: open the webhook's **Settings > Webhooks > Edit > Recent events**, find the failed delivery,
+  and use **View details > Resend Request** (or the equivalent
+  [webhook API resend endpoint](https://docs.gitlab.com/user/project/integrations/webhooks/)).
+  Resending replays the exact same signed body, id and timestamp, so Tracker's own idempotency
+  check still applies if the original attempt had actually succeeded server-side.
+
+### Recovering an orphaned lock
+
+A process crash between creating the Tracker event and recording its id on the correlation claim
+can leave the event's lock behind: the claim is dropped after 30 seconds and a later notification
+recreates the event, but the lock taken for the first, now-orphaned event is never released by
+that recreation and blocks new deployments of the same service and environment until it is freed.
+List locks for the affected service and environment (`LockService/ListLocks`, or the REST endpoint
+listing locks, see [LOCKS.md](LOCKS.md#grpc-api)) and release the stale one through
+`LockService/UnLock` or the equivalent REST/UI action, exactly as you would for a lock left by a
+manual operation.
 
 ## Security
 
