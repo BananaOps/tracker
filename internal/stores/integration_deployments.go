@@ -91,9 +91,15 @@ func (s *IntegrationDeploymentStore) Advance(ctx context.Context, key, status st
 	return false, current, nil
 }
 
-// SetEventID records the Tracker event created for this correlation.
+// SetEventID records the Tracker event created for this correlation. It
+// only takes effect while the claim's eventId is still empty: if a claim
+// was abandoned and recreated after this write started, and a second
+// SetEventID already recorded the new claim's event id, this write must not
+// clobber it and orphan that event. ErrNotFound covers both a claim that no
+// longer exists and one whose eventId is already set; either way the caller
+// treats it like a failed SetEventID and compensates.
 func (s *IntegrationDeploymentStore) SetEventID(ctx context.Context, key, eventID string) error {
-	res, err := s.coll.UpdateOne(ctx, bson.M{"_id": key}, bson.M{"$set": bson.M{"eventId": eventID, "updatedAt": s.now().UTC()}})
+	res, err := s.coll.UpdateOne(ctx, bson.M{"_id": key, "eventId": ""}, bson.M{"$set": bson.M{"eventId": eventID, "updatedAt": s.now().UTC()}})
 	if err != nil {
 		return err
 	}

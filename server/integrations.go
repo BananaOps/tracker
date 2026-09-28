@@ -248,6 +248,8 @@ func (h *integrationHandler) serve(w http.ResponseWriter, r *http.Request, sourc
 	}
 
 	switch res.Outcome {
+	case outcomeIgnored:
+		finish(http.StatusAccepted, resultIgnored, integrationIgnored{Status: "ignored", Reason: res.Reason}, "key", obs.Key, "reason", res.Reason)
 	case outcomeDuplicate, outcomeStale:
 		finish(http.StatusAccepted, resultDuplicate, integrationIgnored{Status: "ignored", Reason: res.Outcome}, "key", obs.Key, "eventId", res.EventID)
 	case outcomeLockConflict:

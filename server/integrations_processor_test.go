@@ -350,7 +350,12 @@ func TestProcessRunningThenLaterApprovalIsRejected(t *testing.T) {
 	require.Equal(t, res.EventID, locks[0].EventId)
 }
 
-func TestProcessUpdateFailureReverts(t *testing.T) {
+// TestProcessDeletedEventIsIgnored covers I2: the event correlated with a
+// claim can be deleted out from under it (RPC or UI). The next notification
+// for that deployment must not turn a business condition into a permanent
+// 500: it reverts the claim to its state before this Advance and reports an
+// ignored outcome instead.
+func TestProcessDeletedEventIsIgnored(t *testing.T) {
 	env := newProcEnv(t)
 	ctx := context.Background()
 	t0 := time.Now().UTC().Truncate(time.Second)
@@ -360,8 +365,10 @@ func TestProcessUpdateFailureReverts(t *testing.T) {
 
 	require.NoError(t, env.events.store.Delete(ctx, map[string]interface{}{"metadata.id": res.EventID}))
 
-	_, err = env.proc.Process(ctx, obs(eventv1.Status_success, t0.Add(time.Second)))
-	require.Error(t, err)
+	res2, err := env.proc.Process(ctx, obs(eventv1.Status_success, t0.Add(time.Second)))
+	require.NoError(t, err)
+	require.Equal(t, outcomeIgnored, res2.Outcome)
+	require.Equal(t, integrations.ReasonEventDeleted, res2.Reason)
 
 	doc, err := env.store.Get(ctx, obs(eventv1.Status_start, t0).Key)
 	require.NoError(t, err)

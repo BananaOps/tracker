@@ -12,6 +12,7 @@ import (
 	eventv1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"github.com/bananaops/tracker/internal/integrations"
 	store "github.com/bananaops/tracker/internal/stores"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -27,6 +28,7 @@ const (
 	outcomeLockConflict      = "lock_conflict"
 	outcomeDuplicate         = "duplicate"
 	outcomeStale             = "stale"
+	outcomeIgnored           = "ignored"
 )
 
 // setEventIDRetryDelays are the waits between SetEventID attempts, after the
@@ -59,6 +61,9 @@ type CatalogLister interface {
 type ProcessResult struct {
 	Outcome string
 	EventID string
+	// Reason is set for Outcome == outcomeIgnored, giving the 202 response a
+	// specific reason (e.g. ReasonEventDeleted) rather than a bare status.
+	Reason string
 }
 
 type catalogEntry struct{ name, repository string }
@@ -361,6 +366,17 @@ func (p *IntegrationProcessor) update(ctx context.Context, obs integrations.Obse
 
 	current, err := p.events.store.Get(ctx, map[string]interface{}{"metadata.id": prev.EventID})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			// The event was deleted (RPC or UI), not a storage failure: revert
+			// the claim to its state before this Advance, same as a genuine
+			// failure would, but answer 202 instead of 500 so a retrying
+			// sender (or GitLab disabling the webhook after repeated 5xx)
+			// never has to deal with a permanently failing key.
+			if revertErr := p.store.Revert(ctx, obs.Key, prev, status, rank, obs.At); revertErr != nil {
+				p.logger.Error("integration: cannot revert the claim after a deleted event", "key", obs.Key, "eventId", prev.EventID, "error", revertErr)
+			}
+			return ProcessResult{Outcome: outcomeIgnored, Reason: integrations.ReasonEventDeleted, EventID: prev.EventID}, nil
+		}
 		return fail(err)
 	}
 

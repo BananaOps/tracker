@@ -25,6 +25,11 @@ const (
 	ReasonMissingRevision       = "missing revision"
 	ReasonDuplicate             = "duplicate"
 	ReasonStale                 = "stale"
+	// ReasonEventDeleted marks a notification whose correlated Tracker event
+	// no longer exists (e.g. deleted through DeleteEvents): a business
+	// condition, not a storage failure, so the request is answered 202
+	// instead of 500.
+	ReasonEventDeleted = "event deleted"
 )
 
 // IgnoredError marks a valid notification that Tracker does not record (HTTP 202).

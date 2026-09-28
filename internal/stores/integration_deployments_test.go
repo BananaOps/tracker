@@ -272,6 +272,23 @@ func TestIntegrationDeploymentSetEventIDGetDelete(t *testing.T) {
 	assert.NoError(t, s.Delete(ctx, "missing"))
 }
 
+func TestIntegrationDeploymentSetEventIDDoesNotOverwrite(t *testing.T) {
+	s := newIDStore(t)
+	ctx := context.Background()
+	t0 := time.Date(2026, 9, 28, 8, 0, 0, 0, time.UTC)
+	k := "set-event-id-no-overwrite-key"
+
+	_, _, err := s.Claim(ctx, k, "gitlab", "start", t0, 1)
+	require.NoError(t, err)
+	require.NoError(t, s.SetEventID(ctx, k, "evt-1"))
+
+	assert.ErrorIs(t, s.SetEventID(ctx, k, "evt-2"), ErrNotFound)
+
+	got, err := s.Get(ctx, k)
+	require.NoError(t, err)
+	assert.Equal(t, "evt-1", got.EventID)
+}
+
 func TestIntegrationDeploymentIndexes(t *testing.T) {
 	ctx := context.Background()
 	db := testDatabase(t)
