@@ -240,8 +240,10 @@ func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, co
 		}
 	case lockObserve:
 		if resource != "unknown" {
+			// The event does not have an id yet at this point, so the lock
+			// (if taken) is attached to it below, once the event is created.
 			var err error
-			lockID, conflict, err = e.observeLock(ctx, attrs.Service, environment, resource, user, shouldCreateLock(attrs.Type, attrs.Status))
+			lockID, conflict, err = e.observeLock(ctx, attrs.Service, environment, resource, user, "", shouldCreateLock(attrs.Type, attrs.Status))
 			if err != nil {
 				return nil, nil, err
 			}
@@ -312,16 +314,18 @@ func (e *Event) createEvent(ctx context.Context, event *v1alpha1.Event, user, co
 	return created, conflict, nil
 }
 
-// observeLock takes the lock when take is true and nobody holds it. A lock
-// held by someone else is reported, never returned as an error.
-func (e *Event) observeLock(ctx context.Context, service, environment, resource, who string, take bool) (string, *lockConflict, error) {
+// observeLock takes the lock when take is true and nobody holds it, in the
+// same write as eventId when the caller already knows it (an empty eventId
+// leaves the lock unattached; the caller links it once the event exists). A
+// lock held by someone else is reported, never returned as an error.
+func (e *Event) observeLock(ctx context.Context, service, environment, resource, who, eventID string, take bool) (string, *lockConflict, error) {
 	if held := e.lockService.findLock(ctx, service, environment, resource); held != nil {
 		return "", &lockConflict{Who: held.Who}, nil
 	}
 	if !take {
 		return "", nil, nil
 	}
-	res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{Service: service, Who: who, Environment: environment, Resource: resource})
+	res, err := e.lockService.createLock(ctx, &lock.CreateLockRequest{Service: service, Who: who, Environment: environment, Resource: resource, EventId: eventID})
 	if err != nil {
 		if strings.Contains(err.Error(), "already locked") {
 			holder := "unknown"

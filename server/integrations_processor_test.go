@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -15,6 +16,7 @@ import (
 	"github.com/bananaops/tracker/internal/integrations"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -111,6 +113,17 @@ func TestProcessCreateThenUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, eventv1.Status_success, updated.Attributes.Status)
 	require.True(t, updated.Attributes.EndDate.AsTime().Equal(t1))
+
+	var statusChanged *eventv1.ChangelogEntry
+	for _, e := range updated.Changelog {
+		if e.ChangeType == eventv1.ChangeType_status_changed {
+			statusChanged = e
+		}
+	}
+	require.NotNil(t, statusChanged)
+	require.Equal(t, "start", statusChanged.OldValue)
+	require.Equal(t, "success", statusChanged.NewValue)
+	require.Equal(t, "gitlab:jdoe", statusChanged.User)
 
 	locks, err = store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
 	require.NoError(t, err)
@@ -326,6 +339,8 @@ func TestProcessWaitsForPendingClaim(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, outcomeRecorded, res.Outcome)
 	require.Equal(t, expected, res.EventID)
+
+	require.NoError(t, <-errCh)
 }
 
 func TestProcessPendingClaimTimesOut(t *testing.T) {
@@ -358,6 +373,127 @@ func TestProcessAbandonedClaimIsDropped(t *testing.T) {
 
 	_, err = env.store.Get(ctx, key)
 	require.ErrorIs(t, err, store.ErrNotFound)
+}
+
+// failingSetEventIDStore wraps a real store and always fails SetEventID, to
+// exercise create()'s compensation path (retry, then delete the event and
+// its lock, then drop the claim).
+type failingSetEventIDStore struct {
+	*store.IntegrationDeploymentStore
+}
+
+func (f *failingSetEventIDStore) SetEventID(context.Context, string, string) error {
+	return errors.New("set event id always fails")
+}
+
+func TestProcessSetEventIDFailureCompensates(t *testing.T) {
+	db := testMongoDatabase(t)
+	events := newTestEvent(t, db)
+	real := store.NewIntegrationDeploymentStoreFromCollection(db.Collection("integration_deployments"))
+	failing := &failingSetEventIDStore{IntegrationDeploymentStore: real}
+	cat := &fakeCatalog{}
+	proc := NewIntegrationProcessor(events, failing, cat, slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	ctx := context.Background()
+	t0 := time.Now().UTC().Truncate(time.Second)
+
+	_, err := proc.Process(ctx, obs(eventv1.Status_start, t0))
+	require.Error(t, err)
+
+	remainingEvents, err := events.store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, remainingEvents, 0)
+
+	locks, err := store.NewStoreLockFromCollection(db.Collection("locks")).List(ctx)
+	require.NoError(t, err)
+	require.Len(t, locks, 0)
+
+	_, err = real.Get(ctx, obs(eventv1.Status_start, t0).Key)
+	require.ErrorIs(t, err, store.ErrNotFound)
+}
+
+// TestProcessConcurrentSameInstantConvergesOnSuccess fires "running" and
+// "success" concurrently for the same deployment, same status_changed_at
+// second, on a fresh key each time. Whichever request's own write lands
+// first, convergence (no per-key mutex, no Mongo lease) must always leave
+// exactly one event at status success and no lock behind.
+func TestProcessConcurrentSameInstantConvergesOnSuccess(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+
+	for i := 0; i < 20; i++ {
+		key := fmt.Sprintf("gitlab:gitlab.example.com:concurrent-%d", i)
+		rev := fmt.Sprintf("rev%d", i)
+		t0 := time.Now().UTC().Truncate(time.Second)
+
+		running := obs(eventv1.Status_start, t0)
+		running.Key, running.ShortRevision = key, rev
+		success := obs(eventv1.Status_success, t0)
+		success.Key, success.ShortRevision = key, rev
+
+		var wg sync.WaitGroup
+		errs := make([]error, 2)
+		wg.Add(2)
+		go func() { defer wg.Done(); _, errs[0] = env.proc.Process(ctx, running) }()
+		go func() { defer wg.Done(); _, errs[1] = env.proc.Process(ctx, success) }()
+		wg.Wait()
+		require.NoError(t, errs[0], "iteration %d", i)
+		require.NoError(t, errs[1], "iteration %d", i)
+
+		title := "Deploy payments " + rev + " to production"
+		count, err := env.db.Collection("events").CountDocuments(ctx, bson.M{"title": title})
+		require.NoError(t, err)
+		require.Equal(t, int64(1), count, "iteration %d: expected exactly one event", i)
+
+		doc, err := env.store.Get(ctx, key)
+		require.NoError(t, err)
+		require.Equal(t, "success", doc.Status, "iteration %d", i)
+
+		ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": doc.EventID})
+		require.NoError(t, err)
+		require.Equal(t, eventv1.Status_success, ev.Attributes.Status, "iteration %d", i)
+
+		locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
+		require.NoError(t, err)
+		for _, l := range locks {
+			require.NotEqual(t, doc.EventID, l.EventId, "iteration %d: lock still attached to event", i)
+		}
+	}
+}
+
+// TestProcessOutOfOrderSuccessBeforeRunningStaysSuccess delivers "success"
+// strictly before "running" for the same deployment and instant: the later,
+// lower-rank "running" must never move the already-terminal event backwards.
+func TestProcessOutOfOrderSuccessBeforeRunningStaysSuccess(t *testing.T) {
+	env := newProcEnv(t)
+	ctx := context.Background()
+	t0 := time.Now().UTC().Truncate(time.Second)
+	key := "gitlab:gitlab.example.com:out-of-order"
+
+	success := obs(eventv1.Status_success, t0)
+	success.Key = key
+	res, err := env.proc.Process(ctx, success)
+	require.NoError(t, err)
+	require.Equal(t, outcomeRecorded, res.Outcome)
+
+	running := obs(eventv1.Status_start, t0)
+	running.Key = key
+	res2, err := env.proc.Process(ctx, running)
+	require.NoError(t, err)
+	require.Equal(t, outcomeStale, res2.Outcome)
+
+	doc, err := env.store.Get(ctx, key)
+	require.NoError(t, err)
+	require.Equal(t, "success", doc.Status)
+
+	ev, err := env.events.store.Get(ctx, map[string]interface{}{"metadata.id": doc.EventID})
+	require.NoError(t, err)
+	require.Equal(t, eventv1.Status_success, ev.Attributes.Status)
+
+	locks, err := store.NewStoreLockFromCollection(env.db.Collection("locks")).List(ctx)
+	require.NoError(t, err)
+	for _, l := range locks {
+		require.NotEqual(t, doc.EventID, l.EventId)
+	}
 }
 
 func TestServiceResolver(t *testing.T) {
