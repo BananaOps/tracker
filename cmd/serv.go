@@ -23,6 +23,7 @@ import (
 	"github.com/bananaops/tracker/internal/auth"
 	"github.com/bananaops/tracker/internal/auth/identity"
 	"github.com/bananaops/tracker/internal/auth/sso"
+	"github.com/bananaops/tracker/internal/integrations"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/middleware"
@@ -49,6 +50,18 @@ var serv = &cobra.Command{
 		if authCfg.AnonymousDefaulted {
 			slog.Warn("AUTH_ANONYMOUS_PERMISSIONS is not set: anonymous callers keep every permission except access:manage. This default becomes empty in the next major release.")
 		}
+
+		// Deployment integrations (GitLab and Flux webhooks). The routes are
+		// registered once the mux exists; an invalid configuration stops here.
+		integrationsCfg, err := integrations.LoadConfig(os.LookupEnv)
+		if err != nil {
+			log.Fatalf("invalid integrations configuration: %v", err)
+		}
+		for _, w := range integrationsCfg.Warnings {
+			slog.Warn(w)
+		}
+		slog.Info("deployment integrations", integrationsCfg.LogAttrs()...)
+
 		userStore := store.NewAuthUserStore()
 		teamStore := store.NewAuthTeamStore()
 		keyStore := store.NewAuthAPIKeyStore()
