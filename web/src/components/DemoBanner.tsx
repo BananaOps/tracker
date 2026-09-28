@@ -16,7 +16,7 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 dark:from-yellow-500 dark:via-orange-500 dark:to-red-500">
+    <div className="bg-linear-to-r from-yellow-400 via-orange-400 to-red-400 dark:from-yellow-500 dark:via-orange-500 dark:to-red-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Message de démo */}

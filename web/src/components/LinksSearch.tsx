@@ -229,7 +229,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogContent>
           <div className="flex items-center px-4 py-3 border-b border-hud-outline-var/40">
-            <Search className="w-4 h-4 text-hud-on-surface-var flex-shrink-0 mr-3" />
+            <Search className="w-4 h-4 text-hud-on-surface-var shrink-0 mr-3" />
             <input
               ref={inputRef}
               type="text"
@@ -237,7 +237,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault() }}
-              className="flex-1 bg-transparent text-sm text-hud-on-surface placeholder:text-hud-on-surface-var/50 outline-none"
+              className="flex-1 bg-transparent text-sm text-hud-on-surface placeholder:text-hud-on-surface-var/50 outline-hidden"
             />
             <kbd className="text-xs text-hud-on-surface-var bg-hud-surface-low px-1.5 py-0.5 rounded-ig-sm border border-hud-outline-var">
               ESC
@@ -321,7 +321,7 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
         active ? 'bg-hud-primary/10' : 'hover:bg-hud-surface-low'
       }`}
     >
-      <div className={`flex-shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-white text-xs ${
+      <div className={`shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-white text-xs ${
         isLink ? 'bg-hud-primary' : 'bg-hud-tertiary'
       }`}>
         {isLink
@@ -335,7 +335,7 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
         <p className="text-xs text-hud-on-surface-var truncate">{result.subtitle}</p>
       </div>
 
-      <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+      <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
         isLink
           ? 'bg-hud-primary/10 text-hud-primary'
           : 'bg-hud-tertiary/10 text-hud-tertiary'

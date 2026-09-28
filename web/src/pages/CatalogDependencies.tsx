@@ -680,7 +680,7 @@ export default function CatalogDependencies() {
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 py-2 rounded-lg text-sm focus:outline-none transition-all"
+            className="w-full pl-10 pr-10 py-2 rounded-lg text-sm focus:outline-hidden transition-all"
             style={{
               background: T.surfaceHigh,
               border: `1px solid ${a('outline-var', 0.3)}`,
@@ -793,12 +793,12 @@ export default function CatalogDependencies() {
             { label: 'Low SLA', level: SLALevel.LOW },
           ].map(({ label, level }) => (
             <div key={label} className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded border-2" style={{ borderColor: getSLAColor(level) }} />
+              <div className="w-4 h-4 rounded-sm border-2" style={{ borderColor: getSLAColor(level) }} />
               <span style={{ color: T.onSurfaceVar }}>{label}</span>
             </div>
           ))}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-0.5 rounded" style={{ background: T.onSurfaceVar, opacity: 0.4 }} />
+            <div className="w-8 h-0.5 rounded-sm" style={{ background: T.onSurfaceVar, opacity: 0.4 }} />
             <span style={{ color: T.onSurfaceVar }}>Dependency</span>
           </div>
         </div>
@@ -922,7 +922,7 @@ export default function CatalogDependencies() {
                       >
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: slaColor }} />
+                            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: slaColor }} />
                             <div>
                               <div className="text-sm font-medium">{catalog.name}</div>
                               {catalog.description && (
@@ -965,7 +965,7 @@ export default function CatalogDependencies() {
                                 {catalog.dependenciesIn.slice(0, 3).map((dep, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-1.5 py-0.5 rounded text-xs font-medium"
+                                    className="px-1.5 py-0.5 rounded-sm text-xs font-medium"
                                     style={{ background: a('primary', 0.1), color: T.primary }}
                                   >
                                     {dep}
@@ -988,7 +988,7 @@ export default function CatalogDependencies() {
                                 {catalog.dependenciesOut.slice(0, 3).map((dep, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-1.5 py-0.5 rounded text-xs font-medium"
+                                    className="px-1.5 py-0.5 rounded-sm text-xs font-medium"
                                     style={{ background: a('success', 0.1), color: T.success }}
                                   >
                                     {dep}

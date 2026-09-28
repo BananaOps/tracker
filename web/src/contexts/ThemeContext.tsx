@@ -30,13 +30,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = window.document.documentElement
 
     const updateTheme = () => {
-      let resolvedTheme: 'light' | 'dark' = 'light'
-
-      if (theme === 'system') {
-        resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      } else {
-        resolvedTheme = theme
-      }
+      const resolvedTheme: 'light' | 'dark' =
+        theme === 'system'
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          : theme
 
       setEffectiveTheme(resolvedTheme)
       root.classList.remove('light', 'dark')

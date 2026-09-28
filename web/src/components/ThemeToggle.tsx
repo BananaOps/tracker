@@ -32,7 +32,7 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
       onClick={() => setTheme(t)}
       className={`p-2 rounded-lg transition-colors ${
         theme === t
-          ? 'bg-hud-surface-high text-hud-on-surface shadow-sm'
+          ? 'bg-hud-surface-high text-hud-on-surface shadow-xs'
           : 'text-hud-on-surface-var hover:text-hud-on-surface hover:bg-hud-surface-high'
       }`}
       title={title}

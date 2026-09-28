@@ -63,7 +63,7 @@ export default function Combobox({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left bg-hud-surface border border-hud-outline-var rounded-lg hover:bg-hud-surface-high focus:outline-none focus:ring-2 focus:ring-hud-primary/20 focus:border-hud-primary transition-colors"
+        className="w-full px-3 py-2 text-left bg-hud-surface border border-hud-outline-var rounded-lg hover:bg-hud-surface-high focus:outline-hidden focus:ring-2 focus:ring-hud-primary/20 focus:border-hud-primary transition-colors"
       >
         <div className="flex items-center justify-between">
           <span className="text-sm text-hud-on-surface truncate">
@@ -87,7 +87,7 @@ export default function Combobox({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-9 pr-3 py-2 text-sm bg-hud-surface-low border border-hud-outline-var rounded-md focus:outline-none focus:ring-2 focus:ring-hud-primary/20 text-hud-on-surface"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-hud-surface-low border border-hud-outline-var rounded-md focus:outline-hidden focus:ring-2 focus:ring-hud-primary/20 text-hud-on-surface"
                 autoFocus
               />
             </div>
@@ -113,7 +113,7 @@ export default function Combobox({
                 >
                   <span className="truncate">{option.label}</span>
                   {option.value === value && (
-                    <Check className="w-4 h-4 flex-shrink-0 ml-2" />
+                    <Check className="w-4 h-4 shrink-0 ml-2" />
                   )}
                 </button>
               ))

@@ -142,7 +142,7 @@ export default function Locks() {
         {error && (
           <div className="flex items-center gap-3 p-4 rounded-xl mb-8"
             style={{ background: a('error', 0.1), border: `1px solid ${a('error', 0.2)}` }}>
-            <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: T.error }} />
+            <AlertCircle className="w-5 h-5 shrink-0" style={{ color: T.error }} />
             <span className="text-sm" style={{ color: T.error }}>{error}</span>
           </div>
         )}
@@ -199,7 +199,7 @@ export default function Locks() {
                     }}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <LockIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.error }} />
+                        <LockIcon className="w-3.5 h-3.5 shrink-0" style={{ color: T.error }} />
                         <span className="text-sm font-medium">{lock.service}</span>
                       </div>
                     </td>
@@ -214,7 +214,7 @@ export default function Locks() {
                       {formatDate((lock as any).createdAt || lock.created_at)}
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="px-2 py-0.5 rounded text-xs font-bold"
+                      <span className="px-2 py-0.5 rounded-sm text-xs font-bold"
                         style={{ background: a('primary', 0.1), color: T.primary, fontFamily: "'JetBrains Mono', monospace" }}>
                         {getTimeSince((lock as any).createdAt || lock.created_at)}
                       </span>
@@ -249,7 +249,7 @@ export default function Locks() {
       {/* Unlock Modal */}
       {showUnlockPrompt && selectedLock && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowUnlockPrompt(false)} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowUnlockPrompt(false)} />
           <div className="relative w-full max-w-md rounded-2xl p-8 shadow-2xl"
             style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center gap-3 mb-6">
@@ -270,7 +270,7 @@ export default function Locks() {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleUnlockConfirm() }}
                 placeholder="e.g., john.doe"
                 autoFocus
-                className="w-full border-0 border-b-2 px-4 py-3 rounded-t-lg text-sm focus:outline-none transition-all"
+                className="w-full border-0 border-b-2 px-4 py-3 rounded-t-lg text-sm focus:outline-hidden transition-all"
                 style={{
                   background: T.surfaceLow,
                   color: T.onSurface,

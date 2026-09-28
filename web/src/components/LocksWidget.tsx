@@ -25,14 +25,14 @@ export default function LocksWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex items-center gap-3 mb-4">
           <Lock className="w-5 h-5 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Active Locks</h3>
         </div>
         <div className="animate-pulse space-y-2">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-sm w-3/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-sm w-1/2"></div>
         </div>
       </div>
     )
@@ -42,7 +42,7 @@ export default function LocksWidget() {
   const uniqueEnvironments = new Set(locks.map(l => l.environment)).size
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${locks.length > 0 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-gray-100 dark:bg-gray-700'}`}>
@@ -87,7 +87,7 @@ export default function LocksWidget() {
 
           {locks.length > 3 && (
             <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
               <p className="text-sm text-orange-800 dark:text-orange-300">
                 Multiple services are locked. Review and unlock when possible.
               </p>
@@ -98,7 +98,7 @@ export default function LocksWidget() {
             {locks.slice(0, 5).map((lock) => (
               <div
                 key={lock.id}
-                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded"
+                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-sm"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -108,7 +108,7 @@ export default function LocksWidget() {
                     {lock.environment} • {lock.who}
                   </p>
                 </div>
-                <Lock className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <Lock className="w-4 h-4 text-red-500 shrink-0" />
               </div>
             ))}
           </div>

@@ -31,7 +31,10 @@ export default [
     rules: {
       ...js.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules,
+      // react-hooks 7 folds the React Compiler rules into `recommended`;
+      // adopting them is a separate change, keep the two classic rules.
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true }

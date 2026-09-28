@@ -147,7 +147,7 @@ export default function DependencySelector({
                       >
                         <span className="truncate">{service}</span>
                         {service === value && (
-                          <Check className="w-4 h-4 flex-shrink-0 ml-2" />
+                          <Check className="w-4 h-4 shrink-0 ml-2" />
                         )}
                       </button>
                     ))}
@@ -165,7 +165,7 @@ export default function DependencySelector({
                       onClick={handleAddCustom}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center space-x-2 text-green-700 dark:text-green-300"
                     >
-                      <Plus className="w-4 h-4 flex-shrink-0" />
+                      <Plus className="w-4 h-4 shrink-0" />
                       <span className="truncate">Add "{search.trim()}"</span>
                     </button>
                   </>

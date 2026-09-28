@@ -174,7 +174,7 @@ export default function Links() {
             placeholder="Filter… (Ctrl+K)"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-52 text-sm pl-3 pr-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-52 text-sm pl-3 pr-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
           />
           {homerUrl && (
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={homerLoading} className="gap-2">
@@ -193,7 +193,7 @@ export default function Links() {
       {homerError && (
         <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
           <CardContent className="p-4 flex items-center space-x-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
               Could not load Homer dashboard links. Showing local links only.
             </p>
@@ -206,7 +206,7 @@ export default function Links() {
         <div className="columns-1 sm:columns-2 lg:columns-4 gap-4">
           {Array.from({ length: 4 }).map((_, col) => (
             <div key={col} className="break-inside-avoid-column mb-4 space-y-1.5">
-              <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+              <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-3" />
               {Array.from({ length: 5 }).map((_, row) => (
                 <div key={row} className="h-11 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
               ))}
@@ -318,7 +318,7 @@ function LinkRow({ item, stored, onEdit, onDelete }: LinkRowProps) {
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
+        className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
         style={!item.logo && !faviconUrl ? { backgroundColor: iconColor } : {}}
         tabIndex={-1}
       >
@@ -360,7 +360,7 @@ function LinkRow({ item, stored, onEdit, onDelete }: LinkRowProps) {
       </a>
 
       {/* Right side: Homer badge OR edit/delete actions OR external link icon */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {item._fromHomer && (
           <span
             title="From Homer dashboard"
@@ -373,14 +373,14 @@ function LinkRow({ item, stored, onEdit, onDelete }: LinkRowProps) {
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(stored)}
-              className="p-1 rounded text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-1 rounded-sm text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Edit"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onDelete(stored.id!)}
-              className="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-1 rounded-sm text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Delete"
             >
               <Trash2 className="w-3.5 h-3.5" />

@@ -899,7 +899,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
   if (!service) {
     return (
       <div className="fixed inset-0 z-50 flex justify-end">
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={handleClose} />
         <div className="animate-slide-in relative h-full w-full max-w-2xl shadow-2xl flex items-center justify-center" style={{ background: T.surface, borderLeft: `1px solid ${a('outline-var', 0.2)}` }}>
           <div className="text-center">
             {catalogsLoading ? (
@@ -920,7 +920,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
     <>
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={handleClose} />
 
       {/* Side Panel */}
       <div className={`animate-slide-in relative h-full shadow-2xl overflow-hidden flex flex-col transition-[max-width] duration-300 ease-out w-full ${expanded ? 'max-w-full' : 'max-w-5xl'}`}
@@ -1003,7 +1003,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
             <Rocket className="w-3.5 h-3.5" />
             Deployments
             {deploymentsData?.events && deploymentsData.events.length > 0 && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: a('outline-var', 0.16), color: T.onSurfaceVar }}>
+              <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-bold" style={{ background: a('outline-var', 0.16), color: T.onSurfaceVar }}>
                 {deploymentsData.events.length}
               </span>
             )}
@@ -1155,7 +1155,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
               <GitBranch className="w-4 h-4" style={{ color: '#1B3575' }} />
               <span>Upstream</span>
             </h3>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: '#EFF4FF', color: '#1B3575' }}>{service.dependenciesIn?.length || 0}</span>
+            <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-bold" style={{ background: '#EFF4FF', color: '#1B3575' }}>{service.dependenciesIn?.length || 0}</span>
           </div>
           {service.dependenciesIn && service.dependenciesIn.length > 0 ? (
             <ul className="p-3 space-y-2">
@@ -1182,7 +1182,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
               <GitBranch className="w-4 h-4" style={{ color: '#166534' }} />
               <span>Downstream</span>
             </h3>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: '#ECFDF3', color: '#166534' }}>{service.dependenciesOut?.length || 0}</span>
+            <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-bold" style={{ background: '#ECFDF3', color: '#166534' }}>{service.dependenciesOut?.length || 0}</span>
           </div>
           {service.dependenciesOut && service.dependenciesOut.length > 0 ? (
             <ul className="p-3 space-y-2">
@@ -1294,31 +1294,31 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
           </div>
           <div className="flex flex-wrap items-center gap-4 mt-3 text-xs" style={{ color: T.onSurfaceVar }}>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#6366f1' }}></div>
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#6366f1' }}></div>
               <span>Upstream (we depend on)</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#10b981' }}></div>
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#10b981' }}></div>
               <span>Downstream (depends on us)</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#ef4444' }}></div>
+              <div className="w-3 h-3 rounded-sm border-2" style={{ borderColor: '#ef4444' }}></div>
               <span>Critical SLA</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#f97316' }}></div>
+              <div className="w-3 h-3 rounded-sm border-2" style={{ borderColor: '#f97316' }}></div>
               <span>High SLA</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#eab308' }}></div>
+              <div className="w-3 h-3 rounded-sm border-2" style={{ borderColor: '#eab308' }}></div>
               <span>Medium SLA</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded border-2" style={{ borderColor: '#22c55e' }}></div>
+              <div className="w-3 h-3 rounded-sm border-2" style={{ borderColor: '#22c55e' }}></div>
               <span>Low SLA</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#f59e0b', opacity: 0.8 }}></div>
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#f59e0b', opacity: 0.8 }}></div>
               <span>Infrastructure</span>
             </div>
           </div>
@@ -1373,7 +1373,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1400,7 +1400,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1427,7 +1427,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1454,7 +1454,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1481,7 +1481,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1508,7 +1508,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1536,7 +1536,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1564,7 +1564,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         backgroundColor: `${resource.color}15`,
                       }}
                     >
-                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 flex-shrink-0')}
+                      {renderResourceIcon(resource, selectedProvider, 'w-5 h-5 shrink-0')}
                       <span className="text-gray-800 dark:text-gray-200 truncate font-semibold">{resource.label}</span>
                     </div>
                 ))}
@@ -1591,7 +1591,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         }}
                       >
                         <div className="flex items-center space-x-2 min-w-0 flex-1">
-                          {resourceConfig ? renderResourceIcon(resourceConfig, resource.provider || 'AWS', 'w-5 h-5 flex-shrink-0') : <Cloud className="w-5 h-5 flex-shrink-0" style={{ color: '#64748b' }} />}
+                          {resourceConfig ? renderResourceIcon(resourceConfig, resource.provider || 'AWS', 'w-5 h-5 shrink-0') : <Cloud className="w-5 h-5 shrink-0" style={{ color: '#64748b' }} />}
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-gray-900 dark:text-gray-100 truncate">
                               {resource.name}
@@ -1604,14 +1604,14 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => openEditResourceModal(resource)}
-                            className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded transition-colors"
+                            className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-sm transition-colors"
                             title="Edit resource"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => deletePendingResource(resource.id)}
-                            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded transition-colors"
+                            className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-sm transition-colors"
                             title="Delete resource"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1832,13 +1832,13 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
 
       {/* Add Resource Modal */}
       {showAddResourceModal && newResourceType && (
-        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-60" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
+                  <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
                     {(() => {
                       const resourceConfig = getResourcesForProvider(selectedProvider).find(r => r.type === newResourceType)
                       const IconComponent = resourceConfig?.icon || Database
@@ -1911,13 +1911,13 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
 
       {/* Edit Resource Modal */}
       {showEditResourceModal && editingResource && (
-        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-60" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
+                  <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('primary', 0.1), borderColor: a('primary', 0.2) }}>
                     {(() => {
                       const resourceConfig = getResourcesForProvider(editingResource.provider || 'AWS').find(r => r.type === editingResource.type)
                       const IconComponent = resourceConfig?.icon || Database
@@ -2020,13 +2020,13 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-60" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="rounded-2xl shadow-2xl max-w-md w-full mx-4" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('error', 0.1), borderColor: a('error', 0.2) }}>
+                  <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: a('error', 0.1), borderColor: a('error', 0.2) }}>
                     <AlertTriangle className="w-5 h-5" style={{ color: T.error }} />
                   </div>
                   <div>
@@ -2054,7 +2054,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                 </p>
                 <div className="rounded-lg p-3" style={{ background: a('error', 0.08), border: `1px solid ${a('error', 0.2)}` }}>
                   <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: T.error }} />
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: T.error }} />
                     <div className="text-sm" style={{ color: T.error }}>
                       <p className="font-semibold mb-1">This will permanently delete:</p>
                       <ul className="list-disc list-inside space-y-1 text-xs">

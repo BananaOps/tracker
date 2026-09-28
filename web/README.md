@@ -155,28 +155,21 @@ web/
 ├── index.html           # Template HTML
 ├── package.json
 ├── tsconfig.json
-├── vite.config.ts
-└── tailwind.config.js
+└── vite.config.ts
 ```
 
 ## 🎨 Personnalisation
 
 ### Couleurs
-Modifier les couleurs dans `tailwind.config.js` :
+Tailwind CSS 4 se configure en CSS : les couleurs sont des variables du bloc `@theme` de `src/index.css` (par exemple `--color-hud-primary`), chacune produit les utilitaires correspondants (`bg-hud-primary`, `text-hud-primary`...) :
 
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        50: '#f0f9ff',
-        500: '#0ea5e9',
-        600: '#0284c7',
-      },
-    },
-  },
+```css
+@theme {
+  --color-hud-primary: rgb(var(--hud-primary));
 }
 ```
+
+Les valeurs claires et sombres des variables `--hud-*` sont définies dans le même fichier (`:root` et `.dark`).
 
 ### Styles
 Les classes utilitaires sont définies dans `src/index.css` :

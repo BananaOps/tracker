@@ -35,7 +35,7 @@ const a = (key: keyof typeof V, opacity: number) => `rgb(var(${V[key]}) / ${opac
 function HudModal({ title, onClose, children }: { title: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
       <div className="relative rounded-2xl w-full max-w-md p-6 shadow-2xl" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.15)}` }}>
         <div className="flex items-center justify-between mb-5">
           <div className="font-bold text-sm" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>{title}</div>
@@ -272,7 +272,7 @@ export default function DriftsList() {
                 >
                   {mode === 'active' && <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#fbbf24' }} />}
                   {mode === 'active' ? 'Active' : 'All Drifts'}
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: a('outlineVar', 0.1), color: T.onSurfaceVar }}>
+                  <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-mono" style={{ background: a('outlineVar', 0.1), color: T.onSurfaceVar }}>
                     {mode === 'active' ? activeDrifts.length : allDrifts.length}
                   </span>
                 </button>
@@ -288,7 +288,7 @@ export default function DriftsList() {
                   placeholder="Search drifts…"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg text-xs focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg text-xs focus:outline-hidden"
                   style={{
                     background: a('outlineVar', 0.07),
                     color: T.onSurface,
@@ -319,7 +319,7 @@ export default function DriftsList() {
               <button
                 key={s}
                 onClick={() => setStatusFilter(prev => prev === s ? 'all' : s)}
-                className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                className="px-2 py-0.5 rounded-sm text-[11px] font-medium transition-all shrink-0"
                 style={{
                   background: statusFilter === s ? a('primary', 0.15) : 'transparent',
                   color: statusFilter === s ? T.primary : T.onSurfaceVar,
@@ -343,7 +343,7 @@ export default function DriftsList() {
                 <button
                   key={e}
                   onClick={() => setEnvironmentFilter(prev => prev === e ? 'all' : e)}
-                  className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                  className="px-2 py-0.5 rounded-sm text-[11px] font-medium transition-all shrink-0"
                   style={{
                     background: environmentFilter === e ? `${color}20` : 'transparent',
                     color: environmentFilter === e ? color : T.onSurfaceVar,
@@ -359,7 +359,7 @@ export default function DriftsList() {
               <select
                 value={serviceFilter}
                 onChange={e => setServiceFilter(e.target.value)}
-                className="px-2 py-0.5 rounded text-[11px] font-medium focus:outline-none shrink-0"
+                className="px-2 py-0.5 rounded-sm text-[11px] font-medium focus:outline-hidden shrink-0"
                 style={{
                   background: serviceFilter !== 'all' ? a('tertiary', 0.15) : 'transparent',
                   color: serviceFilter !== 'all' ? T.tertiary : T.onSurfaceVar,
@@ -460,7 +460,7 @@ export default function DriftsList() {
 
                       {/* Age */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded" style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar }}>
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-sm" style={{ background: a('outlineVar', 0.08), color: T.onSurfaceVar }}>
                           {getTimeSince(drift.metadata?.createdAt)}
                         </span>
                       </td>
@@ -538,7 +538,7 @@ export default function DriftsList() {
               onKeyDown={e => e.key === 'Enter' && handleMarkDoneConfirm()}
               placeholder="e.g., john.doe"
               autoFocus
-              className="w-full px-3 py-2 rounded-lg text-xs focus:outline-none"
+              className="w-full px-3 py-2 rounded-lg text-xs focus:outline-hidden"
               style={{
                 background: a('outlineVar', 0.08),
                 color: T.onSurface,
@@ -590,7 +590,7 @@ export default function DriftsList() {
               onKeyDown={e => e.key === 'Enter' && handleCreateTicketConfirm()}
               placeholder={`${import.meta.env.VITE_JIRA_DOMAIN || 'https://company.atlassian.net'}/browse/DRIFT-123`}
               autoFocus
-              className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-none"
+              className="w-full px-3 py-2 rounded-lg text-xs font-mono focus:outline-hidden"
               style={{
                 background: a('outlineVar', 0.08),
                 color: T.onSurface,

@@ -138,7 +138,7 @@ export default function VersionCompliance() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: T.onSurfaceVar }} />
               <input type="text" placeholder="Search by project or deliverable name..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-none border-0 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-hidden border-0 transition-all"
                 style={{ background: T.surfaceLow, color: T.onSurface }} />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70">
@@ -206,7 +206,7 @@ export default function VersionCompliance() {
                       }}>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 flex-shrink-0" style={{ color: T.onSurfaceVar }} />
+                          <Package className="w-4 h-4 shrink-0" style={{ color: T.onSurfaceVar }} />
                           <span className="text-sm font-medium">{project.projectName}</span>
                         </div>
                       </td>

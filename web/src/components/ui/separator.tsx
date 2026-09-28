@@ -14,7 +14,7 @@ const Separator = React.forwardRef<HTMLDivElement, SeparatorProps>(
       aria-orientation={orientation}
       className={cn(
         "shrink-0 bg-hud-outline-var/50",
-        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
         className
       )}
       {...props}

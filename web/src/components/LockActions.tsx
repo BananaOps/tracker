@@ -73,7 +73,7 @@ export default function LockActions({
   return (
     <div className="space-y-2">
       {error && (
-        <div className="flex items-center gap-2 p-2 text-sm text-red-800 bg-red-50 rounded dark:bg-red-900/20 dark:text-red-400">
+        <div className="flex items-center gap-2 p-2 text-sm text-red-800 bg-red-50 rounded-sm dark:bg-red-900/20 dark:text-red-400">
           <AlertCircle className="w-4 h-4" />
           <span>{error}</span>
         </div>

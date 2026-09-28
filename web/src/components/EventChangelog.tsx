@@ -108,7 +108,7 @@ export default function EventChangelog({ changelog }: EventChangelogProps) {
           className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
         >
           {/* Icon */}
-          <div className="flex-shrink-0 mt-0.5">
+          <div className="shrink-0 mt-0.5">
             {getChangeIcon(entry.changeType)}
           </div>
 
