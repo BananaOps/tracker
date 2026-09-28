@@ -188,6 +188,14 @@ var serv = &cobra.Command{
 		// Register custom links CRUD endpoints
 		server.RegisterLinksHandler(mux)
 
+		// Register the GitLab and Flux deployment webhooks (configured sources only).
+		// NewIntegrationDeps opens collections, so it only runs when a source is set.
+		if integrationsCfg.Enabled() {
+			if err := server.RegisterIntegrationHandlers(mux, integrationsCfg, server.NewIntegrationDeps(events)); err != nil {
+				log.Fatalf("cannot register integration webhooks: %v", err)
+			}
+		}
+
 		// Setup Swagger documentation with go-swagger
 		opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.json"}
 		sh := middleware.SwaggerUI(opts, nil)
