@@ -104,14 +104,15 @@ func (s *IntegrationDeploymentStore) SetEventID(ctx context.Context, key, eventI
 }
 
 // Revert restores the previous state after a Tracker write fails, but only
-// if the stored state still matches at: a newer state already applied means
-// there is nothing to undo.
-func (s *IntegrationDeploymentStore) Revert(ctx context.Context, key string, prev *IntegrationDeployment, at time.Time) error {
+// if the stored state still matches the Advance being undone: status, rank
+// and lastEventAt all have to match, so a Revert can never clobber a newer
+// state that shares the same instant but carries a higher rank.
+func (s *IntegrationDeploymentStore) Revert(ctx context.Context, key string, prev *IntegrationDeployment, status string, rank int, at time.Time) error {
 	if prev == nil {
 		return errors.New("revert: previous state is required")
 	}
 	_, err := s.coll.UpdateOne(ctx,
-		bson.M{"_id": key, "lastEventAt": NormalizeEventTime(at)},
+		bson.M{"_id": key, "status": status, "rank": rank, "lastEventAt": NormalizeEventTime(at)},
 		bson.M{"$set": bson.M{"status": prev.Status, "rank": prev.Rank, "lastEventAt": prev.LastEventAt, "updatedAt": s.now().UTC()}},
 	)
 	return err

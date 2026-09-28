@@ -184,7 +184,7 @@ func TestIntegrationDeploymentRevert(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, applied)
 
-		require.NoError(t, s.Revert(ctx, k, prev, t0.Add(time.Second)))
+		require.NoError(t, s.Revert(ctx, k, prev, "success", 2, t0.Add(time.Second)))
 
 		got, err := s.Get(ctx, k)
 		require.NoError(t, err)
@@ -207,7 +207,7 @@ func TestIntegrationDeploymentRevert(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, applied)
 
-		require.NoError(t, s.Revert(ctx, k, prev1, t0.Add(time.Second)))
+		require.NoError(t, s.Revert(ctx, k, prev1, "success", 2, t0.Add(time.Second)))
 
 		got, err := s.Get(ctx, k)
 		require.NoError(t, err)
@@ -215,9 +215,36 @@ func TestIntegrationDeploymentRevert(t *testing.T) {
 		assert.True(t, got.LastEventAt.Equal(t0.Add(2*time.Second)))
 	})
 
+	t.Run("no-op when a higher rank state applied at the same instant", func(t *testing.T) {
+		s := newIDStore(t)
+		k := "revert-same-instant-higher-rank-key"
+		_, _, err := s.Claim(ctx, k, "gitlab", "start", t0, 1)
+		require.NoError(t, err)
+
+		// A request observing "success" at t0 advances the claim (same
+		// instant, higher rank). Its own write to the previous, lower-rank
+		// state must never clobber it: the filter has to match status and
+		// rank too, not just lastEventAt.
+		applied, prev, err := s.Advance(ctx, k, "success", t0, 2)
+		require.NoError(t, err)
+		require.True(t, applied)
+		require.Equal(t, "start", prev.Status)
+		require.Equal(t, 1, prev.Rank)
+
+		// Revert as if undoing the original "start" claim (status/rank from
+		// before the Advance) at the same lastEventAt: must not apply since
+		// the stored status/rank no longer match "start"/1.
+		require.NoError(t, s.Revert(ctx, k, &IntegrationDeployment{Status: "queued", Rank: 0}, "start", 1, t0))
+
+		got, err := s.Get(ctx, k)
+		require.NoError(t, err)
+		assert.Equal(t, "success", got.Status)
+		assert.Equal(t, 2, got.Rank)
+	})
+
 	t.Run("nil previous state is an error", func(t *testing.T) {
 		s := newIDStore(t)
-		err := s.Revert(ctx, "revert-nil-key", nil, t0)
+		err := s.Revert(ctx, "revert-nil-key", nil, "start", 1, t0)
 		assert.Error(t, err)
 	})
 }
