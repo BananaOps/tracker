@@ -284,3 +284,124 @@ func TestResolveOIDCUserRefusesNonOIDCAccount(t *testing.T) {
 	assert.Equal(t, "eve@x.io", stored.Email)
 	assert.Empty(t, stored.DisplayName)
 }
+
+func teamNames(ts []*store.Team) []string {
+	out := []string{}
+	for _, t := range ts {
+		out = append(out, t.Name)
+	}
+	return out
+}
+
+func TestPlanTeamSync(t *testing.T) {
+	p := &store.Team{ID: primitive.NewObjectID(), Name: "P", OIDCGroups: []string{"platform-eng"}}
+	o := &store.Team{ID: primitive.NewObjectID(), Name: "O", OIDCGroups: []string{"ops"}}
+	a := &store.Team{ID: primitive.NewObjectID(), Name: store.AdministratorsTeamName, Builtin: true, OIDCGroups: []string{"tracker-admins"}}
+	mapped := []*store.Team{p, o, a}
+	ids := func(ts ...*store.Team) []primitive.ObjectID {
+		out := []primitive.ObjectID{}
+		for _, x := range ts {
+			out = append(out, x.ID)
+		}
+		return out
+	}
+
+	tests := []struct {
+		name    string
+		current []*store.Team
+		groups  []string
+		add     []string
+		remove  []string
+	}{
+		{"join", nil, []string{"platform-eng"}, []string{"P"}, []string{}},
+		{"unchanged", []*store.Team{p}, []string{"platform-eng"}, []string{}, []string{}},
+		{"switch", []*store.Team{p}, []string{"ops"}, []string{"O"}, []string{"P"}},
+		{"no groups", []*store.Team{p, o}, nil, []string{}, []string{"P", "O"}},
+		{"case differs", []*store.Team{p}, []string{"Platform-Eng"}, []string{}, []string{"P"}},
+		{"no trim", nil, []string{" platform-eng"}, []string{}, []string{}},
+		{"admins left", []*store.Team{a}, nil, []string{}, []string{store.AdministratorsTeamName}},
+		{"admins and ops", nil, []string{"tracker-admins", "ops"}, []string{store.AdministratorsTeamName, "O"}, []string{}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			add, remove := planTeamSync(ids(tc.current...), mapped, tc.groups)
+			assert.ElementsMatch(t, tc.add, teamNames(add))
+			assert.ElementsMatch(t, tc.remove, teamNames(remove))
+		})
+	}
+}
+
+func TestSyncOIDCTeams(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	_, err := Bootstrap(ctx, users, teams, "initial-admin-password")
+	require.NoError(t, err)
+	admins, err := teams.GetByName(ctx, store.AdministratorsTeamName)
+	require.NoError(t, err)
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	ops := &store.Team{Name: "Ops", OIDCGroups: []string{"ops"}}
+	manual := &store.Team{Name: "Manual", OIDCGroups: []string{}}
+	for _, tm := range []*store.Team{platform, ops, manual} {
+		require.NoError(t, teams.Create(ctx, tm))
+	}
+	local, err := users.GetByUsername(ctx, "admin")
+	require.NoError(t, err)
+	initialAdminTeams := append([]primitive.ObjectID(nil), local.Teams...)
+
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob", Teams: []primitive.ObjectID{manual.ID}}
+	require.NoError(t, users.Create(ctx, bob))
+	reload := func() *store.User {
+		u, err := users.GetByID(ctx, bob.ID)
+		require.NoError(t, err)
+		return u
+	}
+
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{"platform-eng"})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Platform"}, res.Added)
+	assert.ElementsMatch(t, []primitive.ObjectID{manual.ID, platform.ID}, reload().Teams)
+	assert.ElementsMatch(t, reload().Teams, bob.Teams)
+
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"ops"})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Ops"}, res.Added)
+	assert.Equal(t, []string{"Platform"}, res.Removed)
+	assert.ElementsMatch(t, []primitive.ObjectID{manual.ID, ops.ID}, reload().Teams)
+	assert.ElementsMatch(t, reload().Teams, bob.Teams)
+
+	// Administrators without oidcGroups is not mapped: left alone.
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{admins.ID}, nil))
+	bob = reload()
+	_, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	require.NoError(t, err)
+	assert.Contains(t, reload().Teams, admins.ID)
+
+	// Mapped Administrators follows the claim while another admin is active.
+	admins.OIDCGroups = []string{"tracker-admins"}
+	require.NoError(t, teams.Update(ctx, admins))
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"tracker-admins"})
+	require.NoError(t, err)
+	assert.Empty(t, res.Removed)
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []string{store.AdministratorsTeamName}, res.Removed)
+	assert.NotContains(t, reload().Teams, admins.ID)
+
+	// Last enabled administrator is kept.
+	local, err = users.GetByUsername(ctx, "admin")
+	require.NoError(t, err)
+	local.Disabled = true
+	require.NoError(t, users.Update(ctx, local))
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{admins.ID}, nil))
+	bob = reload()
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	require.NoError(t, err)
+	assert.Equal(t, []string{store.AdministratorsTeamName}, res.Kept)
+	assert.Empty(t, res.Removed)
+	assert.Contains(t, reload().Teams, admins.ID)
+
+	after, err := users.GetByUsername(ctx, "admin")
+	require.NoError(t, err)
+	assert.Equal(t, initialAdminTeams, after.Teams)
+}

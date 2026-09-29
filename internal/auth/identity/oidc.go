@@ -129,3 +129,113 @@ func candidateUsername(base string, attempt int) string {
 	}
 	return base + suffix
 }
+
+// OIDCTeamStore is the subset of store.AuthTeamStore used to sync memberships.
+type OIDCTeamStore interface {
+	ListWithOIDCGroups(ctx context.Context) ([]*store.Team, error)
+}
+
+// OIDCMembershipStore is the subset of store.AuthUserStore used to sync memberships.
+type OIDCMembershipStore interface {
+	SyncTeams(ctx context.Context, id primitive.ObjectID, add, remove []primitive.ObjectID) error
+	CountEnabledInTeam(ctx context.Context, teamID, excludeUser primitive.ObjectID) (int64, error)
+}
+
+// TeamSyncResult names the teams changed by a sync, for logging.
+type TeamSyncResult struct {
+	Added   []string
+	Removed []string
+	// Kept lists teams the user should have left but kept: the last enabled
+	// administrator is never removed from Administrators.
+	Kept []string
+}
+
+// SyncOIDCTeams makes the user a member of every team whose OIDC groups
+// intersect groups, and removes it from the other mapped teams. Teams without
+// OIDC groups are left alone. Comparison is exact and case sensitive.
+func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTeamStore, user *store.User, groups []string) (TeamSyncResult, error) {
+	res := TeamSyncResult{}
+	mapped, err := teams.ListWithOIDCGroups(ctx)
+	if err != nil {
+		return res, fmt.Errorf("list mapped teams: %w", err)
+	}
+	add, remove := planTeamSync(user.Teams, mapped, groups)
+
+	confirmed := remove[:0:0]
+	for _, t := range remove {
+		if t.Builtin && t.Name == store.AdministratorsTeamName && !user.Disabled {
+			others, err := users.CountEnabledInTeam(ctx, t.ID, user.ID)
+			if err != nil {
+				return res, fmt.Errorf("count enabled administrators: %w", err)
+			}
+			if others == 0 {
+				res.Kept = append(res.Kept, t.Name)
+				continue
+			}
+		}
+		confirmed = append(confirmed, t)
+	}
+	remove = confirmed
+
+	if len(add) == 0 && len(remove) == 0 {
+		return res, nil
+	}
+	if err := users.SyncTeams(ctx, user.ID, teamIDs(add), teamIDs(remove)); err != nil {
+		return res, fmt.Errorf("sync user teams: %w", err)
+	}
+
+	removed := map[primitive.ObjectID]bool{}
+	for _, t := range remove {
+		removed[t.ID] = true
+		res.Removed = append(res.Removed, t.Name)
+	}
+	next := make([]primitive.ObjectID, 0, len(user.Teams)+len(add))
+	for _, id := range user.Teams {
+		if !removed[id] {
+			next = append(next, id)
+		}
+	}
+	for _, t := range add {
+		next = append(next, t.ID)
+		res.Added = append(res.Added, t.Name)
+	}
+	user.Teams = next
+	return res, nil
+}
+
+func teamIDs(teams []*store.Team) []primitive.ObjectID {
+	ids := make([]primitive.ObjectID, 0, len(teams))
+	for _, t := range teams {
+		ids = append(ids, t.ID)
+	}
+	return ids
+}
+
+// planTeamSync is the pure decision behind SyncOIDCTeams.
+func planTeamSync(current []primitive.ObjectID, mapped []*store.Team, groups []string) (add, remove []*store.Team) {
+	claim := make(map[string]struct{}, len(groups))
+	for _, g := range groups {
+		claim[g] = struct{}{}
+	}
+	member := make(map[primitive.ObjectID]struct{}, len(current))
+	for _, id := range current {
+		member[id] = struct{}{}
+	}
+	for _, t := range mapped {
+		match := false
+		for _, g := range t.OIDCGroups {
+			if _, ok := claim[g]; ok {
+				match = true
+				break
+			}
+		}
+		_, has := member[t.ID]
+		switch {
+		case match && !has:
+			add = append(add, t)
+		case !match && has:
+			remove = append(remove, t)
+		}
+	}
+	return add, remove
+}

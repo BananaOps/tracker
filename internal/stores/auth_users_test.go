@@ -106,3 +106,23 @@ func TestAuthUserStoreOIDC(t *testing.T) {
 
 	assert.ErrorIs(t, s.UpdateOIDCProfile(ctx, primitive.NewObjectID(), "a", "b", at), ErrNotFound)
 }
+
+func TestAuthUserStoreSyncTeams(t *testing.T) {
+	db := testDatabase(t)
+	s := NewAuthUserStoreFromCollection(db.Collection(authUsersCollection))
+	ctx := context.Background()
+
+	a, m, b := primitive.NewObjectID(), primitive.NewObjectID(), primitive.NewObjectID()
+	u := &User{Username: "sync", Source: UserSourceOIDC, Teams: []primitive.ObjectID{a, m}}
+	require.NoError(t, s.Create(ctx, u))
+
+	for range 2 {
+		require.NoError(t, s.SyncTeams(ctx, u.ID, []primitive.ObjectID{b}, []primitive.ObjectID{a}))
+		got, err := s.GetByID(ctx, u.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []primitive.ObjectID{m, b}, got.Teams)
+	}
+
+	require.NoError(t, s.SyncTeams(ctx, u.ID, nil, nil))
+	assert.ErrorIs(t, s.SyncTeams(ctx, primitive.NewObjectID(), []primitive.ObjectID{b}, nil), ErrNotFound)
+}

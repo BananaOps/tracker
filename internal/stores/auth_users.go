@@ -144,3 +144,34 @@ func (s *AuthUserStore) CountEnabledInTeam(ctx context.Context, teamID, excludeU
 	}
 	return s.coll.CountDocuments(ctx, filter)
 }
+
+// SyncTeams removes then adds team memberships without touching the others.
+// Two targeted updates are needed because MongoDB refuses $pull and $addToSet
+// on the same field in one update. Both are idempotent.
+func (s *AuthUserStore) SyncTeams(ctx context.Context, id primitive.ObjectID, add, remove []primitive.ObjectID) error {
+	if len(remove) > 0 {
+		res, err := s.coll.UpdateByID(ctx, id, bson.M{
+			"$pull": bson.M{"teams": bson.M{"$in": remove}},
+			"$set":  bson.M{"updatedAt": time.Now().UTC()},
+		})
+		if err != nil {
+			return err
+		}
+		if res.MatchedCount == 0 {
+			return ErrNotFound
+		}
+	}
+	if len(add) > 0 {
+		res, err := s.coll.UpdateByID(ctx, id, bson.M{
+			"$addToSet": bson.M{"teams": bson.M{"$each": add}},
+			"$set":      bson.M{"updatedAt": time.Now().UTC()},
+		})
+		if err != nil {
+			return err
+		}
+		if res.MatchedCount == 0 {
+			return ErrNotFound
+		}
+	}
+	return nil
+}
