@@ -28,6 +28,18 @@ func TestGetAuthConfigIsPublic(t *testing.T) {
 	assert.False(t, resp.OidcEnabled)
 	assert.Equal(t, []string{"event:read"}, resp.AnonymousPermissions)
 	assert.True(t, resp.DemoMode)
+	assert.Equal(t, "", resp.OidcButtonLabel)
+}
+
+func TestGetAuthConfigReportsOIDC(t *testing.T) {
+	f := newAuthFixture(t)
+	f.cfg.OIDC = auth.OIDCConfig{Issuer: "https://idp.example.com", ButtonLabel: "Sign in with Okta"}
+	svc := newAuthService(f)
+
+	resp, err := svc.GetAuthConfig(rpcCtx(auth.Anonymous(nil), "GetAuthConfig"), &authv1.GetAuthConfigRequest{})
+	require.NoError(t, err)
+	assert.True(t, resp.OidcEnabled)
+	assert.Equal(t, "Sign in with Okta", resp.OidcButtonLabel)
 }
 
 func TestMe(t *testing.T) {
