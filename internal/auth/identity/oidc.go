@@ -160,9 +160,9 @@ var ErrOIDCGroupsClaimMissing = errors.New("oidc groups claim is missing while t
 // OIDC groups are left alone. Comparison is exact and case sensitive.
 // groupsPresent tells whether the claim was sent at all: absent with mapped
 // teams fails without any write, present but empty means no group.
-// Removal is a targeted pull of every non matching mapped team, so a
-// membership added elsewhere since the user was loaded is removed too;
-// Removed reports only the teams the loaded user was in.
+// Both directions are targeted and idempotent over every mapped team, so a
+// membership changed elsewhere since the user was loaded is corrected too;
+// Added and Removed report only the changes relative to the loaded user.
 func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTeamStore, user *store.User, groups []string, groupsPresent bool) (TeamSyncResult, error) {
 	res := TeamSyncResult{}
 	if user.Source != store.UserSourceOIDC {
@@ -178,17 +178,14 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 	if !groupsPresent {
 		return res, ErrOIDCGroupsClaimMissing
 	}
-	add, _ := planTeamSync(user.Teams, mapped, groups)
 	member := make(map[primitive.ObjectID]bool, len(user.Teams))
 	for _, id := range user.Teams {
 		member[id] = true
 	}
 
+	add, stale := planTeamSync(mapped, groups)
 	var remove []*store.Team
-	for _, t := range mapped {
-		if teamMatches(t, groups) {
-			continue
-		}
+	for _, t := range stale {
 		if t.Builtin && t.Name == store.AdministratorsTeamName && !user.Disabled {
 			others, err := users.CountEnabledInTeam(ctx, t.ID, user.ID)
 			if err != nil {
@@ -225,8 +222,10 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 		}
 	}
 	for _, t := range add {
-		next = append(next, t.ID)
-		res.Added = append(res.Added, t.Name)
+		if !member[t.ID] {
+			next = append(next, t.ID)
+			res.Added = append(res.Added, t.Name)
+		}
 	}
 	user.Teams = next
 	return res, nil
@@ -252,20 +251,13 @@ func teamIDs(teams []*store.Team) []primitive.ObjectID {
 }
 
 // planTeamSync is the pure decision behind SyncOIDCTeams.
-func planTeamSync(current []primitive.ObjectID, mapped []*store.Team, groups []string) (add, remove []*store.Team) {
-	member := make(map[primitive.ObjectID]struct{}, len(current))
-	for _, id := range current {
-		member[id] = struct{}{}
-	}
+func planTeamSync(mapped []*store.Team, groups []string) (match, stale []*store.Team) {
 	for _, t := range mapped {
-		match := teamMatches(t, groups)
-		_, has := member[t.ID]
-		switch {
-		case match && !has:
-			add = append(add, t)
-		case !match && has:
-			remove = append(remove, t)
+		if teamMatches(t, groups) {
+			match = append(match, t)
+		} else {
+			stale = append(stale, t)
 		}
 	}
-	return add, remove
+	return match, stale
 }

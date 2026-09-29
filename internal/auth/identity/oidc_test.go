@@ -285,14 +285,6 @@ func TestResolveOIDCUserRefusesNonOIDCAccount(t *testing.T) {
 	assert.Empty(t, stored.DisplayName)
 }
 
-func teamNames(ts []*store.Team) []string {
-	out := []string{}
-	for _, t := range ts {
-		out = append(out, t.Name)
-	}
-	return out
-}
-
 func TestPlanTeamSync(t *testing.T) {
 	p := &store.Team{ID: primitive.NewObjectID(), Name: "P", OIDCGroups: []string{"platform-eng"}}
 	o := &store.Team{ID: primitive.NewObjectID(), Name: "O", OIDCGroups: []string{"ops"}}
@@ -324,9 +316,24 @@ func TestPlanTeamSync(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			add, remove := planTeamSync(ids(tc.current...), mapped, tc.groups)
-			assert.ElementsMatch(t, tc.add, teamNames(add))
-			assert.ElementsMatch(t, tc.remove, teamNames(remove))
+			match, stale := planTeamSync(mapped, tc.groups)
+			cur := map[primitive.ObjectID]bool{}
+			for _, id := range ids(tc.current...) {
+				cur[id] = true
+			}
+			add, remove := []string{}, []string{}
+			for _, m := range match {
+				if !cur[m.ID] {
+					add = append(add, m.Name)
+				}
+			}
+			for _, st := range stale {
+				if cur[st.ID] {
+					remove = append(remove, st.Name)
+				}
+			}
+			assert.ElementsMatch(t, tc.add, add)
+			assert.ElementsMatch(t, tc.remove, remove)
 		})
 	}
 }
@@ -472,4 +479,51 @@ func TestSyncOIDCTeamsRefusesNonOIDCUser(t *testing.T) {
 	got, err := users.GetByID(ctx, local.ID)
 	require.NoError(t, err)
 	assert.Empty(t, got.Teams)
+}
+
+func TestSyncOIDCTeamsReAddsMatchingMembership(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	require.NoError(t, teams.Create(ctx, platform))
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob", Teams: []primitive.ObjectID{platform.ID}}
+	require.NoError(t, users.Create(ctx, bob))
+
+	// Removed in the database after bob was loaded.
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, nil, []primitive.ObjectID{platform.ID}))
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{"platform-eng"}, true)
+	require.NoError(t, err)
+	assert.Empty(t, res.Added)
+	assert.Equal(t, []primitive.ObjectID{platform.ID}, bob.Teams)
+	got, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []primitive.ObjectID{platform.ID}, got.Teams)
+}
+
+func TestSyncOIDCTeamsKeepsLastAdminAddedAfterLoad(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	_, err := Bootstrap(ctx, users, teams, "initial-admin-password")
+	require.NoError(t, err)
+	admins, err := teams.GetByName(ctx, store.AdministratorsTeamName)
+	require.NoError(t, err)
+	admins.OIDCGroups = []string{"tracker-admins"}
+	require.NoError(t, teams.Update(ctx, admins))
+	local, err := users.GetByUsername(ctx, "admin")
+	require.NoError(t, err)
+	local.Disabled = true
+	require.NoError(t, users.Update(ctx, local))
+
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob"}
+	require.NoError(t, users.Create(ctx, bob))
+	// Added in the database after bob was loaded: absent from bob.Teams.
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{admins.ID}, nil))
+
+	_, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"other"}, true)
+	require.NoError(t, err)
+	got, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Contains(t, got.Teams, admins.ID)
 }
