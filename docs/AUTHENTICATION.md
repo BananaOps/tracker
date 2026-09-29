@@ -133,8 +133,9 @@ every claim it needs must be in the `id_token`.
 The local `admin` account keeps working next to SSO and is the way back in
 when the IdP is misconfigured or down. SSO is off unless `AUTH_OIDC_ISSUER` is
 set. When it is on, `GET /api/v1alpha1/auth/config` reports `oidcEnabled` and
-`oidcButtonLabel`, and the login page shows a Single Sign-On button next to
-the password form.
+`oidcButtonLabel`. The Single Sign-On button of the login page ships with the
+web PR #201: until it is merged, start a login by opening
+`/api/v1alpha1/auth/oidc/login` directly.
 
 ### Configuration
 
@@ -200,7 +201,8 @@ Both answer `404` when `AUTH_OIDC_ISSUER` is not set.
 - An administrator can disable an OIDC account in Tracker. Its next login is
   refused with a `403` page.
 - With `AUTH_OIDC_USER_PROVISIONING=false`, a user who is not known yet gets a
-  `403` page. Accounts are then created beforehand or by an earlier login.
+  `403` page. Only accounts already known by their `(issuer, subject)` pair, that
+is created by an earlier login while provisioning was on, can sign in.
 - Changing `AUTH_OIDC_ISSUER` to another value creates new accounts: the
   identity is bound to the issuer. Keep the issuer stable.
 
@@ -226,7 +228,13 @@ With `AUTH_OIDC_TEAM_SYNC=true`, a team lists its OIDC groups in `oidcGroups`
   nothing is written (no account creation, no profile refresh, no membership
   change), so a broken IdP mapper cannot silently strip anybody of their
   rights. A user who holds no such membership, a first login included, is
-  treated as having no group: the login succeeds and no mapped team is added.
+  treated as having no group: the login succeeds, no mapped team is added and
+  the server logs a `WARN` (`auth.oidc.sync`, reason
+  `groups_claim_missing_accepted`, with the claim name and the username).
+- A claim that is neither a string nor an array (object, number, boolean,
+  `null`) is treated exactly like an absent claim, and the server logs a `WARN`
+  with reason `groups_claim_unexpected_type`. In an array, entries that are not
+  strings are ignored.
 
 > **Recommended: configure the IdP so the groups claim is always emitted in
 > the `id_token`, as an empty array for users who have no group.** Many IdPs
@@ -264,8 +272,8 @@ A failed login redirects to `/login?error=<code>`:
 |------|---------|
 | `oidc_denied` | The IdP returned an error (user cancelled, access denied, client not allowed). |
 | `oidc_state` | The login transaction is missing, expired (10 minutes), unreadable or does not match the `state`. |
-| `oidc_failed` | Code exchange or `id_token` verification failed, the token has no usable username, the groups claim is missing for a user who holds a mapped team membership, or an internal error occurred. |
-| `oidc_unavailable` | The IdP could not be reached (discovery or token endpoint). |
+| `oidc_failed` | Code exchange failed (including a token endpoint that is unreachable or answers with an error), `id_token` verification failed, the token has no usable username, the groups claim is missing for a user who holds a mapped team membership, or an internal error occurred. |
+| `oidc_unavailable` | Discovery of the IdP failed: at the start of the login, or at the callback when discovery had not succeeded yet. |
 
 Two refusals are shown on a `403` page instead: the account is not registered
 in Tracker (provisioning disabled) and the Tracker account is disabled.
@@ -275,7 +283,8 @@ add it. Until then, read the reason in the server logs, where every failure is
 an `auth.login` entry with `method=oidc` and a `reason` (`state_mismatch`,
 `transaction_missing`, `id_token_verification_failed`, `not_provisioned`,
 `user_disabled`, `provider_unavailable`...). Team sync problems are logged as
-`auth.oidc.sync` (`groups_claim_missing`). Secrets, codes, tokens and cookie
+`auth.oidc.sync` (`groups_claim_missing`, and the warnings
+`groups_claim_missing_accepted` and `groups_claim_unexpected_type`). Secrets, codes, tokens and cookie
 values are never logged.
 
 ### Identity provider recipes
@@ -397,7 +406,7 @@ AUTH_OIDC_SCOPES=openid profile email groups
 | `oidc_failed`, log `groups_claim_missing` | A user who already holds a mapped team membership signed in with an `id_token` that has no claim named `AUTH_OIDC_GROUPS_CLAIM`. Nothing was changed. Decode a test `id_token`, check the claim name and that the mapper adds it to the ID token (not only the access token). Emitting an empty array for users without groups is recommended. |
 | Users land in the wrong teams | `oidcGroups` values must equal the claim values exactly (Object IDs on Entra, `/parent/child` with Keycloak full paths). |
 | Loop back to login with `oidc_state` | The `tracker_oidc` cookie was not returned: `AUTH_PUBLIC_URL` is `http` while the site is served over `https` (or the reverse), the host used in the browser differs from the one in `AUTH_PUBLIC_URL`, a proxy strips cookies, or two tabs started a login. Retry with a single tab. |
-| `oidc_unavailable` | The IdP is unreachable from Tracker (network, DNS, TLS trust). Sign in with `admin`, fix the network, and retry: discovery is retried on the next login. |
+| `oidc_unavailable` | Discovery of the IdP failed (network, DNS, TLS trust). An unreachable token endpoint ends on `oidc_failed` instead. Sign in with `admin`, fix the network, and retry: discovery is retried on the next login. |
 | `403` "not registered in Tracker" | `AUTH_OIDC_USER_PROVISIONING=false` and the user has never signed in. |
 
 ## Teams
