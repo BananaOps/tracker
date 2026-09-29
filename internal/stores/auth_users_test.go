@@ -66,3 +66,43 @@ func TestAuthUserStoreCRUD(t *testing.T) {
 
 	assert.ErrorIs(t, s.Update(ctx, &User{ID: primitive.NewObjectID(), Username: "ghost"}), ErrNotFound)
 }
+
+func TestAuthUserStoreOIDC(t *testing.T) {
+	db := testDatabase(t)
+	s := NewAuthUserStoreFromCollection(db.Collection(authUsersCollection))
+	ctx := context.Background()
+
+	team := primitive.NewObjectID()
+	oidcUser := &User{Username: "bob", Source: UserSourceOIDC, OIDCIssuer: "https://idp", OIDCSubject: "sub-1", Teams: []primitive.ObjectID{team}}
+	require.NoError(t, s.Create(ctx, oidcUser))
+
+	got, err := s.GetByOIDCIdentity(ctx, "https://idp", "sub-1")
+	require.NoError(t, err)
+	assert.Equal(t, oidcUser.ID, got.ID)
+	_, err = s.GetByOIDCIdentity(ctx, "https://idp", "sub-2")
+	assert.ErrorIs(t, err, ErrNotFound)
+	_, err = s.GetByOIDCIdentity(ctx, "https://other", "sub-1")
+	assert.ErrorIs(t, err, ErrNotFound)
+
+	dup := &User{Username: "bob2", Source: UserSourceOIDC, OIDCIssuer: "https://idp", OIDCSubject: "sub-1"}
+	assert.ErrorIs(t, s.Create(ctx, dup), ErrAlreadyExists)
+
+	require.NoError(t, s.Create(ctx, &User{Username: "l1", Source: UserSourceLocal, PasswordHash: "x"}))
+	require.NoError(t, s.Create(ctx, &User{Username: "l2", Source: UserSourceLocal, PasswordHash: "x"}))
+
+	at := time.Now().UTC().Add(time.Hour)
+	require.NoError(t, s.UpdateOIDCProfile(ctx, oidcUser.ID, "b@x.io", "Bob B", at))
+	after, err := s.GetByID(ctx, oidcUser.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "b@x.io", after.Email)
+	assert.Equal(t, "Bob B", after.DisplayName)
+	require.NotNil(t, after.LastLoginAt)
+	assert.WithinDuration(t, at, *after.LastLoginAt, time.Second)
+	assert.True(t, after.UpdatedAt.After(got.UpdatedAt))
+	assert.Equal(t, "bob", after.Username)
+	assert.Equal(t, []primitive.ObjectID{team}, after.Teams)
+	assert.Equal(t, UserSourceOIDC, after.Source)
+	assert.Equal(t, got.SessionVersion, after.SessionVersion)
+
+	assert.ErrorIs(t, s.UpdateOIDCProfile(ctx, primitive.NewObjectID(), "a", "b", at), ErrNotFound)
+}
