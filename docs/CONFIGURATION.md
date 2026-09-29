@@ -66,19 +66,37 @@ BUY_ME_COFFEE_URL=https://www.buymeacoffee.com/yourname
 | `AUTH_ADMIN_PASSWORD` | generated | Password of the initial `admin` account. Only used when no user exists yet. When unset, a random password is printed once in the logs. |
 | `AUTH_SESSION_SECRET` | persisted in MongoDB | Base64 secret (32 bytes minimum) signing session cookies. Set it explicitly when running several replicas without a shared database secret. |
 | `AUTH_SESSION_TTL` | `12h` | Session lifetime. |
-| `AUTH_PUBLIC_URL` | - | Public URL of the UI. An `https` URL makes cookies `Secure`. |
+| `AUTH_PUBLIC_URL` | - | Public URL of the UI. An `https` URL makes cookies `Secure`. Required with OIDC, where it is the base of the redirect URI (`scheme://host[:port]`, no path). |
 | `AUTH_COOKIE_SECURE` | `false` | Force the `Secure` flag on cookies. |
 | `AUTH_TRUST_PROXY` | `false` | Use the last entry of `X-Forwarded-For` as client IP for login rate limiting, and `X-Forwarded-Proto` to decide the request scheme. Only enable it behind a reverse proxy that appends the peer address to the header. |
+| `AUTH_OIDC_ISSUER` | - | OpenID Connect issuer URL. Setting it enables single sign-on. `https` only (`http` for loopback). Must match the token `iss` exactly. |
+| `AUTH_OIDC_CLIENT_ID` | - | OIDC client ID. Required with an issuer. |
+| `AUTH_OIDC_CLIENT_SECRET` | - | OIDC client secret. Required with an issuer. Keep it in a secret store. |
+| `AUTH_OIDC_SCOPES` | `openid profile email` | Requested scopes, space or comma separated. |
+| `AUTH_OIDC_GROUPS_CLAIM` | `groups` | `id_token` claim carrying the groups used for team mapping. |
+| `AUTH_OIDC_USERNAME_CLAIM` | `preferred_username` | `id_token` claim used as username, `email` as fallback. |
+| `AUTH_OIDC_USER_PROVISIONING` | `true` | Create accounts at first OIDC login. |
+| `AUTH_OIDC_TEAM_SYNC` | `true` | Synchronize teams from the groups claim at each login. |
+| `AUTH_OIDC_BUTTON_LABEL` | `Single Sign-On` | Label of the login button (64 characters max). |
 
 When `AUTH_ANONYMOUS_PERMISSIONS` is set, its value is used as is, even when empty. When it is unset, the default is the read-only set `event:read,catalog:read,lock:read,links:read` if `DEMO_MODE=true`, otherwise every permission except `access:manage` (transitional default, with a startup warning).
 
-See [AUTHENTICATION.md](AUTHENTICATION.md) for permissions, teams and API keys.
+See [AUTHENTICATION.md](AUTHENTICATION.md) for permissions, teams and API keys, and [Single Sign-On](AUTHENTICATION.md#single-sign-on-openid-connect) for the OpenID Connect setup, redirect URI and identity provider recipes.
 
 **Example:**
 ```bash
 AUTH_ANONYMOUS_PERMISSIONS=event:read,catalog:read
 AUTH_ADMIN_PASSWORD=change-me-at-first-login
 AUTH_PUBLIC_URL=https://tracker.example.com
+```
+
+**Example with OpenID Connect:**
+```bash
+AUTH_PUBLIC_URL=https://tracker.example.com
+AUTH_OIDC_ISSUER=https://keycloak.example.com/realms/main
+AUTH_OIDC_CLIENT_ID=tracker
+AUTH_OIDC_CLIENT_SECRET=<from your secret store>
+# Redirect URI to register: https://tracker.example.com/api/v1alpha1/auth/oidc/callback
 ```
 
 ### Slack Integration
