@@ -25,6 +25,10 @@ type Claims struct {
 	// GroupsPresent is true when the groups claim exists in the token, even
 	// when it carries no usable group.
 	GroupsPresent bool
+	// GroupsUnexpectedType is true when the groups claim exists but is
+	// neither a string nor an array. It is then treated as absent
+	// (GroupsPresent is false), so it never removes mapped teams.
+	GroupsUnexpectedType bool
 }
 
 // claimsFrom builds Claims from the raw id_token payload, using cfg to know
@@ -40,16 +44,17 @@ func claimsFrom(issuer, subject string, raw map[string]any, cfg auth.OIDCConfig)
 		username = validUsername(email)
 	}
 
-	groups, present := groupsClaim(raw, cfg.GroupsClaim)
+	groups, present, unexpected := groupsClaim(raw, cfg.GroupsClaim)
 
 	return Claims{
-		Issuer:        issuer,
-		Subject:       subject,
-		Username:      username,
-		Email:         email,
-		DisplayName:   displayName(raw, username),
-		Groups:        groups,
-		GroupsPresent: present,
+		Issuer:               issuer,
+		Subject:              subject,
+		Username:             username,
+		Email:                email,
+		DisplayName:          displayName(raw, username),
+		Groups:               groups,
+		GroupsPresent:        present,
+		GroupsUnexpectedType: unexpected,
 	}, nil
 }
 
@@ -90,19 +95,21 @@ func stringClaim(raw map[string]any, name string) string {
 
 // groupsClaim reads a claim that is either a single string or an array of
 // strings, deduplicating while keeping order and dropping non-string and
-// empty entries. The second result is false only when the claim is absent.
-func groupsClaim(raw map[string]any, name string) ([]string, bool) {
+// empty entries. The second result is false when the claim is absent or of
+// an unexpected type (object, number, bool, null), which the third result
+// tells apart: such a claim carries no information about the groups.
+func groupsClaim(raw map[string]any, name string) (groups []string, present, unexpected bool) {
 	v, ok := raw[name]
 	if !ok {
-		return nil, false
+		return nil, false, false
 	}
 
 	switch t := v.(type) {
 	case string:
 		if t == "" {
-			return []string{}, true
+			return []string{}, true, false
 		}
-		return []string{t}, true
+		return []string{t}, true, false
 	case []any:
 		seen := make(map[string]bool, len(t))
 		out := make([]string, 0, len(t))
@@ -114,8 +121,8 @@ func groupsClaim(raw map[string]any, name string) ([]string, bool) {
 			seen[s] = true
 			out = append(out, s)
 		}
-		return out, true
+		return out, true, false
 	default:
-		return nil, true
+		return nil, false, true
 	}
 }

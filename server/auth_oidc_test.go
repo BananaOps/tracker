@@ -387,3 +387,24 @@ func TestOIDCGroupsClaimAbsentNoMappedTeamNoWarning(t *testing.T) {
 	require.Equal(t, http.StatusSeeOther, rec.Code, rec.Body.String())
 	assert.NotContains(t, h.logs.String(), "groups_claim_missing_accepted")
 }
+
+// A groups claim of an unexpected type is treated as absent: it never removes
+// mapped teams and it is reported.
+func TestOIDCGroupsClaimUnexpectedTypeTreatedAsAbsent(t *testing.T) {
+	ctx := context.Background()
+	h := newOIDCHarness(t, nil)
+	require.Equal(t, http.StatusSeeOther, h.login(t, "").Code)
+	platform := h.createTeam(t, "Platform", "platform-eng")
+	u := h.userNamed(t, "alice")
+	require.NoError(t, h.f.users.SyncTeams(ctx, u.ID, []primitive.ObjectID{platform.ID}, nil))
+	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{
+		"preferred_username": "alice", "groups": map[string]any{"platform-eng": true},
+	}})
+
+	rec := h.login(t, "")
+	assert.Equal(t, "/login?error=oidc_failed", rec.Header().Get("Location"))
+	assert.Nil(t, cookieNamed(rec, auth.SessionCookieName))
+	assert.Contains(t, h.logs.String(), `"reason":"groups_claim_unexpected_type"`)
+	assert.Contains(t, h.logs.String(), `"reason":"groups_claim_missing"`)
+	assert.Equal(t, []primitive.ObjectID{platform.ID}, h.userNamed(t, "alice").Teams)
+}

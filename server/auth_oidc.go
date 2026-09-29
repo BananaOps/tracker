@@ -180,6 +180,11 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 		return
 	}
 
+	if h.cfg.OIDC.TeamSync && claims.GroupsUnexpectedType {
+		h.logger.Warn("auth.oidc.sync", "method", "oidc", "reason", "groups_claim_unexpected_type",
+			"claim", h.cfg.OIDC.GroupsClaim, "username", claims.Username, "ip", ip)
+	}
+
 	// Refuse before any write: resolving the user would create it or refresh
 	// its profile and last login although the sync is then going to refuse.
 	if h.cfg.OIDC.TeamSync && !claims.GroupsPresent {

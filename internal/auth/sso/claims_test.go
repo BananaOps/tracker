@@ -67,6 +67,7 @@ func TestClaimsFromGroups(t *testing.T) {
 		cfg           *auth.OIDCConfig
 		wantGroups    []string
 		wantPresent   bool
+		wantUnexp     bool
 		checkGroupLen bool // when true, also assert len(Groups) == len(wantGroups) for the empty-slice case
 	}{
 		{
@@ -101,6 +102,34 @@ func TestClaimsFromGroups(t *testing.T) {
 			checkGroupLen: true,
 		},
 		{
+			name:        "object treated as absent",
+			raw:         map[string]any{"groups": map[string]any{"a": true}},
+			wantGroups:  nil,
+			wantPresent: false,
+			wantUnexp:   true,
+		},
+		{
+			name:        "number treated as absent",
+			raw:         map[string]any{"groups": float64(3)},
+			wantGroups:  nil,
+			wantPresent: false,
+			wantUnexp:   true,
+		},
+		{
+			name:        "bool treated as absent",
+			raw:         map[string]any{"groups": true},
+			wantGroups:  nil,
+			wantPresent: false,
+			wantUnexp:   true,
+		},
+		{
+			name:        "null treated as absent",
+			raw:         map[string]any{"groups": nil},
+			wantGroups:  nil,
+			wantPresent: false,
+			wantUnexp:   true,
+		},
+		{
 			name:        "custom claim",
 			cfg:         &auth.OIDCConfig{GroupsClaim: "roles", UsernameClaim: "preferred_username"},
 			raw:         map[string]any{"roles": []any{"x"}},
@@ -118,6 +147,9 @@ func TestClaimsFromGroups(t *testing.T) {
 			got, err := claimsFrom("https://issuer.example", "sub-1", tc.raw, cfg)
 			if err != nil {
 				t.Fatalf("claimsFrom: %v", err)
+			}
+			if got.GroupsUnexpectedType != tc.wantUnexp {
+				t.Fatalf("GroupsUnexpectedType = %v, want %v", got.GroupsUnexpectedType, tc.wantUnexp)
 			}
 			if got.GroupsPresent != tc.wantPresent {
 				t.Fatalf("GroupsPresent = %v, want %v", got.GroupsPresent, tc.wantPresent)
