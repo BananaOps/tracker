@@ -7,8 +7,10 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/subtle"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -37,6 +39,9 @@ const (
 	// SignForeignKey produces an RS256 token signed with a key absent
 	// from the JWKS, reusing the same kid.
 	SignForeignKey
+	// SignHS256PublicKey produces an HS256 token whose HMAC secret is the
+	// PEM encoded published public key: the algorithm confusion attack.
+	SignHS256PublicKey
 )
 
 // User is the identity returned by the next authorizations.
@@ -448,6 +453,15 @@ func (i *IdP) signIDToken(state authState) (string, error) {
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims(claims))
 		token.Header["kid"] = KeyID
 		return token.SignedString(i.foreign)
+	case SignHS256PublicKey:
+		der, err := x509.MarshalPKIXPublicKey(&i.key.PublicKey)
+		if err != nil {
+			return "", fmt.Errorf("marshal public key: %w", err)
+		}
+		secret := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(claims))
+		token.Header["kid"] = KeyID
+		return token.SignedString(secret)
 	default:
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims(claims))
 		token.Header["kid"] = KeyID
