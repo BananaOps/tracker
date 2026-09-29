@@ -561,3 +561,27 @@ func TestCheckOIDCGroupsClaim(t *testing.T) {
 	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, nil, false), "new subject")
 	assert.NoError(t, CheckOIDCGroupsClaim(ctx, fakeMappedTeams{}, holder, false), "no mapped team")
 }
+
+func TestSyncOIDCTeamsAbsentClaimNeverRemoves(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob"}
+	require.NoError(t, users.Create(ctx, bob))
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	require.NoError(t, teams.Create(ctx, platform))
+
+	// bob was loaded without any team; a mapped membership appears afterwards.
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{platform.ID}, nil))
+	before, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, nil, false)
+	require.NoError(t, err)
+	assert.Empty(t, res.Added)
+	assert.Empty(t, res.Removed)
+	got, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []primitive.ObjectID{platform.ID}, got.Teams)
+	assert.Equal(t, before.UpdatedAt, got.UpdatedAt, "no write")
+}

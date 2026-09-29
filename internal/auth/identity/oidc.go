@@ -210,6 +210,10 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 	if err := checkGroupsClaim(mapped, user, groupsPresent); err != nil {
 		return res, err
 	}
+	if !groupsPresent {
+		// An absent claim says nothing about the groups: never add or remove.
+		return res, nil
+	}
 	if len(mapped) == 0 {
 		return res, nil
 	}
