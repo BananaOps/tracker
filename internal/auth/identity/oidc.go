@@ -150,32 +150,59 @@ type TeamSyncResult struct {
 	Kept []string
 }
 
+// ErrOIDCGroupsClaimMissing is returned when teams are mapped to OIDC groups
+// but the identity provider sent no groups claim: nothing is granted or
+// removed, so a broken mapper cannot strip every user of its rights.
+var ErrOIDCGroupsClaimMissing = errors.New("oidc groups claim is missing while teams are mapped to groups")
+
 // SyncOIDCTeams makes the user a member of every team whose OIDC groups
 // intersect groups, and removes it from the other mapped teams. Teams without
 // OIDC groups are left alone. Comparison is exact and case sensitive.
-func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTeamStore, user *store.User, groups []string) (TeamSyncResult, error) {
+// groupsPresent tells whether the claim was sent at all: absent with mapped
+// teams fails without any write, present but empty means no group.
+// Removal is a targeted pull of every non matching mapped team, so a
+// membership added elsewhere since the user was loaded is removed too;
+// Removed reports only the teams the loaded user was in.
+func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTeamStore, user *store.User, groups []string, groupsPresent bool) (TeamSyncResult, error) {
 	res := TeamSyncResult{}
+	if user.Source != store.UserSourceOIDC {
+		return res, ErrOIDCNotOIDCUser
+	}
 	mapped, err := teams.ListWithOIDCGroups(ctx)
 	if err != nil {
 		return res, fmt.Errorf("list mapped teams: %w", err)
 	}
-	add, remove := planTeamSync(user.Teams, mapped, groups)
+	if len(mapped) == 0 {
+		return res, nil
+	}
+	if !groupsPresent {
+		return res, ErrOIDCGroupsClaimMissing
+	}
+	add, _ := planTeamSync(user.Teams, mapped, groups)
+	member := make(map[primitive.ObjectID]bool, len(user.Teams))
+	for _, id := range user.Teams {
+		member[id] = true
+	}
 
-	confirmed := remove[:0:0]
-	for _, t := range remove {
+	var remove []*store.Team
+	for _, t := range mapped {
+		if teamMatches(t, groups) {
+			continue
+		}
 		if t.Builtin && t.Name == store.AdministratorsTeamName && !user.Disabled {
 			others, err := users.CountEnabledInTeam(ctx, t.ID, user.ID)
 			if err != nil {
 				return res, fmt.Errorf("count enabled administrators: %w", err)
 			}
 			if others == 0 {
-				res.Kept = append(res.Kept, t.Name)
+				if member[t.ID] {
+					res.Kept = append(res.Kept, t.Name)
+				}
 				continue
 			}
 		}
-		confirmed = append(confirmed, t)
+		remove = append(remove, t)
 	}
-	remove = confirmed
 
 	if len(add) == 0 && len(remove) == 0 {
 		return res, nil
@@ -187,7 +214,9 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 	removed := map[primitive.ObjectID]bool{}
 	for _, t := range remove {
 		removed[t.ID] = true
-		res.Removed = append(res.Removed, t.Name)
+		if member[t.ID] {
+			res.Removed = append(res.Removed, t.Name)
+		}
 	}
 	next := make([]primitive.ObjectID, 0, len(user.Teams)+len(add))
 	for _, id := range user.Teams {
@@ -203,6 +232,17 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 	return res, nil
 }
 
+func teamMatches(t *store.Team, groups []string) bool {
+	for _, tg := range t.OIDCGroups {
+		for _, g := range groups {
+			if tg == g {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func teamIDs(teams []*store.Team) []primitive.ObjectID {
 	ids := make([]primitive.ObjectID, 0, len(teams))
 	for _, t := range teams {
@@ -213,22 +253,12 @@ func teamIDs(teams []*store.Team) []primitive.ObjectID {
 
 // planTeamSync is the pure decision behind SyncOIDCTeams.
 func planTeamSync(current []primitive.ObjectID, mapped []*store.Team, groups []string) (add, remove []*store.Team) {
-	claim := make(map[string]struct{}, len(groups))
-	for _, g := range groups {
-		claim[g] = struct{}{}
-	}
 	member := make(map[primitive.ObjectID]struct{}, len(current))
 	for _, id := range current {
 		member[id] = struct{}{}
 	}
 	for _, t := range mapped {
-		match := false
-		for _, g := range t.OIDCGroups {
-			if _, ok := claim[g]; ok {
-				match = true
-				break
-			}
-		}
+		match := teamMatches(t, groups)
 		_, has := member[t.ID]
 		switch {
 		case match && !has:

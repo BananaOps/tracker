@@ -357,13 +357,13 @@ func TestSyncOIDCTeams(t *testing.T) {
 		return u
 	}
 
-	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{"platform-eng"})
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{"platform-eng"}, true)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"Platform"}, res.Added)
 	assert.ElementsMatch(t, []primitive.ObjectID{manual.ID, platform.ID}, reload().Teams)
 	assert.ElementsMatch(t, reload().Teams, bob.Teams)
 
-	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"ops"})
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"ops"}, true)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"Ops"}, res.Added)
 	assert.Equal(t, []string{"Platform"}, res.Removed)
@@ -373,17 +373,17 @@ func TestSyncOIDCTeams(t *testing.T) {
 	// Administrators without oidcGroups is not mapped: left alone.
 	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{admins.ID}, nil))
 	bob = reload()
-	_, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	_, err = SyncOIDCTeams(ctx, users, teams, bob, nil, true)
 	require.NoError(t, err)
 	assert.Contains(t, reload().Teams, admins.ID)
 
 	// Mapped Administrators follows the claim while another admin is active.
 	admins.OIDCGroups = []string{"tracker-admins"}
 	require.NoError(t, teams.Update(ctx, admins))
-	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"tracker-admins"})
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, []string{"tracker-admins"}, true)
 	require.NoError(t, err)
 	assert.Empty(t, res.Removed)
-	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil, true)
 	require.NoError(t, err)
 	assert.Equal(t, []string{store.AdministratorsTeamName}, res.Removed)
 	assert.NotContains(t, reload().Teams, admins.ID)
@@ -395,7 +395,7 @@ func TestSyncOIDCTeams(t *testing.T) {
 	require.NoError(t, users.Update(ctx, local))
 	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{admins.ID}, nil))
 	bob = reload()
-	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil)
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil, true)
 	require.NoError(t, err)
 	assert.Equal(t, []string{store.AdministratorsTeamName}, res.Kept)
 	assert.Empty(t, res.Removed)
@@ -404,4 +404,72 @@ func TestSyncOIDCTeams(t *testing.T) {
 	after, err := users.GetByUsername(ctx, "admin")
 	require.NoError(t, err)
 	assert.Equal(t, initialAdminTeams, after.Teams)
+}
+
+func TestSyncOIDCTeamsMissingClaim(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob"}
+	require.NoError(t, users.Create(ctx, bob))
+
+	// No mapped team: an absent claim is harmless.
+	_, err := SyncOIDCTeams(ctx, users, teams, bob, nil, false)
+	require.NoError(t, err)
+
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	require.NoError(t, teams.Create(ctx, platform))
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{platform.ID}, nil))
+	bob, err = users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+
+	// Mapped teams and absent claim: refused, nothing written.
+	_, err = SyncOIDCTeams(ctx, users, teams, bob, nil, false)
+	assert.ErrorIs(t, err, ErrOIDCGroupsClaimMissing)
+	got, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []primitive.ObjectID{platform.ID}, got.Teams)
+
+	// Present but empty: mapped memberships are removed.
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{}, true)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Platform"}, res.Removed)
+	got, err = users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Teams)
+}
+
+func TestSyncOIDCTeamsRemovesStaleMembership(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	require.NoError(t, teams.Create(ctx, platform))
+	bob := &store.User{Username: "bob", Source: store.UserSourceOIDC, OIDCIssuer: testIssuer, OIDCSubject: "bob"}
+	require.NoError(t, users.Create(ctx, bob))
+
+	// Added in the database after bob was loaded.
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{platform.ID}, nil))
+	res, err := SyncOIDCTeams(ctx, users, teams, bob, []string{}, true)
+	require.NoError(t, err)
+	assert.Empty(t, res.Removed)
+	got, err := users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Teams)
+}
+
+func TestSyncOIDCTeamsRefusesNonOIDCUser(t *testing.T) {
+	users, teams := mongoStores(t)
+	ctx := context.Background()
+
+	platform := &store.Team{Name: "Platform", OIDCGroups: []string{"platform-eng"}}
+	require.NoError(t, teams.Create(ctx, platform))
+	local := &store.User{Username: "loc", Source: store.UserSourceLocal, PasswordHash: "x"}
+	require.NoError(t, users.Create(ctx, local))
+
+	_, err := SyncOIDCTeams(ctx, users, teams, local, []string{"platform-eng"}, true)
+	assert.ErrorIs(t, err, ErrOIDCNotOIDCUser)
+	got, err := users.GetByID(ctx, local.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Teams)
 }
