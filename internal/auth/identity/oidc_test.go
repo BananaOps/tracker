@@ -239,3 +239,48 @@ func TestCandidateUsername(t *testing.T) {
 	assert.Len(t, got, 64)
 	assert.True(t, strings.HasSuffix(got, "-12"))
 }
+
+func TestResolveOIDCUserKeepsDisplayNameWhenClaimEmpty(t *testing.T) {
+	users, _ := mongoStores(t)
+	ctx := context.Background()
+	now := time.Now().UTC()
+
+	first, _, err := ResolveOIDCUser(ctx, users, oidcID("s1", "alice"), true, now)
+	require.NoError(t, err)
+	u, _, err := ResolveOIDCUser(ctx, users, OIDCIdentity{Issuer: testIssuer, Subject: "s1", Email: "a@x.io"}, true, now)
+	require.NoError(t, err)
+	assert.Equal(t, "alice", u.DisplayName)
+	stored, err := users.GetByID(ctx, first.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "alice", stored.DisplayName)
+	assert.Equal(t, "a@x.io", stored.Email)
+}
+
+func TestResolveOIDCUserRequiresIssuerAndSubject(t *testing.T) {
+	users, _ := mongoStores(t)
+	ctx := context.Background()
+	now := time.Now().UTC()
+
+	_, _, err := ResolveOIDCUser(ctx, users, OIDCIdentity{Subject: "s1", Username: "alice"}, true, now)
+	assert.ErrorIs(t, err, ErrOIDCInvalidIdentity)
+	_, _, err = ResolveOIDCUser(ctx, users, OIDCIdentity{Issuer: testIssuer, Username: "alice"}, true, now)
+	assert.ErrorIs(t, err, ErrOIDCInvalidIdentity)
+	n, err := users.Count(ctx)
+	require.NoError(t, err)
+	assert.Zero(t, n)
+}
+
+func TestResolveOIDCUserRefusesNonOIDCAccount(t *testing.T) {
+	users, _ := mongoStores(t)
+	ctx := context.Background()
+
+	local := &store.User{Username: "eve", Email: "eve@x.io", Source: store.UserSourceLocal, PasswordHash: "x", OIDCIssuer: testIssuer, OIDCSubject: "s1"}
+	require.NoError(t, users.Create(ctx, local))
+
+	_, _, err := ResolveOIDCUser(ctx, users, OIDCIdentity{Issuer: testIssuer, Subject: "s1", Email: "evil@x.io", DisplayName: "Evil"}, true, time.Now().UTC())
+	assert.ErrorIs(t, err, ErrOIDCNotOIDCUser)
+	stored, err := users.GetByID(ctx, local.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "eve@x.io", stored.Email)
+	assert.Empty(t, stored.DisplayName)
+}

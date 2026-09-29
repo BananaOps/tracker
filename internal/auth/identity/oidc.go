@@ -32,12 +32,17 @@ var (
 	ErrOIDCUserDisabled      = errors.New("oidc user is disabled")
 	ErrOIDCNoUsername        = errors.New("oidc identity carries no usable username")
 	ErrOIDCUsernameExhausted = errors.New("no free username for the oidc identity")
+	ErrOIDCInvalidIdentity   = errors.New("oidc identity has no issuer or subject")
+	ErrOIDCNotOIDCUser       = errors.New("user bound to the oidc identity is not an oidc account")
 )
 
 // ResolveOIDCUser finds the user bound to (issuer, subject), or creates it
 // when provisioning is on. It never binds an existing account by username or
 // email. created reports a new account.
 func ResolveOIDCUser(ctx context.Context, users OIDCUserStore, id OIDCIdentity, provisioning bool, now time.Time) (user *store.User, created bool, err error) {
+	if id.Issuer == "" || id.Subject == "" {
+		return nil, false, ErrOIDCInvalidIdentity
+	}
 	existing, err := users.GetByOIDCIdentity(ctx, id.Issuer, id.Subject)
 	if err == nil {
 		u, err := refreshOIDCUser(ctx, users, existing, id, now)
@@ -94,10 +99,20 @@ func refreshOIDCUser(ctx context.Context, users OIDCUserStore, u *store.User, id
 	if u.Disabled {
 		return nil, ErrOIDCUserDisabled
 	}
-	if err := users.UpdateOIDCProfile(ctx, u.ID, id.Email, id.DisplayName, now); err != nil {
+	if u.Source != store.UserSourceOIDC {
+		return nil, ErrOIDCNotOIDCUser
+	}
+	displayName := id.DisplayName
+	if displayName == "" {
+		displayName = u.DisplayName
+	}
+	if displayName == "" {
+		displayName = u.Username
+	}
+	if err := users.UpdateOIDCProfile(ctx, u.ID, id.Email, displayName, now); err != nil {
 		return nil, fmt.Errorf("update oidc profile: %w", err)
 	}
-	u.Email, u.DisplayName, u.LastLoginAt = id.Email, id.DisplayName, &now
+	u.Email, u.DisplayName, u.LastLoginAt = id.Email, displayName, &now
 	return u, nil
 }
 
