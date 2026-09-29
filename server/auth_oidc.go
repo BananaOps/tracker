@@ -202,6 +202,7 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 			h.redirectError(w, r, oidcErrFailed)
 			return
 		}
+		h.warnGroupsClaimMissingAccepted(ctx, claims, ip)
 	}
 
 	// Only issuer and subject identify a user; the email claim is data, never
@@ -263,6 +264,18 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 		"created", created, "teams_added", sync.Added, "teams_removed", sync.Removed, "ip", ip)
 	h.count(authz.LoginSuccess)
 	http.Redirect(w, r, sso.SafeRedirect(tx.Redirect), http.StatusSeeOther)
+}
+
+// warnGroupsClaimMissingAccepted logs, once per login, that the groups claim
+// is absent, teams are mapped to OIDC groups and the login is accepted anyway
+// because the user holds no mapped membership.
+func (h *OIDCHTTP) warnGroupsClaimMissingAccepted(ctx context.Context, claims sso.Claims, ip string) {
+	mapped, err := h.teams.ListWithOIDCGroups(ctx)
+	if err != nil || len(mapped) == 0 {
+		return
+	}
+	h.logger.Warn("auth.oidc.sync", "method", "oidc", "result", "accepted", "reason", "groups_claim_missing_accepted",
+		"claim", h.cfg.OIDC.GroupsClaim, "username", claims.Username, "ip", ip)
 }
 
 // logSyncFailure logs a refused or failed team sync. The username is the one

@@ -355,6 +355,10 @@ func TestOIDCGroupsClaimAbsentNewSubject(t *testing.T) {
 	u, err := h.f.users.GetByUsername(ctx, "alice")
 	require.NoError(t, err)
 	assert.Empty(t, u.Teams)
+	assert.Contains(t, h.logs.String(), `"level":"WARN"`)
+	assert.Contains(t, h.logs.String(), `"reason":"groups_claim_missing_accepted"`)
+	assert.Contains(t, h.logs.String(), `"claim":"groups"`)
+	assert.Contains(t, h.logs.String(), `"username":"alice"`)
 }
 
 func TestOIDCGroupsClaimAbsentUserWithoutMappedMembership(t *testing.T) {
@@ -371,4 +375,15 @@ func TestOIDCGroupsClaimAbsentUserWithoutMappedMembership(t *testing.T) {
 	require.Equal(t, http.StatusSeeOther, rec.Code, rec.Body.String())
 	assert.NotNil(t, cookieNamed(rec, auth.SessionCookieName))
 	assert.Equal(t, []string{"Manual"}, teamNames(h.me(t, cookieNamed(rec, auth.SessionCookieName))))
+	assert.Contains(t, h.logs.String(), `"reason":"groups_claim_missing_accepted"`)
+}
+
+// Without any mapped team an absent claim is normal: no warning.
+func TestOIDCGroupsClaimAbsentNoMappedTeamNoWarning(t *testing.T) {
+	h := newOIDCHarness(t, nil)
+	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
+
+	rec := h.login(t, "")
+	require.Equal(t, http.StatusSeeOther, rec.Code, rec.Body.String())
+	assert.NotContains(t, h.logs.String(), "groups_claim_missing_accepted")
 }
