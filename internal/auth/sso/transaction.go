@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hkdf"
@@ -47,6 +48,9 @@ var (
 	// ErrTransactionExpired means the transaction decrypted and parsed
 	// correctly but is older than TransactionTTL.
 	ErrTransactionExpired = errors.New("expired oidc transaction")
+	// ErrTransactionTooLarge means the encoded value would exceed the cookie
+	// size cap. Callers must retry with Redirect set to "/", which always fits.
+	ErrTransactionTooLarge = errors.New("oidc transaction too large for a cookie")
 )
 
 // Transaction is the state carried across the redirect to the identity
@@ -127,13 +131,20 @@ func NewTransactionCodec(sessionSecret []byte) (*TransactionCodec, error) {
 }
 
 // Encode seals t into an opaque, base64url value suitable for a cookie.
+// It returns ErrTransactionTooLarge when the value would exceed the size Decode
+// accepts; callers must then retry with Redirect "/".
 // The cookie name is bound in as associated data, so a value cannot be
 // replayed under a different cookie.
 func (c *TransactionCodec) Encode(t Transaction) (string, error) {
-	plain, err := json.Marshal(t)
-	if err != nil {
+	// HTML escaping is off: json.Marshal would expand <, > and & to 6 bytes
+	// each, inflating a long redirect past the cookie size limit.
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(t); err != nil {
 		return "", fmt.Errorf("marshal transaction: %w", err)
 	}
+	plain := bytes.TrimSuffix(buf.Bytes(), []byte("\n"))
 
 	nonce := make([]byte, c.aead.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
@@ -141,7 +152,11 @@ func (c *TransactionCodec) Encode(t Transaction) (string, error) {
 	}
 
 	sealed := c.aead.Seal(nonce, nonce, plain, []byte(TransactionCookieName))
-	return base64.RawURLEncoding.EncodeToString(sealed), nil
+	encoded := base64.RawURLEncoding.EncodeToString(sealed)
+	if len(encoded) > maxTransactionCookieLength {
+		return "", ErrTransactionTooLarge
+	}
+	return encoded, nil
 }
 
 // Decode opens a value produced by Encode. Every rejection short of a
@@ -160,7 +175,7 @@ func (c *TransactionCodec) Decode(value string) (Transaction, error) {
 	}
 
 	nonceSize := c.aead.NonceSize()
-	if len(sealed) < nonceSize {
+	if len(sealed) < nonceSize+c.aead.Overhead() {
 		return Transaction{}, ErrTransactionInvalid
 	}
 	nonce, ciphertext := sealed[:nonceSize], sealed[nonceSize:]

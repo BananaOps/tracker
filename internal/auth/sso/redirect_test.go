@@ -25,6 +25,7 @@ func TestSafeRedirect(t *testing.T) {
 		{name: "javascript scheme", in: "javascript:alert(1)", want: "/"},
 		{name: "header injection", in: "/ok\r\nSet-Cookie: x=1", want: "/"},
 		{name: "tab control char", in: "/tab\there", want: "/"},
+		{name: "C1 control char", in: "/a\u0085b", want: "/"},
 		{name: "leading space", in: " /locks", want: "/"},
 		{name: "too long", in: "/" + strings.Repeat("a", 1024), want: "/"},
 	}

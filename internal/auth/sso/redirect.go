@@ -3,6 +3,7 @@ package sso
 import (
 	"net/url"
 	"strings"
+	"unicode"
 )
 
 const maxRedirectLength = 1024
@@ -16,7 +17,7 @@ func SafeRedirect(raw string) string {
 		return "/"
 	}
 	for _, r := range raw {
-		if r < 0x20 || r == 0x7f {
+		if unicode.IsControl(r) {
 			return "/"
 		}
 	}

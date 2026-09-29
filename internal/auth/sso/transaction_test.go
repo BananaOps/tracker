@@ -288,3 +288,49 @@ func TestTransactionCookieAttributes(t *testing.T) {
 		t.Fatalf("Value = %q, want empty", clear.Value)
 	}
 }
+
+func TestCodecWorstCaseRedirect(t *testing.T) {
+	codec, err := NewTransactionCodec(testSecret(1))
+	if err != nil {
+		t.Fatalf("NewTransactionCodec: %v", err)
+	}
+
+	for name, filler := range map[string]string{"html": "<&>", "non-ascii": "é"} {
+		t.Run(name, func(t *testing.T) {
+			redirect := SafeRedirect("/" + strings.Repeat(filler, 1023/len(filler)))
+			if redirect == "/" {
+				t.Fatal("redirect rejected by SafeRedirect, test is meaningless")
+			}
+			tx, err := NewTransaction(redirect, time.Now())
+			if err != nil {
+				t.Fatalf("NewTransaction: %v", err)
+			}
+			encoded, err := codec.Encode(tx)
+			if err != nil {
+				t.Fatalf("Encode: %v", err)
+			}
+			if len(encoded) > maxTransactionCookieLength {
+				t.Fatalf("encoded length = %d, want <= %d", len(encoded), maxTransactionCookieLength)
+			}
+			got, err := codec.Decode(encoded)
+			if err != nil || got != tx {
+				t.Fatalf("Decode = %+v, %v; want %+v", got, err, tx)
+			}
+		})
+	}
+}
+
+func TestCodecEncodeTooLarge(t *testing.T) {
+	codec, err := NewTransactionCodec(testSecret(1))
+	if err != nil {
+		t.Fatalf("NewTransactionCodec: %v", err)
+	}
+	tx, err := NewTransaction("/", time.Now())
+	if err != nil {
+		t.Fatalf("NewTransaction: %v", err)
+	}
+	tx.Redirect = "/" + strings.Repeat("a", maxTransactionCookieLength)
+	if _, err := codec.Encode(tx); !errors.Is(err, ErrTransactionTooLarge) {
+		t.Fatalf("Encode err = %v, want ErrTransactionTooLarge", err)
+	}
+}
