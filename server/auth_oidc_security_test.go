@@ -328,6 +328,8 @@ func TestOIDCTransactionCookieClearedOnEveryFailure(t *testing.T) {
 		{"missing groups claim", func(t *testing.T) outcome {
 			h := newOIDCHarness(t, nil)
 			h.createTeam(t, "Platform", "platform-eng")
+			h.setGroups([]string{"platform-eng"})
+			require.Equal(t, http.StatusSeeOther, h.login(t, "").Code)
 			h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
 			return outcome{h.login(t, "")}
 		}},
@@ -465,8 +467,9 @@ func TestOIDCGroupsCaseSensitive(t *testing.T) {
 	assert.False(t, h.inTeam(t, "alice", "Platform"))
 }
 
-// A groups claim that disappears never strips the mapped teams: the login is
-// refused before any write (fail closed, see the missing claim commits).
+// A groups claim that disappears never strips the mapped teams of a user who
+// holds one: the login is refused before any write (fail closed). A user
+// without mapped membership is not affected, see TestOIDCGroupsClaimAbsent*.
 func TestOIDCGroupsAbsentKeepsMappedTeams(t *testing.T) {
 	h := newOIDCHarness(t, nil)
 	h.createTeam(t, "Platform", "platform-eng")
@@ -477,6 +480,7 @@ func TestOIDCGroupsAbsentKeepsMappedTeams(t *testing.T) {
 	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
 	rec := h.login(t, "")
 	requireRefusedRedirect(t, rec, "/login?error=oidc_failed")
+	assert.Nil(t, cookieNamed(rec, auth.SessionCookieName))
 	assert.True(t, h.inTeam(t, "alice", "Platform"), "membership untouched")
 	assert.Contains(t, h.logs.String(), "groups_claim_missing")
 }

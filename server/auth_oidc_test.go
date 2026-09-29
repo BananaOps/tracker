@@ -15,6 +15,7 @@ import (
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/oauth2"
 )
 
@@ -137,8 +138,10 @@ func TestOIDCGroupsClaimMissingFailsClosed(t *testing.T) {
 	before, err := h.f.users.GetByUsername(ctx, "alice")
 	require.NoError(t, err)
 
-	require.NoError(t, h.f.teams.Create(ctx,
-		&store.Team{Name: "Platform", Permissions: []string{"event:read"}, OIDCGroups: []string{"platform-eng"}}))
+	platform := h.createTeam(t, "Platform", "platform-eng")
+	require.NoError(t, h.f.users.SyncTeams(ctx, before.ID, []primitive.ObjectID{platform.ID}, nil))
+	before, err = h.f.users.GetByUsername(ctx, "alice")
+	require.NoError(t, err)
 	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{
 		"preferred_username": "alice", "email": "changed@example.com", "name": "Changed Name",
 	}})
@@ -158,14 +161,7 @@ func TestOIDCGroupsClaimMissingFailsClosed(t *testing.T) {
 	assert.Equal(t, before.Email, after.Email)
 	assert.Equal(t, before.DisplayName, after.DisplayName)
 	assert.Equal(t, before.LastLoginAt.UTC(), after.LastLoginAt.UTC())
-
-	// A new subject is not created either.
-	h.idp.SetUser(ssotest.User{Subject: "user-2", Claims: map[string]any{"preferred_username": "bob"}})
-	rec = h.login(t, "")
-	assert.Equal(t, "/login?error=oidc_failed", rec.Header().Get("Location"))
-	assert.Nil(t, cookieNamed(rec, auth.SessionCookieName))
-	_, err = h.f.users.GetByUsername(ctx, "bob")
-	assert.ErrorIs(t, err, store.ErrNotFound)
+	assert.Equal(t, before.Teams, after.Teams)
 }
 
 func TestOIDCDiscoveryErrorBodyNeverLogged(t *testing.T) {
@@ -343,4 +339,36 @@ func TestOIDCNoSecretsInLogs(t *testing.T) {
 		require.NotEmpty(t, secret)
 		assert.False(t, strings.Contains(logs, secret), "log leaks a secret")
 	}
+}
+
+// A provider that omits the groups claim for a user without groups must not
+// lock that user out: only users holding a mapped membership are refused.
+func TestOIDCGroupsClaimAbsentNewSubject(t *testing.T) {
+	ctx := context.Background()
+	h := newOIDCHarness(t, nil)
+	h.createTeam(t, "Platform", "platform-eng")
+	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
+
+	rec := h.login(t, "")
+	require.Equal(t, http.StatusSeeOther, rec.Code, rec.Body.String())
+	assert.NotNil(t, cookieNamed(rec, auth.SessionCookieName))
+	u, err := h.f.users.GetByUsername(ctx, "alice")
+	require.NoError(t, err)
+	assert.Empty(t, u.Teams)
+}
+
+func TestOIDCGroupsClaimAbsentUserWithoutMappedMembership(t *testing.T) {
+	ctx := context.Background()
+	h := newOIDCHarness(t, nil)
+	require.Equal(t, http.StatusSeeOther, h.login(t, "").Code)
+	manual := h.createTeam(t, "Manual")
+	h.createTeam(t, "Platform", "platform-eng")
+	u := h.userNamed(t, "alice")
+	require.NoError(t, h.f.users.SyncTeams(ctx, u.ID, []primitive.ObjectID{manual.ID}, nil))
+	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
+
+	rec := h.login(t, "")
+	require.Equal(t, http.StatusSeeOther, rec.Code, rec.Body.String())
+	assert.NotNil(t, cookieNamed(rec, auth.SessionCookieName))
+	assert.Equal(t, []string{"Manual"}, teamNames(h.me(t, cookieNamed(rec, auth.SessionCookieName))))
 }

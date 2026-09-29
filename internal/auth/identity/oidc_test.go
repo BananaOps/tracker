@@ -430,7 +430,7 @@ func TestSyncOIDCTeamsMissingClaim(t *testing.T) {
 	bob, err = users.GetByID(ctx, bob.ID)
 	require.NoError(t, err)
 
-	// Mapped teams and absent claim: refused, nothing written.
+	// Mapped teams, absent claim and a mapped membership: refused, nothing written.
 	_, err = SyncOIDCTeams(ctx, users, teams, bob, nil, false)
 	assert.ErrorIs(t, err, ErrOIDCGroupsClaimMissing)
 	got, err := users.GetByID(ctx, bob.ID)
@@ -444,6 +444,20 @@ func TestSyncOIDCTeamsMissingClaim(t *testing.T) {
 	got, err = users.GetByID(ctx, bob.ID)
 	require.NoError(t, err)
 	assert.Empty(t, got.Teams)
+
+	// Absent claim and no mapped membership: treated as no groups, no error.
+	manual := &store.Team{Name: "Manual"}
+	require.NoError(t, teams.Create(ctx, manual))
+	require.NoError(t, users.SyncTeams(ctx, bob.ID, []primitive.ObjectID{manual.ID}, nil))
+	bob, err = users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	res, err = SyncOIDCTeams(ctx, users, teams, bob, nil, false)
+	require.NoError(t, err)
+	assert.Empty(t, res.Added)
+	assert.Empty(t, res.Removed)
+	got, err = users.GetByID(ctx, bob.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []primitive.ObjectID{manual.ID}, got.Teams)
 }
 
 func TestSyncOIDCTeamsRemovesStaleMembership(t *testing.T) {
@@ -536,9 +550,14 @@ func (f fakeMappedTeams) ListWithOIDCGroups(context.Context) ([]*store.Team, err
 
 func TestCheckOIDCGroupsClaim(t *testing.T) {
 	ctx := context.Background()
-	mapped := fakeMappedTeams{teams: []*store.Team{{Name: "Platform", OIDCGroups: []string{"g"}}}}
+	platform := &store.Team{ID: primitive.NewObjectID(), Name: "Platform", OIDCGroups: []string{"g"}}
+	mapped := fakeMappedTeams{teams: []*store.Team{platform}}
+	holder := &store.User{Teams: []primitive.ObjectID{platform.ID}}
+	other := &store.User{Teams: []primitive.ObjectID{primitive.NewObjectID()}}
 
-	assert.ErrorIs(t, CheckOIDCGroupsClaim(ctx, mapped, false), ErrOIDCGroupsClaimMissing)
-	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, true))
-	assert.NoError(t, CheckOIDCGroupsClaim(ctx, fakeMappedTeams{}, false))
+	assert.ErrorIs(t, CheckOIDCGroupsClaim(ctx, mapped, holder, false), ErrOIDCGroupsClaimMissing)
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, holder, true))
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, other, false), "no mapped membership")
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, nil, false), "new subject")
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, fakeMappedTeams{}, holder, false), "no mapped team")
 }

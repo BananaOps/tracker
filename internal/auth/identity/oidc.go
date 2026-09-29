@@ -150,26 +150,41 @@ type TeamSyncResult struct {
 	Kept []string
 }
 
-// ErrOIDCGroupsClaimMissing is returned when teams are mapped to OIDC groups
-// but the identity provider sent no groups claim: nothing is granted or
-// removed, so a broken mapper cannot strip every user of its rights.
-var ErrOIDCGroupsClaimMissing = errors.New("oidc groups claim is missing while teams are mapped to groups")
+// ErrOIDCGroupsClaimMissing is returned when teams are mapped to OIDC groups,
+// the identity provider sent no groups claim and the user already holds a
+// mapped membership: nothing is granted or removed, so a broken mapper cannot
+// strip a user of its rights. A user holding no mapped membership has nothing
+// to lose and is treated as having no groups.
+var ErrOIDCGroupsClaimMissing = errors.New("oidc groups claim is missing while the user holds mapped team memberships")
 
 // CheckOIDCGroupsClaim is the precondition of SyncOIDCTeams, exposed so a
-// caller can refuse a login before writing anything: it returns
-// ErrOIDCGroupsClaimMissing when at least one team is mapped to OIDC groups
-// and the claim was not sent.
-func CheckOIDCGroupsClaim(ctx context.Context, teams OIDCTeamStore, groupsPresent bool) error {
+// caller can refuse a login before writing anything. user is the account
+// already bound to the identity, read-only, or nil for a new subject. It
+// returns ErrOIDCGroupsClaimMissing when the claim was not sent, at least one
+// team is mapped to OIDC groups and user holds one of the mapped teams.
+func CheckOIDCGroupsClaim(ctx context.Context, teams OIDCTeamStore, user *store.User, groupsPresent bool) error {
+	if groupsPresent {
+		return nil
+	}
 	mapped, err := teams.ListWithOIDCGroups(ctx)
 	if err != nil {
 		return fmt.Errorf("list mapped teams: %w", err)
 	}
-	return checkGroupsClaim(mapped, groupsPresent)
+	return checkGroupsClaim(mapped, user, groupsPresent)
 }
 
-func checkGroupsClaim(mapped []*store.Team, groupsPresent bool) error {
-	if len(mapped) > 0 && !groupsPresent {
-		return ErrOIDCGroupsClaimMissing
+func checkGroupsClaim(mapped []*store.Team, user *store.User, groupsPresent bool) error {
+	if groupsPresent || user == nil {
+		return nil
+	}
+	held := make(map[primitive.ObjectID]bool, len(user.Teams))
+	for _, id := range user.Teams {
+		held[id] = true
+	}
+	for _, t := range mapped {
+		if held[t.ID] {
+			return ErrOIDCGroupsClaimMissing
+		}
 	}
 	return nil
 }
@@ -177,8 +192,9 @@ func checkGroupsClaim(mapped []*store.Team, groupsPresent bool) error {
 // SyncOIDCTeams makes the user a member of every team whose OIDC groups
 // intersect groups, and removes it from the other mapped teams. Teams without
 // OIDC groups are left alone. Comparison is exact and case sensitive.
-// groupsPresent tells whether the claim was sent at all: absent with mapped
-// teams fails without any write, present but empty means no group.
+// groupsPresent tells whether the claim was sent at all: absent fails without
+// any write when the user holds a mapped membership and otherwise means no
+// group, like a present but empty claim.
 // Both directions are targeted and idempotent over every mapped team, so a
 // membership changed elsewhere since the user was loaded is corrected too;
 // Added and Removed report only the changes relative to the loaded user.
@@ -191,7 +207,7 @@ func SyncOIDCTeams(ctx context.Context, users OIDCMembershipStore, teams OIDCTea
 	if err != nil {
 		return res, fmt.Errorf("list mapped teams: %w", err)
 	}
-	if err := checkGroupsClaim(mapped, groupsPresent); err != nil {
+	if err := checkGroupsClaim(mapped, user, groupsPresent); err != nil {
 		return res, err
 	}
 	if len(mapped) == 0 {

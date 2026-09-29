@@ -182,8 +182,21 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 
 	// Refuse before any write: resolving the user would create it or refresh
 	// its profile and last login although the sync is then going to refuse.
-	if h.cfg.OIDC.TeamSync {
-		if err := identity.CheckOIDCGroupsClaim(ctx, h.teams, claims.GroupsPresent); err != nil {
+	if h.cfg.OIDC.TeamSync && !claims.GroupsPresent {
+		// Read-only lookup: the rule needs the memberships the user holds now.
+		var existing *store.User
+		found, err := h.users.GetByOIDCIdentity(ctx, claims.Issuer, claims.Subject)
+		switch {
+		case err == nil:
+			existing = found
+		case !errors.Is(err, store.ErrNotFound):
+			h.logger.Error("auth.login", "method", "oidc", "result", "failure", "reason", "resolve_failed",
+				"issuer", claims.Issuer, "subject", claims.Subject, "ip", ip, "error", err)
+			h.count(authz.LoginFailure)
+			h.redirectError(w, r, oidcErrFailed)
+			return
+		}
+		if err := identity.CheckOIDCGroupsClaim(ctx, h.teams, existing, claims.GroupsPresent); err != nil {
 			h.count(authz.LoginFailure)
 			h.logSyncFailure(err, claims, ip)
 			h.redirectError(w, r, oidcErrFailed)
