@@ -32,7 +32,6 @@ const (
 
 	maxIdPErrorLength            = 64
 	maxIdPErrorDescriptionLength = 200
-	maxLoggedErrorLength         = 200
 
 	msgNotProvisioned = "Your identity provider account is not registered in Tracker. Ask a Tracker administrator for access."
 	msgUserDisabled   = "Your Tracker account is disabled. Ask a Tracker administrator."
@@ -101,7 +100,7 @@ func (h *OIDCHTTP) handleLogin(w http.ResponseWriter, r *http.Request, _ map[str
 	}
 	target, err := h.provider.AuthCodeURL(r.Context(), tx.State, tx.Nonce, tx.Verifier)
 	if err != nil {
-		h.logger.Error("auth.login", "method", "oidc", "result", "failure", "reason", "provider_unavailable", "error", truncate(err.Error(), maxLoggedErrorLength))
+		h.logger.Error("auth.login", "method", "oidc", "result", "failure", "reason", "provider_unavailable", "ip", auth.ClientIP(r, h.cfg.TrustProxy))
 		h.count(authz.LoginFailure)
 		h.redirectError(w, r, oidcErrUnavailable)
 		return
@@ -181,6 +180,17 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 		return
 	}
 
+	// Refuse before any write: resolving the user would create it or refresh
+	// its profile and last login although the sync is then going to refuse.
+	if h.cfg.OIDC.TeamSync {
+		if err := identity.CheckOIDCGroupsClaim(ctx, h.teams, claims.GroupsPresent); err != nil {
+			h.count(authz.LoginFailure)
+			h.logSyncFailure(err, claims, ip)
+			h.redirectError(w, r, oidcErrFailed)
+			return
+		}
+	}
+
 	// Only issuer and subject identify a user; the email claim is data, never
 	// a key to find or link an account.
 	user, created, err := identity.ResolveOIDCUser(ctx, h.users, identity.OIDCIdentity{
@@ -220,13 +230,7 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 		sync, err = identity.SyncOIDCTeams(ctx, h.users, h.teams, user, claims.Groups, claims.GroupsPresent)
 		if err != nil {
 			h.count(authz.LoginFailure)
-			if errors.Is(err, identity.ErrOIDCGroupsClaimMissing) {
-				h.logger.Error("auth.oidc.sync", "method", "oidc", "result", "failure", "reason", "groups_claim_missing",
-					"claim", h.cfg.OIDC.GroupsClaim, "username", user.Username, "ip", ip)
-			} else {
-				h.logger.Error("auth.oidc.sync", "method", "oidc", "result", "failure", "reason", "sync_failed",
-					"username", user.Username, "ip", ip, "error", err)
-			}
+			h.logSyncFailure(err, claims, ip)
 			h.redirectError(w, r, oidcErrFailed)
 			return
 		}
@@ -246,6 +250,18 @@ func (h *OIDCHTTP) handleCallback(w http.ResponseWriter, r *http.Request, _ map[
 		"created", created, "teams_added", sync.Added, "teams_removed", sync.Removed, "ip", ip)
 	h.count(authz.LoginSuccess)
 	http.Redirect(w, r, sso.SafeRedirect(tx.Redirect), http.StatusSeeOther)
+}
+
+// logSyncFailure logs a refused or failed team sync. The username is the one
+// asserted by the token: the user may not exist yet.
+func (h *OIDCHTTP) logSyncFailure(err error, claims sso.Claims, ip string) {
+	if errors.Is(err, identity.ErrOIDCGroupsClaimMissing) {
+		h.logger.Error("auth.oidc.sync", "method", "oidc", "result", "failure", "reason", "groups_claim_missing",
+			"claim", h.cfg.OIDC.GroupsClaim, "username", claims.Username, "ip", ip)
+		return
+	}
+	h.logger.Error("auth.oidc.sync", "method", "oidc", "result", "failure", "reason", "sync_failed",
+		"username", claims.Username, "ip", ip, "error", err)
 }
 
 // readTransaction decrypts the transaction cookie and re-applies SafeRedirect
@@ -280,9 +296,9 @@ func (h *OIDCHTTP) logExchangeError(err error, ip string) {
 	case errors.Is(err, sso.ErrUnavailable):
 		attrs = append(attrs, "reason", "provider_unavailable")
 	case errors.Is(err, sso.ErrIDToken):
-		attrs = append(attrs, "reason", "id_token_rejected", "error", truncate(err.Error(), maxLoggedErrorLength))
+		attrs = append(attrs, "reason", "id_token_verification_failed")
 	case errors.Is(err, sso.ErrClaims):
-		attrs = append(attrs, "reason", "claims_unusable", "error", truncate(err.Error(), maxLoggedErrorLength))
+		attrs = append(attrs, "reason", "claims_unusable")
 	default:
 		attrs = append(attrs, "reason", "exchange_failed")
 	}

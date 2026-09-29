@@ -160,8 +160,9 @@ var serv = &cobra.Command{
 			}
 			provider := sso.NewOIDCProvider(authCfg.OIDC, authCfg.OIDCRedirectURL())
 			go func() {
+				// The error is not logged: go-oidc embeds the raw response body.
 				if err := provider.Discover(context.Background()); err != nil {
-					slog.Warn("OIDC discovery failed at startup, it is retried on the next login", "issuer", authCfg.OIDC.Issuer, "error", err)
+					slog.Warn("OIDC discovery failed at startup, it is retried on the next login", "issuer", authCfg.OIDC.Issuer, "reason", "provider_unavailable")
 				}
 			}()
 			server.NewOIDCHTTP(userStore, teamStore, sessions, provider, codec, authCfg).Register(mux)

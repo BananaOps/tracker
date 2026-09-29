@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -128,20 +129,69 @@ func TestOIDCTeamMappingEndToEnd(t *testing.T) {
 }
 
 func TestOIDCGroupsClaimMissingFailsClosed(t *testing.T) {
+	ctx := context.Background()
 	h := newOIDCHarness(t, nil)
-	require.NoError(t, h.f.teams.Create(context.Background(),
+
+	// Existing OIDC user, provisioned while no team was mapped.
+	require.Equal(t, http.StatusSeeOther, h.login(t, "").Code)
+	before, err := h.f.users.GetByUsername(ctx, "alice")
+	require.NoError(t, err)
+
+	require.NoError(t, h.f.teams.Create(ctx,
 		&store.Team{Name: "Platform", Permissions: []string{"event:read"}, OIDCGroups: []string{"platform-eng"}}))
-	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{"preferred_username": "alice"}})
-	before := oidcLoginCount("failure")
+	h.idp.SetUser(ssotest.User{Subject: "user-1", Claims: map[string]any{
+		"preferred_username": "alice", "email": "changed@example.com", "name": "Changed Name",
+	}})
+	failures := oidcLoginCount("failure")
 
 	rec := h.login(t, "")
 	assert.Equal(t, http.StatusSeeOther, rec.Code)
 	assert.Equal(t, "/login?error=oidc_failed", rec.Header().Get("Location"))
 	assert.Nil(t, cookieNamed(rec, auth.SessionCookieName))
-	assert.Equal(t, before+1, oidcLoginCount("failure"))
+	assert.Equal(t, failures+1, oidcLoginCount("failure"))
 	assert.Contains(t, h.logs.String(), `"level":"ERROR"`)
 	assert.Contains(t, h.logs.String(), `"claim":"groups"`)
 	assert.Contains(t, h.logs.String(), `"username":"alice"`)
+
+	after, err := h.f.users.GetByUsername(ctx, "alice")
+	require.NoError(t, err)
+	assert.Equal(t, before.Email, after.Email)
+	assert.Equal(t, before.DisplayName, after.DisplayName)
+	assert.Equal(t, before.LastLoginAt.UTC(), after.LastLoginAt.UTC())
+
+	// A new subject is not created either.
+	h.idp.SetUser(ssotest.User{Subject: "user-2", Claims: map[string]any{"preferred_username": "bob"}})
+	rec = h.login(t, "")
+	assert.Equal(t, "/login?error=oidc_failed", rec.Header().Get("Location"))
+	assert.Nil(t, cookieNamed(rec, auth.SessionCookieName))
+	_, err = h.f.users.GetByUsername(ctx, "bob")
+	assert.ErrorIs(t, err, store.ErrNotFound)
+}
+
+func TestOIDCDiscoveryErrorBodyNeverLogged(t *testing.T) {
+	broken := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("<html>LEAKED-DISCOVERY-BODY</html>"))
+	}))
+	t.Cleanup(broken.Close)
+	h := newOIDCHarness(t, func(c *auth.Config) { c.OIDC.Issuer = broken.URL })
+
+	rec := h.startRaw("")
+	assert.Equal(t, "/login?error=oidc_unavailable", rec.Header().Get("Location"))
+	assert.Contains(t, h.logs.String(), "provider_unavailable")
+	assert.NotContains(t, h.logs.String(), "LEAKED-DISCOVERY-BODY")
+}
+
+func TestOIDCVerificationErrorNeverLogsDetail(t *testing.T) {
+	h := newOIDCHarness(t, nil)
+	authURL, tx := h.start(t, "")
+	cb := h.idp.Authorize(t, authURL.String())
+	h.oidc.provider = stubProvider{err: fmt.Errorf("%w: failed to fetch keys: LEAKED-JWKS-BODY", sso.ErrIDToken)}
+
+	rec := h.callback(t, cb, tx)
+	assert.Equal(t, "/login?error=oidc_failed", rec.Header().Get("Location"))
+	assert.Contains(t, h.logs.String(), "id_token_verification_failed")
+	assert.NotContains(t, h.logs.String(), "LEAKED-JWKS-BODY")
 }
 
 func TestOIDCUserCannotChangePassword(t *testing.T) {

@@ -527,3 +527,18 @@ func TestSyncOIDCTeamsKeepsLastAdminAddedAfterLoad(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, got.Teams, admins.ID)
 }
+
+type fakeMappedTeams struct{ teams []*store.Team }
+
+func (f fakeMappedTeams) ListWithOIDCGroups(context.Context) ([]*store.Team, error) {
+	return f.teams, nil
+}
+
+func TestCheckOIDCGroupsClaim(t *testing.T) {
+	ctx := context.Background()
+	mapped := fakeMappedTeams{teams: []*store.Team{{Name: "Platform", OIDCGroups: []string{"g"}}}}
+
+	assert.ErrorIs(t, CheckOIDCGroupsClaim(ctx, mapped, false), ErrOIDCGroupsClaimMissing)
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, mapped, true))
+	assert.NoError(t, CheckOIDCGroupsClaim(ctx, fakeMappedTeams{}, false))
+}
