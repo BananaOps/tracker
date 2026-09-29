@@ -221,14 +221,19 @@ With `AUTH_OIDC_TEAM_SYNC=true`, a team lists its OIDC groups in `oidcGroups`
 - A group claim that is present but empty means "no group": the user leaves
   all mapped teams.
 - If at least one team has `oidcGroups` and the claim is **absent** from the
-  `id_token`, the login is refused with `oidc_failed` and nothing is written,
-  so a broken IdP mapper cannot silently strip everybody of their rights.
+  `id_token`, the result depends on the user. A user who already holds a
+  membership in a team that has `oidcGroups` is refused with `oidc_failed` and
+  nothing is written (no account creation, no profile refresh, no membership
+  change), so a broken IdP mapper cannot silently strip anybody of their
+  rights. A user who holds no such membership, a first login included, is
+  treated as having no group: the login succeeds and no mapped team is added.
 
-> **Configure the IdP so the groups claim is always emitted in the
-> `id_token`, as an empty array for users who have no group.** Many IdPs omit
-> the claim for such users. While team mapping is used, those users cannot sign
-> in. Check the claim by decoding a test `id_token`, and see the IdP recipes
-> below.
+> **Recommended: configure the IdP so the groups claim is always emitted in
+> the `id_token`, as an empty array for users who have no group.** Many IdPs
+> omit the claim for such users. That is harmless for a user without a mapped
+> membership, but a user who already holds one is refused as soon as the claim
+> goes missing, instead of being removed from the mapped teams. Check the
+> claim by decoding a test `id_token`, and see the IdP recipes below.
 
 Without team mapping (`AUTH_OIDC_TEAM_SYNC=false`, or no team has
 `oidcGroups`), no groups claim is needed and teams are managed by hand.
@@ -259,7 +264,7 @@ A failed login redirects to `/login?error=<code>`:
 |------|---------|
 | `oidc_denied` | The IdP returned an error (user cancelled, access denied, client not allowed). |
 | `oidc_state` | The login transaction is missing, expired (10 minutes), unreadable or does not match the `state`. |
-| `oidc_failed` | Code exchange or `id_token` verification failed, the token has no usable username, the groups claim is missing while teams are mapped, or an internal error occurred. |
+| `oidc_failed` | Code exchange or `id_token` verification failed, the token has no usable username, the groups claim is missing for a user who holds a mapped team membership, or an internal error occurred. |
 | `oidc_unavailable` | The IdP could not be reached (discovery or token endpoint). |
 
 Two refusals are shown on a `403` page instead: the account is not registered
@@ -308,7 +313,8 @@ AUTH_OIDC_CLIENT_SECRET=<from the Credentials tab>
    Object IDs (GUIDs): put those in `oidcGroups`.
 3. Groups overage: an `id_token` (JWT) carries at most 200 groups. Above that,
    Entra removes the `groups` claim and sends `_claim_names` instead, which
-   Tracker does not follow. Users in that case are refused with `oidc_failed`.
+   Tracker does not follow. Users in that case are treated as having no group,
+   or refused with `oidc_failed` if they already hold a mapped membership.
    Prevent it with Groups assigned to the application, which restricts the
    claim to the groups assigned to the app (Enterprise applications, Users and
    groups), or with app roles: define roles, assign them to groups, and set
@@ -348,7 +354,8 @@ redirect URI and the scopes `openid`, `profile` and `email`. Per the GitLab
 documentation, the `id_token` carries the `groups_direct` claim (direct group
 memberships), while `groups` is only served by the userinfo endpoint, which
 Tracker does not call. Use `groups_direct`, and check on your GitLab version
-that it is present in a test `id_token`. Values are group paths.
+that it is present in a test `id_token`. Check the GitLab documentation for
+the claim format.
 
 ```bash
 AUTH_OIDC_ISSUER=https://gitlab.com   # or the URL of your instance
@@ -387,7 +394,7 @@ AUTH_OIDC_SCOPES=openid profile email groups
 | `oidc_failed`, log `id_token_verification_failed`, issuer mismatch | `AUTH_OIDC_ISSUER` differs from the `iss` claim, often by a trailing slash. Copy the `issuer` from the IdP discovery document. |
 | The IdP shows a `redirect_uri` error | The registered URI is not exactly `<AUTH_PUBLIC_URL>/api/v1alpha1/auth/oidc/callback`. Check scheme, host, port. |
 | `oidc_failed`, log `id_token_verification_failed`, token expired | Clock skew between Tracker and the IdP. Fix NTP on the hosts. |
-| `oidc_failed`, log `groups_claim_missing` | Teams are mapped but the `id_token` has no claim named `AUTH_OIDC_GROUPS_CLAIM`. Decode a test `id_token`, check the claim name and that the mapper adds it to the ID token (not only the access token), and that it is emitted as an empty array for users without groups. |
+| `oidc_failed`, log `groups_claim_missing` | A user who already holds a mapped team membership signed in with an `id_token` that has no claim named `AUTH_OIDC_GROUPS_CLAIM`. Nothing was changed. Decode a test `id_token`, check the claim name and that the mapper adds it to the ID token (not only the access token). Emitting an empty array for users without groups is recommended. |
 | Users land in the wrong teams | `oidcGroups` values must equal the claim values exactly (Object IDs on Entra, `/parent/child` with Keycloak full paths). |
 | Loop back to login with `oidc_state` | The `tracker_oidc` cookie was not returned: `AUTH_PUBLIC_URL` is `http` while the site is served over `https` (or the reverse), the host used in the browser differs from the one in `AUTH_PUBLIC_URL`, a proxy strips cookies, or two tabs started a login. Retry with a single tab. |
 | `oidc_unavailable` | The IdP is unreachable from Tracker (network, DNS, TLS trust). Sign in with `admin`, fix the network, and retry: discovery is retried on the next login. |
@@ -397,7 +404,8 @@ AUTH_OIDC_SCOPES=openid profile email groups
 
 A team carries a list of permissions, an optional list of catalog services
 (empty means every service; per-service filtering is enforced in a later
-release) and optional OIDC group names (see [Single Sign-On](#single-sign-on-openid-connect)). Users belong
+release) and optional OIDC group names (see
+[Single Sign-On](#single-sign-on-openid-connect)). Users belong
 to any number of teams and get the union of their rights. The built-in
 `Administrators` team cannot be renamed, deleted or stripped of permissions.
 
