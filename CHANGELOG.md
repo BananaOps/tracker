@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.22.0](https://github.com/BananaOps/tracker/compare/v0.21.1...v0.22.0) (2026-10-01)
+
+
+### Features
+
+* **auth:** local accounts, teams, permissions and API keys ([#200](https://github.com/BananaOps/tracker/issues/200)) ([31259c3](https://github.com/BananaOps/tracker/commit/31259c30e506bd9406f8166472b3f61803ae6b36))
+* **auth:** OpenID Connect login with team mapping ([#214](https://github.com/BananaOps/tracker/issues/214)) ([1b85a9a](https://github.com/BananaOps/tracker/commit/1b85a9ad519a1f171d3369e7e1d6bbdc3921c5a4))
+
+
+### Bug Fixes
+
+* **deps:** upgrade react-router-dom to v7 and patch vulnerable transitive packages ([#202](https://github.com/BananaOps/tracker/issues/202)) ([a4f9afc](https://github.com/BananaOps/tracker/commit/a4f9afc4a4c1f5f1c8756654aa4decbebae3a03c))
+* **deps:** upgrade tailwindcss to v4 and eslint to v10 ([#206](https://github.com/BananaOps/tracker/issues/206)) ([6723448](https://github.com/BananaOps/tracker/commit/67234483377af4fc87973c747c0cdd78c70b2191))
+* **docker:** run container as non-root user ([#198](https://github.com/BananaOps/tracker/issues/198)) ([1769020](https://github.com/BananaOps/tracker/commit/176902037d35dcdec1c72aa7815730edc94d8426))
+
 ## [0.21.1](https://github.com/BananaOps/tracker/compare/v0.21.0...v0.21.1) (2026-07-27)
 
 
