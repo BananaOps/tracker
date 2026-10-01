@@ -254,7 +254,7 @@ export default function UsedDeliverablesManager({
                     <button
                       type="button"
                       onClick={() => setNewDeliverable({ ...newDeliverable, versionUsed: selectedDeliverableInfo.latestVersion! })}
-                      className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                      className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-sm hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
                     >
                       Latest
                     </button>
@@ -263,7 +263,7 @@ export default function UsedDeliverablesManager({
                     <button
                       type="button"
                       onClick={() => setNewDeliverable({ ...newDeliverable, versionUsed: selectedDeliverableInfo.referenceVersion! })}
-                      className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                     >
                       Recommended
                     </button>

@@ -249,7 +249,7 @@ export default function Insights() {
         <div className="p-5 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-5 flex-wrap">
-              <Filter className="w-4 h-4 flex-shrink-0" style={{ color: T.onSurfaceVar }} />
+              <Filter className="w-4 h-4 shrink-0" style={{ color: T.onSurfaceVar }} />
               <Combobox
                 label="Environment"
                 value={filters.environment}
@@ -284,7 +284,7 @@ export default function Insights() {
                 <select
                   value={isCustomPeriod ? -1 : selectedDays}
                   onChange={(e) => handlePeriodChange(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg text-sm focus:outline-none border-0 w-36"
+                  className="px-3 py-2 rounded-lg text-sm focus:outline-hidden border-0 w-36"
                   style={{ background: T.surfaceLow, color: T.onSurface }}>
                   <option value={7}>7 days</option>
                   <option value={14}>14 days</option>
@@ -301,13 +301,13 @@ export default function Insights() {
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-medium" style={{ color: T.onSurfaceVar }}>Start:</label>
                   <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-sm focus:outline-none border-0"
+                    className="px-3 py-1.5 rounded-lg text-sm focus:outline-hidden border-0"
                     style={{ background: T.surfaceLow, color: T.onSurface }} />
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-medium" style={{ color: T.onSurfaceVar }}>End:</label>
                   <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-sm focus:outline-none border-0"
+                    className="px-3 py-1.5 rounded-lg text-sm focus:outline-hidden border-0"
                     style={{ background: T.surfaceLow, color: T.onSurface }} />
                 </div>
                 <button onClick={() => { setIsCustomPeriod(false); setSelectedDays(30) }}
@@ -396,13 +396,13 @@ export default function Insights() {
                     <p className="text-sm font-medium truncate">{project.project}</p>
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       {project.deployments > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${COLORS.deployments}20`, color: COLORS.deployments }}>{project.deployments}d</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm" style={{ background: `${COLORS.deployments}20`, color: COLORS.deployments }}>{project.deployments}d</span>
                       )}
                       {project.incidents > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${COLORS.incidents}20`, color: COLORS.incidents }}>{project.incidents}i</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm" style={{ background: `${COLORS.incidents}20`, color: COLORS.incidents }}>{project.incidents}i</span>
                       )}
                       {project.operations > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: `${COLORS.operations}20`, color: COLORS.operations }}>{project.operations}o</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm" style={{ background: `${COLORS.operations}20`, color: COLORS.operations }}>{project.operations}o</span>
                       )}
                     </div>
                   </div>
@@ -438,7 +438,7 @@ export default function Insights() {
               <div className="flex flex-col gap-3">
                 {pieData.map(({ name, value, color }) => (
                   <div key={name} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: color }} />
+                    <div className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} />
                     <span className="text-sm font-medium">{name}</span>
                     <span className="text-sm font-black ml-auto" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>
                       {value}
@@ -461,7 +461,7 @@ export default function Insights() {
       {/* Event Details Modal */}
       {eventModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={closeModal} />
           <div className="relative w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden"
             style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center justify-between p-6" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>

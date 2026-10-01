@@ -315,7 +315,7 @@ export default function RpaUsage() {
                     placeholder="Search…"
                     value={search}
                     onChange={e => { setSearch(e.target.value); setPage(0) }}
-                    className="pl-9 pr-3 py-2 rounded-lg text-xs focus:outline-none w-48"
+                    className="pl-9 pr-3 py-2 rounded-lg text-xs focus:outline-hidden w-48"
                     style={{ background: a('outlineVar', 0.07), color: T.onSurface, border: `1px solid ${a('outlineVar', 0.15)}` }}
                   />
                 </div>
@@ -340,7 +340,7 @@ export default function RpaUsage() {
               {uniqueStatuses.map(s => (
                 <button key={s}
                   onClick={() => { setStatusFilter(prev => prev === s ? 'all' : s); setPage(0) }}
-                  className="px-2 py-0.5 rounded text-[11px] font-medium transition-all shrink-0"
+                  className="px-2 py-0.5 rounded-sm text-[11px] font-medium transition-all shrink-0"
                   style={{
                     background: statusFilter === s ? a('primary', 0.15) : 'transparent',
                     color: statusFilter === s ? T.primary : T.onSurfaceVar,
@@ -456,7 +456,7 @@ export default function RpaUsage() {
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className="w-8 h-8 rounded flex items-center justify-center transition-all disabled:opacity-30"
+                className="w-8 h-8 rounded-sm flex items-center justify-center transition-all disabled:opacity-30"
                 style={{ background: a('outlineVar', 0.1), color: T.onSurfaceVar }}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -468,7 +468,7 @@ export default function RpaUsage() {
                   <button
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className="w-8 h-8 rounded text-xs font-bold transition-all"
+                    className="w-8 h-8 rounded-sm text-xs font-bold transition-all"
                     style={pageNum === page
                       ? { background: T.primary, color: '#1a0050' }
                       : { background: a('outlineVar', 0.1), color: T.onSurfaceVar }
@@ -482,7 +482,7 @@ export default function RpaUsage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className="w-8 h-8 rounded flex items-center justify-center transition-all disabled:opacity-30"
+                className="w-8 h-8 rounded-sm flex items-center justify-center transition-all disabled:opacity-30"
                 style={{ background: a('outlineVar', 0.1), color: T.onSurfaceVar }}
               >
                 <ChevronRight className="w-4 h-4" />

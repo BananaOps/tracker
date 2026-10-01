@@ -190,7 +190,7 @@ export default function CommunicationChannelsManager({
                   type: e.target.value as CommunicationType,
                   url: '' // Reset URL when type changes
                 }))}
-                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value={CommunicationType.SLACK}>Slack</option>
                 <option value={CommunicationType.TEAMS}>Microsoft Teams</option>
@@ -209,7 +209,7 @@ export default function CommunicationChannelsManager({
                 placeholder="e.g., #general, Support Team"
                 value={newChannel.name}
                 onChange={(e) => setNewChannel(prev => ({ ...prev, name: e.target.value }))}
-                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function CommunicationChannelsManager({
               placeholder={getPlaceholderUrl(newChannel.type || CommunicationType.SLACK)}
               value={newChannel.url}
               onChange={(e) => setNewChannel(prev => ({ ...prev, url: e.target.value }))}
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
@@ -234,7 +234,7 @@ export default function CommunicationChannelsManager({
               placeholder="Brief description of this communication channel"
               value={newChannel.description}
               onChange={(e) => setNewChannel(prev => ({ ...prev, description: e.target.value }))}
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 

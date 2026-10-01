@@ -483,7 +483,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     <>
     <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
 
       {/* Side Panel */}
       <div className={`animate-slide-in relative h-full shadow-2xl overflow-hidden flex flex-col transition-[max-width] duration-300 ease-out w-full ${expanded ? 'max-w-full' : 'max-w-3xl'}`}
@@ -577,7 +577,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
             >
               <History className="w-3.5 h-3.5" />
               History
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ background: ha('outline-var', 0.16), color: hud.onSurfaceVar }}>
+              <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-bold" style={{ background: ha('outline-var', 0.16), color: hud.onSurfaceVar }}>
                 {changelog.length}
               </span>
             </button>
@@ -737,7 +737,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                     <label className="flex items-center gap-3 p-3 rounded-lg cursor-pointer" style={{ background: ha('outline-var', 0.08), border: `1px solid ${ha('outline-var', 0.15)}` }}>
                       <input type="checkbox" checked={editedEvent.attributes.impact || false}
                         onChange={(e) => setEditedEvent({ ...editedEvent, attributes: { ...editedEvent.attributes, impact: e.target.checked } })}
-                        className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
+                        className="rounded-sm border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500" />
                       <i
                         className={`fa-solid fa-meteor${editedEvent.attributes.impact ? ' fa-beat-fade' : ''}`}
                         style={editedEvent.attributes.impact

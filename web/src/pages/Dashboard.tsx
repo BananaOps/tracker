@@ -528,7 +528,7 @@ export default function Dashboard() {
                             key={`${row.event.metadata?.id}-${laneIndex}`}
                             title={row.event.title}
                             onClick={() => setSelectedEvent(row.event)}
-                            className="absolute rounded px-1.5 text-[9px] font-semibold hover:brightness-95 transition-all flex items-center gap-1 overflow-hidden"
+                            className="absolute rounded-sm px-1.5 text-[9px] font-semibold hover:brightness-95 transition-all flex items-center gap-1 overflow-hidden"
                             style={{
                               top: `${4 + laneIndex * 24}px`,
                               height: '20px',
@@ -666,7 +666,7 @@ export default function Dashboard() {
                   <div className="text-[11px] mt-0.5 truncate" style={{ color: T.onSurfaceVar }}>{item.desc}</div>
                 </div>
                 <div className="shrink-0 flex flex-col items-end gap-1.5">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-sm whitespace-nowrap" style={{ color: T.onSurfaceVar, background: a('outlineVar', 0.12) }}>{item.badge}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-xs whitespace-nowrap" style={{ color: T.onSurfaceVar, background: a('outlineVar', 0.12) }}>{item.badge}</span>
                   <ArrowRight className="w-3.5 h-3.5" style={{ color: T.onSurfaceVar }} />
                 </div>
               </Link>

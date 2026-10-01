@@ -197,7 +197,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
     success: 'rgb(var(--hud-success))',
   }
 
-  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-none"
+  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-hidden"
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 

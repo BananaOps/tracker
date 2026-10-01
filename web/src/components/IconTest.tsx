@@ -3,7 +3,7 @@ import { faRocket, faWrench, faCodeBranch, faFire } from '@fortawesome/free-soli
 
 export default function IconTest() {
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
+    <div className="p-4 bg-white rounded-lg shadow-sm">
       <h3 className="text-lg font-bold mb-4">Test des icônes Font Awesome</h3>
       <div className="space-y-2">
         <div className="flex items-center space-x-2">

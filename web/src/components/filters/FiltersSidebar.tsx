@@ -89,13 +89,13 @@ export default function FiltersSidebar({
                   >
                     <div
                       onClick={option.onToggle}
-                      className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                      className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                       style={{
                         background: option.checked ? option.palette.bg : 'rgb(var(--hud-outline-var) / 0.2)',
                         border: `1.5px solid ${option.checked ? option.palette.border : 'rgb(var(--hud-outline-var) / 0.55)'}`,
                       }}
                     >
-                      {option.checked && <div className="w-2 h-2 rounded-sm" style={{ background: option.palette.text }} />}
+                      {option.checked && <div className="w-2 h-2 rounded-xs" style={{ background: option.palette.text }} />}
                     </div>
                     <span className="text-sm font-medium truncate" style={{ color: option.checked ? option.palette.text : 'rgb(var(--hud-on-surface))' }} title={option.label}>
                       {option.label}
@@ -141,13 +141,13 @@ export default function FiltersSidebar({
                     >
                       <div
                         onClick={option.onToggle}
-                        className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                         style={{
                           background: option.checked ? 'rgb(var(--hud-primary) / 0.18)' : 'rgb(var(--hud-outline-var) / 0.2)',
                           border: `1.5px solid ${option.checked ? 'rgb(var(--hud-primary) / 0.6)' : 'rgb(var(--hud-outline-var) / 0.55)'}`,
                         }}
                       >
-                        {option.checked && <div className="w-2 h-2 rounded-sm" style={{ background: primary }} />}
+                        {option.checked && <div className="w-2 h-2 rounded-xs" style={{ background: primary }} />}
                       </div>
                       <span className="text-sm font-medium truncate" style={{ color: option.checked ? primary : 'rgb(var(--hud-on-surface))' }} title={option.label}>
                         {option.label}

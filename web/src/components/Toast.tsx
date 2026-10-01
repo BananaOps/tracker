@@ -17,9 +17,9 @@ export default function Toast({ message, onClose, duration = 3000 }: ToastProps)
   }, [duration, onClose])
 
   return (
-    <div className="fixed top-4 right-4 z-[60] animate-slide-in">
+    <div className="fixed top-4 right-4 z-60 animate-slide-in">
       <div className="bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-3 min-w-[300px]">
-        <CheckCircle className="w-5 h-5 flex-shrink-0" />
+        <CheckCircle className="w-5 h-5 shrink-0" />
         <span className="flex-1 font-medium">{message}</span>
         <button
           onClick={onClose}

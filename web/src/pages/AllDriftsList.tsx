@@ -439,7 +439,7 @@ export default function AllDriftsList() {
 
       {/* Table */}
       {filteredDrifts.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
           <FontAwesomeIcon icon={faCodeBranch} className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             {hasActiveFilters ? 'No drifts match your filters' : 'No drifts found'}
@@ -464,7 +464,7 @@ export default function AllDriftsList() {
           )}
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-full">
               <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -499,7 +499,7 @@ export default function AllDriftsList() {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                        <FontAwesomeIcon icon={faCodeBranch} className="w-4 h-4 text-yellow-500 shrink-0" />
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate" title={drift.attributes.service}>
                           {drift.attributes.service}
                         </span>
@@ -536,7 +536,7 @@ export default function AllDriftsList() {
                       </Badge>
                     </td>
                     <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {getTimeSince(drift.metadata?.createdAt)}
                       </span>
                     </td>

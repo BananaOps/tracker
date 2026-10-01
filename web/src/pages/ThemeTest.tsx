@@ -59,10 +59,10 @@ export default function ThemeTest() {
         <div className="card">
           <h4 className="font-semibold text-hud-on-surface mb-2">Backgrounds</h4>
           <div className="space-y-2">
-            <div className="p-2 bg-hud-surface-low rounded">
+            <div className="p-2 bg-hud-surface-low rounded-sm">
               <p className="text-sm text-hud-on-surface">Surface low</p>
             </div>
-            <div className="p-2 bg-hud-surface-high rounded">
+            <div className="p-2 bg-hud-surface-high rounded-sm">
               <p className="text-sm text-hud-on-surface">Surface high</p>
             </div>
           </div>

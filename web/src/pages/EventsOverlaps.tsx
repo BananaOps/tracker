@@ -277,7 +277,7 @@ export default function EventsOverlaps() {
                 <select
                   value={isCustomPeriod ? -1 : selectedDays}
                   onChange={(e) => handlePeriodChange(Number(e.target.value))}
-                  className="h-9 px-3 rounded-md text-xs font-semibold focus:outline-none"
+                  className="h-9 px-3 rounded-md text-xs font-semibold focus:outline-hidden"
                   style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
                 >
                   <option value={1}>1 day</option>
@@ -300,7 +300,7 @@ export default function EventsOverlaps() {
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="h-9 px-3 rounded-md text-xs focus:outline-none"
+                  className="h-9 px-3 rounded-md text-xs focus:outline-hidden"
                   style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
                 />
               </div>
@@ -310,7 +310,7 @@ export default function EventsOverlaps() {
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="h-9 px-3 rounded-md text-xs focus:outline-none"
+                  className="h-9 px-3 rounded-md text-xs focus:outline-hidden"
                   style={{ background: '#F8FAFD', color: T.onSurface, border: '1px solid #E1E7F2' }}
                 />
               </div>

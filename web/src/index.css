@@ -1,6 +1,213 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '@fortawesome/fontawesome-svg-core/styles.css' layer(base);
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Tailwind 3 line heights. v4 expresses them as unitless ratios, which a
+     smaller child (text-[10px] inside text-xs) then inherits and shrinks by. */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+
+  --color-hud-bg: rgb(var(--hud-bg));
+  --color-hud-surface: rgb(var(--hud-surface));
+  --color-hud-surface-low: rgb(var(--hud-surface-low));
+  --color-hud-surface-high: rgb(var(--hud-surface-high));
+  --color-hud-surface-highest: rgb(var(--hud-surface-highest));
+  --color-hud-primary: rgb(var(--hud-primary));
+  --color-hud-primary-dim: rgb(var(--hud-primary-dim));
+  --color-hud-secondary: rgb(var(--hud-secondary));
+  --color-hud-tertiary: rgb(var(--hud-tertiary));
+  --color-hud-on-surface: rgb(var(--hud-on-surface));
+  --color-hud-on-surface-var: rgb(var(--hud-on-surface-var));
+  --color-hud-outline: rgb(var(--hud-outline));
+  --color-hud-outline-var: rgb(var(--hud-outline-var));
+  --color-hud-success: rgb(var(--hud-success));
+  --color-hud-error: rgb(var(--hud-error));
+  --color-hud-warning: rgb(var(--hud-warning));
+
+  --font-grotesk: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+  --text-fs-100: 0.75rem;
+  --text-fs-100--line-height: 1rem;
+  --text-fs-200: 0.875rem;
+  --text-fs-200--line-height: 1.25rem;
+  --text-fs-300: 1rem;
+  --text-fs-300--line-height: 1.5rem;
+  --text-fs-400: 1.25rem;
+  --text-fs-400--line-height: 1.75rem;
+  --text-fs-500: 1.5rem;
+  --text-fs-500--line-height: 2rem;
+  --text-fs-600: 2rem;
+  --text-fs-600--line-height: 2.5rem;
+  --text-fs-700: 2.25rem;
+  --text-fs-700--line-height: 2.75rem;
+  --text-fs-800: 3rem;
+  --text-fs-800--line-height: 3.5rem;
+
+  --radius-ig-sm: 4px;
+  --radius-ig: 6px;
+  --radius-ig-md: 8px;
+  --radius-ig-lg: 12px;
+
+  --shadow-ig-card: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-ig-card-hover:
+    0 4px 12px rgb(0 0 0 / 0.1), 0 1px 3px rgb(0 0 0 / 0.06);
+  --shadow-ig-dropdown:
+    0 8px 24px rgb(0 0 0 / 0.12), 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-ig-focus: 0 0 0 3px rgb(var(--hud-primary) / 0.15);
+
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 4px 1px currentColor;
+    }
+    50% {
+      box-shadow: 0 0 10px 3px currentColor;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* Tailwind 3 placeholder color; v4 defaults to 50% of the text color. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150;
+  background-color: rgb(var(--hud-primary));
+  color: white;
+  box-shadow: 0 1px 2px rgb(var(--hud-primary) / 0.25);
+  &:hover {
+    background-color: rgb(var(--hud-primary-dim));
+    box-shadow: 0 2px 6px rgb(var(--hud-primary) / 0.35);
+  }
+  &:active {
+    transform: translateY(0.5px);
+  }
+}
+
+@utility btn-secondary {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150 border;
+  background-color: rgb(var(--hud-surface));
+  color: rgb(var(--hud-on-surface));
+  border-color: rgb(var(--hud-outline-var));
+  &:hover {
+    background-color: rgb(var(--hud-surface-high));
+    border-color: rgb(var(--hud-outline));
+  }
+}
+
+@utility card {
+  @apply rounded-lg p-6 border;
+  background-color: rgb(var(--hud-surface));
+  border-color: rgb(var(--hud-outline-var) / 0.6);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.04),
+    0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+@utility input {
+  @apply w-full px-3 py-2 rounded-md text-sm focus:outline-hidden transition-all duration-150 border;
+  height: 36px;
+  background-color: rgb(var(--hud-surface));
+  border-color: rgb(var(--hud-outline-var));
+  color: rgb(var(--hud-on-surface));
+  &:focus {
+    border-color: rgb(var(--hud-primary));
+    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
+  }
+  &::placeholder {
+    color: rgb(var(--hud-on-surface-var));
+  }
+}
+
+@utility select {
+  @apply w-full px-3 py-2 rounded-md text-sm focus:outline-hidden transition-all duration-150 border;
+  height: 36px;
+  background-color: rgb(var(--hud-surface));
+  border-color: rgb(var(--hud-outline-var));
+  color: rgb(var(--hud-on-surface));
+  &:focus {
+    border-color: rgb(var(--hud-primary));
+    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
+  }
+}
+
+@utility animate-slide-in {
+  animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility icon-gradient {
+  /* Intergalactic-palette icon colors */
+  color: #1b3575;
+}
+
+@utility icon-gradient-blue {
+  color: #1b3575;
+}
+
+@utility icon-gradient-purple {
+  color: #4a7fdb;
+}
+
+@utility icon-gradient-yellow {
+  color: #e8580a;
+}
+
+@utility icon-gradient-red {
+  color: #c0330a;
+}
 
 @layer base {
   /* ── Intergalactic Design System Tokens ── */
@@ -97,178 +304,134 @@
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150;
-    background-color: rgb(var(--hud-primary));
-    color: white;
-    box-shadow: 0 1px 2px rgb(var(--hud-primary) / 0.25);
-  }
-  .btn-primary:hover {
-    background-color: rgb(var(--hud-primary-dim));
-    box-shadow: 0 2px 6px rgb(var(--hud-primary) / 0.35);
-  }
-  .btn-primary:active {
-    transform: translateY(0.5px);
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150 border;
-    background-color: rgb(var(--hud-surface));
-    color: rgb(var(--hud-on-surface));
-    border-color: rgb(var(--hud-outline-var));
-  }
-  .btn-secondary:hover {
-    background-color: rgb(var(--hud-surface-high));
-    border-color: rgb(var(--hud-outline));
-  }
-
-  .card {
-    @apply rounded-lg p-6 border;
-    background-color: rgb(var(--hud-surface));
-    border-color: rgb(var(--hud-outline-var) / 0.6);
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 1px 2px rgb(0 0 0 / 0.06);
-  }
-
-  .input {
-    @apply w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all duration-150 border;
-    height: 36px;
-    background-color: rgb(var(--hud-surface));
-    border-color: rgb(var(--hud-outline-var));
-    color: rgb(var(--hud-on-surface));
-  }
-  .input:focus {
-    border-color: rgb(var(--hud-primary));
-    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
-  }
-  .input::placeholder {
-    color: rgb(var(--hud-on-surface-var));
-  }
-
-  .select {
-    @apply w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all duration-150 border;
-    height: 36px;
-    background-color: rgb(var(--hud-surface));
-    border-color: rgb(var(--hud-outline-var));
-    color: rgb(var(--hud-on-surface));
-  }
-  .select:focus {
-    border-color: rgb(var(--hud-primary));
-    box-shadow: 0 0 0 3px rgb(var(--hud-primary) / 0.12);
-  }
-}
-
 @layer utilities {
   @keyframes slide-in {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
-  }
-  .animate-slide-in {
-    animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   @keyframes fade-up {
     from { transform: translateY(8px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-  .animate-fade-up {
-    animation: fade-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
+}
 
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Dark mode overrides. They target existing utility classes, so they stay
+   plain CSS outside the utilities layer rather than becoming utilities. */
+/* Dark mode icon color overrides */
+.dark .icon-gradient {
+  color: #4a7fdb;
+}
+.dark .icon-gradient-blue {
+  color: #4a7fdb;
+}
+.dark .icon-gradient-purple {
+  color: #99afe8;
+}
+.dark .icon-gradient-yellow {
+  color: #f59e0b;
+}
+.dark .icon-gradient-red {
+  color: #e8580a;
+}
 
-  /* Intergalactic-palette icon colors */
-  .icon-gradient {
-    color: #1b3575;
-  }
-  .icon-gradient-blue {
-    color: #1b3575;
-  }
-  .icon-gradient-purple {
-    color: #4a7fdb;
-  }
-  .icon-gradient-yellow {
-    color: #e8580a;
-  }
-  .icon-gradient-red {
-    color: #c0330a;
-  }
-
-  /* Dark mode icon color overrides */
-  .dark .icon-gradient {
-    color: #4a7fdb;
-  }
-  .dark .icon-gradient-blue {
-    color: #4a7fdb;
-  }
-  .dark .icon-gradient-purple {
-    color: #99afe8;
-  }
-  .dark .icon-gradient-yellow {
-    color: #f59e0b;
-  }
-  .dark .icon-gradient-red {
-    color: #e8580a;
-  }
-
-  /* Dark mode compatibility layer for legacy gray Tailwind classes */
-  .dark .text-gray-900,
-  .dark .text-gray-800,
-  .dark .text-gray-700 {
-    color: rgb(var(--hud-on-surface)) !important;
-  }
-  .dark .text-gray-600,
-  .dark .text-gray-500,
-  .dark .text-gray-400,
-  .dark .text-gray-300 {
-    color: rgb(var(--hud-on-surface-var)) !important;
-  }
-
-  .dark .bg-white,
-  .dark .bg-gray-50 {
-    background-color: rgb(var(--hud-surface)) !important;
-  }
-  .dark .bg-gray-100 {
-    background-color: rgb(var(--hud-surface-low)) !important;
-  }
-  .dark .bg-gray-200 {
-    background-color: rgb(var(--hud-surface-high)) !important;
-  }
-  .dark .bg-gray-700 {
-    background-color: rgb(var(--hud-surface-high)) !important;
-  }
-  .dark .bg-gray-800 {
-    background-color: rgb(var(--hud-surface)) !important;
-  }
-  .dark .bg-gray-900 {
-    background-color: rgb(var(--hud-bg)) !important;
-  }
-
-  .dark .border-gray-200,
-  .dark .border-gray-300,
-  .dark .border-gray-400 {
-    border-color: rgb(var(--hud-outline-var) / 0.65) !important;
-  }
-  .dark .border-gray-500,
-  .dark .border-gray-600,
-  .dark .border-gray-700 {
-    border-color: rgb(var(--hud-outline) / 0.7) !important;
-  }
-
-  .dark .hover\:bg-gray-50:hover,
-  .dark .hover\:bg-gray-100:hover {
-    background-color: rgb(var(--hud-surface-high)) !important;
-  }
-  .dark .hover\:bg-gray-700:hover,
-  .dark .hover\:bg-gray-800:hover {
-    background-color: rgb(var(--hud-surface-highest)) !important;
-  }
-  .dark .hover\:text-gray-700:hover,
-  .dark .hover\:text-gray-600:hover {
-    color: rgb(var(--hud-on-surface)) !important;
-  }
-  .dark .hover\:text-gray-400:hover {
-    color: rgb(var(--hud-on-surface-var)) !important;
-  }
+/* Dark mode compatibility layer for legacy gray Tailwind classes */
+/* Tailwind 3 also applied these overrides to the variants of the targeted
+   classes (dark:, hover:, dark:hover:); Tailwind 4 does not, so every
+   variant the templates use is listed explicitly. */
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: rgb(var(--hud-on-surface)) !important;
+}
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-gray-300 {
+  color: rgb(var(--hud-on-surface-var)) !important;
+}
+.dark .bg-white,
+.dark .bg-gray-50 {
+  background-color: rgb(var(--hud-surface)) !important;
+}
+.dark .bg-gray-100 {
+  background-color: rgb(var(--hud-surface-low)) !important;
+}
+.dark .bg-gray-200,
+.dark .bg-gray-700 {
+  background-color: rgb(var(--hud-surface-high)) !important;
+}
+.dark .bg-gray-800 {
+  background-color: rgb(var(--hud-surface)) !important;
+}
+.dark .bg-gray-900 {
+  background-color: rgb(var(--hud-bg)) !important;
+}
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-gray-400 {
+  border-color: rgb(var(--hud-outline-var) / .65) !important;
+}
+.dark .border-gray-500,
+.dark .border-gray-600,
+.dark .border-gray-700 {
+  border-color: rgb(var(--hud-outline) / .7) !important;
+}
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: rgb(var(--hud-surface-high)) !important;
+}
+.dark .hover\:bg-gray-700:hover,
+.dark .hover\:bg-gray-800:hover {
+  background-color: rgb(var(--hud-surface-highest)) !important;
+}
+.dark .hover\:text-gray-700:hover,
+.dark .hover\:text-gray-600:hover {
+  color: rgb(var(--hud-on-surface)) !important;
+}
+.dark .hover\:text-gray-400:hover {
+  color: rgb(var(--hud-on-surface-var)) !important;
+}
+.dark .hover\:text-gray-900:hover {
+  color: rgb(var(--hud-on-surface)) !important;
+}
+.dark .hover\:text-gray-600:hover {
+  color: rgb(var(--hud-on-surface-var)) !important;
+}
+.dark .hover\:bg-gray-50:hover {
+  background-color: rgb(var(--hud-surface)) !important;
+}
+.dark .hover\:bg-gray-100:hover {
+  background-color: rgb(var(--hud-surface-low)) !important;
+}
+.dark .hover\:bg-gray-200:hover {
+  background-color: rgb(var(--hud-surface-high)) !important;
+}
+.dark .dark\:text-gray-600,
+.dark .dark\:text-gray-500,
+.dark .dark\:text-gray-400,
+.dark .dark\:text-gray-300 {
+  color: rgb(var(--hud-on-surface-var)) !important;
+}
+.dark .dark\:bg-gray-700 {
+  background-color: rgb(var(--hud-surface-high)) !important;
+}
+.dark .dark\:bg-gray-800 {
+  background-color: rgb(var(--hud-surface)) !important;
+}
+.dark .dark\:bg-gray-900 {
+  background-color: rgb(var(--hud-bg)) !important;
+}
+.dark .dark\:border-gray-600,
+.dark .dark\:border-gray-700 {
+  border-color: rgb(var(--hud-outline) / .7) !important;
+}
+.dark .dark\:hover\:text-gray-300:hover {
+  color: rgb(var(--hud-on-surface-var)) !important;
+}
+.dark .dark\:hover\:bg-gray-700:hover {
+  background-color: rgb(var(--hud-surface-high)) !important;
+}
+.dark .dark\:hover\:bg-gray-800:hover {
+  background-color: rgb(var(--hud-surface)) !important;
 }

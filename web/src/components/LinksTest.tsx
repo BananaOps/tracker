@@ -7,7 +7,7 @@ export default function LinksTest() {
   }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
+    <div className="p-4 bg-white rounded-lg shadow-sm">
       <h3 className="text-lg font-bold mb-4">Test des liens</h3>
       
       <div className="space-y-4">

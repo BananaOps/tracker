@@ -73,7 +73,7 @@ export default function Layout() {
 
   const navItem = 'flex items-center px-2.5 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-150 cursor-pointer select-none'
   const navActive = 'bg-white/10 text-white'
-  const navInactive = 'text-white/45 hover:text-white/80 hover:bg-white/[0.06]'
+  const navInactive = 'text-white/45 hover:text-white/80 hover:bg-white/6'
 
   return (
     <div className="min-h-screen bg-hud-bg">

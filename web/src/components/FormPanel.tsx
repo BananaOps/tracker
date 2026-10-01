@@ -62,9 +62,9 @@ export default function FormPanel({
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end">
+    <div className="fixed inset-0 z-60 flex justify-end">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
 
       {/* Side Panel */}
       <form

@@ -202,7 +202,7 @@ export default function DashboardLinksManager({
                   type: e.target.value as DashboardType,
                   url: '' // Reset URL when type changes
                 }))}
-                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
               >
                 <option value={DashboardType.GRAFANA}>Grafana</option>
                 <option value={DashboardType.DATADOG}>Datadog</option>
@@ -224,7 +224,7 @@ export default function DashboardLinksManager({
                 placeholder="e.g., Service Overview, Performance Metrics"
                 value={newDashboard.name}
                 onChange={(e) => setNewDashboard(prev => ({ ...prev, name: e.target.value }))}
-                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function DashboardLinksManager({
               placeholder={getPlaceholderUrl(newDashboard.type || DashboardType.GRAFANA)}
               value={newDashboard.url}
               onChange={(e) => setNewDashboard(prev => ({ ...prev, url: e.target.value }))}
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
@@ -249,7 +249,7 @@ export default function DashboardLinksManager({
               placeholder="Brief description of this dashboard"
               value={newDashboard.description}
               onChange={(e) => setNewDashboard(prev => ({ ...prev, description: e.target.value }))}
-              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-xs focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 

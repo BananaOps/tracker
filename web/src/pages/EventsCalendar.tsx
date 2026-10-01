@@ -454,7 +454,7 @@ export default function EventsCalendar() {
             <div className="flex gap-4 flex-1 min-h-0">
             {/* Calendar Grid */}
             <div className="flex-1 rounded-xl flex flex-col overflow-hidden" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
-              <div className="px-5 py-3.5 grid grid-cols-[40px_1fr_40px] items-center flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
+              <div className="px-5 py-3.5 grid grid-cols-[40px_1fr_40px] items-center shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
                 <Button variant="ghost" size="icon" onClick={previousMonth} className="h-7 w-7 justify-self-start" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -509,7 +509,7 @@ export default function EventsCalendar() {
                                     className="text-[10px] font-medium px-1.5 py-1 rounded-md truncate leading-tight flex items-center gap-1.5 border"
                                     style={{ background: envPalette.bg, color: envPalette.text, borderColor: envPalette.border }}
                                   >
-                                    <span className="w-4 h-4 rounded-[4px] flex items-center justify-center border shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', borderColor: envPalette.border, color: envPalette.text }}>
+                                    <span className="w-4 h-4 rounded-ig-sm flex items-center justify-center border shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', borderColor: envPalette.border, color: envPalette.text }}>
                                       {getEventTypeIcon(event.attributes.type, 'w-2.5 h-2.5')}
                                     </span>
                                     {getImpactLabel(event.attributes.impact) && (
@@ -534,7 +534,7 @@ export default function EventsCalendar() {
 
             {/* Event Details Panel */}
             <div className="w-[288px] rounded-xl flex flex-col overflow-hidden min-h-0 shrink-0" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
-              <div className="px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
+              <div className="px-5 py-4 shrink-0" style={{ borderBottom: '1px solid rgb(var(--hud-outline-var) / 0.15)' }}>
                 <div className="text-[10px] uppercase tracking-widest font-medium mb-1" style={{ color: '#9CA3AF' }}>
                   {selectedDate ? format(selectedDate, 'MMMM yyyy', { locale: enUS }) : format(currentDate, 'MMMM yyyy', { locale: enUS })}
                 </div>
@@ -543,28 +543,28 @@ export default function EventsCalendar() {
                     {selectedDate ? format(selectedDate, 'dd') : '--'}
                   </span>
                   {selectedDate && isToday(selectedDate) && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: '#FFF0E8', color: '#E85D04' }}>Today</span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-xs" style={{ background: '#FFF0E8', color: '#E85D04' }}>Today</span>
                   )}
                 </div>
                 <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
                   {selectedDate ? format(selectedDate, 'EEEE, dd MMMM', { locale: enUS }) : 'Select a day'}
                 </p>
                 <div className="flex items-center gap-2 flex-wrap mt-2">
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: '#EEF1F8', color: '#475569', border: '1px solid #D5DBE8' }}>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-xs" style={{ background: '#EEF1F8', color: '#475569', border: '1px solid #D5DBE8' }}>
                     {selectedDayEvents.length} event{selectedDayEvents.length > 1 ? 's' : ''}
                   </span>
                   {selectedDayLiveCount > 0 && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: '#EFF4FF', color: '#1B3575', border: '1px solid #C2D0EF' }}>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-xs" style={{ background: '#EFF4FF', color: '#1B3575', border: '1px solid #C2D0EF' }}>
                       {selectedDayLiveCount} live
                     </span>
                   )}
                   {selectedDayScheduledCount > 0 && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: '#FFF8E8', color: '#8C5A00', border: '1px solid #FFE0A0' }}>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-xs" style={{ background: '#FFF8E8', color: '#8C5A00', border: '1px solid #FFE0A0' }}>
                       {selectedDayScheduledCount} scheduled
                     </span>
                   )}
                   {selectedDayDoneCount > 0 && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-sm" style={{ background: '#ECFDF3', color: '#166534', border: '1px solid #BBF7D0' }}>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-xs" style={{ background: '#ECFDF3', color: '#166534', border: '1px solid #BBF7D0' }}>
                       {selectedDayDoneCount} done
                     </span>
                   )}
@@ -607,7 +607,7 @@ export default function EventsCalendar() {
                             </p>
                             <div className="flex items-center gap-2 flex-wrap mb-1.5">
                               {event.attributes.service && (
-                                <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-medium" style={{ background: '#EEF1F8', color: '#475569', border: '1px solid #D5DBE8' }}>
+                                <span className="px-1.5 py-0.5 rounded-xs text-[10px] font-medium" style={{ background: '#EEF1F8', color: '#475569', border: '1px solid #D5DBE8' }}>
                                   {event.attributes.service}
                                 </span>
                               )}
@@ -628,7 +628,7 @@ export default function EventsCalendar() {
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {(() => {
                                 const env = getEnvironmentPalette(event.attributes.environment)
-                                return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[10px] font-medium" style={{ background: env.bg, color: env.text, border: `1px solid ${env.border}` }}>
+                                return <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-xs text-[10px] font-medium" style={{ background: env.bg, color: env.text, border: `1px solid ${env.border}` }}>
                                   {String(getEnvironmentLabel(event.attributes.environment) || 'N/A').toUpperCase()}
                                 </span>
                               })()}

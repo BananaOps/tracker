@@ -108,7 +108,7 @@ export default function LinkFormDialog({
             {/* Live preview */}
             <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
+                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{ backgroundColor: !form.icon && !faviconUrl ? form.color || '#6366f1' : undefined }}
               >
                 {form.icon ? (
@@ -133,7 +133,7 @@ export default function LinkFormDialog({
                 </p>
               </div>
               {form.group && (
-                <span className="flex-shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
+                <span className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
                   {form.group}
                 </span>
               )}
@@ -217,7 +217,7 @@ export default function LinkFormDialog({
                 <div className="flex items-center gap-2">
                   <label
                     htmlFor="lf-color"
-                    className="flex-shrink-0 w-10 h-10 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer overflow-hidden"
+                    className="shrink-0 w-10 h-10 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer overflow-hidden"
                     style={{ backgroundColor: form.color }}
                   >
                     <input
@@ -241,7 +241,7 @@ export default function LinkFormDialog({
 
             {error && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}

@@ -297,7 +297,7 @@ export default function CatalogTable() {
                   {uniqueTypes.map((type: string) => (
                     <label key={type} className="flex items-center gap-2 cursor-pointer">
                       <div
-                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                         style={{
                           background: selectedTypes.includes(type) ? T.primary : 'transparent',
                           border: `1.5px solid ${selectedTypes.includes(type) ? T.primary : a('outline-var', 0.4)}`,
@@ -329,7 +329,7 @@ export default function CatalogTable() {
                   {uniqueLanguages.map((lang: string) => (
                     <label key={lang} className="flex items-center gap-2 cursor-pointer">
                       <div
-                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                         style={{
                           background: selectedLanguages.includes(lang) ? T.primary : 'transparent',
                           border: `1.5px solid ${selectedLanguages.includes(lang) ? T.primary : a('outline-var', 0.4)}`,
@@ -362,7 +362,7 @@ export default function CatalogTable() {
                   {uniquePlatforms.map((platform: string) => (
                     <label key={platform} className="flex items-center gap-2 cursor-pointer">
                       <div
-                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                         style={{
                           background: selectedPlatforms.includes(platform) ? T.primary : 'transparent',
                           border: `1.5px solid ${selectedPlatforms.includes(platform) ? T.primary : a('outline-var', 0.4)}`,
@@ -395,7 +395,7 @@ export default function CatalogTable() {
                   {uniqueSLAs.map((sla: string) => (
                     <label key={sla} className="flex items-center gap-2 cursor-pointer">
                       <div
-                        className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                        className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                         style={{
                           background: selectedSLAs.includes(sla) ? T.primary : 'transparent',
                           border: `1.5px solid ${selectedSLAs.includes(sla) ? T.primary : a('outline-var', 0.4)}`,
@@ -435,7 +435,7 @@ export default function CatalogTable() {
                         placeholder="Search owners..."
                         value={ownerSearchQuery}
                         onChange={(e) => setOwnerSearchQuery(e.target.value)}
-                        className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg outline-none"
+                        className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg outline-hidden"
                         style={{
                           background: a('outline-var', 0.07),
                           border: `1px solid ${a('outline-var', 0.2)}`,
@@ -458,7 +458,7 @@ export default function CatalogTable() {
                         filteredOwners.map((owner: string) => (
                           <label key={owner} className="flex items-center gap-2 cursor-pointer">
                             <div
-                              className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                              className="w-4 h-4 rounded-sm flex items-center justify-center shrink-0 transition-all"
                               style={{
                                 background: selectedOwners.includes(owner) ? T.primary : 'transparent',
                                 border: `1.5px solid ${selectedOwners.includes(owner) ? T.primary : a('outline-var', 0.4)}`,
@@ -536,7 +536,7 @@ export default function CatalogTable() {
               placeholder="Search by name, description, or owner..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-sm"
+              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-hidden text-sm"
               style={{
                 background: a('outline-var', 0.06),
                 border: `1px solid ${a('outline-var', 0.2)}`,

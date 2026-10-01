@@ -21,9 +21,14 @@ if (config.clarityProjectId) {
 }
 
 // FontAwesome configuration
-import { library } from '@fortawesome/fontawesome-svg-core'
+import { config as faConfig, library } from '@fortawesome/fontawesome-svg-core'
 import { faJira, faSlack, faGithub, faDiscord, faTelegram, faMicrosoft } from '@fortawesome/free-brands-svg-icons'
 import { faCodeBranch, faRobot, faWrench, faRocket, faFire } from '@fortawesome/free-solid-svg-icons'
+
+// The FontAwesome stylesheet is imported into Tailwind's base layer from
+// index.css: injected unlayered at runtime, it would beat every Tailwind 4
+// utility (h-8, w-8...) because unlayered CSS wins over cascade layers.
+faConfig.autoAddCss = false
 
 // Add icons to the library
 library.add(

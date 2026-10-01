@@ -419,7 +419,7 @@ export default function EventsStreamline() {
         />
 
         {/* Time Controls Bar */}
-        <div className="px-6 py-3 flex items-center justify-between flex-shrink-0 rounded-xl"
+        <div className="px-6 py-3 flex items-center justify-between shrink-0 rounded-xl"
           style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
 
           {/* Left: Time Range Picker */}
@@ -460,13 +460,13 @@ export default function EventsStreamline() {
                     <div>
                       <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: T.onSurfaceVar }}>From</label>
                       <input type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-none"
+                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-hidden"
                         style={{ background: a('outline-var', 0.08), color: T.onSurface }} />
                     </div>
                     <div>
                       <label className="text-[10px] uppercase tracking-widest mb-1 block" style={{ color: T.onSurfaceVar }}>To</label>
                       <input type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-none"
+                        className="w-full px-3 py-1.5 rounded-lg text-xs border-0 outline-hidden"
                         style={{ background: a('outline-var', 0.08), color: T.onSurface }} />
                     </div>
                     <button onClick={() => { handleCustomDateApply(); setShowTimeRangePicker(false) }}
@@ -686,9 +686,9 @@ export default function EventsStreamline() {
                           {/* Group name column */}
                           <div className="flex items-center space-x-2 py-2" style={{ minHeight: `${Math.max((maxTrack + 1) * 32 + 16, 80)}px` }}>
                             {groupBy === 'service' ? (
-                              <Package className="w-4 h-4 flex-shrink-0" style={{ color: T.primary }} />
+                              <Package className="w-4 h-4 shrink-0" style={{ color: T.primary }} />
                             ) : (
-                              <Globe className="w-4 h-4 flex-shrink-0" style={{ color: T.primary }} />
+                              <Globe className="w-4 h-4 shrink-0" style={{ color: T.primary }} />
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center space-x-2">
@@ -696,7 +696,7 @@ export default function EventsStreamline() {
                                   {displayName}
                                 </div>
                                 {hasOverlaps && (
-                                  <div className="relative flex-shrink-0" title="Overlapping events detected">
+                                  <div className="relative shrink-0" title="Overlapping events detected">
                                     <AlertTriangle className="w-4 h-4" style={{ color: '#E8580A' }} />
                                   </div>
                                 )}
@@ -776,9 +776,9 @@ export default function EventsStreamline() {
                                         {event.title}
                                       </div>
                                       {event.attributes.impact && (
-                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 flex-shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' } as CSSProperties} />
+                                        <i className="fa-solid fa-meteor fa-beat-fade text-[10px] ml-1 shrink-0" style={{ color: '#ff6e84', '--fa-animation-duration': '2s' } as CSSProperties} />
                                       )}
-                                      {approved && <i className="fa-solid fa-circle-check text-[10px] ml-1 flex-shrink-0" style={{ color: '#16A34A' }} />}
+                                      {approved && <i className="fa-solid fa-circle-check text-[10px] ml-1 shrink-0" style={{ color: '#16A34A' }} />}
                                       {spanCount > 2 && viewMode === 'week' && (
                                         <div className="text-[10px] opacity-75 ml-2 tabular-nums" style={{ color: envStyle.text }}>
                                           {format(startDate, 'HH:mm')}

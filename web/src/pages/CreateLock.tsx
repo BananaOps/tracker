@@ -121,7 +121,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
     onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
   }
 
-  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-none"
+  const inputCls = "w-full border-0 border-b-2 border-transparent px-4 py-3 rounded-t-lg transition-all text-sm focus:outline-hidden"
   const inputStyle = { background: 'rgb(var(--hud-surface-low))', color: hud.onSurface }
   const labelCls = "block text-[10px] uppercase tracking-widest font-bold mb-2"
 
@@ -285,7 +285,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
         {error && (
           <div className="flex items-start gap-3 p-4 rounded-xl mb-8"
             style={{ background: ha('error', 0.1), border: `1px solid ${ha('error', 0.2)}` }}>
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: hud.error }} />
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: hud.error }} />
             <p className="text-sm font-medium" style={{ color: hud.error }}>{error}</p>
           </div>
         )}

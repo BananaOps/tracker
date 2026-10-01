@@ -411,7 +411,7 @@ export default function Documentation() {
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-6">
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0">
+      <div className="w-64 shrink-0">
         <div className="card sticky top-8 max-h-[calc(100vh-10rem)] overflow-y-auto">
           <div className="flex items-center space-x-2 mb-4">
             <BookOpen className="w-5 h-5 text-primary-600" />
