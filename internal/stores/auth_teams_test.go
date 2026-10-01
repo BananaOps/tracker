@@ -47,3 +47,21 @@ func TestAuthTeamStoreCRUD(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, list, 1)
 }
+
+func TestAuthTeamStoreListWithOIDCGroups(t *testing.T) {
+	db := testDatabase(t)
+	s := NewAuthTeamStoreFromCollection(db.Collection(authTeamsCollection))
+	ctx := context.Background()
+
+	require.NoError(t, s.Create(ctx, &Team{Name: "P", OIDCGroups: []string{"platform-eng"}}))
+	require.NoError(t, s.Create(ctx, &Team{Name: "N", OIDCGroups: []string{}}))
+	require.NoError(t, s.Create(ctx, &Team{Name: "Q", OIDCGroups: []string{"ops", "x"}}))
+
+	got, err := s.ListWithOIDCGroups(ctx)
+	require.NoError(t, err)
+	names := []string{}
+	for _, tm := range got {
+		names = append(names, tm.Name)
+	}
+	assert.Equal(t, []string{"P", "Q"}, names)
+}

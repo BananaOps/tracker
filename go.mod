@@ -3,9 +3,11 @@ module github.com/bananaops/tracker
 go 1.26.1
 
 require (
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/go-openapi/runtime v0.29.5
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	golang.org/x/crypto v0.56.0
+	golang.org/x/oauth2 v0.37.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -15,6 +17,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-openapi/analysis v0.25.3 // indirect
 	github.com/go-openapi/errors v0.22.8 // indirect
 	github.com/go-openapi/jsonpointer v0.23.2 // indirect

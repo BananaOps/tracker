@@ -141,11 +141,16 @@ func (h *AuthHTTP) handleLogin(w http.ResponseWriter, r *http.Request, _ map[str
 }
 
 func (h *AuthHTTP) issueSession(w http.ResponseWriter, user *store.User) error {
-	token, expires, err := h.sessions.Issue(user.ID.Hex(), user.SessionVersion)
+	return setSessionCookie(w, h.sessions, h.cfg.CookieSecure, user)
+}
+
+// setSessionCookie issues a session for user and sets the tracker_session cookie.
+func setSessionCookie(w http.ResponseWriter, sessions *auth.SessionManager, secure bool, user *store.User) error {
+	token, expires, err := sessions.Issue(user.ID.Hex(), user.SessionVersion)
 	if err != nil {
 		return err
 	}
-	http.SetCookie(w, auth.SessionCookie(token, expires, h.cfg.CookieSecure))
+	http.SetCookie(w, auth.SessionCookie(token, expires, secure))
 	return nil
 }
 

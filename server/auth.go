@@ -43,9 +43,14 @@ func (a *Auth) GetAuthConfig(ctx context.Context, _ *authv1.GetAuthConfigRequest
 	if err := authz.Authorize(ctx); err != nil {
 		return nil, err
 	}
+	label := ""
+	if a.cfg.OIDC.Enabled() {
+		label = a.cfg.OIDC.ButtonLabel
+	}
 	return &authv1.GetAuthConfigResponse{
 		LocalLoginEnabled:    true,
-		OidcEnabled:          false,
+		OidcEnabled:          a.cfg.OIDC.Enabled(),
+		OidcButtonLabel:      label,
 		AnonymousPermissions: permissionStrings(a.cfg.AnonymousPermissions),
 		DemoMode:             a.cfg.DemoMode,
 	}, nil

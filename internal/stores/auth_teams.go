@@ -123,3 +123,8 @@ func (s *AuthTeamStore) Delete(ctx context.Context, id primitive.ObjectID) error
 	}
 	return nil
 }
+
+// ListWithOIDCGroups returns the teams mapped to at least one OIDC group.
+func (s *AuthTeamStore) ListWithOIDCGroups(ctx context.Context) ([]*Team, error) {
+	return s.find(ctx, bson.M{"oidcGroups.0": bson.M{"$exists": true}})
+}

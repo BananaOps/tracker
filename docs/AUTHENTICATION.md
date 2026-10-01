@@ -101,6 +101,8 @@ early.
 | `POST /api/v1alpha1/auth/password` | Body `{"currentPassword","newPassword"}`. Requires a session. |
 | `GET /api/v1alpha1/auth/me` | Identity, teams and effective permissions of the caller. Public. |
 | `GET /api/v1alpha1/auth/config` | Login options and anonymous permissions. Public. |
+| `GET /api/v1alpha1/auth/oidc/login` | Starts an OpenID Connect login and redirects to the identity provider. Only when OIDC is enabled, `404` otherwise. See [Single Sign-On](#single-sign-on-openid-connect). |
+| `GET /api/v1alpha1/auth/oidc/callback` | Redirect URI of the identity provider. Only when OIDC is enabled, `404` otherwise. |
 
 ### Browser cross-site requests
 
@@ -119,11 +121,300 @@ any password work. API keys and `Authorization: Bearer` tokens are explicit
 credentials, not ambient ones, and are never dropped. Requests carrying
 neither header, which is every non browser client, are unaffected.
 
+## Single Sign-On (OpenID Connect)
+
+Tracker can sign users in through any OpenID Connect identity provider (IdP):
+Keycloak, Microsoft Entra ID, Google, GitLab, Dex and others. It uses the
+Authorization Code flow with PKCE (`S256`), a random `state` and a `nonce`.
+The `id_token` is verified for signature, issuer, audience, expiry and nonce.
+Only the `id_token` is read: Tracker never calls the userinfo endpoint, so
+every claim it needs must be in the `id_token`.
+
+The local `admin` account keeps working next to SSO and is the way back in
+when the IdP is misconfigured or down. SSO is off unless `AUTH_OIDC_ISSUER` is
+set. When it is on, `GET /api/v1alpha1/auth/config` reports `oidcEnabled` and
+`oidcButtonLabel`. The Single Sign-On button of the login page ships with the
+web PR #201: until it is merged, start a login by opening
+`/api/v1alpha1/auth/oidc/login` directly.
+
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_OIDC_ISSUER` | - | Issuer URL of the IdP. Enables SSO when set. Absolute `https` URL without query or fragment (`http` only for `localhost` and loopback IPs). It must match the `iss` of the tokens exactly, trailing slash included. |
+| `AUTH_OIDC_CLIENT_ID` | - | Client ID. Required when the issuer is set. |
+| `AUTH_OIDC_CLIENT_SECRET` | - | Client secret. Required when the issuer is set (confidential client). Never logged. |
+| `AUTH_OIDC_SCOPES` | `openid profile email` | Requested scopes, separated by spaces or commas. `openid` is always added first. |
+| `AUTH_OIDC_GROUPS_CLAIM` | `groups` | Name of the `id_token` claim carrying the groups: an array of strings or a single string. |
+| `AUTH_OIDC_USERNAME_CLAIM` | `preferred_username` | Claim used as the Tracker username. When it is missing or not a valid username, `email` is tried. |
+| `AUTH_OIDC_USER_PROVISIONING` | `true` | Create the Tracker account at first login. When `false`, only users already known to Tracker can sign in. |
+| `AUTH_OIDC_TEAM_SYNC` | `true` | Synchronize team membership from the groups claim at each login. |
+| `AUTH_OIDC_BUTTON_LABEL` | `Single Sign-On` | Label of the login button, at most 64 characters. |
+| `AUTH_PUBLIC_URL` | - | Required with OIDC. `scheme://host[:port]` without path: it is the base of the redirect URI. |
+
+Startup fails with a message naming the variable when the configuration is
+invalid: an issuer that is not `https` (outside loopback), a missing client ID
+or client secret, a client ID or secret without an issuer, a missing or
+path-bearing `AUTH_PUBLIC_URL`, a boolean that is not `true` or `false`, or a
+button label over 64 characters. Pass the client secret through a secret
+manager or a Kubernetes `Secret`, never in an image or a committed file.
+
+Register this redirect URI with the IdP:
+
+```
+<AUTH_PUBLIC_URL>/api/v1alpha1/auth/oidc/callback
+```
+
+The redirect URI is compared exactly by most IdPs: scheme, host, port and
+path must match `AUTH_PUBLIC_URL`. The transaction cookie is encrypted with a
+key derived from the session secret, so replicas must share `AUTH_SESSION_SECRET`
+(or the persisted secret in MongoDB).
+
+Discovery (`/.well-known/openid-configuration`) is lazy. Tracker starts, and
+the local login works, even when the IdP is unreachable. Discovery is tried
+in the background at startup and again on the next SSO login, at most every
+5 seconds after a failure. While the IdP is down, SSO logins end on
+`oidc_unavailable` and users sign in with `admin` to keep managing Tracker.
+
+### Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/v1alpha1/auth/oidc/login?redirect=/path` | Starts the login. `redirect` is where the user lands afterwards; only a local absolute path is accepted, anything else becomes `/`. |
+| `GET /api/v1alpha1/auth/oidc/callback` | Receives the IdP response, creates the session and redirects. |
+
+Both answer `404` when `AUTH_OIDC_ISSUER` is not set.
+
+### Accounts
+
+- An OIDC account is identified by the pair `(issuer, subject)`. It is never
+  linked to an existing account by username or email, so a local account, or
+  an account of another IdP, cannot be taken over by claiming its name.
+- At first login the account is created with the username taken from
+  `AUTH_OIDC_USERNAME_CLAIM` (then `email`), and no team. When the username
+  is already taken, a suffix is added: `alice`, then `alice-2`, `alice-3`...
+- The username is frozen at creation. Email and display name are refreshed at
+  every login. The display name comes from `name`, then `given_name` and
+  `family_name`, then the username.
+- OIDC accounts have no Tracker password: `POST /api/v1alpha1/auth/password`
+  answers `400` and administrators cannot set one.
+- An administrator can disable an OIDC account in Tracker. Its next login is
+  refused with a `403` page.
+- With `AUTH_OIDC_USER_PROVISIONING=false`, a user who is not known yet gets a
+  `403` page. Only accounts already known by their `(issuer, subject)` pair, that
+is created by an earlier login while provisioning was on, can sign in.
+- Changing `AUTH_OIDC_ISSUER` to another value creates new accounts: the
+  identity is bound to the issuer. Keep the issuer stable.
+
+### Teams
+
+With `AUTH_OIDC_TEAM_SYNC=true`, a team lists its OIDC groups in `oidcGroups`
+(see [Teams](#teams)). At each login:
+
+- The user joins every team having at least one group in common with the
+  groups claim, and leaves every other team that has `oidcGroups`.
+- Comparison is exact and case sensitive.
+- Teams without `oidcGroups` are never touched: their members are managed by
+  hand in Tracker. A manual membership in a team that has `oidcGroups` is
+  overwritten at the next login.
+- `Administrators` is synchronized only if it has `oidcGroups`. The last
+  enabled member of `Administrators` is never removed by a sync (the server
+  logs an error when it keeps them).
+- A group claim that is present but empty means "no group": the user leaves
+  all mapped teams.
+- If at least one team has `oidcGroups` and the claim is **absent** from the
+  `id_token`, the result depends on the user. A user who already holds a
+  membership in a team that has `oidcGroups` is refused with `oidc_failed` and
+  nothing is written (no account creation, no profile refresh, no membership
+  change), so a broken IdP mapper cannot silently strip anybody of their
+  rights. A user who holds no such membership, a first login included, is
+  treated as having no group: the login succeeds, no mapped team is added and
+  the server logs a `WARN` (`auth.oidc.sync`, reason
+  `groups_claim_missing_accepted`, with the claim name and the username).
+- A claim that is neither a string nor an array (object, number, boolean,
+  `null`) is treated exactly like an absent claim, and the server logs a `WARN`
+  with reason `groups_claim_unexpected_type`. In an array, entries that are not
+  strings are ignored.
+
+> **Recommended: configure the IdP so the groups claim is always emitted in
+> the `id_token`, as an empty array for users who have no group.** Many IdPs
+> omit the claim for such users. That is harmless for a user without a mapped
+> membership, but a user who already holds one is refused as soon as the claim
+> goes missing, instead of being removed from the mapped teams. Check the
+> claim by decoding a test `id_token`, and see the IdP recipes below.
+
+Without team mapping (`AUTH_OIDC_TEAM_SYNC=false`, or no team has
+`oidcGroups`), no groups claim is needed and teams are managed by hand.
+
+### Security notes
+
+- The login transaction (state, nonce, PKCE verifier, redirect) lives in the
+  encrypted `tracker_oidc` cookie: `HttpOnly`, valid 10 minutes, `Path` set to
+  the callback route and `Secure` under the same rule as the session cookie.
+  It is `SameSite=Lax`, not `Strict`, because the callback is a cross-site
+  top level navigation coming from the IdP, and a `Strict` cookie would not be
+  sent. It is deleted on every callback.
+- There is one login in progress per browser: starting a second login, for
+  example in another tab, replaces the first transaction and the first tab
+  ends on `oidc_state`.
+- The Tracker session is independent of the IdP session. Disabling a user in
+  the IdP does not revoke their existing Tracker session before
+  `AUTH_SESSION_TTL` expires: disable the account in Tracker too, which
+  invalidates its sessions. Logging out of Tracker does not log out of the IdP.
+- Values received from the IdP are never reflected: error codes below are
+  constants, and the IdP error text only goes to the server logs.
+
+### Errors
+
+A failed login redirects to `/login?error=<code>`:
+
+| Code | Meaning |
+|------|---------|
+| `oidc_denied` | The IdP returned an error (user cancelled, access denied, client not allowed). |
+| `oidc_state` | The login transaction is missing, expired (10 minutes), unreadable or does not match the `state`. |
+| `oidc_failed` | Code exchange failed (including a token endpoint that is unreachable or answers with an error), `id_token` verification failed, the token has no usable username, the groups claim is missing for a user who holds a mapped team membership, or an internal error occurred. |
+| `oidc_unavailable` | Discovery of the IdP failed: at the start of the login, or at the callback when discovery had not succeeded yet. |
+
+Two refusals are shown on a `403` page instead: the account is not registered
+in Tracker (provisioning disabled) and the Tracker account is disabled.
+
+The web login page does not display the `?error=` code yet: a follow-up will
+add it. Until then, read the reason in the server logs, where every failure is
+an `auth.login` entry with `method=oidc` and a `reason` (`state_mismatch`,
+`transaction_missing`, `id_token_verification_failed`, `not_provisioned`,
+`user_disabled`, `provider_unavailable`...). Team sync problems are logged as
+`auth.oidc.sync` (`groups_claim_missing`, and the warnings
+`groups_claim_missing_accepted` and `groups_claim_unexpected_type`). Secrets, codes, tokens and cookie
+values are never logged.
+
+### Identity provider recipes
+
+In every recipe, use the redirect URI above, keep a confidential client, and
+set `AUTH_PUBLIC_URL` to the URL users type in their browser.
+
+#### Keycloak
+
+1. In the realm, create a client of type OpenID Connect. Enable Client
+   authentication (confidential) and the Standard flow only.
+2. In Advanced settings, set the PKCE Code Challenge Method to `S256`.
+3. Add the redirect URI in Valid redirect URIs. Copy the client secret from
+   the Credentials tab.
+4. Add a mapper of type Group Membership to the client's dedicated scope, with
+   Token Claim Name `groups` and Add to ID token enabled. Keycloak puts the
+   claim in the token from the user's groups; check the result for a user who
+   has no group (Client scopes, Evaluate tab, generated ID token) and adapt the
+   mapper if the claim is missing. Full group path is your choice: when it is
+   on, values look like `/parent/child`, and that is what `oidcGroups` must
+   contain.
+
+```bash
+AUTH_OIDC_ISSUER=https://keycloak.example.com/realms/<realm>
+AUTH_OIDC_CLIENT_ID=tracker
+AUTH_OIDC_CLIENT_SECRET=<from the Credentials tab>
+```
+
+#### Microsoft Entra ID
+
+1. In App registrations, create an application. Add the Web platform with the
+   redirect URI, and create a client secret in Certificates and secrets.
+2. In Token configuration, choose Add groups claim. Pick Security groups, or
+   Groups assigned to the application for large tenants. Group values are
+   Object IDs (GUIDs): put those in `oidcGroups`.
+3. Groups overage: an `id_token` (JWT) carries at most 200 groups. Above that,
+   Entra removes the `groups` claim and sends `_claim_names` instead, which
+   Tracker does not follow. Users in that case are treated as having no group,
+   or refused with `oidc_failed` if they already hold a mapped membership.
+   Prevent it with Groups assigned to the application, which restricts the
+   claim to the groups assigned to the app (Enterprise applications, Users and
+   groups), or with app roles: define roles, assign them to groups, and set
+   `AUTH_OIDC_GROUPS_CLAIM=roles`.
+4. Whether the claim appears for users with no group depends on the tenant
+   setup: check the `id_token` of such a user, and check the Microsoft
+   documentation if it is absent.
+5. `preferred_username` is the user principal name (UPN).
+
+```bash
+AUTH_OIDC_ISSUER=https://login.microsoftonline.com/<tenant-id>/v2.0
+AUTH_OIDC_CLIENT_ID=<application (client) ID>
+AUTH_OIDC_CLIENT_SECRET=<client secret value>
+```
+
+#### Google
+
+Create an OAuth client of type Web application in the Google Cloud console and
+add the redirect URI. Google issues no groups claim in its `id_token`, so team
+mapping cannot work: set `AUTH_OIDC_TEAM_SYNC=false` and manage team
+membership by hand. Use the email as username. To restrict access to your
+organization, set the OAuth consent screen user type to Internal. Google adds
+an `hd` claim for Workspace accounts, but Tracker does not check it.
+
+```bash
+AUTH_OIDC_ISSUER=https://accounts.google.com
+AUTH_OIDC_CLIENT_ID=<id>.apps.googleusercontent.com
+AUTH_OIDC_CLIENT_SECRET=<secret>
+AUTH_OIDC_USERNAME_CLAIM=email
+AUTH_OIDC_TEAM_SYNC=false
+```
+
+#### GitLab
+
+Create an application (instance, group or user level), confidential, with the
+redirect URI and the scopes `openid`, `profile` and `email`. Per the GitLab
+documentation, the `id_token` carries the `groups_direct` claim (direct group
+memberships), while `groups` is only served by the userinfo endpoint, which
+Tracker does not call. Use `groups_direct`, and check on your GitLab version
+that it is present in a test `id_token`. Check the GitLab documentation for
+the claim format.
+
+```bash
+AUTH_OIDC_ISSUER=https://gitlab.com   # or the URL of your instance
+AUTH_OIDC_CLIENT_ID=<application ID>
+AUTH_OIDC_CLIENT_SECRET=<secret>
+AUTH_OIDC_GROUPS_CLAIM=groups_direct
+```
+
+#### Dex
+
+Add a static client and request the `groups` scope, which makes Dex put the
+user's groups in the `id_token`. Which groups Dex knows depends on the
+connector (LDAP, GitHub, GitLab, OIDC...): check the connector documentation,
+including what is emitted for a user without groups.
+
+```yaml
+staticClients:
+  - id: tracker
+    name: Tracker
+    secret: <secret>
+    redirectURIs:
+      - https://tracker.example.com/api/v1alpha1/auth/oidc/callback
+```
+
+```bash
+AUTH_OIDC_ISSUER=https://dex.example.com
+AUTH_OIDC_CLIENT_ID=tracker
+AUTH_OIDC_CLIENT_SECRET=<secret>
+AUTH_OIDC_SCOPES=openid profile email groups
+```
+
+### Troubleshooting
+
+| Symptom | Cause and fix |
+|---------|---------------|
+| `oidc_failed`, log `id_token_verification_failed`, issuer mismatch | `AUTH_OIDC_ISSUER` differs from the `iss` claim, often by a trailing slash. Copy the `issuer` from the IdP discovery document. |
+| The IdP shows a `redirect_uri` error | The registered URI is not exactly `<AUTH_PUBLIC_URL>/api/v1alpha1/auth/oidc/callback`. Check scheme, host, port. |
+| `oidc_failed`, log `id_token_verification_failed`, token expired | Clock skew between Tracker and the IdP. Fix NTP on the hosts. |
+| `oidc_failed`, log `groups_claim_missing` | A user who already holds a mapped team membership signed in with an `id_token` that has no claim named `AUTH_OIDC_GROUPS_CLAIM`. Nothing was changed. Decode a test `id_token`, check the claim name and that the mapper adds it to the ID token (not only the access token). Emitting an empty array for users without groups is recommended. |
+| Users land in the wrong teams | `oidcGroups` values must equal the claim values exactly (Object IDs on Entra, `/parent/child` with Keycloak full paths). |
+| Loop back to login with `oidc_state` | The `tracker_oidc` cookie was not returned: `AUTH_PUBLIC_URL` is `http` while the site is served over `https` (or the reverse), the host used in the browser differs from the one in `AUTH_PUBLIC_URL`, a proxy strips cookies, or two tabs started a login. Retry with a single tab. |
+| `oidc_unavailable` | Discovery of the IdP failed (network, DNS, TLS trust). An unreachable token endpoint ends on `oidc_failed` instead. Sign in with `admin`, fix the network, and retry: discovery is retried on the next login. |
+| `403` "not registered in Tracker" | `AUTH_OIDC_USER_PROVISIONING=false` and the user has never signed in. |
+
 ## Teams
 
 A team carries a list of permissions, an optional list of catalog services
 (empty means every service; per-service filtering is enforced in a later
-release) and optional OIDC group names (used once OIDC lands). Users belong
+release) and optional OIDC group names (see
+[Single Sign-On](#single-sign-on-openid-connect)). Users belong
 to any number of teams and get the union of their rights. The built-in
 `Administrators` team cannot be renamed, deleted or stripped of permissions.
 
@@ -187,6 +478,9 @@ decisions, with `principal` in `anonymous`, `user`, `apikey` and `result`
 in `allowed`, `unauthenticated`, `denied`.
 
 `tracker_auth_logins_total{method,result}` counts login attempts, with
-`method` in `local` (`oidc` once it lands) and `result` in `success`,
-`failure`, `rate_limited`. Malformed bodies, cross-site refusals and internal
-errors are not login attempts and are not counted.
+`method` in `local`, `oidc` and `result` in `success`, `failure`,
+`rate_limited`. Malformed bodies, cross-site refusals and internal errors are
+not login attempts and are not counted. For `oidc`, a callback is counted when
+it carries a valid login transaction (a callback with a missing or invalid
+transaction is not), and so is a login start that fails
+because the identity provider is unreachable.

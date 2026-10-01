@@ -22,6 +22,7 @@ import (
 	lock "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/auth"
 	"github.com/bananaops/tracker/internal/auth/identity"
+	"github.com/bananaops/tracker/internal/auth/sso"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/middleware"
@@ -148,6 +149,25 @@ var serv = &cobra.Command{
 
 		// Cookie based auth endpoints (login, logout, password change)
 		server.NewAuthHTTP(userStore, sessions, authCfg).Register(mux)
+
+		// OpenID Connect login, only when AUTH_OIDC_ISSUER is set. Discovery is
+		// lazy: an unreachable identity provider must not keep Tracker from
+		// starting, the local admin account stays the way in.
+		if authCfg.OIDC.Enabled() {
+			codec, err := sso.NewTransactionCodec(sessionSecret)
+			if err != nil {
+				log.Fatalf("cannot create the OIDC transaction codec: %v", err)
+			}
+			provider := sso.NewOIDCProvider(authCfg.OIDC, authCfg.OIDCRedirectURL())
+			go func() {
+				// The error is not logged: go-oidc embeds the raw response body.
+				if err := provider.Discover(context.Background()); err != nil {
+					slog.Warn("OIDC discovery failed at startup, it is retried on the next login", "issuer", authCfg.OIDC.Issuer, "reason", "provider_unavailable")
+				}
+			}()
+			server.NewOIDCHTTP(userStore, teamStore, sessions, provider, codec, authCfg).Register(mux)
+			slog.Info("OIDC login enabled", "oidc", authCfg.OIDC, "redirect_uri", authCfg.OIDCRedirectURL())
+		}
 
 		// Register Homer proxy endpoint
 		server.RegisterHomerHandler(mux, os.Getenv("HOMER_URL"))

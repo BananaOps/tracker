@@ -24,7 +24,7 @@ var authRequests = prometheus.NewCounterVec(
 )
 
 // AuthLogins counts login attempts. The method label names the authentication
-// method (local for now, oidc once it lands) and the result label is one of
+// method (local or oidc) and the result label is one of
 // LoginSuccess, LoginFailure or LoginRateLimited. Malformed bodies, cross-site
 // refusals and internal errors are not login attempts and are not counted.
 // It is exported so the login handler, which lives in the server package, can
@@ -40,6 +40,7 @@ var AuthLogins = prometheus.NewCounterVec(
 // Values of the AuthLogins labels.
 const (
 	LoginMethodLocal = "local"
+	LoginMethodOIDC  = "oidc"
 	LoginSuccess     = "success"
 	LoginFailure     = "failure"
 	LoginRateLimited = "rate_limited"

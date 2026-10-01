@@ -53,6 +53,28 @@ func (s *AuthUserStore) GetByUsername(ctx context.Context, username string) (*Us
 	return s.findOne(ctx, bson.M{"usernameLower": strings.ToLower(strings.TrimSpace(username))})
 }
 
+// GetByOIDCIdentity finds the user bound to an identity provider subject.
+func (s *AuthUserStore) GetByOIDCIdentity(ctx context.Context, issuer, subject string) (*User, error) {
+	return s.findOne(ctx, bson.M{"oidcIssuer": issuer, "oidcSubject": subject})
+}
+
+// UpdateOIDCProfile refreshes the identity provider fields and the last login time.
+func (s *AuthUserStore) UpdateOIDCProfile(ctx context.Context, id primitive.ObjectID, email, displayName string, at time.Time) error {
+	res, err := s.coll.UpdateByID(ctx, id, bson.M{"$set": bson.M{
+		"email":       email,
+		"displayName": displayName,
+		"lastLoginAt": at,
+		"updatedAt":   time.Now().UTC(),
+	}})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (s *AuthUserStore) findOne(ctx context.Context, filter bson.M) (*User, error) {
 	var u User
 	err := s.coll.FindOne(ctx, filter).Decode(&u)
@@ -121,4 +143,35 @@ func (s *AuthUserStore) CountEnabledInTeam(ctx context.Context, teamID, excludeU
 		filter["_id"] = bson.M{"$ne": excludeUser}
 	}
 	return s.coll.CountDocuments(ctx, filter)
+}
+
+// SyncTeams removes then adds team memberships without touching the others.
+// Two targeted updates are needed because MongoDB refuses $pull and $addToSet
+// on the same field in one update. Both are idempotent.
+func (s *AuthUserStore) SyncTeams(ctx context.Context, id primitive.ObjectID, add, remove []primitive.ObjectID) error {
+	if len(remove) > 0 {
+		res, err := s.coll.UpdateByID(ctx, id, bson.M{
+			"$pull": bson.M{"teams": bson.M{"$in": remove}},
+			"$set":  bson.M{"updatedAt": time.Now().UTC()},
+		})
+		if err != nil {
+			return err
+		}
+		if res.MatchedCount == 0 {
+			return ErrNotFound
+		}
+	}
+	if len(add) > 0 {
+		res, err := s.coll.UpdateByID(ctx, id, bson.M{
+			"$addToSet": bson.M{"teams": bson.M{"$each": add}},
+			"$set":      bson.M{"updatedAt": time.Now().UTC()},
+		})
+		if err != nil {
+			return err
+		}
+		if res.MatchedCount == 0 {
+			return ErrNotFound
+		}
+	}
+	return nil
 }
