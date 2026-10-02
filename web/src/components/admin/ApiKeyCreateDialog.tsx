@@ -20,7 +20,7 @@ interface ApiKeyCreateDialogProps {
 }
 
 const selectClass =
-  'flex h-9 w-full rounded-md border border-hud-outline-var bg-hud-surface px-3 py-2 text-sm text-hud-on-surface focus:outline-none focus:border-hud-primary'
+  'flex h-9 w-full rounded-md border border-hud-outline-var bg-hud-surface px-3 py-2 text-sm text-hud-on-surface focus:outline-hidden focus:border-hud-primary'
 
 export function ApiKeyCreateDialog({ open, teams, canCreateGlobal, pending, error, result, onSubmit, onClose }: ApiKeyCreateDialogProps) {
   const [name, setName] = useState('')

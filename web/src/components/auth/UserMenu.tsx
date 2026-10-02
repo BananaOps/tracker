@@ -85,16 +85,16 @@ export function UserMenu() {
             <p className="text-sm font-semibold text-hud-on-surface truncate">{name}</p>
             <p className="text-xs text-hud-on-surface-var truncate">{principal.username}</p>
             <div className="flex flex-wrap items-center gap-1 mt-1.5">
-              <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-hud-surface-high text-hud-on-surface-var">
+              <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-sm bg-hud-surface-high text-hud-on-surface-var">
                 {principal.source || 'session'}
               </span>
               {principal.isAdmin && (
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded" style={{ color: 'rgb(var(--hud-primary))', background: 'rgb(var(--hud-primary) / 0.1)' }}>
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-sm" style={{ color: 'rgb(var(--hud-primary))', background: 'rgb(var(--hud-primary) / 0.1)' }}>
                   <ShieldCheck className="w-3 h-3" /> admin
                 </span>
               )}
               {principal.teams.map((t) => (
-                <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded bg-hud-surface-high text-hud-on-surface-var">
+                <span key={t.id} className="text-[10px] px-1.5 py-0.5 rounded-sm bg-hud-surface-high text-hud-on-surface-var">
                   {t.name}
                 </span>
               ))}
