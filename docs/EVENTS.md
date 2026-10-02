@@ -60,7 +60,7 @@ Tracker supports five main event types:
 #### Optional Fields
 
 - **attributes.message** (string): Detailed description
-- **attributes.source** (string): Event origin (e.g., `github_actions`, `jenkins`, `manual`)
+- **attributes.source** (string): Event origin (e.g., `github_actions`, `jenkins`, `manual`, `gitlab`, `flux`)
 - **attributes.priority** (int): Priority level (1=P1/Critical, 5=P5/Low)
 - **attributes.status** (int): Current status (see Status Values below)
 - **attributes.environment** (int): Target environment (see Environment Values below)
@@ -386,6 +386,13 @@ curl -X POST http://localhost:8080/api/v1alpha1/event \
     }
   }'
 ```
+
+### Automatic deployment events
+
+Tracker can create and update deployment events on its own from GitLab and Flux webhooks,
+without any call to the REST or gRPC API. Each deployment produces a single event, taken through
+its lifecycle as notifications arrive: `start`, then `success`, `failure`, `warning` or `close`.
+See [INTEGRATIONS.md](INTEGRATIONS.md) for setup, environment mapping and troubleshooting.
 
 ## Best Practices
 

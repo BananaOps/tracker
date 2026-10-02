@@ -24,6 +24,11 @@ func NewStoreEvent(collection string) (c *EventStoreClient) {
 	}
 }
 
+// NewStoreEventFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreEventFromCollection(coll *mongo.Collection) *EventStoreClient {
+	return &EventStoreClient{collection: coll}
+}
+
 // List takes label and field selectors, and returns the list of Events that match those selectors.
 func (c *EventStoreClient) List(ctx context.Context) (results []*v1alpha1.Event, err error) {
 	cursor, err := c.collection.Find(context.TODO(), bson.D{})

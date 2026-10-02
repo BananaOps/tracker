@@ -37,7 +37,12 @@ func (e *Lock) CreateLock(
 	if err := authz.Authorize(ctx); err != nil {
 		return nil, err
 	}
+	return e.createLock(ctx, i)
+}
 
+// createLock is CreateLock without authorization. Only callers of the server
+// package that already authorized or authenticated the operation may use it.
+func (e *Lock) createLock(ctx context.Context, i *v1alpha1.CreateLockRequest) (*v1alpha1.CreateLockResponse, error) {
 	var lock = &v1alpha1.Lock{
 		Service:     i.Service,
 		Who:         i.Who,
@@ -143,7 +148,12 @@ func (e *Lock) UpdateLock(
 	if err := authz.Authorize(ctx); err != nil {
 		return nil, err
 	}
+	return e.updateLock(ctx, i)
+}
 
+// updateLock is UpdateLock without authorization. Only callers of the server
+// package that already authorized or authenticated the operation may use it.
+func (e *Lock) updateLock(ctx context.Context, i *v1alpha1.UpdateLockRequest) (*v1alpha1.UpdateLockResponse, error) {
 	// Retrieve existing lock by id
 	existing, err := e.store.Get(ctx, map[string]interface{}{"id": i.Id})
 	if err != nil {
@@ -310,4 +320,13 @@ func (e *Lock) UnlockByEventId(ctx context.Context, eventId string) error {
 	)
 
 	return nil
+}
+
+// findLock returns the lock held on service, environment and resource, or nil.
+func (e *Lock) findLock(ctx context.Context, service, environment, resource string) *v1alpha1.Lock {
+	l, err := e.store.Get(ctx, map[string]interface{}{"service": service, "environment": environment, "resource": resource})
+	if err != nil || l == nil || l.Service == "" {
+		return nil
+	}
+	return l
 }
