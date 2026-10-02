@@ -50,6 +50,7 @@ import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
 import VulnerabilityManager from '../components/VulnerabilityManager'
 import InfrastructureResourceManager from '../components/InfrastructureResourceManager'
 import type { InfrastructureResource } from '../types/api'
+import { Can } from '../components/auth/Can'
 
 // Provider Colors
 // AWS: Database: #C925D1, Storage: #7AA116, Network: #8C4FFF, Compute: #ED7100, Messaging: #E7157B, Security: #DD344C
@@ -938,22 +939,24 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg"
-                style={{ background: T.primary, color: '#ffffff', boxShadow: `0 4px 16px ${a('primary', 0.2)}` }}
-              >
-                <Edit className="w-4 h-4" />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                className="p-2.5 rounded-lg transition-all"
-                style={{ background: a('error', 0.1), color: T.error, border: `1px solid ${a('error', 0.2)}` }}
-                title="Delete service"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <Can perm="catalog:write">
+                <button
+                  onClick={handleEdit}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg"
+                  style={{ background: T.primary, color: '#ffffff', boxShadow: `0 4px 16px ${a('primary', 0.2)}` }}
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={handleDeleteClick}
+                  className="p-2.5 rounded-lg transition-all"
+                  style={{ background: a('error', 0.1), color: T.error, border: `1px solid ${a('error', 0.2)}` }}
+                  title="Delete service"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </Can>
               <button onClick={() => setExpanded(!expanded)} title={expanded ? 'Collapse panel' : 'Expand to full width'}
                 className="hidden md:flex p-2.5 rounded-lg transition-all" style={{ background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.2)}` }}>
                 {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -1280,15 +1283,17 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={startEditingGraph}
-                  className="flex items-center space-x-1"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </Button>
+                <Can perm="catalog:write">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={startEditingGraph}
+                    className="flex items-center space-x-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </Button>
+                </Can>
               )}
             </div>
           </div>

@@ -20,6 +20,7 @@ task generate                    # buf dep update + buf generate (regenerate gen
 npm run dev                      # Vite dev server on :3000, proxies /api to VITE_BACKEND_URL (default http://localhost:8080)
 npm run lint                     # eslint, --max-warnings 0
 npm run build:check              # tsc && vite build  (type check)
+npm test                         # vitest run (auth modules)
 npm run build                    # production build into web/dist
 npm run build:static             # demo build, VITE_STATIC_MODE=true
 
@@ -29,7 +30,7 @@ task build:all                   # frontend then Go binary into bin/
 docker run -d -p 27017:27017 --name tracker-mongo mongo:7   # local DB
 ```
 
-There is **no frontend test runner configured** — `web/src/**/__tests__/` directories exist but are empty and no vitest/jest dependency is installed. Do not invent `npm test`. Load tests live in `tests/k6/` (`task k6:generate`, `task k6:test-locks`).
+Frontend tests run with vitest and Testing Library: `npm test` from `web/` (`npm run test:watch` to watch, `npm run lint:auth` for the lint-clean auth modules). The suite covers the auth modules; most other pages have no tests yet. Load tests live in `tests/k6/` (`task k6:generate`, `task k6:test-locks`).
 
 Note: `task dev:all` prints "Frontend sur http://localhost:5173" but `web/vite.config.ts` sets port **3000**.
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Lock, Unlock, AlertCircle } from 'lucide-react'
 import { locksApi } from '../lib/api'
+import { Can } from './auth/Can'
 
 interface LockActionsProps {
   service: string
@@ -79,33 +80,35 @@ export default function LockActions({
         </div>
       )}
       
-      {isLocked ? (
-        <button
-          onClick={handleUnlock}
-          disabled={loading || !lockId}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
-        >
-          {loading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Unlock className="w-4 h-4" />
-          )}
-          Déverrouiller
-        </button>
-      ) : (
-        <button
-          onClick={handleLock}
-          disabled={loading}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
-        >
-          {loading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Lock className="w-4 h-4" />
-          )}
-          Verrouiller
-        </button>
-      )}
+      <Can perm="lock:write">
+        {isLocked ? (
+          <button
+            onClick={handleUnlock}
+            disabled={loading || !lockId}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Unlock className="w-4 h-4" />
+            )}
+            Déverrouiller
+          </button>
+        ) : (
+          <button
+            onClick={handleLock}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Lock className="w-4 h-4" />
+            )}
+            Verrouiller
+          </button>
+        )}
+      </Can>
     </div>
   )
 }

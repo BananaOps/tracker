@@ -133,9 +133,8 @@ every claim it needs must be in the `id_token`.
 The local `admin` account keeps working next to SSO and is the way back in
 when the IdP is misconfigured or down. SSO is off unless `AUTH_OIDC_ISSUER` is
 set. When it is on, `GET /api/v1alpha1/auth/config` reports `oidcEnabled` and
-`oidcButtonLabel`. The Single Sign-On button of the login page ships with the
-web PR #201: until it is merged, start a login by opening
-`/api/v1alpha1/auth/oidc/login` directly.
+`oidcButtonLabel`, and the login page shows a Single Sign-On button that opens
+`/api/v1alpha1/auth/oidc/login`.
 
 ### Configuration
 
@@ -470,6 +469,33 @@ instead of shutting it down.
 
 Presenting no credential at all is unchanged: the caller is anonymous and gets
 the anonymous permissions.
+
+## Web UI
+
+The web interface consumes the endpoints above:
+
+| Page | Purpose | Requirement |
+|------|---------|-------------|
+| `/login` | Local sign-in form; SSO button when OIDC is configured | none |
+| `/account/password` | Change the password of a local account; forced after first sign-in | signed-in user |
+| `/admin/users` | List, create (username, email, temporary password, teams), edit teams, enable or disable accounts | `access:manage` |
+| `/admin/teams` | List, create, edit permissions and OIDC groups, delete non built-in teams | `access:manage` |
+| `/admin/api-keys` | List, create (team or global), reveal the secret once, revoke | `access:manage` |
+
+Behaviour in the browser:
+
+- A `401` on any API call redirects to `/login?redirect=<page>`; a `403` shows an
+  "Access denied" toast and leaves the page in place.
+- Sidebar entries are hidden when the principal lacks the section's `*:read` permission, and
+  create, edit, delete and lock buttons are hidden without the matching `*:write` permission.
+  Hiding is a convenience: the backend enforces every permission.
+- Anonymous visitors see a "Sign in" button; signed-in users get an account menu with their
+  source (`local` or `oidc`), teams, "Change password" (local accounts) and "Sign out".
+- In `DEMO_MODE`, the banner tells anonymous visitors that browsing is read-only.
+- When the UI is served by the Vite dev server (`npm run dev`, on port 3000) with the backend
+  running separately, start the backend with `AUTH_PUBLIC_URL=http://localhost:3000`, otherwise
+  the login endpoint's cross-site check refuses the request because the dev proxy rewrites the
+  Host header.
 
 ## Metrics
 
