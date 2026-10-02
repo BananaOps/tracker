@@ -133,9 +133,8 @@ every claim it needs must be in the `id_token`.
 The local `admin` account keeps working next to SSO and is the way back in
 when the IdP is misconfigured or down. SSO is off unless `AUTH_OIDC_ISSUER` is
 set. When it is on, `GET /api/v1alpha1/auth/config` reports `oidcEnabled` and
-`oidcButtonLabel`. The Single Sign-On button of the login page ships with the
-web PR #201: until it is merged, start a login by opening
-`/api/v1alpha1/auth/oidc/login` directly.
+`oidcButtonLabel`, and the login page shows a Single Sign-On button that opens
+`/api/v1alpha1/auth/oidc/login`.
 
 ### Configuration
 
