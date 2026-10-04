@@ -2,6 +2,7 @@ import axios from 'axios'
 import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ListCatalogsResponse } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
 import { convertCatalogForAPI, convertCatalogFromAPI, convertCommunicationChannelsFromAPI } from './apiConverters'
+import { handleAuthError } from './authEvents'
 
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
@@ -14,14 +15,22 @@ const getApiBaseUrl = () => {
 
 const axiosInstance = axios.create({
   baseURL: getApiBaseUrl(),
+  // Sessions are carried by the HttpOnly "tracker_session" cookie.
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    // Ajouter un token d'authentification si nécessaire
-    ...(import.meta.env.VITE_API_TOKEN && {
-      'Authorization': `Bearer ${import.meta.env.VITE_API_TOKEN}`
-    }),
   },
 })
+
+// 401 -> redirect to /login, 403 -> "Access denied" toast. Both are handled
+// by AuthProvider through window events so this module stays router-free.
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    handleAuthError(error)
+    return Promise.reject(error)
+  },
+)
 
 const realEventsApi = {
   list: async (params?: { perPage?: number; page?: number }) => {

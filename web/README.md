@@ -96,6 +96,26 @@ Les fichiers de production seront générés dans le dossier `dist/`
 npm run preview
 ```
 
+## Authentication
+
+The UI signs in against the backend described in [docs/AUTHENTICATION.md](../docs/AUTHENTICATION.md).
+
+- `/login`: local account form, plus an SSO button when the backend reports `oidcEnabled`.
+- Sessions are HttpOnly cookies; the axios client sends them with `withCredentials`. A `401`
+  redirects to `/login?redirect=<current page>`, a `403` shows an "Access denied" toast.
+- Navigation entries and create/edit/delete buttons are hidden when the signed-in principal
+  (or the anonymous principal) lacks the matching `*:read` / `*:write` permission.
+- `/admin/users`, `/admin/teams` and `/admin/api-keys` require `access:manage`.
+- `/account/password` lets local users change their password; accounts flagged
+  `mustChangePassword` are sent there first.
+- When this UI is served by the Vite dev server (`npm run dev`, port 3000) and the backend
+  runs separately, start the backend with `AUTH_PUBLIC_URL=http://localhost:3000`, otherwise
+  the login endpoint's cross-site check refuses the request.
+
+Scripts: `npm test` (vitest), `npm run lint:auth` (ESLint on the auth modules),
+`npm run typecheck` (`tsc --noEmit`, currently reports pre-existing errors outside the auth
+modules; CI only fails on the auth modules).
+
 ## 🔧 Configuration
 
 ### Proxy API

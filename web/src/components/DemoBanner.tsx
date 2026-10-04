@@ -1,15 +1,19 @@
 import { Coffee, Heart } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function DemoBanner() {
   // Vérifier si le mode démo est activé (runtime config ou env var)
-  const isDemoMode = 
-    window.TRACKER_CONFIG?.demoMode || 
+  const isDemoMode =
+    window.TRACKER_CONFIG?.demoMode ||
     import.meta.env.VITE_DEMO_MODE === 'true'
-  
-  const buyMeCoffeeUrl = 
-    window.TRACKER_CONFIG?.buyMeCoffeeUrl || 
-    import.meta.env.VITE_BUY_ME_COFFEE_URL || 
+
+  const buyMeCoffeeUrl =
+    window.TRACKER_CONFIG?.buyMeCoffeeUrl ||
+    import.meta.env.VITE_BUY_ME_COFFEE_URL ||
     'https://www.buymeacoffee.com/bananaops'
+
+  const { principal } = useAuth()
 
   if (!isDemoMode) {
     return null
@@ -26,6 +30,12 @@ export default function DemoBanner() {
             </span>
             <span className="text-sm sm:text-base">
               This is a <strong>demo instance</strong> of Tracker - Try it out!
+              {principal.kind !== 'user' && (
+                <>
+                  {' '}Browsing is read-only:{' '}
+                  <Link to="/login" className="underline font-semibold">sign in</Link> to create or edit.
+                </>
+              )}
             </span>
           </div>
 

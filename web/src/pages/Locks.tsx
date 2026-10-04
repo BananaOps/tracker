@@ -5,6 +5,7 @@ import { Lock as LockIcon, Unlock, RefreshCw, AlertCircle, Eye } from 'lucide-re
 import { getEnvironmentLabel } from '../lib/eventUtils'
 import { EnvBadge } from '../components/Badges'
 import { useCreatePanel } from '../contexts/CreatePanelContext'
+import { Can } from '../components/auth/Can'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -228,14 +229,16 @@ export default function Locks() {
                             <Eye className="w-3 h-3" /> View Event
                           </button>
                         )}
-                        <button onClick={() => handleUnlock(lock)} disabled={unlocking === lock.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50"
-                          style={{ color: 'white', background: T.error }}>
-                          {unlocking === lock.id
-                            ? <><RefreshCw className="w-3 h-3 animate-spin" /> Unlocking...</>
-                            : <><Unlock className="w-3 h-3" /> Unlock</>
-                          }
-                        </button>
+                        <Can perm="lock:write">
+                          <button onClick={() => handleUnlock(lock)} disabled={unlocking === lock.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50"
+                            style={{ color: 'white', background: T.error }}>
+                            {unlocking === lock.id
+                              ? <><RefreshCw className="w-3 h-3 animate-spin" /> Unlocking...</>
+                              : <><Unlock className="w-3 h-3" /> Unlock</>
+                            }
+                          </button>
+                        </Can>
                       </div>
                     </td>
                   </tr>
