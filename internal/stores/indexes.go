@@ -41,6 +41,11 @@ func EnsureIndexes(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
+	// Index pour la collection integration_deployments
+	if err := ensureIntegrationDeploymentIndexes(ctx, db, logger); err != nil {
+		return err
+	}
+
 	logger.Info("All database indexes ensured successfully")
 	return nil
 }
@@ -228,6 +233,28 @@ func ensureAuthIndexes(ctx context.Context, db *mongo.Database, logger *slog.Log
 	}
 	logger.Info("Auth indexes ensured")
 	return nil
+}
+
+func ensureIntegrationDeploymentIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
+	collection := db.Collection(IntegrationDeploymentsCollection)
+
+	indexes := []mongo.IndexModel{
+		// _id is the correlation key (unique by construction).
+		// Reverse lookup from a Tracker event, for debugging.
+		{
+			Keys:    bson.D{{Key: "eventId", Value: 1}},
+			Options: options.Index().SetName("idx_integration_event_id"),
+		},
+		// A correlation only matters while a deployment runs: purge after 90 days.
+		{
+			Keys: bson.D{{Key: "updatedAt", Value: 1}},
+			Options: options.Index().
+				SetName("idx_integration_updated_at_ttl").
+				SetExpireAfterSeconds(int32(IntegrationDeploymentTTL / time.Second)),
+		},
+	}
+
+	return createIndexes(ctx, collection, indexes, logger, IntegrationDeploymentsCollection)
 }
 
 func createIndexes(ctx context.Context, collection *mongo.Collection, indexes []mongo.IndexModel, logger *slog.Logger, collectionName string) error {

@@ -20,6 +20,11 @@ func NewStoreCatalog(collection string) (c *CatalogStoreClient) {
 	}
 }
 
+// NewStoreCatalogFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreCatalogFromCollection(coll *mongo.Collection) *CatalogStoreClient {
+	return &CatalogStoreClient{collection: coll}
+}
+
 // List takes label and field selectors, and returns the list of Catalogs that match those selectors.
 func (c *CatalogStoreClient) List(ctx context.Context) (results []*v1alpha1.Catalog, err error) {
 	cursor, err := c.collection.Find(context.TODO(), bson.D{})

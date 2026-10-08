@@ -253,6 +253,7 @@ npm run dev
 - [📊 Events Guide](./docs/EVENTS.md) - Working with events
 - [📦 Catalog Guide](./docs/CATALOG.md) - Managing service catalog
 - [🔒 Locks Guide](./docs/LOCKS.md) - Distributed locking
+- [🔗 Deployment Integrations](./docs/INTEGRATIONS.md) - Record GitLab and Flux deployments automatically
 
 ### API Documentation
 - [🔌 API Specification](./docs/api-specification.md) - API reference

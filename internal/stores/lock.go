@@ -23,6 +23,11 @@ func NewStoreLock(collection string) (c *LockStoreClient) {
 	}
 }
 
+// NewStoreLockFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreLockFromCollection(coll *mongo.Collection) *LockStoreClient {
+	return &LockStoreClient{collection: coll}
+}
+
 // List takes label and field selectors, and returns the list of Locks that match those selectors.
 func (c *LockStoreClient) List(ctx context.Context) (results []*v1alpha1.Lock, err error) {
 	cursor, err := c.collection.Find(context.TODO(), bson.D{})
