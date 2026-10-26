@@ -119,8 +119,8 @@ export default function EventsOverlaps() {
     refetchInterval: 30_000,
   })
 
-  const allEvents = data?.events || []
-  const catalogs = catalogData?.catalogs || []
+  const allEvents = useMemo(() => data?.events ?? [], [data])
+  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
 
   const catalogMap = useMemo(() => {
     const map = new Map<string, Catalog>()

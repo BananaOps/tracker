@@ -84,8 +84,8 @@ export default function EventsTimeline() {
     refetchInterval: 30_000,
   })
 
-  const allEvents: Event[] = (data?.events || []) as Event[]
-  const catalogs = (catalogData?.catalogs || []) as Array<{ name: string }>
+  const allEvents = useMemo(() => data?.events ?? [], [data])
+  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
 
   const catalogServices = useMemo(() => {
     return catalogs.map((c) => c.name).sort()

@@ -10,14 +10,16 @@ import { config } from './config'
 // Initialize Microsoft Clarity if a project ID is configured
 if (config.clarityProjectId) {
   const clarityId = config.clarityProjectId
-  ;(function (c: any, l: Document, a: string, r: string, i: string) {
-    c[a] = c[a] || function (...args: unknown[]) { (c[a].q = c[a].q || []).push(args) }
+  type ClarityQueue = ((...args: unknown[]) => void) & { q?: unknown[][] }
+  ;(function (c: Record<string, ClarityQueue | undefined>, l: Document, a: string, r: string, i: string) {
+    const queue: ClarityQueue = c[a] || function (...args: unknown[]) { (queue.q = queue.q || []).push(args) }
+    c[a] = queue
     const t = l.createElement(r) as HTMLScriptElement
     t.async = true
     t.src = 'https://www.clarity.ms/tag/' + i
     const y = l.getElementsByTagName(r)[0]
     y.parentNode!.insertBefore(t, y)
-  })(window, document, 'clarity', 'script', clarityId)
+  })(window as unknown as Record<string, ClarityQueue | undefined>, document, 'clarity', 'script', clarityId)
 }
 
 // FontAwesome configuration

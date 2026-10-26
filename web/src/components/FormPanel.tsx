@@ -1,6 +1,6 @@
 import { useEffect, type FormEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../contexts/theme'
 
 interface FormPanelProps {
   /** Small icon shown in the header badge. */

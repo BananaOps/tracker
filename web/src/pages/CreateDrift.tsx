@@ -12,7 +12,7 @@ import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { AlertCircle, GitBranch, Link2, Ticket, Plus } from 'lucide-react'
 import FormPanel from '../components/FormPanel'
 import ChipSelect, { type ChipOption } from '../components/ChipSelect'
-import { getEnvVisual, getPriorityVisual, getStatusVisual } from '../components/Badges'
+import { getEnvVisual, getPriorityVisual, getStatusVisual } from '../lib/badgeVisuals'
 import { getEnvironmentLabel } from '../lib/eventUtils'
 
 interface CreateDriftProps {
@@ -31,7 +31,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
+  const catalogServices = catalogData?.catalogs.map((c) => c.name).sort() || []
 
   const [formData, setFormData] = useState<CreateEventRequest>({
     title: '',
@@ -60,7 +60,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
       setShowToast(true)
       setTimeout(() => { navigate('/drifts') }, 2000)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error creating drift:', error)
     },
   })

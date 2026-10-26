@@ -1,17 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-
-export type CreatePanelType = 'event' | 'lock' | 'rpa' | 'service' | 'drift'
-
-interface CreatePanelContextValue {
-  openPanel: CreatePanelType | null
-  open: (type: CreatePanelType) => void
-  close: () => void
-  /** Increments after every successful creation, so list pages can refetch. */
-  createdTick: number
-  notifyCreated: () => void
-}
-
-const CreatePanelContext = createContext<CreatePanelContextValue | undefined>(undefined)
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { CreatePanelContext, type CreatePanelType } from './createPanel'
 
 export function CreatePanelProvider({ children }: { children: ReactNode }) {
   const [openPanel, setOpenPanel] = useState<CreatePanelType | null>(null)
@@ -27,12 +15,4 @@ export function CreatePanelProvider({ children }: { children: ReactNode }) {
   )
 
   return <CreatePanelContext.Provider value={value}>{children}</CreatePanelContext.Provider>
-}
-
-export function useCreatePanel() {
-  const ctx = useContext(CreatePanelContext)
-  if (!ctx) {
-    throw new Error('useCreatePanel must be used within a CreatePanelProvider')
-  }
-  return ctx
 }

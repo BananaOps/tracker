@@ -51,12 +51,12 @@ export default function EventsCalendar() {
     refetchInterval: 30_000,
   })
 
-  const allEvents = data?.events || []
-  const catalogs = catalogData?.catalogs || []
+  const allEvents = useMemo(() => data?.events ?? [], [data])
+  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
 
   // Extraire les services du catalogue
   const catalogServices = useMemo(() => {
-    return catalogs.map((c: any) => c.name).sort()
+    return catalogs.map((c) => c.name).sort()
   }, [catalogs])
 
   // Filtrer les services par recherche
@@ -78,28 +78,28 @@ export default function EventsCalendar() {
 
   // Extraire les valeurs uniques pour les filtres
   const uniqueEnvironments = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e: any) => e.attributes.environment).filter(Boolean)))
+    const values = Array.from(new Set(allEvents.map((e) => e.attributes.environment).filter(Boolean)))
     return filterInvalidValues(values).sort()
   }, [allEvents])
 
   const uniquePriorities = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e: any) => e.attributes.priority)))
+    const values = Array.from(new Set(allEvents.map((e) => e.attributes.priority)))
     return filterInvalidValues(values).sort()
   }, [allEvents])
 
   const uniqueStatuses = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e: any) => e.attributes.status)))
+    const values = Array.from(new Set(allEvents.map((e) => e.attributes.status)))
     return filterInvalidValues(values).sort()
   }, [allEvents])
 
   const uniqueTypes = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e: any) => e.attributes.type)))
+    const values = Array.from(new Set(allEvents.map((e) => e.attributes.type)))
     return filterInvalidValues(values).sort()
   }, [allEvents])
 
   // Filtrer les événements
   const events = useMemo(() => {
-    return allEvents.filter((event: any) => {
+    return allEvents.filter((event) => {
       // Filtre par date : événements qui touchent le mois en cours
       const startDateStr = event.attributes.startDate || event.metadata?.createdAt
       if (startDateStr) {
@@ -170,7 +170,7 @@ export default function EventsCalendar() {
   }, [monthStart])
 
   const getEventsForDay = (day: Date) => {
-    return events.filter((event: any) => {
+    return events.filter((event) => {
       // Utiliser startDate si disponible, sinon createdAt
       const startDateStr = event.attributes.startDate || event.metadata?.createdAt
       if (!startDateStr) return false
@@ -185,29 +185,29 @@ export default function EventsCalendar() {
   }
 
   const selectedDayEvents = selectedDate ? getEventsForDay(selectedDate) : []
-  const selectedDayLiveCount = selectedDayEvents.filter((event: any) => {
+  const selectedDayLiveCount = selectedDayEvents.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
     return status === 'start' || status === 'in_progress' || status === '1' || status === '12'
   }).length
-  const selectedDayScheduledCount = selectedDayEvents.filter((event: any) => {
+  const selectedDayScheduledCount = selectedDayEvents.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
     return status === 'scheduled'
   }).length
-  const selectedDayDoneCount = selectedDayEvents.filter((event: any) => {
+  const selectedDayDoneCount = selectedDayEvents.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
     return status === 'completed' || status === 'success' || status === 'done' || status === '3' || status === '11'
   }).length
 
   const totalEventsInMonth = events.length
-  const criticalEventsCount = events.filter((event: any) => {
+  const criticalEventsCount = events.filter((event) => {
     const impact = String(event.attributes.impact || '').toLowerCase()
     return impact === 'true' || impact === 'critical' || impact === 'high' || impact === '1'
   }).length
-  const scheduledEventsCount = events.filter((event: any) => {
+  const scheduledEventsCount = events.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
     return status === 'scheduled' || status === 'start' || status === 'in_progress' || status === '1' || status === '12'
   }).length
-  const completedEventsCount = events.filter((event: any) => {
+  const completedEventsCount = events.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
     return status === 'completed' || status === 'success' || status === 'done' || status === '3' || status === '11'
   }).length
@@ -501,7 +501,7 @@ export default function EventsCalendar() {
                               {format(day, 'd')}
                             </div>
                             <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
-                              {dayEvents.slice(0, visibleEventCount).map((event: any, idx: number) => {
+                              {dayEvents.slice(0, visibleEventCount).map((event, idx) => {
                                 const envPalette = getEnvironmentPalette(event.attributes.environment)
                                 return (
                                   <div
@@ -575,7 +575,7 @@ export default function EventsCalendar() {
                 <div>
                   {selectedDayEvents.length > 0 ? (
                     <div style={{ borderTop: '1px solid rgb(var(--hud-outline-var) / 0.08)' }}>
-                      {selectedDayEvents.map((event: any, i: number) => {
+                      {selectedDayEvents.map((event, i) => {
                         const startDateStr = event.attributes.startDate || event.metadata?.createdAt
                         const startDate = startDateStr ? new Date(startDateStr) : null
                         const endDate = event.attributes.endDate ? new Date(event.attributes.endDate) : startDate

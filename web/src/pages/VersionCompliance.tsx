@@ -27,7 +27,7 @@ export default function VersionCompliance() {
     onSurfaceVar: 'rgb(var(--hud-on-surface-var))',
   }
 
-  const { data: complianceData, isLoading, error } = (useQuery as any)({
+  const { data: complianceData, isLoading, error } = useQuery({
     queryKey: ['catalog', 'version-compliance'],
     queryFn: () => catalogApi.getVersionCompliance(),
   })

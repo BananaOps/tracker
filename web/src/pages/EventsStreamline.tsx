@@ -63,8 +63,8 @@ export default function EventsStreamline() {
     refetchInterval: 30_000,
   })
 
-  const allEvents = data?.events || []
-  const catalogs = catalogData?.catalogs || []
+  const allEvents = useMemo(() => data?.events ?? [], [data])
+  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
 
   // Extraire les valeurs uniques pour les filtres
   const catalogServices = useMemo(() => {

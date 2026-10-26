@@ -95,7 +95,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
     createUpdateMutation.mutate(formData as Catalog)
   }
 
-  const handleChange = (field: keyof Catalog, value: any) => {
+  const handleChange = <K extends keyof Catalog>(field: K, value: Catalog[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -115,7 +115,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
     setFormData(prev => ({ ...prev, vulnerabilitySummary }))
   }
 
-  const handleSLAChange = (field: keyof SLA, value: any) => {
+  const handleSLAChange = <K extends keyof SLA>(field: K, value: SLA[K]) => {
     setFormData(prev => ({
       ...prev,
       sla: {
@@ -274,7 +274,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
                       <select
                         required
                         value={formData.languages}
-                        onChange={(e) => handleChange('languages', e.target.value)}
+                        onChange={(e) => handleChange('languages', e.target.value as Language)}
                         className={inputCls + ' appearance-none'}
                         style={inputStyle}
                       >
@@ -331,7 +331,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
                       <select
                         required
                         value={formData.platform}
-                        onChange={(e) => handleChange('platform', e.target.value)}
+                        onChange={(e) => handleChange('platform', e.target.value as Platform)}
                         className={inputCls + ' appearance-none'}
                         style={inputStyle}
                       >
@@ -499,7 +499,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
                         <label className={labelCls} style={{ color: hud.onSurfaceVar }}>SLA Level <span style={{ color: hud.error }}>*</span></label>
                         <select
                           value={formData.sla?.level || SLALevel.MEDIUM}
-                          onChange={(e) => handleSLAChange('level', e.target.value)}
+                          onChange={(e) => handleSLAChange('level', e.target.value as SLALevel)}
                           className={inputCls + ' appearance-none'}
                           style={inputStyle}
                         >

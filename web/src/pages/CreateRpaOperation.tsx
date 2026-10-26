@@ -11,7 +11,7 @@ import { AlertCircle, Bot, Clock, Search } from 'lucide-react'
 import { DateTimePicker } from '../components/ui/date-time-picker'
 import FormPanel from '../components/FormPanel'
 import ChipSelect, { type ChipOption } from '../components/ChipSelect'
-import { getEnvVisual, getStatusVisual } from '../components/Badges'
+import { getEnvVisual, getStatusVisual } from '../lib/badgeVisuals'
 import { getEnvironmentLabel } from '../lib/eventUtils'
 
 interface CreateRpaOperationProps {
@@ -30,7 +30,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
+  const catalogServices = catalogData?.catalogs.map((c) => c.name).sort() || []
 
   const now = new Date()
   const defaultStartDate = now.toISOString()
@@ -62,7 +62,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
       setShowToast(true)
       setTimeout(() => { navigate('/rpa') }, 2000)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error creating RPA Operation:', error)
     },
   })

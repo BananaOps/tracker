@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react'
+import { parseTimestamp, type ApiTimestamp } from '../lib/dates'
 
 import { eventsApi } from '../lib/api'
-import { useCreatePanel } from '../contexts/CreatePanelContext'
+import { useCreatePanel } from '../contexts/createPanel'
 import type { Event } from '../types/api'
 import { EventType, Status, Priority } from '../types/api'
 import { AlertTriangle, AlertCircle, ExternalLink, CheckCircle, X, Search } from 'lucide-react'
@@ -139,14 +140,7 @@ export default function DriftsList() {
   }), [allDrifts, activeDrifts])
 
   // Helpers
-  const parseTimestamp = (ts: any): Date | null => {
-    if (!ts) return null
-    if (typeof ts === 'string') { const d = new Date(ts); return isNaN(d.getTime()) ? null : d }
-    if (ts.seconds !== undefined) return new Date(Number(ts.seconds) * 1000 + (ts.nanos || 0) / 1000000)
-    return null
-  }
-
-  const getTimeSince = (ts: any) => {
+  const getTimeSince = (ts: ApiTimestamp) => {
     const created = parseTimestamp(ts)
     if (!created) return '-'
     const diffMs = Date.now() - created.getTime()
@@ -382,7 +376,7 @@ export default function DriftsList() {
           {/* ── Table ── */}
           {filteredDrifts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 mb-4" style={{ color: T.onSurfaceVar } as any} />
+              <FontAwesomeIcon icon={faCodeBranch} className="w-8 h-8 mb-4" style={{ color: T.onSurfaceVar }} />
               <p className="text-sm font-bold" style={{ color: T.onSurface }}>
                 {hasFilters ? 'No drifts match your filters' : viewMode === 'active' ? 'No active drifts' : 'No drifts recorded'}
               </p>

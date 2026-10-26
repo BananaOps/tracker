@@ -32,7 +32,7 @@ export default function CatalogTable() {
 
 
 
-  const allCatalogs = data?.catalogs || []
+  const allCatalogs = useMemo(() => data?.catalogs ?? [], [data])
 
   // Extraire les valeurs uniques pour les filtres
   const uniqueTypes = useMemo<string[]>(() => {
