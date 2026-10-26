@@ -5,8 +5,9 @@
 #
 # Commit messages follow Conventional Commits so release-please picks them up:
 # runtime dependencies are `fix(deps)` (they trigger a patch release), dev
-# dependencies are `chore(deps-dev)` and actions are `ci(deps)` (listed in the
-# changelog of the next release without triggering one).
+# dependencies are `chore(deps-dev)`, the MCP server (not shipped in the image)
+# is `chore(deps)` and actions are `ci(deps)`: listed in the changelog of the
+# next release without triggering one.
 
 version: 2
 updates:
@@ -26,6 +27,14 @@ updates:
     commit-message:
       prefix: "fix"
       prefix-development: "chore"
+      include: "scope"
+  - package-ecosystem: "uv"
+    directory: "/mcp-server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore"
       include: "scope"
   - package-ecosystem: "github-actions" # See documentation for possible values
     directory: "/" # Location of package manifests
