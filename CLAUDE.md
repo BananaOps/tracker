@@ -2,63 +2,54 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Tracker is an event-tracking platform (deployments, incidents, drifts, RPA usage), service catalog and distributed lock service. Go backend (gRPC + grpc-gateway REST) backed by MongoDB (or FerretDB), with a React 19 / TypeScript / Vite / Tailwind 4 SPA in `web/`. A Python MCP server for AI agents lives in `mcp-server/` (uses `uv`).
+
 ## Commands
 
-Task runner is [Taskfile](Taskfile.yml) (`task --list` for all targets).
+Tasks are defined in `Taskfile.yml` (`task --list`).
 
 ```bash
-# Backend
-task dev:backend                 # go run . serv  (needs MongoDB on 127.0.0.1:27017)
-go test ./...                    # all Go tests
-go test ./internal/config -run TestDefaultConfigValues   # single test
-task lint                        # buf lint + golangci-lint run ./...
-task fmt                         # buf format -w + go fmt ./...
-task test                        # go test -v -race -coverprofile=coverage.out ./...
-task generate                    # buf dep update + buf generate (regenerate generated/**)
+# Backend (needs MongoDB on 127.0.0.1:27017: docker run -d -p 27017:27017 mongo:7)
+go run . serv                 # HTTP :8080 (REST, SPA, /docs Swagger), gRPC :8765, metrics :8081
+task generate                 # buf dep update && buf generate (after editing proto/)
+task lint                     # buf lint + golangci-lint run ./...
+go test ./...                 # unit tests
+go test ./internal/auth/... -run TestName -v      # single test
+MONGO_TEST_URI=mongodb://127.0.0.1:27017 go test ./...   # also run Mongo-backed tests (skipped otherwise)
 
-# Frontend (from web/)
-npm run dev                      # Vite dev server on :3000, proxies /api to VITE_BACKEND_URL (default http://localhost:8080)
-npm run lint                     # eslint, --max-warnings 0
-npm run build:check              # tsc && vite build  (type check)
-npm run build                    # production build into web/dist
-npm run build:static             # demo build, VITE_STATIC_MODE=true
+# Frontend (web/)
+npm run dev                   # Vite on :3000, proxies /api to VITE_BACKEND_URL (default http://localhost:8080)
+npm run build                 # outputs web/dist, which `serv` serves if present
+npm run build:check           # tsc + build (type check)
+npm run lint
+npm run build:static          # demo build with VITE_STATIC_MODE=true (GitHub Pages), see web/README.static.md
 
-# Full stack
-task dev:all                     # backend + frontend together
-task build:all                   # frontend then Go binary into bin/
-docker run -d -p 27017:27017 --name tracker-mongo mongo:7   # local DB
+task dev:all                  # backend + frontend together
 ```
 
-There is **no frontend test runner configured** — `web/src/**/__tests__/` directories exist but are empty and no vitest/jest dependency is installed. Do not invent `npm test`. Load tests live in `tests/k6/` (`task k6:generate`, `task k6:test-locks`).
-
-Note: `task dev:all` prints "Frontend sur http://localhost:5173" but `web/vite.config.ts` sets port **3000**.
+CI (`.github/workflows/go-test.yml`) runs golangci-lint, gosec (`-exclude=G103,G115 -exclude-generated`), and `go test` with a Mongo service and `MONGO_TEST_URI` set. Proto changes are checked with `buf lint`.
 
 ## Architecture
 
-Single Go binary + React SPA, MongoDB persistence.
+**Request flow.** `main.go` → `cmd/serv.go` (cobra `serv` command) wires everything: auth config/stores, the gRPC server, and a grpc-gateway `runtime.ServeMux`. The gateway uses `Register*HandlerServer` (in-process, not a proxy to the gRPC port), so REST requests call the same `server.*` structs directly **without going through gRPC interceptors**. The HTTP handler stack is: `auth.HTTPMiddleware` → SPA file server for `web/dist` (falls back to `index.html`; `/api/`, `/docs`, `/swagger.json`, `/config.js` go to the mux). Ports are hardcoded in `serv.go` even though `internal/config` reads `GRPC_PORT`/`HTTP_PORT`.
 
-**Proto is the source of truth.** `proto/{event,lock,catalog}/v1alpha1/*.proto` define the three gRPC services and their REST routes (`google.api.http` options, all under `/api/v1alpha1/...`). `buf generate` emits checked-in code into `generated/**` (Go structs, gRPC, grpc-gateway, protoc-gen-validate, and the merged OpenAPI spec at `generated/openapiv2/apidocs.swagger.json`). Never hand-edit `generated/**`; change the proto and regenerate.
+**Layers.**
+- `proto/<domain>/v1alpha1/*.proto` — source of truth for the API (event, catalog, lock, auth). REST routes come from `google.api.http` options under `/api/v1alpha1/...`.
+- `generated/` — buf output (Go, gRPC, gateway, protoc-gen-validate, merged OpenAPI at `generated/openapiv2/apidocs.swagger.json`). Committed; never hand-edit, regenerate with `task generate`.
+- `server/` — gRPC service implementations (`Event`, `Catalog`, `Lock`, `Auth`) plus plain HTTP handlers registered on the gateway mux via `HandlePath` (cookie login `auth_http.go`, OIDC `auth_oidc.go`, Homer proxy, custom links).
+- `internal/stores/` — MongoDB access. A single package-level `*mongo.Database` is lazily created by the first `NewClient(collection)` call; indexes are set up in `indexes.go` via `EnsureIndexes`.
+- `internal/config/` — DB/server settings from env vars (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `DB_CA_FILE`, …) read in `init()`.
+- `internal/auth/` — principals, permissions, sessions, API keys, CSRF, rate limiting, env config (`AUTH_*`). Subpackages: `identity` (resolve principal from session/API key/anonymous, admin bootstrap, OIDC user mapping), `sso` (OIDC provider, transaction codec; `ssotest` is a fake IdP for tests), `authz` (permission decisions).
 
-**`cmd/serv.go` is the wiring hub.** One process serves everything:
-- gRPC on `:8765` (with reflection), HTTP on `:8080`, Prometheus on `:8081/metrics` — these ports are **hardcoded in `serv.go`**, not read from `internal/config` (which has its own defaults used elsewhere).
-- grpc-gateway `runtime.ServeMux` handles `/api/v1alpha1/*`; Swagger UI at `/docs`, spec at `/swagger.json` (served from the file on disk, so run from the repo root).
-- Serves the built SPA from `web/dist` when present, falling back to `index.html` for unknown paths (SPA routing). If `web/dist` is missing it serves API only.
-- Generates `/config.js` at request time, injecting `window.TRACKER_CONFIG` from env vars (`JIRA_*`, `SLACK_*`, `DEMO_MODE`, `HOMER_URL`, `BUY_ME_COFFEE_URL`, `CLARITY_PROJECT_ID`). Runtime frontend config goes here, **not** into Vite build-time env; the shape is mirrored in `web/src/config.ts`.
-- Calls `server.EnsureIndexes` before serving.
+**Authorization — required when adding an RPC.**
+1. Every service method must call `authz.Authorize(ctx)` as its first statement (the gateway bypasses interceptors, so this is the only check on the REST path).
+2. Add the RPC's full name to `authz.MethodPermissions` in `internal/auth/authz/methods.go`. Unlisted methods are denied, and `methods_test.go` fails if any RPC declared in the protos is missing.
+3. Custom `HandlePath` handlers are guarded with `authz.RequireHTTP(perm, handler)`.
 
-**Not everything is proto-backed.** `server/links.go` (`/api/links` CRUD) and `server/homer.go` (Homer dashboard proxy) are hand-written handlers registered on the same mux via `mux.HandlePath`. Follow that pattern for non-gRPC endpoints rather than adding a new server.
-
-**Backend layering:** `cmd/` (cobra CLI only) → `server/` (gRPC service impls, Prometheus metrics, business rules — e.g. `server/event.go` consults the lock service and writes changelog entries) → `internal/stores/` (MongoDB repository per collection; `NewClient(collection)` creates/returns the collection, `indexes.go` creates indexes at startup) → `internal/config/config.go` (env-var driven, read once in `init()`).
-
-**Frontend:** routes in `web/src/App.tsx`, chrome/navigation in `web/src/components/Layout.tsx` — keep both in sync when adding a page. `web/src/lib/api.ts` is the single axios client (base `/api/v1alpha1`); `web/src/lib/apiConverters.ts` translates between protobuf snake_case payloads and camelCase frontend types. API enums (type, priority, status, environment) travel as **numbers**. Data fetching is React Query; UI primitives in `web/src/components/ui/` are shadcn-style, icons from lucide-react plus custom SVGs in `components/icons/`.
-
-**Static/demo mode:** with `VITE_STATIC_MODE=true`, `api.ts` swaps every real call for `web/src/lib/staticApi.ts`, which reads pre-generated JSON from `web/public/static-data/`. Any new endpoint added to `api.ts` needs a matching static implementation or demo mode breaks.
+**Frontend (`web/src`).** `lib/api.ts` is the single API client (axios, base `/api/v1alpha1`); it swaps in `lib/staticApi.ts` when `VITE_STATIC_MODE=true`. The backend returns proto enums as numbers; `lib/apiConverters.ts` maps them to/from the string enums in `types/api.ts`. Runtime config (Jira, Slack, demo mode, Homer URL, Clarity ID) is injected by the backend's `/config.js` as `window.TRACKER_CONFIG` and read in `src/config.ts`. Data fetching uses TanStack Query; routes are in `App.tsx`; pages under `pages/` are large single-file components. `@/` aliases `src/`.
 
 ## Conventions
 
-- **UI work: read `design.md` first** — it is the source of truth for palette, tokens, density, and component behavior (light and dark are designed together, never retrofitted).
-- Additional agent rules live in `.github/copilot-instructions.md` and `.kiro/steering/*.md` (architecture, code-quality, testing, git-workflow, design-system — written in French).
-- Go: wrap errors with `fmt.Errorf("context: %w", err)`, `context.Context` first, dependencies via constructors, all Mongo access through `internal/stores/`.
-- TypeScript: strict, no `any`, explicit prop interfaces.
-- Conventional commits enforced on PR titles by `.github/workflows/conventional-commit.yml`: `feat`, `fix`, `docs`, `test`, `ci`, `refactor`, `perf`, `chore`, `revert`. Releases and CHANGELOG are automated by release-please.
-- When `.proto` changes: `task generate`, then commit the regenerated Go and OpenAPI output alongside.
+- Conventional Commits (enforced by a CI workflow); releases and `CHANGELOG.md` are managed by release-please, so don't edit the changelog or versions by hand.
+- Many code comments and log messages are in French; match the surrounding file.
+- Docker image (`Dockerfile`) bundles frontend + backend; Helm chart in `helm/`, Skaffold configs for k8s dev.
