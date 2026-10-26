@@ -51,29 +51,29 @@ export const config: TrackerConfig & { api: { baseUrl: string } } = {
   jira: {
     domain:
       window.TRACKER_CONFIG?.jira?.domain ||
-      (import.meta as any).env?.VITE_JIRA_DOMAIN ||
+      import.meta.env.VITE_JIRA_DOMAIN ||
       'your-domain.atlassian.net',
     projectKey:
       window.TRACKER_CONFIG?.jira?.projectKey ||
-      (import.meta as any).env?.VITE_JIRA_PROJECT_KEY ||
+      import.meta.env.VITE_JIRA_PROJECT_KEY ||
       '',
   },
   slack: {
     workspace:
       window.TRACKER_CONFIG?.slack?.workspace ||
-      (import.meta as any).env?.VITE_SLACK_WORKSPACE ||
+      import.meta.env.VITE_SLACK_WORKSPACE ||
       'your-workspace',
     eventsChannel:
       window.TRACKER_CONFIG?.slack?.eventsChannel ||
-      (import.meta as any).env?.VITE_SLACK_EVENTS_CHANNEL ||
+      import.meta.env.VITE_SLACK_EVENTS_CHANNEL ||
       '',
   },
   demoMode: window.TRACKER_CONFIG?.demoMode,
   buyMeCoffeeUrl: window.TRACKER_CONFIG?.buyMeCoffeeUrl,
-  clarityProjectId: window.TRACKER_CONFIG?.clarityProjectId || (import.meta as any).env?.VITE_CLARITY_PROJECT_ID || '',
+  clarityProjectId: window.TRACKER_CONFIG?.clarityProjectId || import.meta.env.VITE_CLARITY_PROJECT_ID || '',
   api: {
     baseUrl:
-      (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1alpha1',
+      import.meta.env.VITE_API_BASE_URL || '/api/v1alpha1',
   },
 }
 
@@ -104,7 +104,7 @@ export function getSlackEventsChannelUrl(): string | null {
 
 export function getLinksConfig(): LinkGroup[] {
   if (window.TRACKER_CONFIG?.links) return window.TRACKER_CONFIG.links
-  const raw = (import.meta as any).env?.VITE_LINKS
+  const raw = import.meta.env.VITE_LINKS
   if (raw) {
     try { return JSON.parse(raw) as LinkGroup[] } catch { /* ignore */ }
   }
@@ -114,7 +114,7 @@ export function getLinksConfig(): LinkGroup[] {
 export function getHomerUrl(): string | null {
   const url =
     window.TRACKER_CONFIG?.homerUrl ||
-    (import.meta as any).env?.VITE_HOMER_URL ||
+    import.meta.env.VITE_HOMER_URL ||
     null
   return url && url !== '' ? url : null
 }

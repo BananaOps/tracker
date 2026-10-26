@@ -696,7 +696,10 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
   }, [])
 
   // Get resources to display (pending if editing, otherwise from service)
-  const displayedResources = isEditingGraph ? pendingResources : (service?.infrastructureResources || [])
+  const displayedResources = useMemo(
+    () => (isEditingGraph ? pendingResources : (service?.infrastructureResources ?? [])),
+    [isEditingGraph, pendingResources, service?.infrastructureResources],
+  )
 
   // Build dependency graph
   const { nodes, edges } = useMemo(() => {

@@ -32,7 +32,7 @@ jobs:
       run: npm ci
 
     - name: Lint
-      run: npm run lint -- --max-warnings=-1
+      run: npm run lint
 
     - name: Type check and build
       run: npm run build:check

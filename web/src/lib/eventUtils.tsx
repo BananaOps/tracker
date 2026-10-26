@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRocket, faWrench, faCodeBranch, faFire, faRobot } from '@fortawesome/free-solid-svg-icons'
-import { EventType, Environment, Priority, Status } from '../types/api'
+import { EventType, Environment, Priority, Status, type Event } from '../types/api'
 
 export const getEventTypeIcon = (type: EventType | string, className: string = 'w-5 h-5') => {
   const sizeClass = className.includes('w-') ? '' : 'w-5 h-5'
@@ -397,8 +397,8 @@ export const getStatusColor = (status?: Status | string) => {
 }
 
 // Vérifier si un événement a été approuvé
-export const isEventApproved = (event: any): boolean => {
-  return event.changelog?.some((entry: any) =>
+export const isEventApproved = (event: Pick<Event, 'changelog'>): boolean => {
+  return event.changelog?.some((entry) =>
     String(entry.changeType).toLowerCase() === 'approved'
   ) || false
 }

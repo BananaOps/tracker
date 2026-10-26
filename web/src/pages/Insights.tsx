@@ -90,7 +90,7 @@ export default function Insights() {
     }),
   })
 
-  const events = eventsData?.events || []
+  const events = useMemo(() => eventsData?.events ?? [], [eventsData])
 
   const uniqueServices = useMemo(() => {
     const services = new Set(events.map(e => e.attributes.service).filter(Boolean))
@@ -166,7 +166,7 @@ export default function Insights() {
     setEventModal({ isOpen: true, title: `Events for Project: ${projectName}`, events: projectEvents, type: 'project' })
   }
 
-  const handleChartClick = (data: any) => {
+  const handleChartClick = (data: { activeLabel?: string | number } | null) => {
     if (!data || !data.activeLabel) return
     const clickedDate = data.activeLabel
     const fullDate = format(subDays(new Date(), 29 - chartData.findIndex(d => d.date === clickedDate)), 'yyyy-MM-dd')

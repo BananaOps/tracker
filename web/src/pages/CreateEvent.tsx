@@ -1,17 +1,18 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { apiErrorMessage } from '../lib/errors'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
-import { convertEventForAPI } from '../lib/apiConverters'
+import { convertEventForAPI, type ApiEventRequest } from '../lib/apiConverters'
 import Toast from '../components/Toast'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import { AlertCircle, FileText, Clock, Link2, Search, Plus, Github, Ticket, Repeat } from 'lucide-react'
 import { DateTimePicker } from '../components/ui/date-time-picker'
 import FormPanel from '../components/FormPanel'
 import ChipSelect, { type ChipOption } from '../components/ChipSelect'
-import { getEnvVisual, getStatusVisual, getPriorityVisual, getTypeVisual } from '../components/Badges'
+import { getEnvVisual, getStatusVisual, getPriorityVisual, getTypeVisual } from '../lib/badgeVisuals'
 import { getEnvironmentLabel, getStatusLabel, getEventTypeLabel } from '../lib/eventUtils'
 
 interface CreateEventProps {
@@ -30,7 +31,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
     queryFn: () => catalogApi.list({ perPage: 1000 }),
   })
 
-  const catalogServices = catalogData?.catalogs.map((c: any) => c.name).sort() || []
+  const catalogServices = catalogData?.catalogs.map((c) => c.name).sort() || []
 
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<'1week' | '2weeks' | '4weeks'>('1week')
@@ -73,15 +74,14 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
       setShowToast(true)
       setTimeout(() => { navigate(-1) }, 2000)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error creating event:', error)
     },
   })
 
   const getErrorMessage = () => {
     if (!createMutation.isError) return ''
-    const error = createMutation.error as any
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error'
+    const errorMessage = apiErrorMessage(createMutation.error, 'Unknown error')
     if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
       return `🔒 Cannot create event: Service is already locked. Please check the Locks page to see who has locked it and unlock it first if needed.`
     } else if (errorMessage.toLowerCase().includes('cannot create event')) {
@@ -116,7 +116,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
     }
 
     if (isRecurring && recurrenceEndDate && startDateISO) {
-      const events: any[] = []
+      const events: ApiEventRequest[] = []
       const startDate = new Date(formData.attributes.startDate!)
       const endDate = new Date(formData.attributes.endDate!)
       const recurrenceEnd = new Date(recurrenceEndDate)
@@ -488,7 +488,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
                     <div className="w-full space-y-4 mt-6 text-left">
                       <div>
                         <label className={labelCls} style={{ color: hud.onSurfaceVar }}>Frequency</label>
-                        <select value={recurrenceFrequency} onChange={(e) => setRecurrenceFrequency(e.target.value as any)}
+                        <select value={recurrenceFrequency} onChange={(e) => setRecurrenceFrequency(e.target.value as typeof recurrenceFrequency)}
                           className={inputCls + ' appearance-none'} style={inputStyle} required={isRecurring}>
                           <option value="1week">Every week</option>
                           <option value="2weeks">Every 2 weeks</option>

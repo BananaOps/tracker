@@ -60,20 +60,18 @@ export default function RpaUsage() {
     queryFn: () => eventsApi.search({ type: EventType.RPA_USAGE }),
   })
 
-  const rpaOperations: Event[] = data?.events || []
+  const rpaOperations: Event[] = useMemo(() => data?.events ?? [], [data])
 
   // ── Computed stats ────────────────────────────────────────────────────────
-  const monthStart = startOfMonth(new Date())
-  const monthEnd = endOfMonth(new Date())
-
-  const thisMonthOps = useMemo(() =>
-    rpaOperations.filter(op => {
+  const thisMonthOps = useMemo(() => {
+    const monthStart = startOfMonth(new Date())
+    const monthEnd = endOfMonth(new Date())
+    return rpaOperations.filter(op => {
       if (!op.metadata?.createdAt) return false
       const d = new Date(op.metadata.createdAt)
       return d >= monthStart && d <= monthEnd
-    }),
-    [rpaOperations]
-  )
+    })
+  }, [rpaOperations])
 
   const byService = useMemo(() =>
     rpaOperations.reduce((acc, op) => {
@@ -138,7 +136,7 @@ export default function RpaUsage() {
   const hasFilters = search || statusFilter !== 'all'
   const clearFilters = () => { setSearch(''); setStatusFilter('all'); setPage(0) }
 
-  const getTimeSince = (ts: any): string => {
+  const getTimeSince = (ts?: string): string => {
     if (!ts) return '-'
     const diffMs = Date.now() - new Date(ts).getTime()
     const mins = Math.floor(diffMs / 60000)
@@ -250,7 +248,7 @@ export default function RpaUsage() {
 
             {Object.keys(byService).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <FontAwesomeIcon icon={faRobot} className="w-8 h-8 mb-3" style={{ color: T.onSurfaceVar } as any} />
+                <FontAwesomeIcon icon={faRobot} className="w-8 h-8 mb-3" style={{ color: T.onSurfaceVar }} />
                 <p className="text-sm" style={{ color: T.onSurfaceVar }}>No RPA operations recorded yet</p>
               </div>
             ) : (
@@ -264,7 +262,7 @@ export default function RpaUsage() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg border" style={{ background: '#EFF4FF', borderColor: '#C2D0EF' }}>
-                              <FontAwesomeIcon icon={faRobot} className="w-4 h-4" style={{ color: '#1B3575' } as any} />
+                              <FontAwesomeIcon icon={faRobot} className="w-4 h-4" style={{ color: '#1B3575' }} />
                             </div>
                             <div>
                               <p className="text-sm font-bold font-mono" style={{ color: T.onSurface }}>{service}</p>
@@ -354,7 +352,7 @@ export default function RpaUsage() {
           {/* Table */}
           {pageOps.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <FontAwesomeIcon icon={faRobot} className="w-8 h-8 mb-4" style={{ color: T.onSurfaceVar } as any} />
+              <FontAwesomeIcon icon={faRobot} className="w-8 h-8 mb-4" style={{ color: T.onSurfaceVar }} />
               <p className="text-sm font-bold" style={{ color: T.onSurface }}>
                 {hasFilters ? 'No operations match your filters' : 'No RPA operations recorded'}
               </p>

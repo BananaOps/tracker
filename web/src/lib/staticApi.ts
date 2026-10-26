@@ -2,6 +2,7 @@
 // Charge les données depuis des fichiers JSON pré-générés
 
 import type { CatalogApi, EventsApi, LocksApi } from './api'
+import { CatalogType, Language } from '../types/api'
 
 const STATIC_DATA_PATH = '/static-data'
 
@@ -14,32 +15,34 @@ export const staticEventsApi: EventsApi = {
   today: async () => {
     const data = await staticEventsApi.list()
     const today = new Date().toISOString().split('T')[0]
-    const todayEvents = data.events.filter((event: any) => {
-      const eventDate = new Date(event.metadata?.createdAt).toISOString().split('T')[0]
-      return eventDate === today
-    })
+    // An event without a creation date is not today's (new Date(undefined)
+    // is an invalid date, whose toISOString throws)
+    const todayEvents = data.events.filter((event) =>
+      !!event.metadata?.createdAt && new Date(event.metadata.createdAt).toISOString().split('T')[0] === today
+    )
     return { events: todayEvents, totalCount: todayEvents.length }
   },
 
-  search: async (params: any) => {
+  search: async (params: Parameters<EventsApi['search']>[0]) => {
     const data = await staticEventsApi.list()
     // Filtrage basique côté client
     let filtered = data.events
     
     if (params.service) {
-      filtered = filtered.filter((e: any) => e.attributes?.service === params.service)
+      filtered = filtered.filter((e) => e.attributes?.service === params.service)
     }
     if (params.environment) {
-      filtered = filtered.filter((e: any) => e.attributes?.environment === params.environment)
+      filtered = filtered.filter((e) => e.attributes?.environment === params.environment)
     }
     if (params.status) {
-      filtered = filtered.filter((e: any) => e.attributes?.status === params.status)
+      filtered = filtered.filter((e) => e.attributes?.status === params.status)
     }
     
     // Filtrage par date pour les insights
     if (params.startDate || params.endDate) {
-      filtered = filtered.filter((e: any) => {
-        const eventDate = new Date(e.metadata?.createdAt)
+      filtered = filtered.filter((e) => {
+        if (!e.metadata?.createdAt) return false
+        const eventDate = new Date(e.metadata.createdAt)
         const start = params.startDate ? new Date(params.startDate) : new Date(0)
         const end = params.endDate ? new Date(params.endDate) : new Date()
         return eventDate >= start && eventDate <= end
@@ -112,7 +115,7 @@ export const staticCatalogApi: CatalogApi = {
           deliverables: [
             {
               name: 'base-docker-image',
-              type: 'container' as any,
+              type: CatalogType.CONTAINER,
               currentVersion: '1.2.0',
               latestVersion: '1.4.0',
               referenceVersion: '1.3.0',
@@ -121,7 +124,7 @@ export const staticCatalogApi: CatalogApi = {
             },
             {
               name: 'logging-module',
-              type: 'module' as any,
+              type: CatalogType.MODULE,
               currentVersion: '2.1.0',
               latestVersion: '2.1.0',
               referenceVersion: '2.1.0',
@@ -138,7 +141,7 @@ export const staticCatalogApi: CatalogApi = {
           deliverables: [
             {
               name: 'base-docker-image',
-              type: 'container' as any,
+              type: CatalogType.CONTAINER,
               currentVersion: '1.3.0',
               latestVersion: '1.4.0',
               referenceVersion: '1.3.0',
@@ -147,7 +150,7 @@ export const staticCatalogApi: CatalogApi = {
             },
             {
               name: 'validation-package',
-              type: 'package' as any,
+              type: CatalogType.PACKAGE,
               currentVersion: '3.0.0',
               latestVersion: '3.2.0',
               referenceVersion: '3.1.0',
@@ -168,7 +171,7 @@ export const staticCatalogApi: CatalogApi = {
         deliverableStats: [
           {
             name: 'base-docker-image',
-            type: 'container' as any,
+            type: CatalogType.CONTAINER,
             projectsUsing: 2,
             projectsOutdated: 1,
             latestVersion: '1.4.0',
@@ -176,7 +179,7 @@ export const staticCatalogApi: CatalogApi = {
           },
           {
             name: 'logging-module',
-            type: 'module' as any,
+            type: CatalogType.MODULE,
             projectsUsing: 1,
             projectsOutdated: 0,
             latestVersion: '2.1.0',
@@ -184,7 +187,7 @@ export const staticCatalogApi: CatalogApi = {
           },
           {
             name: 'validation-package',
-            type: 'package' as any,
+            type: CatalogType.PACKAGE,
             projectsUsing: 1,
             projectsOutdated: 1,
             latestVersion: '3.2.0',
@@ -204,8 +207,8 @@ export const staticCatalogApi: CatalogApi = {
     // In static mode, we just return a mock response
     return {
       name,
-      type: 'package' as any,
-      languages: 'javascript' as any,
+      type: CatalogType.PACKAGE,
+      languages: Language.JAVASCRIPT,
       owner: 'mock-owner',
       version: '1.0.0',
       availableVersions: versions,

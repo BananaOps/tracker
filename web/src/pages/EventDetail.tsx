@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { eventsApi, catalogApi, locksApi } from '../lib/api'
 import { findServiceLock } from '../lib/locks'
+import type { ChangelogEntry } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
@@ -24,7 +25,7 @@ export default function EventDetail() {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
-  const [changelog, setChangelog] = useState<any[]>([])
+  const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
   const [editOwner, setEditOwner] = useState('')
   const [ownerError, setOwnerError] = useState(false)
 
@@ -108,7 +109,7 @@ export default function EventDetail() {
       setToastMessage('Event updated successfully!')
       setShowToast(true)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error updating event:', error)
       setToastMessage('Error updating event')
       setShowToast(true)

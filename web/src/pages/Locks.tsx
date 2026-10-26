@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { parseTimestamp, type ApiTimestamp } from '../lib/dates'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, type Lock } from '../lib/api'
 import { Lock as LockIcon, Unlock, RefreshCw, AlertCircle, Eye } from 'lucide-react'
 import { getEnvironmentLabel } from '../lib/eventUtils'
 import { EnvBadge } from '../components/Badges'
-import { useCreatePanel } from '../contexts/CreatePanelContext'
+import { useCreatePanel } from '../contexts/createPanel'
 
 export default function Locks() {
   const navigate = useNavigate()
@@ -80,20 +81,7 @@ export default function Locks() {
     }
   }
 
-  const parseTimestamp = (timestamp: any): Date | null => {
-    if (!timestamp) return null
-    if (typeof timestamp === 'string') {
-      const date = new Date(timestamp)
-      return isNaN(date.getTime()) ? null : date
-    }
-    if (timestamp.seconds !== undefined) {
-      const milliseconds = Number(timestamp.seconds) * 1000 + (timestamp.nanos || 0) / 1000000
-      return new Date(milliseconds)
-    }
-    return null
-  }
-
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: ApiTimestamp) => {
     const date = parseTimestamp(timestamp)
     if (!date) return '-'
     try {
@@ -101,7 +89,7 @@ export default function Locks() {
     } catch { return '-' }
   }
 
-  const getTimeSince = (timestamp: any) => {
+  const getTimeSince = (timestamp: ApiTimestamp) => {
     const created = parseTimestamp(timestamp)
     if (!created) return '-'
     try {
@@ -211,12 +199,12 @@ export default function Locks() {
                     </td>
                     <td className="px-5 py-3.5 text-sm font-medium">{lock.who}</td>
                     <td className="px-5 py-3.5 text-sm" style={{ color: T.onSurfaceVar, fontFamily: "'JetBrains Mono', monospace" }}>
-                      {formatDate((lock as any).createdAt || lock.created_at)}
+                      {formatDate(lock.createdAt || lock.created_at)}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="px-2 py-0.5 rounded-sm text-xs font-bold"
                         style={{ background: a('primary', 0.1), color: T.primary, fontFamily: "'JetBrains Mono', monospace" }}>
-                        {getTimeSince((lock as any).createdAt || lock.created_at)}
+                        {getTimeSince(lock.createdAt || lock.created_at)}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">

@@ -11,7 +11,7 @@ import DemoBanner from './DemoBanner'
 import Footer from './Footer'
 import LinksSearch from './LinksSearch'
 import CreatePanelHost from './CreatePanelHost'
-import { useCreatePanel } from '../contexts/CreatePanelContext'
+import { useCreatePanel } from '../contexts/createPanel'
 import { getSlackEventsChannelUrl } from '../config'
 
 const navigationSections = [
@@ -207,8 +207,9 @@ export default function Layout() {
                   { panel: 'rpa',         icon: null,    label: 'New RPA',      faIcon: faRobot },
                   { panel: 'service',     icon: Package, label: 'New Service' },
                 ] as const
-              ).map((item: any) => {
-                const { to, panel, icon: Icon, label, faIcon } = item
+              ).map((item) => {
+                const { panel, icon: Icon, label } = item
+                const faIcon = 'faIcon' in item ? item.faIcon : undefined
                 const className = "flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150"
                 const style = {
                   color: 'rgb(var(--hud-on-surface-var))',
@@ -225,21 +226,14 @@ export default function Layout() {
                 }
                 const content = (
                   <>
-                    {faIcon ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
+                    {faIcon ? <FontAwesomeIcon icon={faIcon} className="w-3 h-3" /> : Icon && <Icon className="w-3 h-3" />}
                     {label}
                   </>
                 )
-                if (panel) {
-                  return (
-                    <button key={label} type="button" onClick={() => open(panel)} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-                      {content}
-                    </button>
-                  )
-                }
                 return (
-                  <Link key={to} to={to} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+                  <button key={label} type="button" onClick={() => open(panel)} className={className} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
                     {content}
-                  </Link>
+                  </button>
                 )
               })}
 

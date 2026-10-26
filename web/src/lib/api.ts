@@ -1,7 +1,7 @@
 import axios from 'axios'
-import type { CreateEventRequest, Event, ListEventsResponse, Catalog, EventType, Priority, Status, Environment } from '../types/api'
+import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ChangelogEntry, EventType, Priority, Status, Environment } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
-import { convertCommunicationChannelsFromAPI } from './apiConverters'
+import { catalogFromAPI, type ApiEventRequest } from './apiConverters'
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 
@@ -53,12 +53,14 @@ const realEventsApi = {
     return data.event
   },
 
-  create: async (event: CreateEventRequest) => {
+  // The enums may be sent by number (convertEventForAPI) or by name, which
+  // grpc-gateway also accepts
+  create: async (event: ApiEventRequest | CreateEventRequest) => {
     const { data } = await axiosInstance.post<{ event: Event }>('/event', event)
     return data.event
   },
 
-  update: async (id: string, event: CreateEventRequest) => {
+  update: async (id: string, event: ApiEventRequest | CreateEventRequest) => {
     const { data } = await axiosInstance.put<{ event: Event }>('/event', { ...event, id })
     return data.event
   },
@@ -72,19 +74,10 @@ const realEventsApi = {
     id: string,
     params?: { perPage?: number; page?: number }
   ) => {
-    const { data } = await axiosInstance.get<{ changelog?: import('../types/api').ChangelogEntry[]; totalCount?: number; Changelog?: import('../types/api').ChangelogEntry[]; TotalCount?: number }>(`/event/${id}/changelog`, { params })
-    // Normalize potential casing differences from backend
-    let changelog = (data.changelog || (data as any).Changelog || []) as import('../types/api').ChangelogEntry[]
-    // Normalize timestamp wrapper if present
-    changelog = changelog.map((entry: any) => {
-      const ts = entry.timestamp
-      if (ts && typeof ts === 'object' && typeof ts.seconds === 'number') {
-        return { ...entry, timestamp: new Date(ts.seconds * 1000).toISOString() }
-      }
-      return entry
-    })
-    const totalCount = (data.totalCount ?? (data as any).TotalCount ?? changelog.length) as number
-    return { changelog, totalCount }
+    // protojson writes camelCase fields and timestamps as RFC 3339 strings
+    const { data } = await axiosInstance.get<{ changelog?: ChangelogEntry[]; totalCount?: number }>(`/event/${id}/changelog`, { params })
+    const changelog = data.changelog ?? []
+    return { changelog, totalCount: data.totalCount ?? changelog.length }
   },
 
   // Add Slack ID to an existing event
@@ -96,130 +89,13 @@ const realEventsApi = {
 
 const realCatalogApi = {
   list: async (params?: { perPage?: number; page?: number }) => {
-    const { data } = await axiosInstance.get<{ catalogs: any[]; totalCount: number }>('/catalogs/list', { params })
-    
-    // Convert all catalogs from protobuf wrapper format
-    const frontendCatalogs: Catalog[] = data.catalogs.map(catalog => ({
-      ...catalog,
-      availableVersions: catalog.available_versions || catalog.availableVersions,
-      latestVersion: catalog.latest_version || catalog.latestVersion,
-      referenceVersion: catalog.reference_version || catalog.referenceVersion,
-      usedDeliverables: catalog.used_deliverables?.map((ud: any) => ({
-        name: ud.name,
-        type: ud.type,
-        versionUsed: ud.version_used || ud.versionUsed,
-        description: ud.description
-      })) || catalog.usedDeliverables,
-      communicationChannels: convertCommunicationChannelsFromAPI(catalog.communication_channels || catalog.communicationChannels || []),
-      dashboardLinks: catalog.dashboard_links?.map((link: any) => ({
-        type: link.type,
-        name: link.name,
-        url: link.url,
-        description: link.description
-      })) || catalog.dashboardLinks || [],
-      vulnerabilitySummary: catalog.vulnerability_summary ? {
-        criticalCount: catalog.vulnerability_summary.critical_count || catalog.vulnerability_summary.criticalCount || 0,
-        highCount: catalog.vulnerability_summary.high_count || catalog.vulnerability_summary.highCount || 0,
-        mediumCount: catalog.vulnerability_summary.medium_count || catalog.vulnerability_summary.mediumCount || 0,
-        lowCount: catalog.vulnerability_summary.low_count || catalog.vulnerability_summary.lowCount || 0,
-        infoCount: catalog.vulnerability_summary.info_count || catalog.vulnerability_summary.infoCount || 0,
-        totalCount: catalog.vulnerability_summary.total_count || catalog.vulnerability_summary.totalCount || 0,
-        lastUpdated: catalog.vulnerability_summary.last_updated || catalog.vulnerability_summary.lastUpdated,
-        sources: catalog.vulnerability_summary.sources?.map((source: any) => ({
-          name: source.name,
-          type: source.type,
-          url: source.url,
-          criticalCount: source.critical_count || source.criticalCount || 0,
-          highCount: source.high_count || source.highCount || 0,
-          mediumCount: source.medium_count || source.mediumCount || 0,
-          lowCount: source.low_count || source.lowCount || 0,
-          infoCount: source.info_count || source.infoCount || 0,
-          totalCount: source.total_count || source.totalCount || 0,
-          lastScan: source.last_scan || source.lastScan,
-          scanVersion: source.scan_version || source.scanVersion,
-          description: source.description
-        })) || catalog.vulnerability_summary.sources || []
-      } : catalog.vulnerabilitySummary,
-      sla: catalog.sla ? {
-        level: catalog.sla.level,
-        uptimePercentage: catalog.sla.uptimePercentage?.value,
-        responseTimeMs: catalog.sla.responseTimeMs?.value,
-        description: catalog.sla.description
-      } : undefined,
-      infrastructureResources: (catalog.infrastructure_resources || catalog.infrastructureResources)?.map((resource: any) => ({
-        id: resource.id,
-        name: resource.name,
-        type: resource.type,
-        description: resource.description,
-        provider: resource.provider,
-        region: resource.region,
-        endpoint: resource.endpoint,
-        metadata: resource.metadata,
-        connectedServices: resource.connected_services || resource.connectedServices
-      })) || []
-    }))
-    
-    return {
-      catalogs: frontendCatalogs,
-      totalCount: data.totalCount
-    }
+    const { data } = await axiosInstance.get<{ catalogs: Catalog[]; totalCount: number }>('/catalogs/list', { params })
+    return { catalogs: data.catalogs.map(catalogFromAPI), totalCount: data.totalCount }
   },
 
   get: async (name: string) => {
-    const { data } = await axiosInstance.get<{ catalog: any }>('/catalog', { params: { name } })
-    
-    // Convert response from protobuf wrapper format
-    const frontendCatalog: Catalog = {
-      ...data.catalog,
-      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
-      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
-      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
-      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
-      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
-      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
-        name: ud.name,
-        type: ud.type,
-        versionUsed: ud.version_used || ud.versionUsed,
-        description: ud.description
-      })) || data.catalog.usedDeliverables,
-      communicationChannels: convertCommunicationChannelsFromAPI(data.catalog.communication_channels || data.catalog.communicationChannels || []),
-      dashboardLinks: data.catalog.dashboard_links?.map((link: any) => ({
-        type: link.type,
-        name: link.name,
-        url: link.url,
-        description: link.description
-      })) || data.catalog.dashboardLinks || [],
-      vulnerabilitySummary: data.catalog.vulnerability_summary ? {
-        criticalCount: data.catalog.vulnerability_summary.critical_count || data.catalog.vulnerability_summary.criticalCount || 0,
-        highCount: data.catalog.vulnerability_summary.high_count || data.catalog.vulnerability_summary.highCount || 0,
-        mediumCount: data.catalog.vulnerability_summary.medium_count || data.catalog.vulnerability_summary.mediumCount || 0,
-        lowCount: data.catalog.vulnerability_summary.low_count || data.catalog.vulnerability_summary.lowCount || 0,
-        infoCount: data.catalog.vulnerability_summary.info_count || data.catalog.vulnerability_summary.infoCount || 0,
-        totalCount: data.catalog.vulnerability_summary.total_count || data.catalog.vulnerability_summary.totalCount || 0,
-        lastScan: data.catalog.vulnerability_summary.last_scan || data.catalog.vulnerability_summary.lastScan,
-        scannerName: data.catalog.vulnerability_summary.scanner_name || data.catalog.vulnerability_summary.scannerName,
-        scanVersion: data.catalog.vulnerability_summary.scan_version || data.catalog.vulnerability_summary.scanVersion
-      } : data.catalog.vulnerabilitySummary,
-      sla: data.catalog.sla ? {
-        level: data.catalog.sla.level,
-        uptimePercentage: data.catalog.sla.uptimePercentage?.value,
-        responseTimeMs: data.catalog.sla.responseTimeMs?.value,
-        description: data.catalog.sla.description
-      } : undefined,
-      infrastructureResources: (data.catalog.infrastructure_resources || data.catalog.infrastructureResources)?.map((resource: any) => ({
-        id: resource.id,
-        name: resource.name,
-        type: resource.type,
-        description: resource.description,
-        provider: resource.provider,
-        region: resource.region,
-        endpoint: resource.endpoint,
-        metadata: resource.metadata,
-        connectedServices: resource.connected_services || resource.connectedServices
-      })) || []
-    }
-    
-    return frontendCatalog
+    const { data } = await axiosInstance.get<{ catalog: Catalog }>('/catalog', { params: { name } })
+    return catalogFromAPI(data.catalog)
   },
 
   createOrUpdate: async (catalog: Catalog) => {
@@ -306,42 +182,8 @@ const realCatalogApi = {
       // They are managed via separate updateVersions endpoint
     }
     
-    const { data } = await axiosInstance.put<{ catalog: any }>('/catalog', backendCatalog)
-    
-    // Convert response back to frontend format
-    const frontendCatalog: Catalog = {
-      ...data.catalog,
-      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
-      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
-      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
-      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
-      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
-      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
-        name: ud.name,
-        type: ud.type,
-        versionUsed: ud.version_used || ud.versionUsed,
-        description: ud.description
-      })) || data.catalog.usedDeliverables,
-      sla: data.catalog.sla ? {
-        level: data.catalog.sla.level,
-        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
-        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
-        description: data.catalog.sla.description
-      } : undefined,
-      infrastructureResources: (data.catalog.infrastructure_resources || data.catalog.infrastructureResources)?.map((resource: any) => ({
-        id: resource.id,
-        name: resource.name,
-        type: resource.type,
-        description: resource.description,
-        provider: resource.provider,
-        region: resource.region,
-        endpoint: resource.endpoint,
-        metadata: resource.metadata,
-        connectedServices: resource.connected_services || resource.connectedServices
-      })) || []
-    }
-    
-    return frontendCatalog
+    const { data } = await axiosInstance.put<{ catalog: Catalog }>('/catalog', backendCatalog)
+    return catalogFromAPI(data.catalog)
   },
 
   delete: async (name: string) => {
@@ -362,31 +204,8 @@ const realCatalogApi = {
       reference_version: referenceVersion
     }
     
-    const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/versions`, requestData)
-    
-    // Convert response back to frontend format
-    const frontendCatalog: Catalog = {
-      ...data.catalog,
-      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
-      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
-      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
-      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
-      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
-      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
-        name: ud.name,
-        type: ud.type,
-        versionUsed: ud.version_used || ud.versionUsed,
-        description: ud.description
-      })) || data.catalog.usedDeliverables,
-      sla: data.catalog.sla ? {
-        level: data.catalog.sla.level,
-        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
-        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
-        description: data.catalog.sla.description
-      } : undefined
-    }
-    
-    return frontendCatalog
+    const { data } = await axiosInstance.put<{ catalog: Catalog }>(`/catalog/${name}/versions`, requestData)
+    return catalogFromAPI(data.catalog)
   },
 
   updateDependencies: async (name: string, dependenciesIn: string[], dependenciesOut: string[]) => {
@@ -396,31 +215,8 @@ const realCatalogApi = {
       dependencies_out: dependenciesOut
     }
     
-    const { data } = await axiosInstance.put<{ catalog: any }>(`/catalog/${name}/dependencies`, requestData)
-    
-    // Convert response back to frontend format
-    const frontendCatalog: Catalog = {
-      ...data.catalog,
-      dependenciesIn: data.catalog.dependencies_in || data.catalog.dependenciesIn,
-      dependenciesOut: data.catalog.dependencies_out || data.catalog.dependenciesOut,
-      availableVersions: data.catalog.available_versions || data.catalog.availableVersions,
-      latestVersion: data.catalog.latest_version || data.catalog.latestVersion,
-      referenceVersion: data.catalog.reference_version || data.catalog.referenceVersion,
-      usedDeliverables: data.catalog.used_deliverables?.map((ud: any) => ({
-        name: ud.name,
-        type: ud.type,
-        versionUsed: ud.version_used || ud.versionUsed,
-        description: ud.description
-      })) || data.catalog.usedDeliverables,
-      sla: data.catalog.sla ? {
-        level: data.catalog.sla.level,
-        uptimePercentage: data.catalog.sla.uptime_percentage || data.catalog.sla.uptimePercentage?.value,
-        responseTimeMs: data.catalog.sla.response_time_ms || data.catalog.sla.responseTimeMs?.value,
-        description: data.catalog.sla.description
-      } : undefined
-    }
-    
-    return frontendCatalog
+    const { data } = await axiosInstance.put<{ catalog: Catalog }>(`/catalog/${name}/dependencies`, requestData)
+    return catalogFromAPI(data.catalog)
   },
 }
 
@@ -447,7 +243,7 @@ const realLocksApi = {
     return data
   },
 
-  create: async (lock: { service: string; who: string; environment: string; resource: string; event_id?: string }) => {
+  create: async (lock: { service: string; who: string; environment: string; resource?: string; event_id?: string }) => {
     const { data } = await axiosInstance.post<{ lock: Lock }>('/lock', lock)
     return data.lock
   },

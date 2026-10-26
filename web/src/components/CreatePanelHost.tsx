@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useCreatePanel } from '../contexts/CreatePanelContext'
+import { useCreatePanel } from '../contexts/createPanel'
 import CreateEvent from '../pages/CreateEvent'
 import CreateLock from '../pages/CreateLock'
 import CreateRpaOperation from '../pages/CreateRpaOperation'

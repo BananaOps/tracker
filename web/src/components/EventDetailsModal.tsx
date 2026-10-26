@@ -1,17 +1,18 @@
 import { useState, useMemo, useEffect } from 'react'
+import { apiErrorMessage } from '../lib/errors'
 import type { CSSProperties } from 'react'
 import { X, Edit2, Save, History, Lock, Unlock, CheckCircle, Maximize2, Minimize2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { eventsApi, locksApi } from '../lib/api'
+import { eventsApi, locksApi, type Lock as ServiceLock } from '../lib/api'
 import { findServiceLock } from '../lib/locks'
 import type { Event } from '../types/api'
 import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel } from '../lib/eventUtils'
 import { SourceIcon } from './EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../contexts/theme'
 import { getSlackMessageUrl, parseSlackId } from '../config'
 import Toast from './Toast'
 import EventChangelog from './EventChangelog'
@@ -36,7 +37,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   const [showLockPrompt, setShowLockPrompt] = useState(false)
   const [lockUser, setLockUser] = useState('')
   const [lockUserError, setLockUserError] = useState(false)
-  const [existingLock, setExistingLock] = useState<any>(null)
+  const [existingLock, setExistingLock] = useState<ServiceLock | null>(null)
   const [checkingLock, setCheckingLock] = useState(false)
   const [showApprovalPrompt, setShowApprovalPrompt] = useState(false)
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
@@ -62,7 +63,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   // Mettre à jour editedEvent quand normalizedEvent change
   useEffect(() => {
     setEditedEvent(normalizedEvent)
-    setChangelog(event.changelog || [])
+    setChangelog(normalizedEvent.changelog || [])
   }, [normalizedEvent])
 
   // Rafraîchir l'historique lorsque l'onglet History est actif
@@ -121,7 +122,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       setToastMessage('Event updated successfully!')
       setShowToast(true)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error updating event:', error)
     },
   })
@@ -214,6 +215,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       return
     }
 
+    if (!existingLock) return
+
     try {
       setLockingService(true)
       setShowLockPrompt(false)
@@ -222,8 +225,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       setExistingLock(null)
       setToastMessage(`${editedEvent.attributes.service} is unlocked`)
       setShowToast(true)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Error unlocking service'
+    } catch (err) {
+      const errorMessage = apiErrorMessage(err, 'Error unlocking service')
       setToastMessage(errorMessage)
       setShowToast(true)
       console.error('Error unlocking:', err)
@@ -290,8 +293,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
 
       setToastMessage('Event approved successfully')
       setShowToast(true)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Error approving event'
+    } catch (err) {
+      const errorMessage = apiErrorMessage(err, 'Error approving event')
       setToastMessage(errorMessage)
       setShowToast(true)
       console.error('Error approving event:', err)
@@ -310,10 +313,10 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       setLockingService(true)
       setShowLockPrompt(false)
       
-      const lockData: any = {
+      const lockData: Parameters<typeof locksApi.create>[0] = {
         service: editedEvent.attributes.service,
         who: lockUser.trim(),
-        environment: editedEvent.attributes.environment,
+        environment: String(editedEvent.attributes.environment ?? ''),
       }
       
       // Ajouter le type d'événement comme resource si c'est deployment ou operation
@@ -331,9 +334,9 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       try {
         const createdLock = await locksApi.create(lockData)
         setExistingLock(createdLock)
-      } catch (createErr: any) {
+      } catch (createErr) {
         // Si le lock existe déjà, essayer de le déverrouiller puis le recréer
-        const errorMessage = createErr.response?.data?.message || createErr.message || ''
+        const errorMessage = apiErrorMessage(createErr, '')
         if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
           // Chercher le lock existant
           const locks = await locksApi.list()
@@ -355,8 +358,8 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       
       setToastMessage(`${editedEvent.attributes.service} is locked`)
       setShowToast(true)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Error creating lock'
+    } catch (err) {
+      const errorMessage = apiErrorMessage(err, 'Error creating lock')
       
       // Améliorer le message d'erreur pour les locks
       let displayMessage = errorMessage
@@ -414,7 +417,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
   ]
 
   const sortedChangelog = useMemo(
-    () => [...changelog].sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    () => [...changelog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     [changelog]
   )
 

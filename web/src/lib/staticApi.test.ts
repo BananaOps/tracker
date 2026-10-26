@@ -32,6 +32,16 @@ describe('static demo API', () => {
     expect(res.totalCount).toBe(1)
   })
 
+  it('lists today without failing on an event that has no creation date', async () => {
+    events.events.push({ title: 'undated', attributes: { service: 'api' }, links: {}, metadata: { id: 'e2' } } as never)
+    try {
+      const res = await staticEventsApi.today()
+      expect(res.events.map((e) => e.title)).not.toContain('undated')
+    } finally {
+      events.events.pop()
+    }
+  })
+
   it('finds an event by id or by Slack id', async () => {
     expect((await staticEventsApi.get('e1')).title).toBe('deploy')
     expect((await staticEventsApi.get('1700000000.000100')).title).toBe('deploy')

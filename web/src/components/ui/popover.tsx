@@ -40,9 +40,9 @@ export function PopoverTrigger({ children, asChild }: { children: React.ReactNod
   const { isOpen, setIsOpen } = React.useContext(PopoverContext)
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
+    return React.cloneElement(children as React.ReactElement<{ onClick?: () => void }>, {
       onClick: () => setIsOpen(!isOpen),
-    } as any)
+    })
   }
 
   return (

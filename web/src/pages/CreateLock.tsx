@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent, type ReactNode } from 'react'
+import { apiErrorMessage } from '../lib/errors'
 import { useNavigate } from 'react-router-dom'
 import { locksApi, catalogApi } from '../lib/api'
 import { Lock, AlertCircle, Plus } from 'lucide-react'
@@ -6,7 +7,7 @@ import { getEnvironmentLabel } from '../lib/eventUtils'
 import ServiceAutocomplete from '../components/ServiceAutocomplete'
 import FormPanel from '../components/FormPanel'
 import ChipSelect, { type ChipOption } from '../components/ChipSelect'
-import { getEnvVisual } from '../components/Badges'
+import { getEnvVisual } from '../lib/badgeVisuals'
 
 interface CreateLockProps {
   asPanel?: boolean
@@ -76,14 +77,13 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
       setLoading(true)
       setError(null)
       
-      const lockData: any = {
+      const lockData: Parameters<typeof locksApi.create>[0] = {
         service: formData.service,
         who: formData.who,
         environment: formData.environment,
+        ...(formData.resource ? { resource: formData.resource } : {}),
+        ...(formData.event_id ? { event_id: formData.event_id } : {}),
       }
-      
-      if (formData.resource) lockData.resource = formData.resource
-      if (formData.event_id) lockData.event_id = formData.event_id
       
       await locksApi.create(lockData)
       if (asPanel) {
@@ -91,8 +91,8 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
       } else {
         navigate('/locks')
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Error creating lock'
+    } catch (err) {
+      const errorMessage = apiErrorMessage(err, 'Error creating lock')
       let displayMessage = errorMessage
       if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
         displayMessage = `🔒 Service ${formData.service} is already locked in ${formData.environment}. Please check the Locks page.`
