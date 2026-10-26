@@ -1,4 +1,4 @@
-import { Priority, Status, Environment, EventTypeNumber, PriorityToNumber, StatusToNumber, EnvironmentToNumber, CreateEventRequest, CommunicationType, type CommunicationChannel, type Event } from '../types/api'
+import { Priority, Status, Environment, EventTypeNumber, PriorityToNumber, StatusToNumber, EnvironmentToNumber, CreateEventRequest, CommunicationType, type CommunicationChannel, type Event, type Catalog } from '../types/api'
 // Mapping inverse : nombre -> string enum
 const NumberToPriority: Record<number, Priority> = {
   1: Priority.P1,
@@ -40,7 +40,18 @@ const NumberToEnvironment: Record<number, Environment> = {
  * Convertit les enums string en nombres pour l'API
  * L'API attend des nombres pour les POST/PUT mais renvoie des nombres pour les GET
  */
-export function convertEventForAPI(event: CreateEventRequest): any {
+// The body the gateway expects for a create or an update: the event fields,
+// with the enums as their numbers.
+export type ApiEventRequest = Omit<CreateEventRequest, 'attributes'> & {
+  attributes: Omit<CreateEventRequest['attributes'], 'type' | 'priority' | 'status' | 'environment'> & {
+    type?: number
+    priority?: number
+    status?: number
+    environment?: number
+  }
+}
+
+export function convertEventForAPI(event: CreateEventRequest): ApiEventRequest {
   // Convertir les dates en format protobuf Timestamp si elles existent
   const convertDate = (dateStr: string | undefined) => {
     if (!dateStr) return undefined
@@ -79,31 +90,27 @@ export function convertEventForAPI(event: CreateEventRequest): any {
  * Convertit les nombres de l'API en enums string pour le frontend
  * Utilisé quand l'API renvoie des nombres au lieu de strings
  */
-export function convertEventFromAPI(event: any): Event {
-  // Convertir la priorité (nombre ou string)
-  let priority = event.attributes.priority
-  if (typeof priority === 'number') {
-    priority = NumberToPriority[priority]
-  } else if (typeof priority === 'string') {
-    // Normaliser en minuscules si c'est une string
-    priority = priority.toLowerCase()
+// An event as received: the enums by number, or by name in any case ("P1").
+type ApiEnum = string | number | undefined
+export type ApiEvent = Omit<Event, 'attributes'> & {
+  attributes: Omit<Event['attributes'], 'priority' | 'status' | 'environment'> & {
+    priority?: ApiEnum
+    status?: ApiEnum
+    environment?: ApiEnum
   }
+}
 
-  // Convertir le status (nombre ou string)
-  let status = event.attributes.status
-  if (typeof status === 'number') {
-    status = NumberToStatus[status]
-  } else if (typeof status === 'string') {
-    status = status.toLowerCase()
-  }
+function enumFromAPI<T>(value: ApiEnum, byNumber: Record<number, T>): T | undefined {
+  if (typeof value === 'number') return byNumber[value]
+  // the web enums are the lower case of the proto names
+  if (typeof value === 'string' && value) return value.toLowerCase() as T
+  return undefined
+}
 
-  // Convertir l'environnement (nombre ou string)
-  let environment = event.attributes.environment
-  if (environment && typeof environment === 'number') {
-    environment = NumberToEnvironment[environment]
-  } else if (environment && typeof environment === 'string') {
-    environment = environment.toLowerCase()
-  }
+export function convertEventFromAPI(event: ApiEvent): Event {
+  const priority = enumFromAPI(event.attributes.priority, NumberToPriority) as Priority
+  const status = enumFromAPI(event.attributes.status, NumberToStatus) as Status
+  const environment = enumFromAPI(event.attributes.environment, NumberToEnvironment)
 
   return {
     ...event,
@@ -125,7 +132,7 @@ export function convertEventFromAPI(event: any): Event {
 /**
  * Convertit les canaux de communication depuis l'API (snake_case -> camelCase)
  */
-export function convertCommunicationChannelsFromAPI(channels: any[]): CommunicationChannel[] {
+export function convertCommunicationChannelsFromAPI(channels: CommunicationChannel[]): CommunicationChannel[] {
   if (!channels) return []
   
   return channels.map(channel => ({
@@ -137,8 +144,15 @@ export function convertCommunicationChannelsFromAPI(channels: any[]): Communicat
 }
 
 /**
- * Convertit un catalog pour l'API
+ * A catalog entry as the gateway returns it: protojson already uses the
+ * camelCase field names of Catalog and writes the wrapper types of the SLA
+ * (DoubleValue, UInt32Value) as plain numbers. Only the lists are defaulted.
  */
-/**
- * Convertit un catalog depuis l'API
- */
+export function catalogFromAPI(raw: Catalog): Catalog {
+  return {
+    ...raw,
+    communicationChannels: convertCommunicationChannelsFromAPI(raw.communicationChannels ?? []),
+    dashboardLinks: raw.dashboardLinks ?? [],
+    infrastructureResources: raw.infrastructureResources ?? [],
+  }
+}
