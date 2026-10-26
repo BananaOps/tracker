@@ -193,12 +193,13 @@ func (r *Resolver) PrincipalForUser(ctx context.Context, user *store.User) (auth
 		teamIDs = append(teamIDs, t.ID.Hex())
 	}
 	return auth.Principal{
-		Kind:        auth.KindUser,
-		UserID:      user.ID.Hex(),
-		Username:    user.Username,
-		TeamIDs:     teamIDs,
-		Permissions: perms,
-		Scope:       scope,
-		IsAdmin:     admin,
+		Kind:               auth.KindUser,
+		UserID:             user.ID.Hex(),
+		Username:           user.Username,
+		TeamIDs:            teamIDs,
+		Permissions:        perms,
+		Scope:              scope,
+		IsAdmin:            admin,
+		MustChangePassword: user.MustChangePassword,
 	}, nil
 }

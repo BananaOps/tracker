@@ -140,3 +140,48 @@ func TestRequireHTTPRefusesRejectedCredential(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.False(t, called, "the handler must not run")
 }
+
+// A user whose password must be changed can only reach public routes: the
+// server enforces the forced change, the web UI redirect is a convenience.
+func TestMustChangePasswordOnlyReachesPublicRoutes(t *testing.T) {
+	flagged := auth.Principal{
+		Kind:               auth.KindUser,
+		Username:           "admin",
+		Permissions:        auth.NewPermissionSet(auth.PermEventRead, auth.PermLinksRead, auth.PermAccessManage),
+		IsAdmin:            true,
+		MustChangePassword: true,
+	}
+
+	for _, perm := range []auth.Permission{auth.PermEventRead, auth.PermLinksRead, auth.PermAccessManage, auth.PermAuthenticated} {
+		err := CheckPermission(flagged, perm)
+		assert.Equal(t, codes.PermissionDenied, status.Code(err), "permission %s", perm)
+		assert.Equal(t, "password change required", status.Convert(err).Message(), "permission %s", perm)
+	}
+	assert.NoError(t, CheckPermission(flagged, auth.PermPublic))
+	assert.NoError(t, Check(flagged, getAuthConfig))
+	assert.Equal(t, codes.PermissionDenied, status.Code(Check(flagged, listEvents)))
+
+	// A rejected credential still wins with a 401.
+	rejected := flagged
+	rejected.CredentialRejected = true
+	assert.Equal(t, codes.Unauthenticated, status.Code(CheckPermission(rejected, auth.PermPublic)))
+	assert.Equal(t, codes.Unauthenticated, status.Code(CheckPermission(rejected, auth.PermEventRead)))
+
+	// The same principal without the flag is served normally.
+	flagged.MustChangePassword = false
+	assert.NoError(t, CheckPermission(flagged, auth.PermEventRead))
+}
+
+func TestRequireHTTPRefusesMustChangePassword(t *testing.T) {
+	called := false
+	h := RequireHTTP(auth.PermLinksRead, func(w http.ResponseWriter, r *http.Request, _ map[string]string) { called = true })
+
+	ctx := auth.WithPrincipal(context.Background(), auth.Principal{
+		Kind: auth.KindUser, Permissions: auth.NewPermissionSet(auth.PermLinksRead), MustChangePassword: true,
+	})
+	rec := httptest.NewRecorder()
+	h(rec, httptest.NewRequest(http.MethodGet, "/api/links", nil).WithContext(ctx), nil)
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	assert.JSONEq(t, `{"error":"password change required"}`, rec.Body.String())
+	assert.False(t, called)
+}
