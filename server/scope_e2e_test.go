@@ -110,9 +110,14 @@ func (h *scopeE2E) createKey(t *testing.T, name, teamID string) string {
 	return r.Secret
 }
 
+// login signs a user in and completes the forced password change that users
+// created by an administrator (and the bootstrap admin) go through, so the
+// returned session is not refused before the scope is even checked.
 func (h *scopeE2E) login(t *testing.T, user, password string) *http.Cookie {
 	t.Helper()
 	rec := post(h.handler, e2ePrefix+"/auth/login", `{"username":"`+user+`","password":"`+password+`"}`, nil)
+	require.Equal(t, http.StatusNoContent, rec.Code, rec.Body.String())
+	rec = post(h.handler, e2ePrefix+"/auth/password", `{"currentPassword":"`+password+`","newPassword":"`+password+`-changed"}`, sessionCookie(t, rec))
 	require.Equal(t, http.StatusNoContent, rec.Code, rec.Body.String())
 	return sessionCookie(t, rec)
 }
