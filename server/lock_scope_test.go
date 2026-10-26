@@ -135,7 +135,8 @@ func TestUpdateLockScope(t *testing.T) {
 	require.NoError(t, update(x.pa, &lockv1.UpdateLockRequest{Id: x.la, EventId: x.a}))
 	require.Equal(t, x.a, x.lock(t, x.la).EventId)
 
-	require.NoError(t, update(x.pab, &lockv1.UpdateLockRequest{Id: x.la, Service: "svc-b"}))
+	// svc-b already holds the deployment lock: move to another resource.
+	require.NoError(t, update(x.pab, &lockv1.UpdateLockRequest{Id: x.la, Service: "svc-b", Resource: "operation"}))
 	require.Equal(t, "svc-b", x.lock(t, x.la).Service)
 }
 

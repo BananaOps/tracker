@@ -47,7 +47,7 @@ func EnsureIndexes(ctx context.Context, db *mongo.Database) error {
 }
 
 func ensureEventIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
-	collection := db.Collection("events")
+	collection := db.Collection(config.ConfigDatabase.EventCollection)
 
 	indexes := []mongo.IndexModel{
 		// Index unique sur metadata.id pour les recherches par ID
@@ -123,7 +123,7 @@ func ensureEventIndexes(ctx context.Context, db *mongo.Database, logger *slog.Lo
 }
 
 func ensureLockIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
-	collection := db.Collection("locks")
+	collection := db.Collection(config.ConfigDatabase.LockCollection)
 
 	indexes := []mongo.IndexModel{
 		// Index unique sur id pour les recherches par ID
@@ -158,7 +158,26 @@ func ensureLockIndexes(ctx context.Context, db *mongo.Database, logger *slog.Log
 		},
 	}
 
-	return createIndexes(ctx, collection, indexes, logger, "locks")
+	if err := createIndexes(ctx, collection, indexes, logger, "locks"); err != nil {
+		return err
+	}
+
+	// One lock per service, environment and resource. CreateLock looks for an
+	// existing lock first; this index closes the race between two concurrent
+	// requests. Duplicate locks already stored make it fail: the failure is
+	// logged and does not keep the other indexes from being created.
+	unique := []mongo.IndexModel{{
+		Keys: bson.D{
+			{Key: "service", Value: 1},
+			{Key: "environment", Value: 1},
+			{Key: "resource", Value: 1},
+		},
+		Options: options.Index().SetUnique(true).SetName("idx_lock_unique_resource"),
+	}}
+	if err := createIndexes(ctx, collection, unique, logger, "locks"); err != nil {
+		logger.Warn("concurrent lock requests are not protected: remove the duplicate locks and restart", "error", err)
+	}
+	return nil
 }
 
 func ensureCatalogIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {

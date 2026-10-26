@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"log"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
 	"github.com/bananaops/tracker/internal/auth"
@@ -10,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/google/uuid"
 )
@@ -55,7 +55,7 @@ func (c *LockStoreClient) Create(ctx context.Context, lockInsert *v1alpha1.Lock)
 
 	_, err = c.collection.InsertOne(context.TODO(), lockInsert)
 	if err != nil {
-		log.Fatalln("Error Inserting Document", err)
+		return nil, err
 	}
 
 	err = c.collection.FindOne(context.TODO(), map[string]interface{}{"id": &lockInsert.Id}).Decode(&result)
@@ -88,6 +88,6 @@ func (c *LockStoreClient) Unlock(ctx context.Context, filter map[string]interfac
 func (c *LockStoreClient) Update(ctx context.Context, filter map[string]interface{}, lockUpdate *v1alpha1.Lock) (result *v1alpha1.Lock, err error) {
 	result = &v1alpha1.Lock{}
 	updateFilter := bson.D{{Key: "$set", Value: lockUpdate}}
-	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter).Decode(&result)
+	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&result)
 	return
 }

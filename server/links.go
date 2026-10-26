@@ -2,14 +2,17 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/bananaops/tracker/internal/auth"
 	"github.com/bananaops/tracker/internal/auth/authz"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var linksStore *store.LinksStoreClient
@@ -61,12 +64,9 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request, _ map[string]strin
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
 		return
 	}
-	if strings.TrimSpace(item.Name) == "" || strings.TrimSpace(item.URL) == "" {
-		http.Error(w, `{"error":"name and url are required"}`, http.StatusBadRequest)
+	if msg := validateLink(&item); msg != "" {
+		http.Error(w, `{"error":"`+msg+`"}`, http.StatusBadRequest)
 		return
-	}
-	if strings.TrimSpace(item.Group) == "" {
-		item.Group = "Custom"
 	}
 	created, err := linksStore.Create(r.Context(), &item)
 	if err != nil {
@@ -89,7 +89,15 @@ func handleUpdateLink(w http.ResponseWriter, r *http.Request, params map[string]
 		http.Error(w, `{"error":"invalid request body"}`, http.StatusBadRequest)
 		return
 	}
+	if msg := validateLink(&item); msg != "" {
+		http.Error(w, `{"error":"`+msg+`"}`, http.StatusBadRequest)
+		return
+	}
 	updated, err := linksStore.Update(r.Context(), id, &item)
+	if code := linkErrorStatus(err); code != 0 {
+		http.Error(w, `{"error":"`+http.StatusText(code)+`"}`, code)
+		return
+	}
 	if err != nil {
 		slog.Error("Failed to update link", "id", id, "error", err)
 		http.Error(w, `{"error":"failed to update link"}`, http.StatusInternalServerError)
@@ -104,12 +112,47 @@ func handleDeleteLink(w http.ResponseWriter, r *http.Request, params map[string]
 		http.Error(w, `{"error":"missing id"}`, http.StatusBadRequest)
 		return
 	}
-	if err := linksStore.Delete(r.Context(), id); err != nil {
+	err := linksStore.Delete(r.Context(), id)
+	if code := linkErrorStatus(err); code != 0 {
+		http.Error(w, `{"error":"`+http.StatusText(code)+`"}`, code)
+		return
+	}
+	if err != nil {
 		slog.Error("Failed to delete link", "id", id, "error", err)
 		http.Error(w, `{"error":"failed to delete link"}`, http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// validateLink checks a link before it is stored and returns the reason it is
+// refused, or "". The URL is rendered as a clickable link for every user, so
+// only http and https are accepted: a javascript: URL would run in the
+// browser of whoever clicks it.
+func validateLink(item *store.LinkItem) string {
+	if strings.TrimSpace(item.Name) == "" || strings.TrimSpace(item.URL) == "" {
+		return "name and url are required"
+	}
+	u, err := url.Parse(strings.TrimSpace(item.URL))
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return "url must be an absolute http or https URL"
+	}
+	if strings.TrimSpace(item.Group) == "" {
+		item.Group = "Custom"
+	}
+	return ""
+}
+
+// linkErrorStatus maps the client errors of the links store to an HTTP
+// status, or 0 for any other error.
+func linkErrorStatus(err error) int {
+	switch {
+	case errors.Is(err, store.ErrInvalidLinkID):
+		return http.StatusBadRequest
+	case errors.Is(err, mongo.ErrNoDocuments):
+		return http.StatusNotFound
+	}
+	return 0
 }
 
 func jsonResponse(w http.ResponseWriter, v any) {

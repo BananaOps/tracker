@@ -5,6 +5,7 @@ import (
 
 	"github.com/bananaops/tracker/internal/config"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 func TestCreateMongoUri(t *testing.T) {
@@ -53,4 +54,18 @@ func TestCreateMongoUri(t *testing.T) {
 		e := createMongoUri(testCase.config)
 		assert.Equal(t, e, testCase.excepted, testCase.name)
 	}
+}
+
+func TestCreateMongoUriEscapesCredentials(t *testing.T) {
+	uri := createMongoUri(config.Database{
+		Host: "db.example.com", Port: "27017", Name: "tracker",
+		Username: "app@corp", Password: "p@ss:w/rd%1?#",
+	})
+
+	cs, err := connstring.ParseAndValidate(uri)
+	assert.NoError(t, err)
+	assert.Equal(t, "app@corp", cs.Username)
+	assert.Equal(t, "p@ss:w/rd%1?#", cs.Password)
+	assert.Equal(t, []string{"db.example.com:27017"}, cs.Hosts)
+	assert.Equal(t, "tracker", cs.Database)
 }

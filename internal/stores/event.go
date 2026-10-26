@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"log"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -55,7 +54,7 @@ func (c *EventStoreClient) Create(ctx context.Context, eventInsert *v1alpha1.Eve
 
 	_, err = c.collection.InsertOne(context.TODO(), eventInsert)
 	if err != nil {
-		log.Fatalln("Error Inserting Document", err)
+		return nil, err
 	}
 
 	err = c.collection.FindOne(context.TODO(), map[string]interface{}{"metadata.id": &eventInsert.Metadata.Id}).Decode(&result)
@@ -99,7 +98,7 @@ func (c *EventStoreClient) Search(ctx context.Context, scope auth.Scope, filter 
 func (c *EventStoreClient) Update(ctx context.Context, filter map[string]interface{}, eventUpdate *v1alpha1.Event) (result *v1alpha1.Event, err error) {
 	result = &v1alpha1.Event{}
 	updateFilter := bson.D{{Key: "$set", Value: eventUpdate}}
-	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter).Decode(&result)
+	err = c.collection.FindOneAndUpdate(context.TODO(), filter, updateFilter, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&result)
 	return
 }
 

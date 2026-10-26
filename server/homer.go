@@ -101,7 +101,8 @@ func RegisterHomerHandler(mux *runtime.ServeMux, homerURL string) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Cache-Control", "public, max-age=60")
+		// private: the response depends on the caller holding links:read.
+		w.Header().Set("Cache-Control", "private, max-age=60")
 		if encErr := json.NewEncoder(w).Encode(result); encErr != nil {
 			slog.Error("Failed to encode homer links response", "error", encErr)
 		}

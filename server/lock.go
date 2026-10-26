@@ -73,7 +73,6 @@ func (e *Lock) CreateLock(
 	}
 
 	var lockResult = &v1alpha1.CreateLockResponse{}
-	var err error
 
 	// Check if lock is already present for service + environment + resource
 	filter := map[string]interface{}{
@@ -82,7 +81,10 @@ func (e *Lock) CreateLock(
 		"resource":    i.Resource,
 	}
 
-	lockPresent, _ := e.store.Get(context.Background(), filter)
+	lockPresent, err := e.store.Get(context.Background(), filter)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, fmt.Errorf("cannot check the existing locks: %w", err)
+	}
 
 	// check if lock is already present
 	if len(lockPresent.Service) != 0 {
@@ -101,6 +103,11 @@ func (e *Lock) CreateLock(
 	}
 
 	lockResult.Lock, err = e.store.Create(context.Background(), lock)
+	if mongo.IsDuplicateKeyError(err) {
+		// A concurrent request took the lock between the check above and the
+		// insert: the unique index on service, environment and resource refused it.
+		return nil, fmt.Errorf("service %s is already locked for %s in %s", i.Service, i.Resource, i.Environment)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +220,9 @@ func (e *Lock) UpdateLock(
 
 	// Persist update
 	updated, err := e.store.Update(ctx, map[string]interface{}{"id": i.Id}, existing)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil, fmt.Errorf("service %s is already locked for %s in %s", existing.Service, existing.Resource, existing.Environment)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to update lock %s: %w", i.Id, err)
 	}

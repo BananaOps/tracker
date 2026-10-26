@@ -91,8 +91,8 @@ var serv = &cobra.Command{
 		// Set up gRPC server
 		grpcServerEndpoint := "localhost:8765"
 		grpcServer := grpc.NewServer(
-			grpc.ChainUnaryInterceptor(auth.UnaryInterceptor(resolver)),
-			grpc.ChainStreamInterceptor(auth.StreamInterceptor(resolver)),
+			grpc.ChainUnaryInterceptor(server.RecoverUnary(), auth.UnaryInterceptor(resolver)),
+			grpc.ChainStreamInterceptor(server.RecoverStream(), auth.StreamInterceptor(resolver)),
 		)
 
 		// register reflection API https://github.com/grpc/grpc/blob/master/doc/server-reflection.md
