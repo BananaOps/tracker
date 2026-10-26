@@ -4,7 +4,7 @@ import { eventsApi, catalogApi } from '../lib/api'
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { AlertTriangle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, User, Users, ExternalLink, Layers, Globe, CheckCircle } from 'lucide-react'
-import type { Event, Catalog } from '../types/api'
+import { CommunicationType, type Event, type Catalog } from '../types/api'
 import { getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 
@@ -521,28 +521,20 @@ export default function EventsOverlaps() {
                                             <span>{catalog.owner}</span>
                                           </div>
                                         )}
-                                        {catalog.email && (
+                                        {catalog.communicationChannels?.map((channel, i) => (
                                           <a
-                                            href={`mailto:${catalog.email}`}
-                                            className="flex items-center gap-2 text-xs transition-opacity hover:opacity-70"
-                                            style={{ color: T.primary }}
-                                          >
-                                            <Mail className="w-3 h-3" />
-                                            <span>{catalog.email}</span>
-                                          </a>
-                                        )}
-                                        {catalog.slackChannel && (
-                                          <a
-                                            href={`https://slack.com/app_redirect?channel=${catalog.slackChannel}`}
+                                            key={`${channel.type}-${i}`}
+                                            href={channel.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            title={channel.description || channel.name}
                                             className="flex items-center gap-2 text-xs transition-opacity hover:opacity-70"
                                             style={{ color: T.primary }}
                                           >
-                                            <ExternalLink className="w-3 h-3" />
-                                            <span>#{catalog.slackChannel}</span>
+                                            {channel.type === CommunicationType.EMAIL ? <Mail className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
+                                            <span>{channel.name}</span>
                                           </a>
-                                        )}
+                                        ))}
                                       </div>
                                     )}
                                   </div>

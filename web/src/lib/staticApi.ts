@@ -53,6 +53,13 @@ export const staticEventsApi = {
     return event
   },
 
+  // L'historique est celui embarqué dans les données de démo
+  getChangelog: async (id: string, _params?: { perPage?: number; page?: number }) => {
+    const event = await staticEventsApi.get(id)
+    const changelog = event?.changelog ?? []
+    return { changelog, totalCount: changelog.length }
+  },
+
   // Méthodes en lecture seule pour le mode statique
   create: async () => {
     throw new Error('Create operation not available in static demo mode')

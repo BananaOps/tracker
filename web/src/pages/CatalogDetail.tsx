@@ -668,7 +668,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
     setNewResourceName(resourceConfig?.label || resourceType)
     setShowAddResourceModal(true)
     setDraggingResource(null)
-  }, [isEditingGraph])
+  }, [isEditingGraph, selectedProvider])
 
   // Confirm adding the new resource with custom name
   const confirmAddResource = useCallback(() => {
