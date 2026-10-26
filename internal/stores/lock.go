@@ -5,6 +5,7 @@ import (
 	"log"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/lock/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,9 +24,17 @@ func NewStoreLock(collection string) (c *LockStoreClient) {
 	}
 }
 
-// List takes label and field selectors, and returns the list of Locks that match those selectors.
-func (c *LockStoreClient) List(ctx context.Context) (results []*v1alpha1.Lock, err error) {
-	cursor, err := c.collection.Find(context.TODO(), bson.D{})
+// NewStoreLockFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreLockFromCollection(coll *mongo.Collection) *LockStoreClient {
+	return &LockStoreClient{collection: coll}
+}
+
+// lockServiceField is the document field holding the service of a lock.
+const lockServiceField = "service"
+
+// List returns the Locks of the services in scope.
+func (c *LockStoreClient) List(ctx context.Context, scope auth.Scope) (results []*v1alpha1.Lock, err error) {
+	cursor, err := c.collection.Find(context.TODO(), scopedFilter(bson.D{}, scope, lockServiceField))
 	if err != nil {
 		return nil, err
 	}

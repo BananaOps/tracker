@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/bananaops/tracker/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -18,15 +19,23 @@ type EventStoreClient struct {
 	collection *mongo.Collection
 }
 
+// eventServiceField is the document field holding the service of an event.
+const eventServiceField = "attributes.service"
+
 func NewStoreEvent(collection string) (c *EventStoreClient) {
 	return &EventStoreClient{
 		collection: NewClient(collection),
 	}
 }
 
+// NewStoreEventFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreEventFromCollection(coll *mongo.Collection) *EventStoreClient {
+	return &EventStoreClient{collection: coll}
+}
+
 // List takes label and field selectors, and returns the list of Events that match those selectors.
-func (c *EventStoreClient) List(ctx context.Context) (results []*v1alpha1.Event, err error) {
-	cursor, err := c.collection.Find(context.TODO(), bson.D{})
+func (c *EventStoreClient) List(ctx context.Context, scope auth.Scope) (results []*v1alpha1.Event, err error) {
+	cursor, err := c.collection.Find(context.TODO(), scopedFilter(bson.D{}, scope, eventServiceField))
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +82,9 @@ func (c *MongoClient) Count(ctx context.Context) (count int64, err error) {
 }
 
 // Search and returns the list of Events that match those selectors.
-func (c *EventStoreClient) Search(ctx context.Context, filter map[string]interface{}) (results []*v1alpha1.Event, err error) {
+func (c *EventStoreClient) Search(ctx context.Context, scope auth.Scope, filter map[string]interface{}) (results []*v1alpha1.Event, err error) {
 
-	cursor, err := c.collection.Find(context.TODO(), filter)
+	cursor, err := c.collection.Find(context.TODO(), scopedFilter(filter, scope, eventServiceField))
 	if err != nil {
 		return
 	}
@@ -100,8 +109,8 @@ func (c *EventStoreClient) Delete(ctx context.Context, filter map[string]interfa
 }
 
 // CountWithFilter counts events matching the given filter
-func (c *EventStoreClient) CountWithFilter(ctx context.Context, filter bson.D) (int64, error) {
-	return c.collection.CountDocuments(ctx, filter)
+func (c *EventStoreClient) CountWithFilter(ctx context.Context, scope auth.Scope, filter bson.D) (int64, error) {
+	return c.collection.CountDocuments(ctx, scopedFilter(filter, scope, eventServiceField))
 }
 
 // MonthlyStatsResult represents a single month's statistics
@@ -113,7 +122,7 @@ type MonthlyStatsResult struct {
 }
 
 // AggregateByMonth aggregates events by month with optional service grouping
-func (c *EventStoreClient) AggregateByMonth(ctx context.Context, matchFilter bson.D, groupByService bool) ([]MonthlyStatsResult, error) {
+func (c *EventStoreClient) AggregateByMonth(ctx context.Context, scope auth.Scope, matchFilter bson.D, groupByService bool) ([]MonthlyStatsResult, error) {
 	// Build the group stage
 	groupID := bson.D{
 		{Key: "year", Value: bson.D{{Key: "$year", Value: bson.D{{Key: "$toDate", Value: bson.D{{Key: "$multiply", Value: bson.A{"$metadata.createdat.seconds", 1000}}}}}}}},
@@ -125,7 +134,7 @@ func (c *EventStoreClient) AggregateByMonth(ctx context.Context, matchFilter bso
 	}
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: matchFilter}},
+		{{Key: "$match", Value: scopedFilter(matchFilter, scope, eventServiceField)}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: groupID},
 			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},

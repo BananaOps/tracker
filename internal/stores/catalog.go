@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
+	"github.com/bananaops/tracker/internal/auth"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,9 +21,17 @@ func NewStoreCatalog(collection string) (c *CatalogStoreClient) {
 	}
 }
 
-// List takes label and field selectors, and returns the list of Catalogs that match those selectors.
-func (c *CatalogStoreClient) List(ctx context.Context) (results []*v1alpha1.Catalog, err error) {
-	cursor, err := c.collection.Find(context.TODO(), bson.D{})
+// NewStoreCatalogFromCollection wraps an existing collection (tests, custom wiring).
+func NewStoreCatalogFromCollection(coll *mongo.Collection) *CatalogStoreClient {
+	return &CatalogStoreClient{collection: coll}
+}
+
+// catalogServiceField is the document field holding the service name of a catalog entry.
+const catalogServiceField = "name"
+
+// List returns the Catalogs within scope.
+func (c *CatalogStoreClient) List(ctx context.Context, scope auth.Scope) (results []*v1alpha1.Catalog, err error) {
+	cursor, err := c.collection.Find(context.TODO(), scopedFilter(bson.D{}, scope, catalogServiceField))
 	if err != nil {
 		return nil, err
 	}

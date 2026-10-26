@@ -46,6 +46,10 @@ func (e *Catalog) CreateUpdateCatalog(
 		return nil, fmt.Errorf("version is required")
 	}
 
+	if err := authz.RequireService(ctx, i.Name); err != nil {
+		return nil, err
+	}
+
 	// Get existing catalog to preserve version fields if they exist
 	existingCatalog, _ := e.store.Get(ctx, map[string]interface{}{"name": i.Name})
 
@@ -125,6 +129,10 @@ func (e *Catalog) GetCatalog(
 		return nil, err
 	}
 
+	if err := authz.RequireService(ctx, i.Name); err != nil {
+		return nil, err
+	}
+
 	var catalogResult = &v1alpha1.GetCatalogResponse{}
 	var err error
 
@@ -146,7 +154,7 @@ func (e *Catalog) ListCatalogs(
 	var catalogsResult = &v1alpha1.ListCatalogsResponse{}
 	var err error
 
-	catalogsResult.Catalogs, err = e.store.List(context.Background())
+	catalogsResult.Catalogs, err = e.store.List(context.Background(), authz.ScopeFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +168,10 @@ func (e *Catalog) DeleteCatalog(
 	i *v1alpha1.DeleteCatalogRequest,
 ) (*v1alpha1.DeleteCatalogResponse, error) {
 	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := authz.RequireService(ctx, i.Name); err != nil {
 		return nil, err
 	}
 
@@ -184,8 +196,10 @@ func (e *Catalog) GetVersionCompliance(
 	var response = &v1alpha1.GetVersionComplianceResponse{}
 	var projectCompliances []*v1alpha1.ProjectCompliance
 
-	// Get all catalogs
-	catalogs, err := e.store.List(context.Background())
+	// The list is restricted to the caller's scope: only in-scope projects
+	// are reported, and a deliverable outside the scope is treated as absent
+	// from the catalog, so its versions never leak.
+	catalogs, err := e.store.List(context.Background(), authz.ScopeFromContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list catalogs: %w", err)
 	}
@@ -324,6 +338,10 @@ func (e *Catalog) UpdateVersions(
 		return nil, err
 	}
 
+	if err := authz.RequireService(ctx, i.Name); err != nil {
+		return nil, err
+	}
+
 	e.logger.Info("🔧 Updating versions for service",
 		"name", i.Name,
 		"available_versions", i.AvailableVersions,
@@ -374,6 +392,10 @@ func (e *Catalog) UpdateDependencies(
 	// Validation
 	if i.Name == "" {
 		return nil, fmt.Errorf("name is required")
+	}
+
+	if err := authz.RequireService(ctx, i.Name); err != nil {
+		return nil, err
 	}
 
 	// Get existing catalog

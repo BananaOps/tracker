@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/bananaops/tracker/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -150,6 +151,11 @@ func ensureLockIndexes(ctx context.Context, db *mongo.Database, logger *slog.Log
 			},
 			Options: options.Index().SetName("idx_lock_env_resource"),
 		},
+		// Index on service for scoped lists
+		{
+			Keys:    bson.D{{Key: "service", Value: 1}},
+			Options: options.Index().SetName("idx_lock_service"),
+		},
 	}
 
 	return createIndexes(ctx, collection, indexes, logger, "locks")
@@ -178,7 +184,21 @@ func ensureCatalogIndexes(ctx context.Context, db *mongo.Database, logger *slog.
 		},
 	}
 
-	return createIndexes(ctx, collection, indexes, logger, "catalogs")
+	if err := createIndexes(ctx, collection, indexes, logger, "catalogs"); err != nil {
+		return err
+	}
+
+	// The catalog store reads config.ConfigDatabase.CatalogCollection, whose
+	// entries are keyed by name: scoped lists and lookups filter on it.
+	entries := db.Collection(config.ConfigDatabase.CatalogCollection)
+	nameIndex := []mongo.IndexModel{{
+		Keys:    bson.D{{Key: "name", Value: 1}},
+		Options: options.Index().SetName("idx_catalog_name"),
+	}}
+	if err := createIndexes(ctx, entries, nameIndex, logger, config.ConfigDatabase.CatalogCollection); err != nil {
+		return err
+	}
+	return nil
 }
 
 func ensureLinksIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {

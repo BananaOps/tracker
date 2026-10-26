@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -30,11 +32,35 @@ func NewLock() *Lock {
 	}
 }
 
+// requireLinkedEvent refuses to link a lock to an event outside the scope of
+// the caller: locking and unlocking write to the changelog of that event.
+// An unknown event id is accepted, nothing is written to it.
+func (e *Lock) requireLinkedEvent(ctx context.Context, eventID string) error {
+	if eventID == "" || authz.ScopeFromContext(ctx).All {
+		return nil
+	}
+	event, err := e.eventStore.Get(ctx, map[string]interface{}{"metadata.id": eventID})
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("lookup event %s: %w", eventID, err)
+	}
+	return authz.RequireService(ctx, event.GetAttributes().GetService())
+}
+
 func (e *Lock) CreateLock(
 	ctx context.Context,
 	i *v1alpha1.CreateLockRequest,
 ) (*v1alpha1.CreateLockResponse, error) {
 	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := authz.RequireService(ctx, i.Service); err != nil {
+		return nil, err
+	}
+	if err := e.requireLinkedEvent(ctx, i.EventId); err != nil {
 		return nil, err
 	}
 
@@ -133,6 +159,9 @@ func (e *Lock) GetLock(
 	if err != nil {
 		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
 	}
+	if err := authz.RequireService(ctx, lockResult.Lock.GetService()); err != nil {
+		return nil, err
+	}
 	return lockResult, nil
 }
 
@@ -148,6 +177,21 @@ func (e *Lock) UpdateLock(
 	existing, err := e.store.Get(ctx, map[string]interface{}{"id": i.Id})
 	if err != nil {
 		return nil, fmt.Errorf("no lock found in tracker for id %s", i.Id)
+	}
+
+	// The stored service and, when it changes, the new one must be in scope.
+	if err := authz.RequireService(ctx, existing.GetService()); err != nil {
+		return nil, err
+	}
+	if i.Service != "" {
+		if err := authz.RequireService(ctx, i.Service); err != nil {
+			return nil, err
+		}
+	}
+	if i.EventId != existing.GetEventId() {
+		if err := e.requireLinkedEvent(ctx, i.EventId); err != nil {
+			return nil, err
+		}
 	}
 
 	// Update fields only if provided (non-empty)
@@ -201,10 +245,15 @@ func (e *Lock) UnLock(
 		return nil, fmt.Errorf("no event found in tracker for id %s", i.Id)
 	}
 
+	if err := authz.RequireService(ctx, lockResult.Lock.GetService()); err != nil {
+		return nil, err
+	}
+
 	// Si un event_id est fourni, ajouter une entrée dans le changelog de l'événement
 	if lockResult.Lock.EventId != "" {
 		event, err := e.eventStore.Get(context.Background(), map[string]interface{}{"metadata.id": lockResult.Lock.EventId})
-		if err == nil {
+		// The unlock stays allowed, but nothing is written to an event outside the scope.
+		if err == nil && authz.ScopeFromContext(ctx).Allows(event.GetAttributes().GetService()) {
 			// Ajouter l'entrée "unlocked" dans le changelog
 			entry := &eventv1alpha1.ChangelogEntry{
 				Timestamp:  timestamppb.Now(),
@@ -260,7 +309,7 @@ func (e *Lock) ListLocks(
 	var LocksResult = &v1alpha1.ListLocksResponse{}
 	var err error
 
-	LocksResult.Locks, err = e.store.List(context.Background())
+	LocksResult.Locks, err = e.store.List(context.Background(), authz.ScopeFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -270,6 +319,7 @@ func (e *Lock) ListLocks(
 }
 
 // UnlockByEventId libère un lock associé à un event_id
+// It is not an RPC and performs no scope check: UpdateEvent already checked the event.
 func (e *Lock) UnlockByEventId(ctx context.Context, eventId string) error {
 	if eventId == "" {
 		return nil // Pas de lock à libérer

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -15,6 +16,7 @@ import (
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/internal/utils"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -104,6 +106,10 @@ func (e *Event) CreateEvent(
 	i *v1alpha1.CreateEventRequest,
 ) (*v1alpha1.CreateEventResponse, error) {
 	if err := authz.Authorize(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := authz.RequireService(ctx, i.GetAttributes().GetService()); err != nil {
 		return nil, err
 	}
 
@@ -289,6 +295,10 @@ func (e *Event) GetEvent(
 		}
 	}
 
+	if err := authz.RequireService(ctx, eventResult.Event.GetAttributes().GetService()); err != nil {
+		return nil, err
+	}
+
 	return eventResult, nil
 }
 
@@ -306,7 +316,7 @@ func (e *Event) SearchEvents(
 	}
 
 	var eventsResult = &v1alpha1.SearchEventsResponse{}
-	eventsResult.Events, err = e.store.Search(context.Background(), filter)
+	eventsResult.Events, err = e.store.Search(context.Background(), authz.ScopeFromContext(ctx), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +336,7 @@ func (e *Event) ListEvents(
 	var eventsResult = &v1alpha1.ListEventsResponse{}
 	var err error
 
-	eventsResult.Events, err = e.store.List(context.Background())
+	eventsResult.Events, err = e.store.List(context.Background(), authz.ScopeFromContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +366,7 @@ func (e *Event) TodayEvents(
 	}
 
 	var eventsResult = &v1alpha1.TodayEventsResponse{}
-	eventsResult.Events, err = e.store.Search(context.Background(), filter)
+	eventsResult.Events, err = e.store.Search(context.Background(), authz.ScopeFromContext(ctx), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +402,12 @@ func (e *Event) UpdateEvent(
 		if err != nil {
 			return nil, fmt.Errorf("no event found in tracker for slack id %s", i.SlackId)
 		}
+	}
+
+	// Both the stored and the new service must be in scope, so an event
+	// cannot be moved into or out of the caller's scope.
+	if err := authz.RequireService(ctx, eventDatabase.Event.GetAttributes().GetService(), i.GetAttributes().GetService()); err != nil {
+		return nil, err
 	}
 
 	var event = &v1alpha1.Event{
@@ -572,6 +588,21 @@ func (e *Event) DeleteEvents(
 		return nil, err
 	}
 
+	// A restricted caller may only delete an event of its scope. An unknown
+	// id keeps today's answer: nothing is deleted and no error is returned.
+	if scope := authz.ScopeFromContext(ctx); !scope.All {
+		existing, err := e.store.Get(ctx, map[string]interface{}{"metadata.id": i.Id})
+		switch {
+		case err == nil:
+			if err := authz.RequireService(ctx, existing.GetAttributes().GetService()); err != nil {
+				return nil, err
+			}
+		case errors.Is(err, mongo.ErrNoDocuments):
+		default:
+			return nil, fmt.Errorf("lookup event %s: %w", i.Id, err)
+		}
+	}
+
 	var eventResult = &v1alpha1.DeleteEventResponse{}
 
 	err := e.store.Delete(context.Background(), map[string]interface{}{"metadata.id": i.Id})
@@ -596,6 +627,9 @@ func (e *Event) AddChangelogEntry(
 		if err.Error() == "mongo: no documents in result" {
 			return nil, fmt.Errorf("event not found with id %s", i.Id)
 		}
+		return nil, err
+	}
+	if err := authz.RequireService(ctx, eventDatabase.GetAttributes().GetService()); err != nil {
 		return nil, err
 	}
 
@@ -646,6 +680,9 @@ func (e *Event) GetEventChangelog(
 		if err.Error() == "mongo: no documents in result" {
 			return nil, fmt.Errorf("event not found with id %s", i.Id)
 		}
+		return nil, err
+	}
+	if err := authz.RequireService(ctx, eventDatabase.GetAttributes().GetService()); err != nil {
 		return nil, err
 	}
 
@@ -709,6 +746,9 @@ func (e *Event) AddSlackId(
 		if err.Error() == "mongo: no documents in result" {
 			return nil, fmt.Errorf("event not found with id %s", i.Id)
 		}
+		return nil, err
+	}
+	if err := authz.RequireService(ctx, eventDatabase.GetAttributes().GetService()); err != nil {
 		return nil, err
 	}
 
@@ -823,7 +863,7 @@ func (e *Event) GetEventStats(
 		return nil, fmt.Errorf("failed to create stats filter: %w", err)
 	}
 
-	count, err := e.store.CountWithFilter(ctx, filter)
+	count, err := e.store.CountWithFilter(ctx, authz.ScopeFromContext(ctx), filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count events: %w", err)
 	}
@@ -906,7 +946,7 @@ func (e *Event) GetEventStatsByMonth(
 		return nil, fmt.Errorf("failed to create stats filter: %w", err)
 	}
 
-	results, err := e.store.AggregateByMonth(ctx, filter, i.GroupByService)
+	results, err := e.store.AggregateByMonth(ctx, authz.ScopeFromContext(ctx), filter, i.GroupByService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to aggregate events by month: %w", err)
 	}

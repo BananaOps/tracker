@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	authv1 "github.com/bananaops/tracker/generated/proto/auth/v1alpha1"
 	"github.com/bananaops/tracker/internal/auth"
@@ -14,6 +15,11 @@ import (
 )
 
 const teamNameMaxLength = 64
+
+const (
+	teamScopeMaxServices      = 500
+	teamScopeServiceMaxLength = 128
+)
 
 func (a *Auth) ListTeams(ctx context.Context, _ *authv1.ListTeamsRequest) (*authv1.ListTeamsResponse, error) {
 	if err := authz.Authorize(ctx); err != nil {
@@ -51,10 +57,9 @@ func teamFromRequest(name, description string, perms []string, scopeAll bool, se
 	}
 	sort.Strings(cleanPerms)
 
-	cleanServices := dedupeTrimmed(services)
-	scope := store.TeamScope{All: scopeAll || len(cleanServices) == 0, Services: cleanServices}
-	if scope.All {
-		scope.Services = []string{}
+	scope, err := teamScopeFromRequest(scopeAll, services)
+	if err != nil {
+		return nil, err
 	}
 	return &store.Team{
 		Name:        name,
@@ -63,6 +68,31 @@ func teamFromRequest(name, description string, perms []string, scopeAll bool, se
 		Scope:       scope,
 		OIDCGroups:  dedupeTrimmed(groups),
 	}, nil
+}
+
+// teamScopeFromRequest validates the scope of a team. No service means every
+// service, which keeps the default of a team created without a scope. A
+// request that names services must name at least one usable service and
+// must not also ask for every service: silently widening a restriction is
+// the dangerous direction. Names are kept as given, case included, and are
+// not checked against the catalog since a service may be created later.
+func teamScopeFromRequest(scopeAll bool, services []string) (store.TeamScope, error) {
+	clean := dedupeTrimmed(services)
+	if len(services) > 0 && len(clean) == 0 {
+		return store.TeamScope{}, status.Error(codes.InvalidArgument, "scope services must not be blank")
+	}
+	if scopeAll && len(clean) > 0 {
+		return store.TeamScope{}, status.Error(codes.InvalidArgument, "scope_all and scope_services are mutually exclusive")
+	}
+	if len(clean) > teamScopeMaxServices {
+		return store.TeamScope{}, status.Errorf(codes.InvalidArgument, "a team scope holds at most %d services", teamScopeMaxServices)
+	}
+	for _, s := range clean {
+		if utf8.RuneCountInString(s) > teamScopeServiceMaxLength {
+			return store.TeamScope{}, status.Errorf(codes.InvalidArgument, "a scope service name is at most %d characters", teamScopeServiceMaxLength)
+		}
+	}
+	return store.TeamScope{All: len(clean) == 0, Services: clean}, nil
 }
 
 func dedupeTrimmed(in []string) []string {

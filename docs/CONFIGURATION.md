@@ -79,6 +79,8 @@ BUY_ME_COFFEE_URL=https://www.buymeacoffee.com/yourname
 | `AUTH_OIDC_TEAM_SYNC` | `true` | Synchronize teams from the groups claim at each login. |
 | `AUTH_OIDC_BUTTON_LABEL` | `Single Sign-On` | Label of the login button (64 characters max). |
 
+Teams can be restricted to a list of catalog services, see [Service scope](./AUTHENTICATION.md#service-scope). The scope is managed through the teams API, not through environment variables.
+
 When `AUTH_ANONYMOUS_PERMISSIONS` is set, its value is used as is, even when empty. When it is unset, the default is the read-only set `event:read,catalog:read,lock:read,links:read` if `DEMO_MODE=true`, otherwise every permission except `access:manage` (transitional default, with a startup warning).
 
 See [AUTHENTICATION.md](AUTHENTICATION.md) for permissions, teams and API keys, and [Single Sign-On](AUTHENTICATION.md#single-sign-on-openid-connect) for the OpenID Connect setup, redirect URI and identity provider recipes.
