@@ -1,5 +1,7 @@
 # Tracker MCP Server
 
+> ⚠️ **Déprécié** : Tracker sert désormais le MCP directement sur `/mcp`, avec l'authentification et le scope des équipes, sans rien à installer. Voir [docs/MCP_SERVER.md](../docs/MCP_SERVER.md). Ce serveur Python sera supprimé dans une prochaine version.
+
 Serveur MCP (Model Context Protocol) pour interroger les APIs de Tracker en lecture seule.
 
 ## 🎯 Fonctionnalités

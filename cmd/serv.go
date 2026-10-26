@@ -23,6 +23,7 @@ import (
 	"github.com/bananaops/tracker/internal/auth"
 	"github.com/bananaops/tracker/internal/auth/identity"
 	"github.com/bananaops/tracker/internal/auth/sso"
+	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/middleware"
@@ -175,6 +176,14 @@ var serv = &cobra.Command{
 		// Register custom links CRUD endpoints
 		server.RegisterLinksHandler(mux)
 
+		// Model Context Protocol endpoint for AI agents
+		if config.ConfigGeneral.MCPEnabled {
+			if err := server.RegisterMCPHandler(mux, events, catalogs, locks); err != nil {
+				log.Fatalf("cannot register the MCP endpoint: %v", err)
+			}
+			slog.Info("MCP endpoint available at " + server.MCPPath)
+		}
+
 		// Setup Swagger documentation with go-swagger
 		opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.json"}
 		sh := middleware.SwaggerUI(opts, nil)
@@ -285,6 +294,7 @@ var serv = &cobra.Command{
 				if strings.HasPrefix(r.URL.Path, "/api/") ||
 					strings.HasPrefix(r.URL.Path, "/swagger.json") ||
 					strings.HasPrefix(r.URL.Path, "/docs") ||
+					r.URL.Path == server.MCPPath ||
 					r.URL.Path == "/config.js" {
 					mux.ServeHTTP(w, r)
 					return

@@ -178,7 +178,7 @@ Quick access portal to all your tools and resources, synced from Homer.
 - **REST API**: HTTP/JSON endpoints via grpc-gateway
 - **Swagger UI**: Interactive API documentation
 - **OpenAPI Spec**: Standard API specification
-- **MCP Server**: Model Context Protocol for AI agents (Kiro, Claude, etc.)
+- **MCP Server**: built-in Model Context Protocol endpoint at `/mcp` for AI agents (Claude, Cursor, Kiro, etc.), authenticated like the API
 - **Prometheus**: Built-in metrics endpoint
 - **Homer Integration**: Sync links from your Homer dashboard
 

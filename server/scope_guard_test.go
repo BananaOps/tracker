@@ -333,6 +333,7 @@ var httpRouteSites = map[string]struct {
 	"homer.go":       {1, "proxy of an external Homer dashboard, no Tracker service data"},
 	"auth_http.go":   {1, "login, logout and password change act on the caller only"},
 	"auth_oidc.go":   {1, "OpenID Connect login flow, no service data"},
+	"mcp.go":         {1, "MCP tools call the scoped event, lock and catalog RPCs in process (mcp_test.go)"},
 	"../cmd/serv.go": {3, "swagger.json, docs and config.js are static, no service data"},
 }
 

@@ -2,524 +2,196 @@
 
 ## 📖 Introduction
 
-Le serveur MCP (Model Context Protocol) permet aux agents IA comme Kiro d'interroger les APIs de Tracker de manière native. Il expose toutes les fonctionnalités lecture de Tracker via 8 outils MCP.
+Tracker expose un serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) directement dans son serveur HTTP, sur `/mcp`. Les assistants IA (Claude Code, Claude Desktop, Cursor, Kiro, etc.) peuvent ainsi interroger les events, le catalogue et les locks en langage naturel, **sans rien installer** : il suffit de pointer le client sur l'URL de Tracker.
+
+Les outils sont en **lecture seule** et respectent l'authentification de Tracker : permissions, scope par service des équipes et accès anonyme s'appliquent exactement comme sur l'API REST.
+
+> Le serveur Python `mcp-server/` (stdio, à installer avec `uv`) est **déprécié** et sera supprimé dans une prochaine version. Voir [Migration depuis le serveur Python](#-migration-depuis-le-serveur-python).
 
 ## 🎯 Cas d'Usage
 
 ### Pour les Développeurs
-- "Quels sont les déploiements d'aujourd'hui ?"
-- "Y a-t-il des incidents sur mon service ?"
-- "Montre-moi les événements en échec cette semaine"
+- "Quels sont les déploiements en production aujourd'hui ?"
+- "Montre-moi les incidents P1 de la semaine dernière"
+- "Quelle est la version du service user-api dans le catalogue ?"
 
 ### Pour les DevOps
-- "Quels services ont des locks actifs ?"
-- "Recherche les drifts en production"
-- "Liste les opérations RPA du mois"
+- "Y a-t-il des locks actifs en production ?"
+- "Liste les drifts ouverts sur le service payment-api"
+- "Quels déploiements ont échoué cette semaine ?"
 
 ### Pour les Managers
-- "Résumé des événements critiques P1"
-- "Quels sont les services les plus impactés ?"
-- "Analyse des tendances de déploiement"
+- "Résume l'activité de déploiement de ce mois"
+- "Quels services ont eu le plus d'incidents ?"
 
 ## 🛠️ Architecture
 
 ```
-┌─────────────────┐    MCP Protocol    ┌─────────────────┐    HTTP/REST    ┌─────────────────┐
-│                 │ ◄─────────────────► │                 │ ◄──────────────► │                 │
-│   Kiro / Agent  │                    │   MCP Server    │                 │   Tracker API   │
-│                 │                    │   (Python)     │                 │   (Go/gRPC)     │
-└─────────────────┘                    └─────────────────┘                 └─────────────────┘
+Client MCP (Claude Code, Cursor, Kiro…)
+        │  Streamable HTTP, POST /mcp
+        │  Authorization: Bearer trk_…
+        ▼
+Tracker :8080 ── auth.HTTPMiddleware (clé API, session, anonyme)
+        │
+        ▼
+server/mcp.go ── outils MCP
+        │  appels en interne, sous le nom de la RPC
+        ▼
+Services Event / Catalog / Lock ── authz (permissions + scope)
+        │
+        ▼
+     MongoDB
 ```
 
-### Composants
+- Transport **Streamable HTTP** en mode *stateless* : chaque requête MCP est traitée avec le contexte de sa propre requête HTTP, donc avec l'identité de l'appelant à ce moment-là (une clé révoquée ou un scope modifié s'applique à la requête suivante).
+- Les outils appellent les services gRPC en mémoire, sans passer par le réseau, sous le nom de la RPC correspondante (`ListEvents`, `GetLock`…). Aucune règle d'autorisation n'est propre au MCP.
 
-1. **Agent IA (Kiro)** : Interface utilisateur, traitement du langage naturel
-2. **Serveur MCP** : Traduction entre MCP et APIs REST de Tracker
-3. **Tracker API** : Backend Go avec gRPC + grpc-gateway
+## ⚙️ Activation
 
-## 📦 Installation
+L'endpoint est activé par défaut.
 
-### Prérequis
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `MCP_ENABLED` | `true` | Sert l'endpoint MCP sur `/mcp`. `false` le désactive. |
 
-- Python 3.10+
-- `uv` (gestionnaire de paquets Python moderne)
-- Tracker en cours d'exécution
+Il est servi sur le port HTTP de Tracker (8080), derrière le même reverse proxy que l'interface et l'API.
 
-### Installation de uv
+## 🔐 Authentification
+
+Le client présente ses identifiants dans un header HTTP, comme pour l'API REST :
+
+```
+Authorization: Bearer trk_...
+X-Api-Key: trk_...
+```
+
+| Appelant | Ce qu'il voit |
+|----------|---------------|
+| Clé API d'équipe | Les permissions et le scope de l'équipe (relus à chaque requête) |
+| Clé API globale | Tout |
+| Sans identifiant | Les permissions de `AUTH_ANONYMOUS_PERMISSIONS`, sans restriction de scope |
+| Identifiant invalide ou expiré | HTTP 401 avant tout échange MCP |
+
+Recommandations :
+
+- Créez une **clé API dédiée** à l'usage MCP, rattachée à une équipe dont les permissions se limitent à `event:read`, `catalog:read` et `lock:read`. Voir [Authentification](./AUTHENTICATION.md#api-keys).
+- Pour qu'une clé d'équipe isole vraiment les données de l'équipe, restreignez l'accès anonyme (`AUTH_ANONYMOUS_PERMISSIONS=`). Sinon un client sans clé voit tout ce que l'anonyme voit.
+- Un refus (permission manquante, service hors scope) est renvoyé comme une erreur d'outil, lisible par l'assistant, par exemple `service "payment-api" is outside your scope`.
+
+## 🔌 Configuration des Clients
+
+Remplacez `https://tracker.example.com` par l'URL de votre Tracker (`http://localhost:8080` en local).
+
+### Claude Code
 
 ```bash
-# Installation via curl (recommandé)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Ou via pip si vous l'avez déjà
-pip install uv
-
-# Ou via Homebrew (macOS)
-brew install uv
-
-# Redémarrer le terminal pour activer uv
-source ~/.bashrc  # ou ~/.zshrc
+claude mcp add --transport http tracker https://tracker.example.com/mcp \
+  --header "Authorization: Bearer trk_..."
 ```
 
-### Installation Rapide
-
-```bash
-# 1. Cloner le projet Tracker
-git clone <tracker-repo>
-cd tracker
-
-# 2. Installer le serveur MCP avec uv
-cd mcp-server
-uv sync
-
-# 3. Tester l'installation
-uv run python tracker_mcp_server.py --help
-```
-
-### Configuration dans Kiro
-
-Éditer `~/.kiro/settings/mcp.json` :
+### Cursor, Kiro et clients compatibles
 
 ```json
 {
   "mcpServers": {
     "tracker": {
-      "command": "uvx",
-      "args": ["--from", "/chemin/absolu/vers/tracker/mcp-server", "tracker-mcp-server"],
-      "env": {
-        "TRACKER_URL": "http://localhost:8080"
-      },
-      "disabled": false,
-      "autoApprove": [
-        "list_events",
-        "today_events", 
-        "search_events",
-        "list_catalog",
-        "list_locks"
-      ]
+      "type": "http",
+      "url": "https://tracker.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer trk_..."
+      }
     }
   }
 }
 ```
 
-### Configuration Alternative (Python Direct)
+Le nom de la clé (`type`, `transport`, `serverUrl`…) varie selon les clients : reportez-vous à la documentation du vôtre pour un serveur MCP « Streamable HTTP ».
+
+### Clients limités au transport stdio
+
+Les clients qui ne savent lancer qu'un processus local peuvent passer par un pont stdio vers HTTP, par exemple [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) :
 
 ```json
 {
   "mcpServers": {
     "tracker": {
-      "command": "python",
-      "args": ["/chemin/absolu/vers/tracker/mcp-server/tracker_mcp_server.py"],
-      "env": {
-        "TRACKER_URL": "http://localhost:8080"
-      },
-      "disabled": false,
-      "autoApprove": ["search_events", "today_events"]
+      "command": "npx",
+      "args": ["mcp-remote", "https://tracker.example.com/mcp", "--header", "Authorization:Bearer trk_..."]
     }
   }
 }
-```
-
-## 🔧 Configuration
-
-### Variables d'Environnement
-
-| Variable | Description | Défaut | Exemples |
-|----------|-------------|---------|----------|
-| `TRACKER_URL` | URL du serveur Tracker | `http://localhost:8080` | `https://tracker.prod.com` |
-
-### Environnements Multiples
-
-```bash
-# Développement
-TRACKER_URL=http://localhost:8080
-
-# Staging
-TRACKER_URL=https://tracker-staging.example.com
-
-# Production
-TRACKER_URL=https://tracker.example.com
-
-# Réseau interne
-TRACKER_URL=http://tracker.internal:9090
 ```
 
 ## 🎯 Outils Disponibles
 
+Toutes les réponses sont du JSON au format de l'API REST (champs en camelCase, enums par leur nom). Les listes sont paginées par le serveur MCP : `per_page` (10 par défaut, 100 au maximum) et `page` (à partir de 1) ; `totalCount` donne le nombre total d'éléments. Les events sont triés du plus récent au plus ancien, le catalogue par nom.
+
 ### 📅 Events
 
-#### `list_events`
-Liste les événements avec filtres basiques.
+| Outil | Paramètres | Description |
+|-------|------------|-------------|
+| `list_events` | `per_page`, `page`, `type`, `service`, `status` | Liste les events, filtrés si un filtre est donné |
+| `today_events` | `per_page`, `page` | Events qui commencent aujourd'hui |
+| `search_events` | `source`, `type`, `priority`, `status`, `service`, `environment`, `start_date`, `end_date`, `per_page`, `page` | Recherche multi-critères, au moins un filtre requis |
+| `get_event` | `event_id` (requis) | Un event par son id ou par l'id de son message Slack |
 
-**Paramètres :**
-- `per_page` (number) : Événements par page (défaut: 10, max: 100)
-- `page` (number) : Numéro de page (défaut: 1)
-- `type` (string) : Type d'événement (deployment, operation, drift, incident, rpa_usage)
-- `service` (string) : Nom du service
-- `status` (string) : Statut (start, failure, success, warning, error, etc.)
+Valeurs acceptées :
 
-**Exemple :**
-```
-"Liste les 20 derniers déploiements"
-"Montre-moi les événements du service auth-api"
-```
-
-#### `today_events`
-Récupère les événements créés aujourd'hui.
-
-**Paramètres :**
-- `per_page` (number) : Événements par page (défaut: 10)
-- `page` (number) : Numéro de page (défaut: 1)
-
-**Exemple :**
-```
-"Quels sont les événements d'aujourd'hui ?"
-"Montre-moi tous les événements du jour"
-```
-
-#### `search_events`
-Recherche avancée avec filtres multiples.
-
-**Paramètres :**
-- `source` (string) : Source (github-actions, jenkins, manual)
-- `type` (string) : Type d'événement
-- `priority` (string) : Priorité (P1, P2, P3, P4, P5)
-- `status` (string) : Statut
-- `service` (string) : Nom du service
-- `start_date` (string) : Date de début (ISO 8601)
-- `end_date` (string) : Date de fin (ISO 8601)
-- `environment` (string) : Environnement (development, production, etc.)
-- `impact` (boolean) : Filtrer par impact
-- `slack_id` (string) : ID du message Slack
-
-**Exemples :**
-```
-"Recherche les déploiements en production avec un impact entre le 2024-01-01 et aujourd'hui"
-"Trouve les incidents P1 du service payment-api"
-"Montre les événements en échec de la semaine dernière"
-```
-
-#### `get_event`
-Récupère un événement spécifique par ID.
-
-**Paramètres :**
-- `event_id` (string, requis) : ID de l'événement
-
-**Exemple :**
-```
-"Donne-moi les détails de l'événement 507f1f77bcf86cd799439011"
-```
+- `type` : `deployment`, `operation`, `drift`, `incident`, `rpa_usage`
+- `priority` : `P1` à `P5`
+- `status` : `start`, `failure`, `success`, `warning`, `error`, `snapshot`, `user_update`, `recommandation`, `open`, `close`, `done`, `in_progress`, `planned`, `waiting_approval`
+- `environment` : `development`, `integration`, `TNR`, `UAT`, `recette`, `preproduction`, `production`, `mco`
+- `start_date` / `end_date` : filtrent sur la date de début de l'event, au format `YYYY-MM-DD` ou RFC 3339 (`2026-01-15T10:30:00Z`)
 
 ### 📚 Catalog
 
-#### `list_catalog`
-Liste les services du catalogue.
-
-**Paramètres :**
-- `per_page` (number) : Services par page (défaut: 10)
-- `page` (number) : Numéro de page (défaut: 1)
-
-**Exemple :**
-```
-"Liste tous les services du catalogue"
-"Montre-moi les 50 premiers services"
-```
-
-#### `get_catalog_service`
-Récupère un service spécifique par nom.
-
-**Paramètres :**
-- `service_name` (string, requis) : Nom du service
-
-**Exemple :**
-```
-"Donne-moi les détails du service auth-api"
-"Informations sur le service payment-gateway"
-```
+| Outil | Paramètres | Description |
+|-------|------------|-------------|
+| `list_catalog` | `per_page`, `page` | Services, modules, bibliothèques et conteneurs du catalogue |
+| `get_catalog_service` | `service_name` (requis) | Une entrée du catalogue avec ses versions, dépendances et liens |
 
 ### 🔒 Locks
 
-#### `list_locks`
-Liste les locks actifs.
-
-**Paramètres :**
-- `per_page` (number) : Locks par page (défaut: 10)
-- `page` (number) : Numéro de page (défaut: 1)
-
-**Exemple :**
-```
-"Quels sont les locks actifs ?"
-"Y a-t-il des services verrouillés ?"
-```
-
-#### `get_lock`
-Récupère un lock spécifique par ID.
-
-**Paramètres :**
-- `lock_id` (string, requis) : ID du lock
-
-**Exemple :**
-```
-"Détails du lock 507f1f77bcf86cd799439011"
-```
-
-## 💡 Exemples d'Usage Avancés
-
-### Analyse de Tendances
-
-```
-"Analyse les déploiements des 30 derniers jours par environnement"
-"Quels sont les services avec le plus d'incidents P1 ce mois ?"
-"Tendance des échecs de déploiement par semaine"
-```
-
-### Monitoring Opérationnel
-
-```
-"Y a-t-il des événements critiques en cours ?"
-"Quels services ont des drifts non résolus ?"
-"Liste des opérations RPA en échec aujourd'hui"
-```
-
-### Coordination d'Équipes
-
-```
-"Quels sont les locks actifs qui pourraient bloquer mon déploiement ?"
-"Y a-t-il des événements sur les services de l'équipe Platform ?"
-"Qui est le owner du service user-management ?"
-```
-
-### Reporting
-
-```
-"Résumé des événements de production cette semaine"
-"Statistiques de succès des déploiements par service"
-"Liste des incidents résolus ce mois"
-```
-
-## 🔍 Formats de Dates
-
-Le serveur MCP accepte plusieurs formats de dates pour `start_date` et `end_date` :
-
-```bash
-# Date simple
-"2024-01-15"
-
-# Date avec heure
-"2024-01-15T10:30:00Z"
-
-# Date avec timezone
-"2024-01-15T10:30:00+01:00"
-
-# Dates relatives (dans les requêtes en langage naturel)
-"hier", "la semaine dernière", "ce mois", "les 7 derniers jours"
-```
+| Outil | Paramètres | Description |
+|-------|------------|-------------|
+| `list_locks` | `per_page`, `page` | Locks actifs |
+| `get_lock` | `lock_id` (requis) | Un lock par son id |
 
 ## 🐛 Troubleshooting
 
-### Problèmes de Connexion
-
-**Erreur : "Connection refused"**
-```bash
-# Vérifier que Tracker est démarré
-curl http://localhost:8080/health
-
-# Vérifier l'URL configurée
-echo $TRACKER_URL
-
-# Tester l'API directement
-curl http://localhost:8080/api/v1alpha1/events/list?perPage=1
-```
-
-**Erreur : "Timeout"**
-```bash
-# Vérifier la latence réseau
-ping tracker.example.com
-
-# Augmenter le timeout (dans le code Python)
-# self.client = httpx.AsyncClient(timeout=60.0)
-```
-
-### Problèmes d'Installation
-
-**Erreur : "Module not found"**
-```bash
-# Réinstaller les dépendances avec uv
-cd mcp-server
-uv sync
-
-# Vérifier l'installation
-uv run python -c "import mcp; print('MCP OK')"
-uv run python -c "import httpx; print('HTTPX OK')"
-```
-
-**Erreur : "Command not found: uvx"**
-```bash
-# Installer uv (inclut uvx automatiquement)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Redémarrer le terminal
-source ~/.bashrc  # ou ~/.zshrc
-
-# Vérifier l'installation
-uv --version
-uvx --version
-```
-
-### Problèmes MCP dans Kiro
-
-**Le serveur n'apparaît pas**
-1. Vérifier la syntaxe JSON dans `mcp.json`
-2. Redémarrer Kiro
-3. Ouvrir la vue "MCP Servers" pour voir les erreurs
-
-**Les outils ne sont pas disponibles**
-1. Vérifier que le serveur est "Connected" dans la vue MCP
-2. Redémarrer le serveur MCP depuis l'interface
-3. Vérifier les logs d'erreur
-
-**Erreurs d'exécution**
-1. Vérifier que `TRACKER_URL` est correcte
-2. Tester l'API Tracker directement
-3. Vérifier les permissions réseau
-
-### Debug Mode
-
-Pour activer le mode debug :
+### Vérifier l'endpoint
 
 ```bash
-# Lancer le serveur avec logs détaillés
-uv run python tracker_mcp_server.py 2>&1 | tee mcp-debug.log
-
-# Ou modifier le code pour plus de logs
-import logging
-logging.basicConfig(level=logging.DEBUG)
+curl -s https://tracker.example.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer trk_..." \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-## 🔒 Sécurité
+| Symptôme | Cause probable |
+|----------|----------------|
+| `404` sur `/mcp` | `MCP_ENABLED=false`, ou une version de Tracker antérieure à l'endpoint MCP |
+| `401 invalid or expired credentials` | Clé API inconnue, révoquée ou mal copiée |
+| Erreur d'outil `permission denied` | La clé (ou l'anonyme) n'a pas la permission `*:read` correspondante |
+| Erreur d'outil `outside your scope` | L'objet appartient à un service hors du scope de l'équipe de la clé |
+| Erreur d'outil `password change required` | Session d'un utilisateur qui doit changer son mot de passe : utilisez une clé API |
+| Listes vides | Scope d'équipe sans le service recherché, ou filtre trop restrictif |
 
-### Considérations
+## 🔄 Migration depuis le Serveur Python
 
-- **Lecture seule** : Le serveur n'expose que des opérations GET
-- **Pas d'authentification** : À utiliser sur des réseaux de confiance
-- **Données sensibles** : Éviter de logger les réponses complètes
-- **Rate limiting** : Respecter les limites de l'API Tracker
+Le serveur Python (`mcp-server/`) appelait l'API REST sans s'authentifier et devait être installé sur chaque poste. Pour migrer :
 
-### Bonnes Pratiques
-
-```json
-{
-  "mcpServers": {
-    "tracker": {
-      "env": {
-        "TRACKER_URL": "http://localhost:8080"
-      },
-      "autoApprove": [
-        "list_events",
-        "today_events"
-      ]
-    }
-  }
-}
-```
-
-- Utiliser `autoApprove` uniquement pour les outils sûrs
-- Configurer `TRACKER_URL` via variables d'environnement
-- Ne pas exposer le serveur MCP sur internet
+1. Créez une clé API (voir [Authentification](#-authentification)).
+2. Remplacez dans la configuration de votre client l'entrée `uvx … tracker-mcp-server` par la configuration HTTP ci-dessus.
+3. Les noms des outils sont inchangés. Différences : `search_events` n'accepte plus `impact` ni `slack_id`, que l'API n'appliquait pas (pour retrouver un event par son message Slack, utilisez `get_event`), et `list_catalog`, `get_catalog_service`, `get_event` et `get_lock` fonctionnent désormais (le serveur Python appelait des routes qui n'existent pas).
 
 ## 🚀 Développement
 
-### Structure du Code
+Le code est dans `server/mcp.go`, les tests de bout en bout dans `server/mcp_test.go` (ils nécessitent `MONGO_TEST_URI`, voir [Développement](./DEVELOPMENT.md)).
 
-```
-mcp-server/
-├── tracker_mcp_server.py    # Serveur principal
-├── pyproject.toml           # Configuration Python
-├── README.md                # Documentation
-├── .gitignore              # Fichiers à ignorer
-└── example-mcp-config.json # Exemple de config
-```
+Pour ajouter un outil :
 
-### Ajouter un Nouvel Outil
-
-1. **Ajouter la méthode dans `TrackerMCPServer`** :
-```python
-async def my_new_tool(self, param1: str) -> dict[str, Any]:
-    """Description de l'outil"""
-    response = await self.client.get(f"{self.api_base}/my-endpoint")
-    response.raise_for_status()
-    return response.json()
-```
-
-2. **Déclarer l'outil dans `list_tools()`** :
-```python
-Tool(
-    name="my_new_tool",
-    description="Description de ce que fait l'outil",
-    inputSchema={
-        "type": "object",
-        "properties": {
-            "param1": {
-                "type": "string",
-                "description": "Description du paramètre"
-            }
-        },
-        "required": ["param1"]
-    }
-)
-```
-
-3. **Gérer l'appel dans `call_tool()`** :
-```python
-elif name == "my_new_tool":
-    result = await tracker.my_new_tool(arguments["param1"])
-```
-
-### Tests
-
-```bash
-# Test unitaire d'un outil avec uv
-uv run python -c "
-import asyncio
-from tracker_mcp_server import TrackerMCPServer
-
-async def test():
-    tracker = TrackerMCPServer('http://localhost:8080')
-    result = await tracker.list_events(per_page=1)
-    print(result)
-    await tracker.close()
-
-asyncio.run(test())
-"
-```
-
-## 📚 Ressources
-
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-- [Tracker API Documentation](../docs/api-specification.md)
-- [Kiro MCP Guide](https://docs.kiro.ai/mcp)
-- [Python httpx Documentation](https://www.python-httpx.org/)
-
-## 🤝 Contribution
-
-Pour contribuer au serveur MCP :
-
-1. Fork le projet
-2. Créer une branche feature
-3. Ajouter des tests
-4. Mettre à jour la documentation
-5. Créer une Pull Request
-
-## 📝 Changelog
-
-### v0.1.0 (Décembre 2024)
-- ✅ Implémentation initiale
-- ✅ 8 outils MCP (events, catalog, locks)
-- ✅ Support de tous les filtres de recherche
-- ✅ Configuration via variables d'environnement
-- ✅ Documentation complète
-
----
-
-**Maintenu par :** Équipe DevOps  
-**License :** Même que le projet Tracker principal
+1. Déclarez-le avec `mcp.AddTool` dans `newMCPServer`, avec une structure d'entrée dont les tags `jsonschema` décrivent les paramètres.
+2. Appelez le service avec `rpcContext(ctx, <Service>_<Rpc>_FullMethodName)` : la RPC applique elle-même permissions et scope.
+3. Marquez-le `ReadOnlyHint` s'il ne modifie rien, et couvrez dans `mcp_test.go` le cas d'une clé d'équipe hors scope.

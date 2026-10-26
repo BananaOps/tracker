@@ -13,4 +13,5 @@ func TestDefaultConfigValues(t *testing.T) {
 	assert.Equal(t, ConfigGeneral.LogLevel, "info")
 	assert.Equal(t, ConfigGeneral.GrpcPort, "8765")
 	assert.Equal(t, ConfigGeneral.HttpPort, "8080")
+	assert.True(t, ConfigGeneral.MCPEnabled)
 }

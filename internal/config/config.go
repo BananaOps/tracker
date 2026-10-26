@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 )
 
 type Database struct {
@@ -22,12 +23,15 @@ type General struct {
 	GrpcPort string
 	HttpPort string
 	LogLevel string
+	// MCPEnabled serves the Model Context Protocol endpoint at /mcp.
+	MCPEnabled bool
 }
 
 var ConfigGeneral = General{
-	GrpcPort: "8765",
-	HttpPort: "8080",
-	LogLevel: "info",
+	GrpcPort:   "8765",
+	HttpPort:   "8080",
+	LogLevel:   "info",
+	MCPEnabled: true,
 }
 
 var ConfigDatabase = Database{
@@ -81,5 +85,8 @@ func init() {
 	}
 	if os.Getenv("LOG_LEVEL") != "" {
 		ConfigGeneral.LogLevel = os.Getenv("LOG_LEVEL")
+	}
+	if v, err := strconv.ParseBool(os.Getenv("MCP_ENABLED")); err == nil {
+		ConfigGeneral.MCPEnabled = v
 	}
 }
