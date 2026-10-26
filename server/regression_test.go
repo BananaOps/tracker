@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 
@@ -188,4 +189,30 @@ func TestUpdateLockOntoALockedResourceIsRefused(t *testing.T) {
 	stored, err := s.lockStore.Get(context.Background(), map[string]interface{}{"id": a})
 	require.NoError(t, err)
 	assert.Equal(t, "svc-a", stored.GetService())
+}
+
+func TestRelatedEventOutsideTheScopeLooksMissing(t *testing.T) {
+	s := newScopeServices(t, scopeDB(t))
+	other := seedEvent(t, s, "svc-b")
+	ctx := scopeCtx(scopedPrincipal("svc-a"), "/tracker.event.v1alpha1.EventService/CreateEvent")
+
+	create := func(relatedID string) error {
+		attrs := incident("svc-a")
+		attrs.RelatedId = relatedID
+		_, err := s.events.CreateEvent(ctx, &eventv1.CreateEventRequest{Title: "t", Attributes: attrs})
+		return err
+	}
+	outOfScope := create(other)
+	missing := create("6f1c1e5e-0000-4000-8000-000000000000")
+	require.Error(t, outOfScope)
+	require.Error(t, missing)
+	assert.Equal(t,
+		strings.Replace(missing.Error(), "6f1c1e5e-0000-4000-8000-000000000000", other, 1),
+		outOfScope.Error(), "an out-of-scope related event answers like a missing one")
+
+	_, err := s.events.CreateEvent(scopeCtx(scopedPrincipal("svc-a", "svc-b"), "/tracker.event.v1alpha1.EventService/CreateEvent"),
+		&eventv1.CreateEventRequest{Title: "t", Attributes: &eventv1.EventAttributes{
+			Service: "svc-a", Type: eventv1.Type_incident, Status: eventv1.Status_open, RelatedId: other,
+		}})
+	assert.NoError(t, err, "a caller that sees the related event can link it")
 }

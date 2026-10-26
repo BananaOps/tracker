@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 
 	v1alpha1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
 )
@@ -162,7 +163,6 @@ func TestCatchPullRequestIdError(t *testing.T) {
 	}
 }
 
-
 func TestCreateStatsFilter(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -319,4 +319,36 @@ func TestCreateStatsFilterMultipleEnvironments(t *testing.T) {
 // Helper function to create bool pointer
 func boolPtr(b bool) *bool {
 	return &b
+}
+
+func TestParseEndDateCoversTheWholeDay(t *testing.T) {
+	end, err := parseEndDate("2026-01-15")
+	assert.NoError(t, err)
+	assert.Equal(t, time.Date(2026, 1, 15, 23, 59, 59, 0, time.UTC), end)
+
+	end, err = parseEndDate("2026-01-15T10:30:00Z")
+	assert.NoError(t, err)
+	assert.Equal(t, time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC), end, "an explicit time is kept")
+}
+
+func TestCreateFilterDateOnlyEndDateIsInclusive(t *testing.T) {
+	endOfDay := time.Date(2026, 1, 15, 23, 59, 59, 0, time.UTC).Unix()
+
+	filter, err := CreateFilter(&v1alpha1.SearchEventsRequest{StartDate: "2026-01-15", EndDate: "2026-01-15"})
+	assert.NoError(t, err)
+	assert.Equal(t, bson.D{
+		{Key: "$gte", Value: time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC).Unix()},
+		{Key: "$lte", Value: endOfDay},
+	}, filter["attributes.startdate.seconds"])
+
+	filter, err = CreateFilter(&v1alpha1.SearchEventsRequest{EndDate: "2026-01-15"})
+	assert.NoError(t, err)
+	assert.Equal(t, bson.D{{Key: "$lte", Value: endOfDay}}, filter["attributes.startdate.seconds"])
+
+	stats, err := CreateStatsFilter(&StatsFilter{StartDate: "2026-01-15", EndDate: "2026-01-15"})
+	assert.NoError(t, err)
+	assert.Equal(t, bson.D{
+		{Key: "$gte", Value: time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC).Unix()},
+		{Key: "$lte", Value: endOfDay},
+	}, stats[0].Value)
 }

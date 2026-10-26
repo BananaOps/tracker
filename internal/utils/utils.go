@@ -39,7 +39,7 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 		if err != nil {
 			return nil, err
 		}
-		end, err := parseDate(e.EndDate)
+		end, err := parseEndDate(e.EndDate)
 		if err != nil {
 			return nil, err
 		}
@@ -57,7 +57,7 @@ func CreateFilter(e *v1alpha1.SearchEventsRequest) (map[string]interface{}, erro
 		filter["attributes.startdate.seconds"] = bson.D{{Key: "$gte", Value: date.Unix()}}
 	}
 	if e.StartDate == "" && e.EndDate != "" {
-		date, err := parseDate(e.EndDate)
+		date, err := parseEndDate(e.EndDate)
 		if err != nil {
 			return nil, err
 		}
@@ -95,6 +95,19 @@ func parseDate(date string) (t time.Time, err error) {
 	}
 	return
 }
+
+// parseEndDate parses the upper bound of a range. A date without a time
+// covers that whole day: end_date=2026-01-15 includes the events of the 15th,
+// up to 23:59:59.
+func parseEndDate(date string) (time.Time, error) {
+	t, err := parseDate(date)
+	if err == nil && len(date) == len(dateOnlyLayout) {
+		t = t.Add(24*time.Hour - time.Second)
+	}
+	return t, err
+}
+
+const dateOnlyLayout = "2006-01-02"
 
 func checkDateInverted(startDate time.Time, endDate time.Time) (err error) {
 	if endDate.Before(startDate) {
@@ -159,7 +172,7 @@ func CreateStatsFilter(f *StatsFilter) (bson.D, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid start_date: %w", err)
 	}
-	end, err := parseDate(f.EndDate)
+	end, err := parseEndDate(f.EndDate)
 	if err != nil {
 		return nil, fmt.Errorf("invalid end_date: %w", err)
 	}

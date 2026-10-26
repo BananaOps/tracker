@@ -181,32 +181,6 @@ func ensureLockIndexes(ctx context.Context, db *mongo.Database, logger *slog.Log
 }
 
 func ensureCatalogIndexes(ctx context.Context, db *mongo.Database, logger *slog.Logger) error {
-	collection := db.Collection("catalogs")
-
-	indexes := []mongo.IndexModel{
-		// Index sur service pour les recherches par service
-		// PartialFilterExpression ignore les documents avec service vide ou null
-		// Utilise $gt: "" car $ne n'est pas supporté dans les filtres partiels
-		{
-			Keys: bson.D{{Key: "service", Value: 1}},
-			Options: options.Index().
-				SetUnique(true).
-				SetName("idx_catalog_service").
-				SetPartialFilterExpression(bson.D{
-					{Key: "service", Value: bson.D{{Key: "$gt", Value: ""}}},
-				}),
-		},
-		// Index sur environment pour les filtres par environnement
-		{
-			Keys:    bson.D{{Key: "environment", Value: 1}},
-			Options: options.Index().SetName("idx_catalog_environment"),
-		},
-	}
-
-	if err := createIndexes(ctx, collection, indexes, logger, "catalogs"); err != nil {
-		return err
-	}
-
 	// The catalog store reads config.ConfigDatabase.CatalogCollection, whose
 	// entries are keyed by name: scoped lists and lookups filter on it.
 	entries := db.Collection(config.ConfigDatabase.CatalogCollection)

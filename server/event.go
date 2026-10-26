@@ -156,10 +156,12 @@ func (e *Event) CreateEvent(
 	if event.Attributes.RelatedId != "" {
 		// check attributes.relatedId is present
 		relatedEvent, err := e.store.Get(context.Background(), map[string]interface{}{"metadata.id": &i.Attributes.RelatedId})
+		// An event outside the caller's scope is reported as missing, with
+		// the same message, so that its existence does not leak.
+		if errors.Is(err, mongo.ErrNoDocuments) || (err == nil && !authz.ScopeFromContext(ctx).Allows(relatedEvent.GetAttributes().GetService())) {
+			return nil, fmt.Errorf("no event found in tracker for attributes.related_id %s", i.Attributes.RelatedId)
+		}
 		if err != nil {
-			if err.Error() == "mongo: no documents in result" {
-				return nil, fmt.Errorf("no event found in tracker for attributes.related_id %s", i.Attributes.RelatedId)
-			}
 			return nil, err
 		}
 
@@ -374,12 +376,8 @@ func (e *Event) TodayEvents(
 		return nil, err
 	}
 
-	today := time.Now().Format("2006-01-02")
-
-	var todayFilter = &v1alpha1.SearchEventsRequest{
-		StartDate: today + "T00:00:00Z",
-		EndDate:   today + "T23:59:59Z",
-	}
+	start, end := todayRange(time.Now())
+	var todayFilter = &v1alpha1.SearchEventsRequest{StartDate: start, EndDate: end}
 
 	filter, err := utils.CreateFilter(todayFilter)
 	if err != nil {
@@ -394,6 +392,14 @@ func (e *Event) TodayEvents(
 	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
+}
+
+// todayRange returns the bounds of the day of now, in the time zone of now
+// (the server's, TZ), as RFC 3339 timestamps. Writing the local date with a
+// Z suffix would shift the day by the offset of the server.
+func todayRange(now time.Time) (start, end string) {
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	return midnight.Format(time.RFC3339), midnight.AddDate(0, 0, 1).Add(-time.Second).Format(time.RFC3339)
 }
 
 func (e *Event) UpdateEvent(
