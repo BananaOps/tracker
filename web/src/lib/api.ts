@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ChangelogEntry, EventType, Priority, Status, Environment } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
-import { catalogFromAPI, type ApiEventRequest } from './apiConverters'
+import { catalogFromAPI, convertEventFromAPI, type ApiEventRequest } from './apiConverters'
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 
@@ -22,15 +22,22 @@ const axiosInstance = axios.create({
   },
 })
 
+// Events leave the API layer with the web enums ('p1', 'tnr'): protojson
+// writes the proto names ('P1', 'TNR'), which the pages compare against
+// Priority and Environment values.
+function eventsFromAPI(data: ListEventsResponse): ListEventsResponse {
+  return { ...data, events: (data.events ?? []).map(convertEventFromAPI) }
+}
+
 const realEventsApi = {
   list: async (params?: { perPage?: number; page?: number }) => {
     const { data } = await axiosInstance.get<ListEventsResponse>('/events/list', { params })
-    return data
+    return eventsFromAPI(data)
   },
 
   today: async (params?: { perPage?: number; page?: number }) => {
     const { data } = await axiosInstance.get<ListEventsResponse>('/events/today', { params })
-    return data
+    return eventsFromAPI(data)
   },
 
   // Enums are accepted by name ('drift', 'production') or by number
@@ -45,24 +52,24 @@ const realEventsApi = {
     environment?: Environment | number
   }) => {
     const { data } = await axiosInstance.get<ListEventsResponse>('/events/search', { params })
-    return data
+    return eventsFromAPI(data)
   },
 
   get: async (id: string) => {
     const { data } = await axiosInstance.get<{ event: Event }>(`/event/${id}`)
-    return data.event
+    return convertEventFromAPI(data.event)
   },
 
   // The enums may be sent by number (convertEventForAPI) or by name, which
   // grpc-gateway also accepts
   create: async (event: ApiEventRequest | CreateEventRequest) => {
     const { data } = await axiosInstance.post<{ event: Event }>('/event', event)
-    return data.event
+    return convertEventFromAPI(data.event)
   },
 
   update: async (id: string, event: ApiEventRequest | CreateEventRequest) => {
     const { data } = await axiosInstance.put<{ event: Event }>('/event', { ...event, id })
-    return data.event
+    return convertEventFromAPI(data.event)
   },
 
   delete: async (id: string) => {
@@ -83,7 +90,7 @@ const realEventsApi = {
   // Add Slack ID to an existing event
   addSlackId: async (id: string, slackId: string) => {
     const { data } = await axiosInstance.post<{ event: Event }>(`/event/${id}/slack`, { slack_id: slackId })
-    return data.event
+    return convertEventFromAPI(data.event)
   },
 }
 

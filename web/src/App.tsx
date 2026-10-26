@@ -36,7 +36,7 @@ function App() {
           <Route path="events/overlaps" element={<EventsOverlaps />} />
           <Route path="events/create" element={<CreateEvent />} />
           <Route path="events/:eventId" element={<EventDetail />} />
-          <Route path="docs" element={<Documentation />} />
+          <Route path="documentation" element={<Documentation />} />
           <Route path="catalog" element={<CatalogTable />} />
           <Route path="catalog/create" element={<CreateCatalog />} />
           <Route path="catalog/edit/:name" element={<CreateCatalog />} />

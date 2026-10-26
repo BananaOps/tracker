@@ -45,7 +45,7 @@ const navigationSections = [
     label: 'Resources',
     items: [
       { name: 'Links', href: '/links', icon: LinkIcon },
-      { name: 'Docs',  href: '/docs',  icon: BookOpen },
+      { name: 'Docs',  href: '/documentation',  icon: BookOpen },
     ],
   },
 ]
