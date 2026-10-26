@@ -125,6 +125,7 @@ func TestEnsureIndexes(t *testing.T) {
 			"idx_lock_id",
 			"idx_lock_createdat",
 			"idx_lock_env_resource",
+			"idx_lock_unique_resource",
 		}
 
 		indexNames := make(map[string]bool)
@@ -143,9 +144,9 @@ func TestEnsureIndexes(t *testing.T) {
 		t.Logf("Found %d indexes for locks collection", len(results))
 	})
 
-	// Vérifier les index de la collection catalogs
+	// Vérifier les index de la collection du catalogue
 	t.Run("CatalogIndexes", func(t *testing.T) {
-		indexes := testDB.Collection("catalogs").Indexes()
+		indexes := testDB.Collection(config.ConfigDatabase.CatalogCollection).Indexes()
 		cursor, err := indexes.List(ctx)
 		if err != nil {
 			t.Fatalf("Failed to list indexes: %v", err)
@@ -158,8 +159,7 @@ func TestEnsureIndexes(t *testing.T) {
 		}
 
 		expectedIndexes := []string{
-			"idx_catalog_service",
-			"idx_catalog_environment",
+			"idx_catalog_name",
 		}
 
 		indexNames := make(map[string]bool)
@@ -175,7 +175,7 @@ func TestEnsureIndexes(t *testing.T) {
 			}
 		}
 
-		t.Logf("Found %d indexes for catalogs collection", len(results))
+		t.Logf("Found %d indexes for %s collection", len(results), config.ConfigDatabase.CatalogCollection)
 	})
 }
 

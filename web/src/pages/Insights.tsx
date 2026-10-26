@@ -157,7 +157,7 @@ export default function Insights() {
   }, [filteredEvents])
 
   const projectBreakdown = useMemo(() => {
-    const projectCount = new Map<string, { [key: string]: number }>()
+    const projectCount = new Map<string, Omit<ProjectBreakdown, 'project' | 'total'>>()
     filteredEvents.forEach(event => {
       const project = event.attributes.service?.split('-')[0] || 'Unknown'
       const type = event.attributes.type

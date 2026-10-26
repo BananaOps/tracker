@@ -63,9 +63,9 @@ function toFlatLinks(localGroups: LinkGroup[], homerData?: HomerLinksResponse): 
 function catalogToFlat(catalogs: Catalog[]): FlatResult[] {
   return catalogs.map(c => ({
     kind: 'catalog' as ResultKind,
-    name: c.name ?? c.service ?? '',
+    name: c.name,
     subtitle: [c.type, c.owner].filter(Boolean).join(' · '),
-    serviceName: c.service ?? c.name ?? '',
+    serviceName: c.name,
     owner: c.owner,
   }))
 }

@@ -71,7 +71,7 @@ export default function UsedDeliverablesManager({
     const updated = [...usedDeliverables]
     updated[index] = deliverable
     onUpdate(updated)
-    setEditing
+    setEditingIndex(null)
   }
 
   const handleRemove = (index: number) => {

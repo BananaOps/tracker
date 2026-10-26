@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Edit2, History, ExternalLink, AlertTriangle, GitBranch } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi, catalogApi, locksApi } from '../lib/api'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
@@ -49,6 +49,14 @@ export default function EventDetail() {
   })
 
   const downstreamServices = useMemo(() => serviceCatalog?.dependenciesIn ?? [], [serviceCatalog])
+
+  // Lock of the event's service in its environment, as in EventDetailsModal
+  const { data: locksData } = useQuery({
+    queryKey: ['event-locks'],
+    queryFn: () => locksApi.list(),
+    enabled: !!event?.attributes?.service,
+    staleTime: 30_000,
+  })
   const [editedEvent, setEditedEvent] = useState(normalizedEvent)
 
   // Update editedEvent when normalizedEvent changes
@@ -187,7 +195,20 @@ export default function EventDetail() {
               <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                 {editedEvent.title}
               </h2>
-              <LockIndicator event={editedEvent} />
+              {(() => {
+                const lock = locksData?.locks?.find(
+                  (l) => l.service === editedEvent.attributes.service && l.environment === editedEvent.attributes.environment
+                )
+                return (
+                  <LockIndicator
+                    compact
+                    isLocked={!!lock}
+                    lockId={lock?.id}
+                    service={editedEvent.attributes.service}
+                    environment={String(editedEvent.attributes.environment ?? '')}
+                  />
+                )
+              })()}
             </div>
             <p className="mt-1 text-sm text-hud-on-surface-var">
               Event ID: {editedEvent.metadata?.id}
