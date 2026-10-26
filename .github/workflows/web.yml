@@ -1,0 +1,41 @@
+name: Web
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/web.yml
+      - web/**
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Web lint, types, tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v7
+
+    - name: Set up Node
+      uses: actions/setup-node@v7
+      with:
+        node-version: 25
+        cache: npm
+        cache-dependency-path: web/package-lock.json
+
+    - name: Install
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint -- --max-warnings=-1
+
+    - name: Type check and build
+      run: npm run build:check
+
+    - name: Test
+      run: npm test
