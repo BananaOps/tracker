@@ -53,10 +53,10 @@ func init() {
 		ConfigDatabase.Port = os.Getenv("DB_PORT")
 	}
 	if os.Getenv("DB_EVENT_COLLECTION") != "" {
-		ConfigDatabase.Name = os.Getenv("DB_EVENT_COLLECTION")
+		ConfigDatabase.EventCollection = os.Getenv("DB_EVENT_COLLECTION")
 	}
 	if os.Getenv("DB_LOCK_COLLECTION") != "" {
-		ConfigDatabase.Name = os.Getenv("DB_LOCK_COLLECTION")
+		ConfigDatabase.LockCollection = os.Getenv("DB_LOCK_COLLECTION")
 	}
 	if os.Getenv("DB_NAME") != "" {
 		ConfigDatabase.Name = os.Getenv("DB_NAME")

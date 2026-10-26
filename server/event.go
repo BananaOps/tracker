@@ -1,6 +1,7 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -17,6 +18,8 @@ import (
 	"github.com/bananaops/tracker/internal/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -75,6 +78,11 @@ func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, us
 	event.Changelog = append(event.Changelog, entry)
 }
 
+const (
+	changelogDefaultPerPage = 50
+	changelogMaxPerPage     = 1000
+)
+
 // shouldCreateLock détermine si un lock doit être créé pour cet événement
 func shouldCreateLock(eventType v1alpha1.Type, status v1alpha1.Status) bool {
 	// Créer un lock pour les déploiements et opérations qui démarrent
@@ -109,6 +117,10 @@ func (e *Event) CreateEvent(
 		return nil, err
 	}
 
+	if i.GetAttributes() == nil {
+		return nil, status.Error(codes.InvalidArgument, "attributes are required")
+	}
+
 	if err := authz.RequireService(ctx, i.GetAttributes().GetService()); err != nil {
 		return nil, err
 	}
@@ -133,8 +145,8 @@ func (e *Event) CreateEvent(
 			Notifications: i.Attributes.Notifications,
 		},
 		Links: &v1alpha1.EventLinks{
-			PullRequestLink: i.Links.PullRequestLink,
-			Ticket:          i.Links.Ticket,
+			PullRequestLink: i.GetLinks().GetPullRequestLink(),
+			Ticket:          i.GetLinks().GetTicket(),
 		},
 		Metadata: &v1alpha1.EventMetadata{
 			SlackId: i.SlackId,
@@ -165,6 +177,7 @@ func (e *Event) CreateEvent(
 	addChangelogEntry(event, v1alpha1.ChangeType_created, user, "", "", "", "Event created")
 
 	// Vérifier et créer un lock si nécessaire AVANT de créer l'événement
+	var lockID string
 	if shouldCreateLock(i.Attributes.Type, i.Attributes.Status) {
 		lockReq := &lock.CreateLockRequest{
 			Service:     i.Attributes.Service,
@@ -183,7 +196,7 @@ func (e *Event) CreateEvent(
 		// Side effect: tracker_auth_requests_total counts such a request twice
 		// under the same method label, once for CreateEvent and once for the
 		// nested Authorize below. Same for the UpdateLock call further down.
-		_, err := e.lockService.CreateLock(ctx, lockReq)
+		created, err := e.lockService.CreateLock(ctx, lockReq)
 		if err != nil {
 			e.logger.Error("failed to create lock",
 				"service", i.Attributes.Service,
@@ -200,12 +213,20 @@ func (e *Event) CreateEvent(
 
 			return nil, fmt.Errorf("cannot create event: failed to create lock - %v", err)
 		}
+		lockID = created.GetLock().GetId()
 	}
 
 	var eventResult = &v1alpha1.CreateEventResponse{}
 	var err error
 	eventResult.Event, err = e.store.Create(context.Background(), event)
 	if err != nil {
+		// The lock was taken for this event: do not leave the service locked
+		// by an event that does not exist.
+		if lockID != "" {
+			if _, errUnlock := e.lockService.store.Unlock(ctx, map[string]interface{}{"id": lockID}); errUnlock != nil {
+				e.logger.Error("failed to release the lock of an event that could not be created", "lock_id", lockID, "error", errUnlock)
+			}
+		}
 		return nil, err
 	}
 
@@ -383,14 +404,13 @@ func (e *Event) UpdateEvent(
 		return nil, err
 	}
 
+	if i.GetAttributes() == nil {
+		return nil, status.Error(codes.InvalidArgument, "attributes are required")
+	}
+
 	var eventResult = &v1alpha1.UpdateEventResponse{}
 	var eventDatabase = &v1alpha1.GetEventResponse{}
 	var err error
-
-	eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.slackid": i.SlackId})
-	if err != nil {
-		return nil, fmt.Errorf("no event found in tracker for id %s", i.SlackId)
-	}
 
 	if i.SlackId == "" {
 		eventDatabase.Event, err = e.store.Get(context.Background(), map[string]interface{}{"metadata.id": i.Id})
@@ -430,23 +450,25 @@ func (e *Event) UpdateEvent(
 			Notifications: i.Attributes.Notifications,
 		},
 		Links: &v1alpha1.EventLinks{
-			PullRequestLink: i.Links.PullRequestLink,
-			Ticket:          i.Links.Ticket,
+			PullRequestLink: i.GetLinks().GetPullRequestLink(),
+			Ticket:          i.GetLinks().GetTicket(),
 		},
 		Metadata: &v1alpha1.EventMetadata{
-			SlackId:   i.SlackId,
+			// An update by id carries no Slack id: keep the stored one.
+			SlackId:   cmp.Or(i.SlackId, eventDatabase.Event.GetMetadata().GetSlackId()),
 			CreatedAt: eventDatabase.Event.Metadata.CreatedAt,
 			Duration:  eventDatabase.Event.Metadata.Duration,
 			Id:        eventDatabase.Event.Metadata.Id,
 		},
 	}
 
-	if event.Attributes.Status == 2 || event.Attributes.Status == 3 {
+	// The duration is measured when the event reaches failure or success; a
+	// later update of a finished event keeps it.
+	finished := event.Attributes.Status == v1alpha1.Status_failure || event.Attributes.Status == v1alpha1.Status_success
+	if finished && eventDatabase.Event.Attributes.Status != event.Attributes.Status {
 		duration := time.Since(eventDatabase.Event.Metadata.CreatedAt.AsTime())
 		event.Metadata.Duration = durationpb.New(duration)
-		if eventDatabase.Event.Attributes.Status != event.Attributes.Status {
-			recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
-		}
+		recordEvent(event.Attributes.Status.String(), event.Attributes.Service, event.Attributes.Environment.String(), duration)
 	}
 
 	// Preserve existing changelog
@@ -478,13 +500,13 @@ func (e *Event) UpdateEvent(
 	}
 
 	// Check for ticket link change
-	if eventDatabase.Event.Links.Ticket != event.Links.Ticket && event.Links.Ticket != "" {
+	if eventDatabase.Event.GetLinks().GetTicket() != event.Links.Ticket && event.Links.Ticket != "" {
 		addChangelogEntry(
 			event,
 			v1alpha1.ChangeType_linked,
 			user,
 			"ticket",
-			eventDatabase.Event.Links.Ticket,
+			eventDatabase.Event.GetLinks().GetTicket(),
 			event.Links.Ticket,
 			"Jira ticket linked",
 		)
@@ -686,35 +708,28 @@ func (e *Event) GetEventChangelog(
 		return nil, err
 	}
 
-	// Get pagination parameters with defaults
-	perPage := uint32(50) // default
-	if i.PerPage != nil {
-		perPage = i.PerPage.Value
+	// Get pagination parameters with defaults. The arithmetic is done on int
+	// with per_page capped, so no request value can overflow it.
+	perPage := changelogDefaultPerPage
+	if v := i.GetPerPage().GetValue(); v > 0 {
+		perPage = int(min(v, changelogMaxPerPage))
 	}
 
-	page := int32(1) // default
-	if i.Page != nil {
-		page = i.Page.Value
+	page := 1
+	if v := i.GetPage().GetValue(); v > 1 {
+		page = int(v)
 	}
 
 	// Calculate pagination
-	totalCount := uint32(len(eventDatabase.Changelog))
-	startIdx := int((page - 1) * int32(perPage))
-	endIdx := int(page * int32(perPage))
-
-	// Handle out of bounds
-	if startIdx < 0 {
-		startIdx = 0
-	}
-	if startIdx >= int(totalCount) {
+	totalCount := uint32(len(eventDatabase.Changelog)) // #nosec G115 -- a changelog never holds 2^32 entries
+	startIdx := (page - 1) * perPage
+	if startIdx >= len(eventDatabase.Changelog) {
 		return &v1alpha1.GetEventChangelogResponse{
 			Changelog:  []*v1alpha1.ChangelogEntry{},
 			TotalCount: totalCount,
 		}, nil
 	}
-	if endIdx > int(totalCount) {
-		endIdx = int(totalCount)
-	}
+	endIdx := min(startIdx+perPage, len(eventDatabase.Changelog))
 
 	// Extract the paginated changelog
 	paginatedChangelog := eventDatabase.Changelog[startIdx:endIdx]

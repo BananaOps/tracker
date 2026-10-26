@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/bananaops/tracker/internal/auth/authz"
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -51,7 +53,11 @@ func (e *Catalog) CreateUpdateCatalog(
 	}
 
 	// Get existing catalog to preserve version fields if they exist
-	existingCatalog, _ := e.store.Get(ctx, map[string]interface{}{"name": i.Name})
+	existingCatalog, err := e.store.Get(ctx, map[string]interface{}{"name": i.Name})
+	exists := err == nil
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, fmt.Errorf("failed to read catalog %s: %w", i.Name, err)
+	}
 
 	var catalog = &v1alpha1.Catalog{
 		Name:                    i.Name,
@@ -73,22 +79,21 @@ func (e *Catalog) CreateUpdateCatalog(
 		InfrastructureResources: i.InfrastructureResources,
 	}
 
-	// Preserve existing version fields if updating
-	if existingCatalog != nil {
+	// Preserve existing version fields and creation date if updating: the
+	// update replaces every field of the stored entry.
+	if exists {
 		catalog.AvailableVersions = existingCatalog.AvailableVersions
 		catalog.LatestVersion = existingCatalog.LatestVersion
 		catalog.ReferenceVersion = existingCatalog.ReferenceVersion
+		catalog.CreatedAt = existingCatalog.CreatedAt
 	}
 
 	catalog.UpdatedAt = timestamppb.Now()
 
 	var catalogResult = &v1alpha1.CreateUpdateCatalogResponse{}
-	var err error
 	var logMessage = "catalog updated"
 
-	// check entry exist in catalog colection
-	_, err = e.store.Get(ctx, map[string]interface{}{"name": i.Name})
-	if err != nil {
+	if !exists {
 		catalog.CreatedAt = timestamppb.Now()
 		logMessage = "catalog created"
 		e.logger.Info("catalog not found, creating new one", "name", i.Name)

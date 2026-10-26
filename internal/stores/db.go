@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -88,11 +89,16 @@ func loadTlsCerts(config config.Database) (tlsConfig *tls.Config) {
 		}
 	}
 
-	return &tls.Config{
-		RootCAs:      caCertPool,
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS13,
+	tlsConfig = &tls.Config{
+		RootCAs:    caCertPool,
+		MinVersion: tls.VersionTLS13,
 	}
+	// Without a client certificate the list stays empty: an empty
+	// tls.Certificate would be offered to the server as one.
+	if config.CertFile != "" && config.KeyFile != "" {
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+	return tlsConfig
 
 }
 
@@ -100,9 +106,8 @@ func createMongoUri(config config.Database) (uri string) {
 	// prepare the uri for the connection
 	if config.Username != "" && config.Password != "" {
 		return fmt.Sprintf(
-			"mongodb://%s:%s@%s:%s/%s?maxPoolSize=20&tls=true&authMechanism=PLAIN",
-			config.Username,
-			config.Password,
+			"mongodb://%s@%s:%s/%s?maxPoolSize=20&tls=true&authMechanism=PLAIN",
+			url.UserPassword(config.Username, config.Password).String(),
 			config.Host,
 			config.Port,
 			config.Name,

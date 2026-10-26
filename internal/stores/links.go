@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,6 +29,9 @@ type LinkItem struct {
 type LinksStoreClient struct {
 	collection *mongo.Collection
 }
+
+// ErrInvalidLinkID is returned for an id that is not a MongoDB ObjectID.
+var ErrInvalidLinkID = errors.New("invalid link id")
 
 func NewStoreLinks(collection string) *LinksStoreClient {
 	return &LinksStoreClient{
@@ -63,7 +67,7 @@ func (c *LinksStoreClient) Create(ctx context.Context, item *LinkItem) (*LinkIte
 func (c *LinksStoreClient) Update(ctx context.Context, id string, item *LinkItem) (*LinkItem, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid link id %s: %w", id, err)
+		return nil, fmt.Errorf("%w %s: %v", ErrInvalidLinkID, id, err)
 	}
 	item.UpdatedAt = time.Now().Unix()
 	filter := bson.D{{Key: "_id", Value: oid}}
@@ -88,7 +92,7 @@ func (c *LinksStoreClient) Update(ctx context.Context, id string, item *LinkItem
 func (c *LinksStoreClient) Delete(ctx context.Context, id string) error {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return fmt.Errorf("invalid link id %s: %w", id, err)
+		return fmt.Errorf("%w %s: %v", ErrInvalidLinkID, id, err)
 	}
 	filter := bson.D{{Key: "_id", Value: oid}}
 	_, err = c.collection.DeleteOne(ctx, filter)
