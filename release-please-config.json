@@ -1,7 +1,5 @@
 {
-  "include-component-in-tag": true,
-  "release-type": "simple",
-  "separate-pull-requests": true,
+  "include-component-in-tag": false,
   "changelog-sections": [
     { "type": "feat",     "section": "✨ Features" },
     { "type": "fix",      "section": "🐛 Bug Fixes" },
