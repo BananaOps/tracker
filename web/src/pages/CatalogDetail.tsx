@@ -1,22 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi, eventsApi } from '../lib/api'
-import { SLALevel, CatalogType, Language, Platform, CommunicationType, DashboardType, type Catalog, type UsedDeliverable, type VulnerabilitySummary, type InfrastructureType, type Event, Status } from '../types/api'
-import { ArrowLeft, Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Calendar, Rocket, RefreshCw, Maximize2, Minimize2 } from 'lucide-react'
+import { SLALevel, CatalogType, Language, Platform, CommunicationType, type Catalog, type InfrastructureType, Status } from '../types/api'
+import { Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Rocket, Maximize2, Minimize2 } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faJava, 
-  faPython, 
-  faPhp, 
-  faJs, 
-  faDocker, 
-  faRust,
-  faGolang,
-  faSlack,
-  faDiscord,
-  faTelegram,
-  faMicrosoft
-} from '@fortawesome/free-brands-svg-icons'
+import { faJava, faPython, faPhp, faJs, faDocker, faRust, faGolang, faDiscord, faTelegram, faMicrosoft } from '@fortawesome/free-brands-svg-icons'
 import { 
   faCode, 
   faFileCode, 
@@ -43,11 +31,8 @@ import {
 import 'reactflow/dist/style.css'
 import { useMemo, useState, useCallback, useRef, useEffect, DragEvent } from 'react'
 import { Button } from '../components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
-import { Badge } from '../components/ui/badge'
+import { Tabs, TabsContent } from '../components/ui/tabs'
 import DeliverableVersions from '../components/VersionManager'
-import UsedDeliverablesManager from '../components/UsedDeliverablesManager'
-import VulnerabilityManager from '../components/VulnerabilityManager'
 import InfrastructureResourceManager from '../components/InfrastructureResourceManager'
 import type { InfrastructureResource } from '../types/api'
 
@@ -220,9 +205,6 @@ function getResourcesForProvider(provider: string): ProviderResources[] {
   }
 }
 
-// Legacy QUICK_ADD_RESOURCES for backward compatibility
-const QUICK_ADD_RESOURCES = AWS_RESOURCES
-
 // Helper function to render resource icon based on provider
 function renderResourceIcon(resource: ProviderResources, provider: string, className: string = 'w-4 h-4') {
   if (resource.providerIcon) {
@@ -234,7 +216,7 @@ function renderResourceIcon(resource: ProviderResources, provider: string, class
 
 // Custom Node Component for Infrastructure Resources
 function InfrastructureNode({ data }: NodeProps) {
-  const { name, type, provider, description } = data
+  const { name, type, provider } = data
   const color = getInfrastructureColor(type)
   
   return (
@@ -287,7 +269,7 @@ function InfrastructureNode({ data }: NodeProps) {
 
 // Custom Node Component for Dependency Graph
 function DependencyNode({ data }: NodeProps) {
-  const { name, platform, platformLabel, slaLevel, isCurrent, type } = data
+  const { name, platform, platformLabel, slaLevel, isCurrent } = data
   const slaColor = getSLAColor(slaLevel)
   const platformColor = getPlatformColor(platform)
   
@@ -552,8 +534,6 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
   const handleUpdateVersions = (versions: string[], latest?: string, reference?: string) => {
     if (!service) return
     
-    console.log('🔧 Updating versions:', { versions, latest, reference })
-    
     updateVersionsMutation.mutate({
       name: service.name,
       versions,
@@ -562,36 +542,9 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
     })
   }
 
-  const handleUpdateUsedDeliverables = (usedDeliverables: UsedDeliverable[]) => {
-    if (!service) return
-    
-    console.log('🔧 Updating used deliverables:', usedDeliverables)
-    
-    const updatedService = {
-      ...service,
-      usedDeliverables
-    }
-    
-    updateServiceMutation.mutate(updatedService)
-  }
-
-  const handleUpdateVulnerabilitySummary = (vulnerabilitySummary?: VulnerabilitySummary) => {
-    if (!service) return
-    
-    console.log('🔧 Updating vulnerability summary:', vulnerabilitySummary)
-    
-    const updatedService = {
-      ...service,
-      vulnerabilitySummary
-    }
-    
-    updateServiceMutation.mutate(updatedService)
-  }
-
   const handleUpdateInfrastructureResources = (infrastructureResources: InfrastructureResource[]) => {
     if (!service) return
     
-    console.log('🔧 Updating infrastructure resources:', infrastructureResources)
     
     const updatedService = {
       ...service,
@@ -622,7 +575,6 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
       infrastructureResources: pendingResources
     }
     
-    console.log('🔧 Saving infrastructure resources:', pendingResources)
     updateServiceMutation.mutate(updatedService, {
       onSuccess: () => {
         setIsEditingGraph(false)
@@ -630,11 +582,6 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
       }
     })
   }, [service, pendingResources, updateServiceMutation])
-
-  // Remove a pending resource
-  const removePendingResource = useCallback((resourceId: string) => {
-    setPendingResources(prev => prev.filter(r => r.id !== resourceId))
-  }, [])
 
   // Drag & Drop handlers
   const onDragStart = useCallback((event: DragEvent<HTMLDivElement>, resourceType: string) => {
@@ -688,7 +635,6 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
     
     // Add to pending resources (not saved yet)
     setPendingResources(prev => [...prev, newResource])
-    console.log('🔧 Added pending infrastructure resource:', newResource)
     
     // Reset modal state
     setShowAddResourceModal(false)
@@ -2232,10 +2178,6 @@ function getSLAColor(level?: SLALevel): string {
   }
 }
 
-function getSLABorderColor(level?: SLALevel): string {
-  return getSLAColor(level)
-}
-
 function getSLALabel(level?: SLALevel): string {
   switch (level) {
     case SLALevel.CRITICAL:
@@ -2248,37 +2190,6 @@ function getSLALabel(level?: SLALevel): string {
       return 'Low'
     default:
       return 'Not Set'
-  }
-}
-
-function getSLADescription(level?: SLALevel): string {
-  switch (level) {
-    case SLALevel.CRITICAL:
-      return 'Mission-critical service requiring maximum availability (99.99% uptime). Immediate response to incidents required.'
-    case SLALevel.HIGH:
-      return 'High-priority service with strict availability requirements (99.9% uptime). Fast incident response expected.'
-    case SLALevel.MEDIUM:
-      return 'Standard service with good availability targets (99.5% uptime). Regular monitoring and maintenance.'
-    case SLALevel.LOW:
-      return 'Basic service with minimal availability requirements (99% uptime). Best-effort support.'
-    default:
-      return 'No SLA level defined for this service.'
-  }
-}
-
-function calculateDowntime(uptimePercentage: number): string {
-  const downtimePercentage = 100 - uptimePercentage
-  const monthlyMinutes = 30 * 24 * 60 // 30 days * 24 hours * 60 minutes
-  const downtimeMinutes = (downtimePercentage / 100) * monthlyMinutes
-  
-  if (downtimeMinutes < 1) {
-    return `${Math.round(downtimeMinutes * 60)}s`
-  } else if (downtimeMinutes < 60) {
-    return `${Math.round(downtimeMinutes)}min`
-  } else {
-    const hours = Math.floor(downtimeMinutes / 60)
-    const minutes = Math.round(downtimeMinutes % 60)
-    return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`
   }
 }
 
@@ -2325,49 +2236,6 @@ function getPlatformColor(platform?: Platform): string {
   }
 }
 
-function getPlatformIcon(platform?: Platform): string {
-  switch (platform) {
-    case Platform.EC2:
-      return '⬛' // Serveur/VM
-    case Platform.LAMBDA:
-      return '⚡' // Fonction (garde l'éclair, très tech)
-    case Platform.KUBERNETES:
-      return '⚙️' // Orchestration/Engine
-    case Platform.ECS:
-      return '📋' // Container orchestration
-    case Platform.FARGATE:
-      return '▫️' // Serverless container
-    case Platform.CLOUD_RUN:
-      return '▶️' // Run/Execute
-    case Platform.APP_SERVICE:
-      return '🔲' // Application platform
-    case Platform.STEP_FUNCTIONS:
-      return '🔄' // Workflow (garde la rotation)
-    case Platform.EVENT_BRIDGE:
-      return '⚡' // Event processing
-    case Platform.RDS:
-      return '💾' // Database storage
-    case Platform.DYNAMODB:
-      return '🔶' // NoSQL/Document DB
-    case Platform.S3:
-      return '📁' // File storage
-    case Platform.CLOUDFRONT:
-      return '🌐' // CDN/Global network
-    case Platform.API_GATEWAY:
-      return '🔌' // API endpoint
-    case Platform.CLOUDWATCH:
-      return '📊' // Monitoring/Metrics
-    case Platform.ON_PREMISE:
-      return '🏭' // Data center/Infrastructure
-    case Platform.HYBRID:
-      return '🔗' // Connection/Link (garde le lien)
-    case Platform.MULTI_CLOUD:
-      return '☁️' // Cloud (garde le nuage)
-    default:
-      return '⚫' // Unknown/Default
-  }
-}
-
 // Helper functions for Communication Channels
 function getCommunicationChannelIcon(type?: CommunicationType) {
   switch (type) {
@@ -2385,25 +2253,6 @@ function getCommunicationChannelIcon(type?: CommunicationType) {
       return <FontAwesomeIcon icon={faTelegram} className="w-4 h-4" />
     default:
       return <FontAwesomeIcon icon={faComments} className="w-4 h-4" />
-  }
-}
-
-function getCommunicationChannelColor(type?: CommunicationType): string {
-  switch (type) {
-    case CommunicationType.SLACK:
-      return '#4A154B' // Slack purple
-    case CommunicationType.TEAMS:
-      return '#6264A7' // Teams blue
-    case CommunicationType.EMAIL:
-      return '#EA4335' // Gmail red
-    case CommunicationType.DISCORD:
-      return '#5865F2' // Discord blurple
-    case CommunicationType.MATTERMOST:
-      return '#0058CC' // Mattermost blue
-    case CommunicationType.TELEGRAM:
-      return '#0088CC' // Telegram blue
-    default:
-      return '#6B7280' // Gray
   }
 }
 
@@ -2601,27 +2450,6 @@ function formatDate(dateString: string): string {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-// Helper function to get status color classes for deployments
-function getStatusColor(status?: Status): string {
-  switch (status) {
-    case Status.SUCCESS:
-    case Status.DONE:
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-    case Status.FAILURE:
-    case Status.ERROR:
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-    case Status.WARNING:
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-    case Status.IN_PROGRESS:
-    case Status.START:
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-    case Status.PLANNED:
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-  }
 }
 
 function getStatusVisual(status?: Status): { bg: string; text: string; border: string; label: string; icon: string } {

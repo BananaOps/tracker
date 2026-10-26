@@ -98,8 +98,8 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
   )
 
   // Downstream services
-  const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
-  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
+  const selectedCatalog = catalogData?.catalogs.find((c) => c.name === formData.attributes.service)
+  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || []
 
   // Badge-style option sets
   const envOptions: ChipOption<Environment>[] = [

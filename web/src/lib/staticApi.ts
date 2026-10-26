@@ -1,9 +1,11 @@
 // API statique pour le mode démo GitHub Pages
 // Charge les données depuis des fichiers JSON pré-générés
 
+import type { CatalogApi, EventsApi, LocksApi } from './api'
+
 const STATIC_DATA_PATH = '/static-data'
 
-export const staticEventsApi = {
+export const staticEventsApi: EventsApi = {
   list: async () => {
     const response = await fetch(`${STATIC_DATA_PATH}/events.json`)
     return response.json()
@@ -49,7 +51,9 @@ export const staticEventsApi = {
 
   get: async (id: string) => {
     const data = await staticEventsApi.list()
-    const event = data.events.find((e: any) => e.metadata?.id === id || e.metadata?.slackId === id)
+    const event = data.events.find((e) => e.metadata?.id === id || e.metadata?.slackId === id)
+    // The real API answers 404 for an unknown event
+    if (!event) throw new Error(`Event ${id} not found`)
     return event
   },
 
@@ -72,9 +76,13 @@ export const staticEventsApi = {
   delete: async () => {
     throw new Error('Delete operation not available in static demo mode')
   },
+
+  addSlackId: async () => {
+    throw new Error('Update operation not available in static demo mode')
+  },
 }
 
-export const staticCatalogApi = {
+export const staticCatalogApi: CatalogApi = {
   list: async () => {
     const response = await fetch(`${STATIC_DATA_PATH}/catalogs.json`)
     return response.json()
@@ -82,7 +90,8 @@ export const staticCatalogApi = {
 
   get: async (name: string) => {
     const data = await staticCatalogApi.list()
-    const catalog = data.catalogs.find((c: any) => c.name === name)
+    const catalog = data.catalogs.find((c) => c.name === name)
+    if (!catalog) throw new Error(`Catalog ${name} not found`)
     return catalog
   },
 
@@ -186,6 +195,10 @@ export const staticCatalogApi = {
     }
   },
 
+  updateDependencies: async () => {
+    throw new Error('Update operation not available in static demo mode')
+  },
+
   updateVersions: async (name: string, versions: string[], latestVersion?: string, referenceVersion?: string) => {
     // Mock version update for static mode
     // In static mode, we just return a mock response
@@ -202,7 +215,7 @@ export const staticCatalogApi = {
   },
 }
 
-export const staticLocksApi = {
+export const staticLocksApi: LocksApi = {
   list: async () => {
     const response = await fetch(`${STATIC_DATA_PATH}/locks.json`)
     return response.json()

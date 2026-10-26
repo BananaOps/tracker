@@ -59,8 +59,8 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
   })
 
   // Find downstream dependencies for the selected service
-  const selectedCatalog = catalogData?.catalogs.find((c: any) => c.name === formData.attributes.service)
-  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || selectedCatalog?.dependencies_out || []
+  const selectedCatalog = catalogData?.catalogs.find((c) => c.name === formData.attributes.service)
+  const downstreamServices: string[] = selectedCatalog?.dependenciesOut || []
 
   const createMutation = useMutation({
     mutationFn: eventsApi.create,

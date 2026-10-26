@@ -2,29 +2,14 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { EventType, Environment, Event } from '../types/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { Calendar, Filter, TrendingUp, Activity, AlertTriangle, Zap, GitBranch, X, Clock, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO, addDays } from 'date-fns'
-import ProjectStatsCard from '../components/ProjectStatsCard'
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import { Calendar, Filter, X, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { format, subDays, eachDayOfInterval, parseISO, addDays } from 'date-fns'
 import Combobox from '../components/Combobox'
 
 interface InsightFilters {
   environment: Environment | 'all'
   service: string | 'all'
-}
-
-interface ChartData {
-  date: string
-  deployments: number
-  incidents: number
-  operations: number
-  drifts: number
-}
-
-interface ServiceBreakdown {
-  service: string
-  count: number
-  percentage: number
 }
 
 interface ProjectBreakdown {
@@ -34,13 +19,6 @@ interface ProjectBreakdown {
   operations: number
   drifts: number
   total: number
-}
-
-interface EventTypeData {
-  type: string
-  count: number
-  successRate: number
-  avgDuration?: number
 }
 
 interface EventDetailsModal {

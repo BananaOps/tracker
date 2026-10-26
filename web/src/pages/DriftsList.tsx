@@ -85,7 +85,7 @@ export default function DriftsList() {
     try {
       setLoading(true)
       setError(null)
-      const data = await eventsApi.search({ type: EventType.DRIFT as unknown as number })
+      const data = await eventsApi.search({ type: EventType.DRIFT })
       setAllDrifts(data.events || [])
     } catch (err) {
       setError('Error loading drifts')

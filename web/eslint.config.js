@@ -40,6 +40,10 @@ export default [
         { allowConstantExport: true }
       ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // TypeScript already reports undefined names, and no-undef does not
+      // know type-only globals such as the React namespace
+      // (https://typescript-eslint.io/troubleshooting/faqs/eslint#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors).
+      'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'warn'
     }
   }

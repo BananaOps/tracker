@@ -11,7 +11,6 @@ interface DeliverableVersionsProps {
 }
 
 export default function DeliverableVersions({ 
-  serviceName, 
   serviceType,
   availableVersions,
   latestVersion,

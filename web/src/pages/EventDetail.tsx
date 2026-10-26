@@ -5,6 +5,7 @@ import { ArrowLeft, Edit2, History, ExternalLink, AlertTriangle, GitBranch } fro
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { eventsApi, catalogApi, locksApi } from '../lib/api'
+import { findServiceLock } from '../lib/locks'
 import { getEventTypeIcon, getEventTypeLabel, getEventTypeColor, getEnvironmentLabel, getEnvironmentColor, getPriorityLabel, getPriorityColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
 import EventLinks, { SourceIcon } from '../components/EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
@@ -196,9 +197,7 @@ export default function EventDetail() {
                 {editedEvent.title}
               </h2>
               {(() => {
-                const lock = locksData?.locks?.find(
-                  (l) => l.service === editedEvent.attributes.service && l.environment === editedEvent.attributes.environment
-                )
+                const lock = findServiceLock(locksData?.locks, editedEvent.attributes.service, String(editedEvent.attributes.environment ?? ''))
                 return (
                   <LockIndicator
                     compact

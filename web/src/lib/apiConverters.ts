@@ -1,20 +1,6 @@
-import { 
-  EventType, 
-  Priority, 
-  Status, 
-  Environment,
-  EventTypeNumber,
-  PriorityToNumber,
-  StatusToNumber,
-  EnvironmentToNumber,
-  CreateEventRequest,
-  CommunicationType,
-  type CommunicationChannel,
-  type Catalog
-} from '../types/api'
-
+import { Priority, Status, Environment, EventTypeNumber, PriorityToNumber, StatusToNumber, EnvironmentToNumber, CreateEventRequest, CommunicationType, type CommunicationChannel, type Event } from '../types/api'
 // Mapping inverse : nombre -> string enum
-export const NumberToPriority: Record<number, Priority> = {
+const NumberToPriority: Record<number, Priority> = {
   1: Priority.P1,
   2: Priority.P2,
   3: Priority.P3,
@@ -22,7 +8,7 @@ export const NumberToPriority: Record<number, Priority> = {
   5: Priority.P5,
 }
 
-export const NumberToStatus: Record<number, Status> = {
+const NumberToStatus: Record<number, Status> = {
   1: Status.START,
   2: Status.FAILURE,
   3: Status.SUCCESS,
@@ -39,7 +25,7 @@ export const NumberToStatus: Record<number, Status> = {
   14: Status.WAITING_APPROVAL,
 }
 
-export const NumberToEnvironment: Record<number, Environment> = {
+const NumberToEnvironment: Record<number, Environment> = {
   1: Environment.DEVELOPMENT,
   2: Environment.INTEGRATION,
   3: Environment.TNR,
@@ -93,7 +79,7 @@ export function convertEventForAPI(event: CreateEventRequest): any {
  * Convertit les nombres de l'API en enums string pour le frontend
  * Utilisé quand l'API renvoie des nombres au lieu de strings
  */
-export function convertEventFromAPI(event: any): any {
+export function convertEventFromAPI(event: any): Event {
   // Convertir la priorité (nombre ou string)
   let priority = event.attributes.priority
   if (typeof priority === 'number') {
@@ -119,15 +105,6 @@ export function convertEventFromAPI(event: any): any {
     environment = environment.toLowerCase()
   }
 
-  console.log('🔧 convertEventFromAPI:', {
-    priority_in: event.attributes.priority,
-    priority_type: typeof event.attributes.priority,
-    priority_out: priority,
-    status_in: event.attributes.status,
-    status_type: typeof event.attributes.status,
-    status_out: status,
-  })
-
   return {
     ...event,
     attributes: {
@@ -142,37 +119,9 @@ export function convertEventFromAPI(event: any): any {
 /**
  * Convertit un Event complet en CreateEventRequest pour les mises à jour
  */
-export function convertEventToRequest(event: any): CreateEventRequest {
-  return {
-    title: event.title,
-    attributes: {
-      type: event.attributes.type,
-      priority: event.attributes.priority,
-      status: event.attributes.status,
-      service: event.attributes.service,
-      source: event.attributes.source,
-      message: event.attributes.message,
-      environment: event.attributes.environment,
-      owner: event.attributes.owner,
-      startDate: event.attributes.startDate,
-      endDate: event.attributes.endDate,
-    },
-    links: event.links || {},
-  }
-}
-
 /**
  * Convertit les canaux de communication pour l'API (camelCase -> snake_case)
  */
-export function convertCommunicationChannelsForAPI(channels: CommunicationChannel[]): any[] {
-  return channels.map(channel => ({
-    type: channel.type,
-    name: channel.name,
-    url: channel.url,
-    description: channel.description || ''
-  }))
-}
-
 /**
  * Convertit les canaux de communication depuis l'API (snake_case -> camelCase)
  */
@@ -190,26 +139,6 @@ export function convertCommunicationChannelsFromAPI(channels: any[]): Communicat
 /**
  * Convertit un catalog pour l'API
  */
-export function convertCatalogForAPI(catalog: Catalog): any {
-  const apiCatalog = {
-    ...catalog,
-    communication_channels: catalog.communicationChannels 
-      ? convertCommunicationChannelsForAPI(catalog.communicationChannels)
-      : []
-  }
-  
-  // Remove camelCase version
-  delete (apiCatalog as any).communicationChannels
-  
-  return apiCatalog
-}
-
 /**
  * Convertit un catalog depuis l'API
  */
-export function convertCatalogFromAPI(catalog: any): Catalog {
-  return {
-    ...catalog,
-    communicationChannels: convertCommunicationChannelsFromAPI(catalog.communication_channels || catalog.communicationChannels)
-  }
-}
