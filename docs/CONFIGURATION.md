@@ -36,6 +36,7 @@ DB_PASSWORD=secure_password
 | `METRICS_PORT` | `8081` | Prometheus metrics port |
 | `LOG_LEVEL` | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `LOG_FORMAT` | `json` | Log format: `json` or `text` |
+| `MCP_ENABLED` | `true` | Serve the Model Context Protocol endpoint for AI agents at `/mcp`, see [MCP Server](./MCP_SERVER.md) |
 
 **Example:**
 ```bash
