@@ -342,7 +342,7 @@ export default function EventsTimeline() {
         const checked = selectedEnvironments.includes(value)
         return {
           key: `environment-${value}`,
-          label: getEnvironmentLabel(value),
+          label: getEnvironmentLabel(value) ?? value,
           checked,
           onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
           palette: getEnvironmentBadgeStyle(value),

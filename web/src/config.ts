@@ -79,13 +79,6 @@ export const config: TrackerConfig & { api: { baseUrl: string } } = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-export function getJiraCreateUrl(summary: string, description?: string): string {
-  const params = new URLSearchParams({ summary })
-  if (description) params.append('description', description)
-  if (config.jira.projectKey) params.append('pid', config.jira.projectKey)
-  return `https://${config.jira.domain}/secure/CreateIssue.jspa?${params.toString()}`
-}
-
 export function getJiraTicketUrl(ticketKey: string): string {
   if (ticketKey.startsWith('http://') || ticketKey.startsWith('https://')) {
     return ticketKey

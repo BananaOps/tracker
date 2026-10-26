@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
 import { SLALevel, CatalogType, Platform, type Catalog } from '../types/api'
-import { ArrowLeft, GitBranch, Search, X, Grid, List, Maximize2, ZoomIn, ZoomOut, Filter, Server, Zap, Activity, Package } from 'lucide-react'
+import { ArrowLeft, GitBranch, Search, X, Grid, List, Maximize2, ZoomIn, ZoomOut, Server, Zap, Activity, Package } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDocker } from '@fortawesome/free-brands-svg-icons'
 import {
@@ -18,7 +18,7 @@ import {
   Handle
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState } from 'react'
 import { KubernetesIcon } from '../components/icons/KubernetesIcon'
 
 type LayoutType = 'circular' | 'hierarchical' | 'force' | 'grid'
@@ -295,7 +295,7 @@ export default function CatalogDependencies() {
     )
 
     // Calculate node positions based on layout type with improved spacing
-    const getNodePosition = (catalog: Catalog, index: number, total: number, sortedIndex: number) => {
+    const getNodePosition = (catalog: Catalog) => {
       const nodeSizes = {
         small: { width: 100, height: 80, spacing: 120 },
         medium: { width: 140, height: 100, spacing: 160 },
@@ -430,16 +430,8 @@ export default function CatalogDependencies() {
       }
     }
 
-    sortedCatalogs.forEach((catalog, sortedIndex) => {
-      const originalIndex = filteredCatalogs.findIndex(c => c.name === catalog.name)
-      const position = getNodePosition(catalog, originalIndex, filteredCatalogs.length, sortedIndex)
-      const slaColor = catalog.sla ? getSLAColor(catalog.sla.level) : '#94a3b8'
-      const nodeSizes = {
-        small: { minWidth: '80px', fontSize: '10px', padding: '8px' },
-        medium: { minWidth: '120px', fontSize: '11px', padding: '12px' },
-        large: { minWidth: '160px', fontSize: '12px', padding: '16px' }
-      }
-      const currentSize = nodeSizes[nodeSize]
+    sortedCatalogs.forEach((catalog) => {
+      const position = getNodePosition(catalog)
 
       nodes.push({
         id: catalog.name,
@@ -470,7 +462,7 @@ export default function CatalogDependencies() {
             edgeSet.add(edgeId)
 
             let edgeType = 'smoothstep'
-            let edgeStyle = { stroke: '#64748b', strokeWidth: 2 }
+            let edgeStyle: { stroke: string; strokeWidth: number; strokeDasharray?: string } = { stroke: '#64748b', strokeWidth: 2 }
 
             if (layoutType === 'hierarchical' || layoutType === 'grid') {
               edgeType = 'step'

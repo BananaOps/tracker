@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { eventsApi, catalogApi } from '../lib/api'
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertTriangle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, User, Users, ExternalLink, Layers, Globe, CheckCircle } from 'lucide-react'
-import { CommunicationType, type Event, type Catalog } from '../types/api'
-import { getEventTypeLabel, getEnvironmentLabel, getEnvironmentColor, getStatusLabel, getStatusColor } from '../lib/eventUtils'
+import { AlertTriangle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Users, Layers, Globe, CheckCircle } from 'lucide-react'
+import { type Event, type Catalog } from '../types/api'
+import { getEventTypeLabel, getEnvironmentLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
+import TeamContact from '../components/TeamContact'
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const V = {
@@ -512,31 +513,7 @@ export default function EventsOverlaps() {
                                     </div>
 
                                     {/* Team contact */}
-                                    {catalog && (
-                                      <div className="pt-3 space-y-1.5" style={{ borderTop: `1px solid ${a('outlineVar', 0.1)}` }}>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.onSurfaceVar }}>Team Contact</p>
-                                        {catalog.owner && (
-                                          <div className="flex items-center gap-2 text-xs" style={{ color: T.onSurfaceVar }}>
-                                            <User className="w-3 h-3" />
-                                            <span>{catalog.owner}</span>
-                                          </div>
-                                        )}
-                                        {catalog.communicationChannels?.map((channel, i) => (
-                                          <a
-                                            key={`${channel.type}-${i}`}
-                                            href={channel.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            title={channel.description || channel.name}
-                                            className="flex items-center gap-2 text-xs transition-opacity hover:opacity-70"
-                                            style={{ color: T.primary }}
-                                          >
-                                            {channel.type === CommunicationType.EMAIL ? <Mail className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
-                                            <span>{channel.name}</span>
-                                          </a>
-                                        ))}
-                                      </div>
-                                    )}
+                                    {catalog && <TeamContact catalog={catalog} />}
                                   </div>
                                 )
                               })}
@@ -588,7 +565,7 @@ export default function EventsOverlaps() {
               <div className="p-6 rounded-2xl" style={{ background: T.surface }}>
                 <h3 className="text-sm font-bold mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Most Affected Services</h3>
                 <div className="space-y-3">
-                  {mostAffectedServices.map(([service, count], i) => {
+                  {mostAffectedServices.map(([service, count]) => {
                     const max = mostAffectedServices[0][1]
                     const pct = Math.round((count / max) * 100)
                     return (

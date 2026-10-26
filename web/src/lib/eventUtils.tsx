@@ -112,12 +112,6 @@ export const getEventTypeLabel = (type: EventType | string) => {
   }
 }
 
-export const getEventTypeLabelWithIcon = (type: EventType) => {
-  const icon = getEventTypeIcon(type, 'w-4 h-4')
-  const label = getEventTypeLabel(type)
-  return { icon, label }
-}
-
 export const getEnvironmentLabel = (env?: Environment | string) => {
   if (!env) return null
 

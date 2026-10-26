@@ -32,7 +32,7 @@ export function Dialog({ open, onClose, children }: DialogProps) {
   )
 }
 
-interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+type DialogContentProps = React.HTMLAttributes<HTMLDivElement>
 
 export function DialogContent({ className, children, ...props }: DialogContentProps) {
   return (

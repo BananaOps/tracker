@@ -1,36 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { catalogApi } from '../lib/api'
 import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
-import { Package, BookOpen, Search, X, Server, Cloud, Database, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
+import { Package, BookOpen, Search, X, Server, Cloud, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faJava, 
-  faPython, 
-  faPhp, 
-  faJs, 
-  faDocker, 
-  faRust,
-  faGolang,
-  faGithub,
-  faSlack,
-  faDiscord,
-  faTelegram,
-  faMicrosoft,
-  faAws,
-  faGoogle,
-  faDigitalOcean
-} from '@fortawesome/free-brands-svg-icons'
-import { 
-  faCode, 
-  faFileCode, 
-  faCube,
-  faComments,
-  faServer,
-  faCloud,
-  faDatabase as faDatabaseSolid
-} from '@fortawesome/free-solid-svg-icons'
+import { faJava, faPython, faPhp, faJs, faDocker, faRust, faGolang, faGithub, faDiscord, faTelegram, faMicrosoft, faAws, faGoogle } from '@fortawesome/free-brands-svg-icons'
+import { faCode, faFileCode, faCube, faComments, faCloud, faDatabase as faDatabaseSolid } from '@fortawesome/free-solid-svg-icons'
 import CatalogDetail from './CatalogDetail'
 import { KubernetesIcon } from '../components/icons/KubernetesIcon'
 import { KotlinIcon } from '../components/icons/KotlinIcon'
@@ -39,7 +14,6 @@ import { SlackIcon } from '../components/icons/SlackIcon'
 import { GrafanaIcon } from '../components/icons/GrafanaIcon'
 
 export default function CatalogTable() {
-  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
@@ -893,49 +867,6 @@ function getPlatformIcon(platform?: Platform) {
       return <FontAwesomeIcon icon={faCloud} className="w-3 h-3" style={{ color: '#E91E63' }} />
     default:
       return <Server className="w-3 h-3 text-gray-600" />
-  }
-}
-
-function getPlatformColor(platform?: Platform): { bg: string; text: string; darkBg: string; darkText: string } {
-  switch (platform) {
-    case Platform.EC2:
-      return { bg: 'bg-orange-100', text: 'text-orange-800', darkBg: 'dark:bg-orange-900/30', darkText: 'dark:text-orange-300' }
-    case Platform.LAMBDA:
-      return { bg: 'bg-yellow-100', text: 'text-yellow-800', darkBg: 'dark:bg-yellow-900/30', darkText: 'dark:text-yellow-300' }
-    case Platform.KUBERNETES:
-      return { bg: 'bg-blue-100', text: 'text-blue-800', darkBg: 'dark:bg-blue-900/30', darkText: 'dark:text-blue-300' }
-    case Platform.ECS:
-      return { bg: 'bg-indigo-100', text: 'text-indigo-800', darkBg: 'dark:bg-indigo-900/30', darkText: 'dark:text-indigo-300' }
-    case Platform.FARGATE:
-      return { bg: 'bg-purple-100', text: 'text-purple-800', darkBg: 'dark:bg-purple-900/30', darkText: 'dark:text-purple-300' }
-    case Platform.CLOUD_RUN:
-      return { bg: 'bg-green-100', text: 'text-green-800', darkBg: 'dark:bg-green-900/30', darkText: 'dark:text-green-300' }
-    case Platform.APP_SERVICE:
-      return { bg: 'bg-cyan-100', text: 'text-cyan-800', darkBg: 'dark:bg-cyan-900/30', darkText: 'dark:text-cyan-300' }
-    case Platform.STEP_FUNCTIONS:
-      return { bg: 'bg-amber-100', text: 'text-amber-800', darkBg: 'dark:bg-amber-900/30', darkText: 'dark:text-amber-300' }
-    case Platform.EVENT_BRIDGE:
-      return { bg: 'bg-pink-100', text: 'text-pink-800', darkBg: 'dark:bg-pink-900/30', darkText: 'dark:text-pink-300' }
-    case Platform.RDS:
-      return { bg: 'bg-emerald-100', text: 'text-emerald-800', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' }
-    case Platform.DYNAMODB:
-      return { bg: 'bg-teal-100', text: 'text-teal-800', darkBg: 'dark:bg-teal-900/30', darkText: 'dark:text-teal-300' }
-    case Platform.S3:
-      return { bg: 'bg-red-100', text: 'text-red-800', darkBg: 'dark:bg-red-900/30', darkText: 'dark:text-red-300' }
-    case Platform.CLOUDFRONT:
-      return { bg: 'bg-violet-100', text: 'text-violet-800', darkBg: 'dark:bg-violet-900/30', darkText: 'dark:text-violet-300' }
-    case Platform.API_GATEWAY:
-      return { bg: 'bg-lime-100', text: 'text-lime-800', darkBg: 'dark:bg-lime-900/30', darkText: 'dark:text-lime-300' }
-    case Platform.CLOUDWATCH:
-      return { bg: 'bg-sky-100', text: 'text-sky-800', darkBg: 'dark:bg-sky-900/30', darkText: 'dark:text-sky-300' }
-    case Platform.ON_PREMISE:
-      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
-    case Platform.HYBRID:
-      return { bg: 'bg-slate-100', text: 'text-slate-800', darkBg: 'dark:bg-slate-900/30', darkText: 'dark:text-slate-300' }
-    case Platform.MULTI_CLOUD:
-      return { bg: 'bg-rose-100', text: 'text-rose-800', darkBg: 'dark:bg-rose-900/30', darkText: 'dark:text-rose-300' }
-    default:
-      return { bg: 'bg-gray-100', text: 'text-gray-800', darkBg: 'dark:bg-gray-900/30', darkText: 'dark:text-gray-300' }
   }
 }
 

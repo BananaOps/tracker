@@ -1,8 +1,7 @@
 import axios from 'axios'
-import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ListCatalogsResponse } from '../types/api'
+import type { CreateEventRequest, Event, ListEventsResponse, Catalog, EventType, Priority, Status, Environment } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
-import { convertCatalogForAPI, convertCatalogFromAPI, convertCommunicationChannelsFromAPI } from './apiConverters'
-
+import { convertCommunicationChannelsFromAPI } from './apiConverters'
 // Détecter si on est en mode statique (GitHub Pages)
 const isStaticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 
@@ -34,15 +33,16 @@ const realEventsApi = {
     return data
   },
 
+  // Enums are accepted by name ('drift', 'production') or by number
   search: async (params: {
     source?: string
-    type?: number
-    priority?: number
-    status?: number
+    type?: EventType | number
+    priority?: Priority | number
+    status?: Status | number
     service?: string
     startDate?: string
     endDate?: string
-    environment?: number
+    environment?: Environment | number
   }) => {
     const { data } = await axiosInstance.get<ListEventsResponse>('/events/search', { params })
     return data
@@ -458,9 +458,15 @@ const realLocksApi = {
   },
 }
 
+// The static APIs implement the same interface, so that pages get the types
+// of the real API in both modes.
+export type EventsApi = typeof realEventsApi
+export type CatalogApi = typeof realCatalogApi
+export type LocksApi = typeof realLocksApi
+
 // Exporter les APIs appropriées selon le mode
-export const eventsApi = isStaticMode ? staticEventsApi : realEventsApi
-export const catalogApi = isStaticMode ? staticCatalogApi : realCatalogApi
-export const locksApi = isStaticMode ? staticLocksApi : realLocksApi
+export const eventsApi: EventsApi = isStaticMode ? staticEventsApi : realEventsApi
+export const catalogApi: CatalogApi = isStaticMode ? staticCatalogApi : realCatalogApi
+export const locksApi: LocksApi = isStaticMode ? staticLocksApi : realLocksApi
 
 export default axiosInstance

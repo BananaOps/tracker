@@ -5,16 +5,16 @@ import { format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventsApi, locksApi } from '../lib/api'
+import { findServiceLock } from '../lib/locks'
 import type { Event } from '../types/api'
 import { Priority, Status } from '../types/api'
 import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel } from '../lib/eventUtils'
-import EventLinks, { SourceIcon } from './EventLinks'
+import { SourceIcon } from './EventLinks'
 import { convertEventForAPI, convertEventFromAPI } from '../lib/apiConverters'
 import { useTheme } from '../contexts/ThemeContext'
 import { getSlackMessageUrl, parseSlackId } from '../config'
 import Toast from './Toast'
 import EventChangelog from './EventChangelog'
-import LockIndicator from './LockIndicator'
 import { DateTimePicker } from './ui/date-time-picker'
 
 interface EventDetailsModalProps {
@@ -174,10 +174,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
       try {
         setCheckingLock(true)
         const locks = await locksApi.list()
-        const lock = locks.locks.find(
-          (l) => l.service === editedEvent.attributes.service && 
-                 l.environment === editedEvent.attributes.environment
-        )
+        const lock = findServiceLock(locks.locks, editedEvent.attributes.service, editedEvent.attributes.environment)
         setExistingLock(lock || null)
       } catch (err) {
         console.error('Error checking lock:', err)
@@ -340,10 +337,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
         if (errorMessage.includes('already locked') || errorMessage.includes('is already locked')) {
           // Chercher le lock existant
           const locks = await locksApi.list()
-          const foundLock = locks.locks.find(
-            (l) => l.service === editedEvent.attributes.service && 
-                   l.environment === editedEvent.attributes.environment
-          )
+          const foundLock = findServiceLock(locks.locks, editedEvent.attributes.service, editedEvent.attributes.environment)
           
           if (foundLock) {
             // Déverrouiller l'ancien lock
@@ -1001,9 +995,9 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                     setLockUserError(false)
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      existingLock ? handleUnlockConfirm() : handleLockConfirm()
-                    }
+                    if (e.key !== 'Enter') return
+                    if (existingLock) handleUnlockConfirm()
+                    else handleLockConfirm()
                   }}
                   placeholder="e.g., john.doe"
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${

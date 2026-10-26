@@ -116,12 +116,6 @@ function extractTicketId(ticketOrUrl: string): string {
   return ticketOrUrl
 }
 
-// Helper pour détecter si c'est un ticket Jira
-function isJiraTicket(ticket: string): boolean {
-  // Format Jira typique: PROJECT-123
-  return /^[A-Z]+-\d+$/.test(ticket)
-}
-
 
 
 // Composant pour afficher l'icône de source

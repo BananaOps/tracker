@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE_URL || '/',
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
     server: {
