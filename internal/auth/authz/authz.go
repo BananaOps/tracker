@@ -92,6 +92,8 @@ func Check(p auth.Principal, method string) error {
 	return CheckPermission(p, perm)
 }
 
+const passwordChangeRequired = "password change required"
+
 // CheckPermission is the pure decision for a principal and a permission.
 func CheckPermission(p auth.Principal, perm auth.Permission) error {
 	// A credential that was presented and refused loses even public routes.
@@ -100,6 +102,12 @@ func CheckPermission(p auth.Principal, perm auth.Permission) error {
 	// auth.RejectedCredential.
 	if p.CredentialRejected {
 		return status.Error(codes.Unauthenticated, "invalid or expired credentials")
+	}
+	// A local user flagged for a password change may only reach public
+	// routes (Me, GetAuthConfig) and the hand-written login, logout and
+	// change-password handlers, which are not guarded by a permission.
+	if p.MustChangePassword && perm != auth.PermPublic {
+		return status.Error(codes.PermissionDenied, passwordChangeRequired)
 	}
 	switch perm {
 	case auth.PermPublic:
@@ -146,8 +154,11 @@ func observe(p auth.Principal, method string, err error) {
 	result := "allowed"
 	if err != nil {
 		result = "denied"
-		if status.Code(err) == codes.Unauthenticated {
+		switch {
+		case status.Code(err) == codes.Unauthenticated:
 			result = "unauthenticated"
+		case status.Code(err) == codes.PermissionDenied && status.Convert(err).Message() == passwordChangeRequired:
+			result = "password_change_required"
 		}
 		slog.Warn("authz denied", "method", method, "principal", p.Username, "kind", p.Kind, "reason", status.Convert(err).Message())
 	}

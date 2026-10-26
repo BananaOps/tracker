@@ -56,7 +56,16 @@ and printed once in the logs:
 WARN Initial admin account created with a generated password. Change it at first login. username=admin password=...
 ```
 
-The account is flagged `mustChangePassword`. Change it right away:
+The account is flagged `mustChangePassword`, and the server enforces it: until
+the password is changed, the account can only read `/auth/me` and
+`/auth/config`, sign out and change its password. Every other API call is
+refused: HTTP 403 with `password change required`, or gRPC `PermissionDenied`
+(counted as `tracker_auth_requests_total{result="password_change_required"}`).
+The web assets, `/config.js` and the API docs stay reachable, as they serve no
+data. The same applies to any local user created or reset by an administrator.
+On a reset, the user's existing sessions are signed out (the session version is
+bumped, they answer 401) and the restriction applies from the next login. API
+keys are never affected. Change the password right away:
 
 ```bash
 curl -c jar -X POST http://localhost:8080/api/v1alpha1/auth/login \
@@ -66,6 +75,9 @@ curl -b jar -c jar -X POST http://localhost:8080/api/v1alpha1/auth/password \
   -H 'Content-Type: application/json' \
   -d '{"currentPassword":"<generated>","newPassword":"<new strong password>"}'
 ```
+
+Changing the password reissues the session cookie (the cookie jar above keeps
+the new one), so no new login is needed afterwards.
 
 Passwords are hashed with Argon2id and must be 12 to 128 characters long.
 
@@ -595,8 +607,9 @@ the anonymous permissions.
 
 `tracker_auth_requests_total{principal,result}` counts authorization
 decisions, with `principal` in `anonymous`, `user`, `apikey` and `result`
-in `allowed`, `unauthenticated`, `denied`, `scope_denied`. A request refused
-for its service scope was first counted `allowed` for its permission.
+in `allowed`, `unauthenticated`, `denied`, `password_change_required`,
+`scope_denied`. A request refused for its service scope was first counted
+`allowed` for its permission.
 
 `tracker_auth_logins_total{method,result}` counts login attempts, with
 `method` in `local`, `oidc` and `result` in `success`, `failure`,

@@ -205,3 +205,24 @@ func TestResolveAPIKeyOnAdministratorsTeam(t *testing.T) {
 	}
 	assert.False(t, r.Resolve(context.Background(), auth.Credentials{APIKey: teamKey.Secret}).IsAdmin)
 }
+
+func TestPrincipalForUserCarriesMustChangePassword(t *testing.T) {
+	r, user, _, _ := newFixture(t)
+
+	p, err := r.PrincipalForUser(context.Background(), user)
+	require.NoError(t, err)
+	assert.False(t, p.MustChangePassword)
+
+	user.MustChangePassword = true
+	p, err = r.PrincipalForUser(context.Background(), user)
+	require.NoError(t, err)
+	assert.True(t, p.MustChangePassword)
+
+	token, _, _ := r.Sessions.Issue(user.ID.Hex(), user.SessionVersion)
+	assert.True(t, r.Resolve(context.Background(), auth.Credentials{SessionToken: token}).MustChangePassword)
+
+	// An API key never carries the flag, whoever created it.
+	gen, _ := auth.GenerateAPIKey()
+	r.Keys.(*fakeKeys).byPrefix[gen.Prefix] = &store.APIKey{ID: primitive.NewObjectID(), Prefix: gen.Prefix, Hash: gen.Hash}
+	assert.False(t, r.Resolve(context.Background(), auth.Credentials{APIKey: gen.Secret}).MustChangePassword)
+}

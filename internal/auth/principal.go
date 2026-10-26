@@ -27,6 +27,11 @@ type Principal struct {
 	// credential that could not be honoured. Authorization turns it into a
 	// 401 whatever the permission asked for, including a public one.
 	CredentialRejected bool
+	// MustChangePassword is true for a local user whose password must be
+	// changed before anything else. Authorization then refuses every
+	// non-public permission. API keys, anonymous and OIDC principals never
+	// carry it.
+	MustChangePassword bool
 }
 
 // Anonymous returns the principal used for unauthenticated requests.

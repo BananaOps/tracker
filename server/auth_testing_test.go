@@ -67,8 +67,20 @@ func newAuthFixture(t *testing.T) *authFixture {
 	return f
 }
 
-// principalOf resolves the principal of a stored user through the real resolver.
+// principalOf resolves the principal of a stored user through the real
+// resolver. The bootstrap admin is flagged mustChangePassword, which authz
+// rightly refuses everywhere; the service tests that use this helper exercise
+// the service rules, not that gate, so the flag is lifted on the principal
+// only (the stored user keeps it). Use flaggedPrincipalOf to keep it.
 func (f *authFixture) principalOf(t *testing.T, u *store.User) auth.Principal {
+	t.Helper()
+	p := f.flaggedPrincipalOf(t, u)
+	p.MustChangePassword = false
+	return p
+}
+
+// flaggedPrincipalOf is principalOf without lifting mustChangePassword.
+func (f *authFixture) flaggedPrincipalOf(t *testing.T, u *store.User) auth.Principal {
 	t.Helper()
 	p, err := f.resolver.PrincipalForUser(context.Background(), u)
 	require.NoError(t, err)
