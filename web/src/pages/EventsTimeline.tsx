@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { CSSProperties } from 'react'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { format, subDays, startOfDay, endOfDay, subHours, isToday, isYesterday } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import type { Event } from '../types/api'
@@ -79,8 +80,7 @@ export default function EventsTimeline() {
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    queryKey: ['catalogs', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
     refetchInterval: 30_000,
   })
 

@@ -1,7 +1,8 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { apiErrorMessage } from '../lib/errors'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { useNavigate } from 'react-router-dom'
 import { EventType, Priority, Status, Environment } from '../types/api'
 import type { CreateEventRequest } from '../types/api'
@@ -27,8 +28,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
   const [showToast, setShowToast] = useState(false)
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    queryKey: ['catalogs', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
   })
 
   const catalogServices = catalogData?.catalogs.map((c) => c.name).sort() || []

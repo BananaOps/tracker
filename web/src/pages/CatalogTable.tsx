@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { catalogApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { CatalogType, Language, SLALevel, Platform, CommunicationType, DashboardType, type Catalog } from '../types/api'
 import { Package, BookOpen, Search, X, Server, Cloud, Zap, Globe, Shield, HardDrive, Activity, Mail, Filter, SlidersHorizontal } from 'lucide-react'
 import { useState, useMemo } from 'react'
@@ -26,8 +26,7 @@ export default function CatalogTable() {
 
 
   const { data, isLoading } = useQuery({
-    queryKey: ['catalog', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 100 }),
+    ...catalogListQuery,
   })
 
 

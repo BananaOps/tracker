@@ -28,6 +28,7 @@ import (
 	"github.com/bananaops/tracker/server"
 	"github.com/go-openapi/runtime/server-middleware/docui"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/klauspost/compress/gzhttp"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/spf13/cobra"
@@ -306,12 +307,21 @@ var serv = &cobra.Command{
 				_, err := os.Stat(path)
 				if os.IsNotExist(err) {
 					// File does not exist, serve index.html for SPA routing
+					w.Header().Set("Cache-Control", "no-cache")
 					http.ServeFile(w, r, filepath.Join(frontendDir, "index.html"))
 					return
 				} else if err != nil {
 					// Other error, return 500
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
+				}
+
+				// Vite names the bundled assets after their content: they never
+				// change, everything else (index.html) is revalidated.
+				if strings.HasPrefix(r.URL.Path, "/assets/") {
+					w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+				} else {
+					w.Header().Set("Cache-Control", "no-cache")
 				}
 
 				// File exists, serve it
@@ -321,6 +331,25 @@ var serv = &cobra.Command{
 			slog.Warn("Frontend directory not found, serving API only", "path", frontendDir)
 			httpHandler = mux
 		}
+
+		// Compress the SPA and the API responses. The MCP endpoint streams
+		// (text/event-stream) and is left as is. The random jitter hides the
+		// exact compressed size of responses that hold secrets (BREACH).
+		gzipWrapper, err := gzhttp.NewWrapper(
+			gzhttp.RandomJitter(32, 0, false),
+			gzhttp.ExceptContentTypes([]string{"text/event-stream"}),
+		)
+		if err != nil {
+			log.Fatalf("cannot create the gzip handler: %v", err)
+		}
+		uncompressed, compressed := httpHandler, gzipWrapper(httpHandler)
+		httpHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == server.MCPPath {
+				uncompressed.ServeHTTP(w, r)
+				return
+			}
+			compressed.ServeHTTP(w, r)
+		})
 
 		// Resolve the principal of every HTTP request (SPA, API and custom handlers)
 		httpHandler = auth.HTTPMiddleware(resolver, authCfg)(httpHandler)

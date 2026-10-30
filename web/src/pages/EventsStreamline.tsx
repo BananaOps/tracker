@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { Package, Globe, Calendar, Clock, ChevronDown, AlertTriangle } from 'lucide-react'
@@ -58,8 +59,7 @@ export default function EventsStreamline() {
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    queryKey: ['catalogs', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
     refetchInterval: 30_000,
   })
 

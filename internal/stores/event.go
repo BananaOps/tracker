@@ -45,6 +45,28 @@ func (c *EventStoreClient) List(ctx context.Context, scope auth.Scope) (results 
 	return
 }
 
+// ListPage returns one page of events, newest first, and the number of
+// events in scope. page starts at 1.
+func (c *EventStoreClient) ListPage(ctx context.Context, scope auth.Scope, perPage, page int64) (results []*v1alpha1.Event, total int64, err error) {
+	filter := scopedFilter(bson.D{}, scope, eventServiceField)
+	total, err = c.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+	opts := options.Find().
+		SetSort(bson.D{{Key: "metadata.createdat.seconds", Value: -1}, {Key: "_id", Value: -1}}).
+		SetSkip((page - 1) * perPage).
+		SetLimit(perPage)
+	cursor, err := c.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, 0, err
+	}
+	return results, total, nil
+}
+
 // Create takes the representation of an Event and creates it.  Returns the server's representation of the Event, and an error, if there is any.
 func (c *EventStoreClient) Create(ctx context.Context, eventInsert *v1alpha1.Event) (result *v1alpha1.Event, err error) {
 	result = &v1alpha1.Event{}
