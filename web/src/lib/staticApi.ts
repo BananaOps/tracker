@@ -3,13 +3,16 @@
 
 import type { CatalogApi, EventsApi, LocksApi } from './api'
 import { CatalogType, Language } from '../types/api'
+import { convertEventFromAPI } from './apiConverters'
 
 const STATIC_DATA_PATH = '/static-data'
 
 export const staticEventsApi: EventsApi = {
   list: async () => {
     const response = await fetch(`${STATIC_DATA_PATH}/events.json`)
-    return response.json()
+    const data: Awaited<ReturnType<EventsApi['list']>> = await response.json()
+    // same normalization as the real API
+    return { ...data, events: (data.events ?? []).map(convertEventFromAPI) }
   },
 
   today: async () => {
