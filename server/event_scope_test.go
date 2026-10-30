@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const eventSvc = "/tracker.event.v1alpha1.EventService/"
@@ -138,6 +139,27 @@ func TestListEventsScope(t *testing.T) {
 	require.ElementsMatch(t, []string{x.a, x.b}, eventIDs(list(x.pab).Events))
 	require.Empty(t, list(x.none).Events)
 	require.Len(t, list(x.all).Events, 3)
+}
+
+func TestListEventsPagination(t *testing.T) {
+	x := newScopeEnv(t)
+	page := func(p auth.Principal, perPage uint32, n int32) *eventv1.ListEventsResponse {
+		r, err := x.s.events.ListEvents(x.ctx(p, "ListEvents"), &eventv1.ListEventsRequest{
+			PerPage: wrapperspb.UInt32(perPage), Page: wrapperspb.Int32(n),
+		})
+		require.NoError(t, err)
+		return r
+	}
+	first, second := page(x.all, 2, 1), page(x.all, 2, 2)
+	require.Len(t, first.Events, 2)
+	require.Len(t, second.Events, 1)
+	require.EqualValues(t, 3, first.TotalCount)
+	require.ElementsMatch(t, []string{x.a, x.b, x.e}, append(eventIDs(first.Events), eventIDs(second.Events)...))
+	require.Empty(t, page(x.all, 2, 3).Events)
+
+	scoped := page(x.pa, 2, 1)
+	require.ElementsMatch(t, []string{x.a}, eventIDs(scoped.Events))
+	require.EqualValues(t, 1, scoped.TotalCount)
 }
 
 func TestSearchEventsScope(t *testing.T) {

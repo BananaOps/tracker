@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { catalogApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { SLALevel, CatalogType, Platform, type Catalog } from '../types/api'
 import { ArrowLeft, GitBranch, Search, X, Grid, List, Maximize2, ZoomIn, ZoomOut, Server, Zap, Activity, Package } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -217,8 +217,7 @@ export default function CatalogDependencies() {
   }
 
   const { data: allCatalogs, isLoading } = useQuery({
-    queryKey: ['catalog', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
   })
 
   // Build complete dependency graph with improved layouts

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { format, startOfDay, endOfDay, addDays, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { AlertTriangle, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Users, Layers, Globe, CheckCircle } from 'lucide-react'
@@ -114,8 +115,7 @@ export default function EventsOverlaps() {
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    queryKey: ['catalogs', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
     refetchInterval: 30_000,
   })
 

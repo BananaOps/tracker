@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, type FormEvent, type ReactNode } from 're
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { catalogApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { CatalogType, Language, SLALevel, Platform, type Catalog, type SLA, type UsedDeliverable, type CommunicationChannel, type DashboardLink, type VulnerabilitySummary } from '../types/api'
 import { Package, X, GitBranch, Shield, Plus } from 'lucide-react'
 import DependencySelector from '../components/DependencySelector'
@@ -55,8 +56,7 @@ export default function CreateCatalog({ asPanel = false, onClose, onSuccess }: C
 
   // Fetch all catalogs for dependency selection
   const { data: allCatalogs } = useQuery({
-    queryKey: ['catalog', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
   })
 
   // Get list of available service names (excluding current service)

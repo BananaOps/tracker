@@ -5,7 +5,7 @@ import { load as yamlLoad } from 'js-yaml'
 import { useNavigate } from 'react-router-dom'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { getLinksConfig, getHomerUrl, type LinkItem, type LinkGroup } from '../config'
-import { catalogApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import type { Catalog } from '../types/api'
 
 interface HomerLink { name: string; url: string; icon?: string }
@@ -90,8 +90,7 @@ export default function LinksSearch({ collapsed = false }: { collapsed?: boolean
   })
 
   const { data: catalogData } = useQuery({
-    queryKey: ['catalog', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 500 }),
+    ...catalogListQuery,
     staleTime: 60_000,
   })
 

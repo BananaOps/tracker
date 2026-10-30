@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { eventsApi, catalogApi } from '../lib/api'
+import { eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
@@ -46,8 +47,7 @@ export default function EventsCalendar() {
   })
 
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    queryKey: ['catalogs', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
     refetchInterval: 30_000,
   })
 

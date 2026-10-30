@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { catalogApi, eventsApi } from '../lib/api'
+import { catalogListQuery } from '../lib/queries'
 import { SLALevel, CatalogType, Language, Platform, CommunicationType, type Catalog, type InfrastructureType, Status } from '../types/api'
 import { Package, GitBranch, Activity, ExternalLink, Github, Code, Server, Edit, Trash2, AlertTriangle, X, Mail, Zap, Plus, Database, HardDrive, Network, MessageSquare, Shield, Cloud, Check, Clock, Rocket, Maximize2, Minimize2 } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -466,8 +467,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
   }, [])
 
   const { data: allCatalogs, isLoading: catalogsLoading } = useQuery({
-    queryKey: ['catalog', 'list'],
-    queryFn: () => catalogApi.list({ perPage: 1000 }),
+    ...catalogListQuery,
   })
 
   // Fetch deployments for this service (last 30 days)

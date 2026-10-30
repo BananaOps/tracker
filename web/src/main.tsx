@@ -43,6 +43,9 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      // Data fetched less than 30s ago is reused when a page mounts instead of
+      // refetched; mutations still invalidate it right away.
+      staleTime: 30_000,
     },
   },
 })

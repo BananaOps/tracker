@@ -49,6 +49,9 @@ const T = Object.fromEntries(
 ) as Record<keyof typeof V, string>
 const a = (key: keyof typeof V, opacity: number) => `rgb(var(${V[key]}) / ${opacity})`
 
+// How far ahead the dashboard looks for the next planned event.
+const UPCOMING_HORIZON_DAYS = 90
+
 const C = {
   primary: '#1B3575',
   accent: '#E8580A',
@@ -299,9 +302,16 @@ export default function Dashboard() {
     refetchInterval: 30000,
   })
 
-  const { data: allEventsData } = useQuery({
-    queryKey: ['events', 'dashboard-all'],
-    queryFn: () => eventsApi.list({ perPage: 1000, page: 1 }),
+  // Only what is still ahead feeds "next": the whole collection is not needed.
+  const { data: upcomingEventsData } = useQuery({
+    queryKey: ['events', 'dashboard-upcoming'],
+    queryFn: () => {
+      const now = new Date()
+      return eventsApi.search({
+        startDate: now.toISOString(),
+        endDate: new Date(now.getTime() + UPCOMING_HORIZON_DAYS * 86_400_000).toISOString(),
+      })
+    },
     refetchInterval: 30000,
   })
 
@@ -309,7 +319,7 @@ export default function Dashboard() {
   useEffect(() => {
     setLastUpdated(new Date())
     setCountdown(30)
-  }, [todayEvents, allEventsData])
+  }, [todayEvents, upcomingEventsData])
 
   // Countdown timer
   useEffect(() => {
@@ -320,7 +330,7 @@ export default function Dashboard() {
   }, [])
 
   const events: Event[] = useMemo(() => (todayEvents?.events || []) as Event[], [todayEvents])
-  const allEvents: Event[] = useMemo(() => (allEventsData?.events || []) as Event[], [allEventsData])
+  const upcomingEvents: Event[] = useMemo(() => (upcomingEventsData?.events || []) as Event[], [upcomingEventsData])
 
   const derived = useMemo(() => {
     const toDerivedRow = (event: Event): DerivedRow => {
@@ -344,7 +354,7 @@ export default function Dashboard() {
     }, {})
 
     const now = new Date()
-    const nextRows: DerivedRow[] = (allEvents.length > 0 ? allEvents : events)
+    const nextRows: DerivedRow[] = (upcomingEvents.length > 0 ? upcomingEvents : events)
       .map((event: Event) => toDerivedRow(event))
       .filter((row: DerivedRow) => row.start >= now)
       .sort((aRow: DerivedRow, bRow: DerivedRow) => {
@@ -403,7 +413,7 @@ export default function Dashboard() {
       services: (Object.values(serviceCount) as ServiceSummary[]).sort((aRow: ServiceSummary, bRow: ServiceSummary) => bRow.count - aRow.count).slice(0, 5),
       timeline,
     }
-  }, [events, allEvents])
+  }, [events, upcomingEvents])
 
   const nowHour = new Date().getHours() + new Date().getMinutes() / 60
 

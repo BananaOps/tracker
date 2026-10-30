@@ -81,6 +81,7 @@ func addChangelogEntry(event *v1alpha1.Event, changeType v1alpha1.ChangeType, us
 const (
 	changelogDefaultPerPage = 50
 	changelogMaxPerPage     = 1000
+	listEventsMaxPerPage    = 1000
 )
 
 // shouldCreateLock détermine si un lock doit être créé pour cet événement
@@ -358,6 +359,18 @@ func (e *Event) ListEvents(
 
 	var eventsResult = &v1alpha1.ListEventsResponse{}
 	var err error
+
+	// Without per_page the whole collection is returned, as before.
+	if perPage := i.GetPerPage().GetValue(); perPage > 0 {
+		page := max(int64(i.GetPage().GetValue()), 1)
+		var total int64
+		eventsResult.Events, total, err = e.store.ListPage(ctx, authz.ScopeFromContext(ctx), int64(min(perPage, listEventsMaxPerPage)), page)
+		if err != nil {
+			return nil, err
+		}
+		eventsResult.TotalCount = uint32(total) // #nosec G115 -- a collection never holds 2^32 events
+		return eventsResult, nil
+	}
 
 	eventsResult.Events, err = e.store.List(context.Background(), authz.ScopeFromContext(ctx))
 	if err != nil {
