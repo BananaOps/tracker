@@ -345,3 +345,45 @@ func TestScopeDenialIsCounted(t *testing.T) {
 	requireDenied(t, err)
 	require.Equal(t, before+1, scopeDeniedCount(t))
 }
+
+func TestBulkResultsKeepOnlyApprovals(t *testing.T) {
+	x := newScopeEnv(t)
+	for _, ct := range []eventv1.ChangeType{eventv1.ChangeType_commented, eventv1.ChangeType_approved} {
+		_, err := x.s.events.AddChangelogEntry(x.ctx(x.all, "AddChangelogEntry"), &eventv1.AddChangelogEntryRequest{
+			Id: x.a, Entry: &eventv1.ChangelogEntry{User: "alice", ChangeType: ct},
+		})
+		require.NoError(t, err)
+	}
+	approvalsOf := func(events []*eventv1.Event) []eventv1.ChangeType {
+		for _, ev := range events {
+			if ev.Metadata.Id == x.a {
+				types := []eventv1.ChangeType{}
+				for _, entry := range ev.Changelog {
+					types = append(types, entry.ChangeType)
+				}
+				return types
+			}
+		}
+		t.Fatalf("event %s not in the results", x.a)
+		return nil
+	}
+	approved := []eventv1.ChangeType{eventv1.ChangeType_approved}
+
+	search, err := x.s.events.SearchEvents(x.ctx(x.all, "SearchEvents"), &eventv1.SearchEventsRequest{Source: "scope-test"})
+	require.NoError(t, err)
+	require.Equal(t, approved, approvalsOf(search.Events))
+
+	list, err := x.s.events.ListEvents(x.ctx(x.all, "ListEvents"), &eventv1.ListEventsRequest{})
+	require.NoError(t, err)
+	require.Equal(t, approved, approvalsOf(list.Events))
+
+	page, err := x.s.events.ListEvents(x.ctx(x.all, "ListEvents"), &eventv1.ListEventsRequest{PerPage: wrapperspb.UInt32(10)})
+	require.NoError(t, err)
+	require.Equal(t, approved, approvalsOf(page.Events))
+
+	// The single event and its changelog endpoint keep the whole history.
+	full, err := x.s.events.GetEventChangelog(x.ctx(x.all, "GetEventChangelog"), &eventv1.GetEventChangelogRequest{Id: x.a})
+	require.NoError(t, err)
+	require.Greater(t, len(full.Changelog), 1)
+	require.Len(t, x.stored(t, x.a).Changelog, len(full.Changelog))
+}

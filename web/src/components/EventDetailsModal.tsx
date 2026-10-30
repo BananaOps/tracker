@@ -66,10 +66,11 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
     setChangelog(normalizedEvent.changelog || [])
   }, [normalizedEvent])
 
-  // Rafraîchir l'historique lorsque l'onglet History est actif
+  // Les listes ne portent que les approbations : l'historique complet est
+  // chargé à l'ouverture, puis rafraîchi à chaque passage sur l'onglet History
   useEffect(() => {
     const fetchChangelog = async () => {
-      if (activeTab === 'history' && editedEvent.metadata?.id) {
+      if (editedEvent.metadata?.id) {
         try {
           const res = await eventsApi.getChangelog(editedEvent.metadata.id)
           setChangelog(res.changelog || [])
