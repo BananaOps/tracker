@@ -6,8 +6,6 @@ Tracker expose un serveur [MCP (Model Context Protocol)](https://modelcontextpro
 
 Les outils sont en **lecture seule** et respectent l'authentification de Tracker : permissions, scope par service des équipes et accès anonyme s'appliquent exactement comme sur l'API REST.
 
-> Le serveur Python `mcp-server/` (stdio, à installer avec `uv`) est **déprécié** et sera supprimé dans une prochaine version. Voir [Migration depuis le serveur Python](#-migration-depuis-le-serveur-python).
-
 ## 🎯 Cas d'Usage
 
 ### Pour les Développeurs
@@ -180,7 +178,7 @@ curl -s https://tracker.example.com/mcp \
 
 ## 🔄 Migration depuis le Serveur Python
 
-Le serveur Python (`mcp-server/`) appelait l'API REST sans s'authentifier et devait être installé sur chaque poste. Pour migrer :
+L'ancien serveur Python (`mcp-server/`, stdio, installé avec `uv`) a été supprimé : il appelait l'API REST sans s'authentifier et devait être installé sur chaque poste. Pour migrer :
 
 1. Créez une clé API (voir [Authentification](#-authentification)).
 2. Remplacez dans la configuration de votre client l'entrée `uvx … tracker-mcp-server` par la configuration HTTP ci-dessus.

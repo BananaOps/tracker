@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // MCPPath is where the Model Context Protocol endpoint is served.
@@ -80,21 +81,24 @@ func newMCPServer(events *Event, catalogs *Catalog, locks *Lock) *mcp.Server {
 		if err := parseEnum(in.Status, eventv1.Status_value, "status", func(v int32) { search.Status = eventv1.Status(v) }); err != nil {
 			return nil, nil, err
 		}
-		var list []*eventv1.Event
 		if search.Service == "" && search.Type == 0 && search.Status == 0 {
-			r, err := events.ListEvents(rpcContext(ctx, eventv1.EventService_ListEvents_FullMethodName), &eventv1.ListEventsRequest{})
+			// Unfiltered: let the store page the collection, newest first,
+			// instead of loading every event.
+			perPage, page := in.bounds()
+			r, err := events.ListEvents(rpcContext(ctx, eventv1.EventService_ListEvents_FullMethodName), &eventv1.ListEventsRequest{
+				PerPage: wrapperspb.UInt32(uint32(perPage)), // #nosec G115 -- bounded by mcpMaxPerPage
+				Page:    wrapperspb.Int32(int32(page)),      // #nosec G115 -- a page number never reaches 2^31
+			})
 			if err != nil {
 				return nil, nil, err
 			}
-			list = r.Events
-		} else {
-			r, err := events.SearchEvents(rpcContext(ctx, eventv1.EventService_SearchEvents_FullMethodName), search)
-			if err != nil {
-				return nil, nil, err
-			}
-			list = r.Events
+			return protoResult(r)
 		}
-		return eventPage(list, in.mcpPage)
+		r, err := events.SearchEvents(rpcContext(ctx, eventv1.EventService_SearchEvents_FullMethodName), search)
+		if err != nil {
+			return nil, nil, err
+		}
+		return eventPage(r.Events, in.mcpPage)
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
@@ -266,18 +270,20 @@ func parseEnum(name string, values map[string]int32, field string, set func(int3
 	return nil
 }
 
-func paginate[T any](items []T, p mcpPage) ([]T, uint32) {
-	perPage := p.PerPage
+// bounds returns the page size and number asked for, defaulted and capped.
+func (p mcpPage) bounds() (perPage, page int) {
+	perPage = p.PerPage
 	if perPage <= 0 {
 		perPage = mcpDefaultPerPage
 	}
 	if perPage > mcpMaxPerPage {
 		perPage = mcpMaxPerPage
 	}
-	page := p.Page
-	if page <= 0 {
-		page = 1
-	}
+	return perPage, max(p.Page, 1)
+}
+
+func paginate[T any](items []T, p mcpPage) ([]T, uint32) {
+	perPage, page := p.bounds()
 	total := uint32(len(items)) // #nosec G115 -- a list never holds 2^32 items
 	start := (page - 1) * perPage
 	if start >= len(items) {
