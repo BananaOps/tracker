@@ -313,19 +313,20 @@ Clic sur n'importe quel événement pour voir :
 
 ### 📖 Vue d'ensemble
 
-Tracker sert un endpoint MCP sur `/mcp`, dans son propre serveur HTTP : les agents IA (Claude Code, Claude Desktop, Cursor, Kiro…) interrogent les events, le catalogue et les locks en langage naturel, sans rien installer. Les outils sont en lecture seule et soumis à l'authentification de Tracker (clés API, permissions, scope des équipes), comme l'API REST.
+Tracker sert un endpoint MCP sur `/mcp`, dans son propre serveur HTTP : les agents IA (Claude Code, Claude Desktop, Cursor, Kiro…) interrogent les events, le catalogue et les locks en langage naturel, et peuvent enregistrer des events, sans rien installer. Les outils sont soumis à l'authentification de Tracker (clés API, permissions, scope des équipes), comme l'API REST.
 
 > 📖 **Guide complet** : [docs/MCP_SERVER.md](./docs/MCP_SERVER.md)
 
 ### 🎯 Fonctionnalités
 
-**8 outils disponibles :**
+**9 outils disponibles :**
 
 #### Events
 - **`list_events`** : Liste les événements, du plus récent au plus ancien, avec filtres optionnels (type, service, statut)
 - **`today_events`** : Événements qui commencent aujourd'hui
 - **`search_events`** : Recherche par source, type, priorité, statut, service, environnement et plage de dates
 - **`get_event`** : Un événement par son ID ou par l'ID de son message Slack
+- **`create_event`** : Crée un événement (permission `event:write` ; un déploiement ou une opération qui démarre verrouille le service)
 
 #### Catalog
 - **`list_catalog`** : Liste les services du catalogue
@@ -365,6 +366,7 @@ Cursor, Kiro et les autres clients « Streamable HTTP » :
 "Trouve les incidents P1 du service auth-service entre le 2026-01-01 et le 2026-01-15"
 "Donne-moi les détails du service auth-service"
 "Y a-t-il un lock sur le service payment-api ?"
+"Enregistre le déploiement de payment-api 2.4.0 en production, ticket OPS-1234"
 ```
 
 ---

@@ -4,7 +4,7 @@
 
 Tracker expose un serveur [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) directement dans son serveur HTTP, sur `/mcp`. Les assistants IA (Claude Code, Claude Desktop, Cursor, Kiro, etc.) peuvent ainsi interroger les events, le catalogue et les locks en langage naturel, **sans rien installer** : il suffit de pointer le client sur l'URL de Tracker.
 
-Les outils sont en **lecture seule** et respectent l'authentification de Tracker : permissions, scope par service des équipes et accès anonyme s'appliquent exactement comme sur l'API REST.
+Les outils lisent les events, le catalogue et les locks, et `create_event` permet d'enregistrer un event. Tous respectent l'authentification de Tracker : permissions, scope par service des équipes et accès anonyme s'appliquent exactement comme sur l'API REST.
 
 ## 🎯 Cas d'Usage
 
@@ -72,8 +72,9 @@ X-Api-Key: trk_...
 
 Recommandations :
 
-- Créez une **clé API dédiée** à l'usage MCP, rattachée à une équipe dont les permissions se limitent à `event:read`, `catalog:read` et `lock:read`. Voir [Authentification](./AUTHENTICATION.md#api-keys).
-- Pour qu'une clé d'équipe isole vraiment les données de l'équipe, restreignez l'accès anonyme (`AUTH_ANONYMOUS_PERMISSIONS=`). Sinon un client sans clé voit tout ce que l'anonyme voit.
+- Créez une **clé API dédiée** à l'usage MCP, rattachée à une équipe dont les permissions se limitent à `event:read`, `catalog:read` et `lock:read`, plus `event:write` si l'assistant doit créer des events. Voir [Authentification](./AUTHENTICATION.md#api-keys).
+- Les events créés par une clé API ont pour propriétaire `apikey:<préfixe>` (le nom de l'utilisateur pour une session), sauf si `owner` est fourni.
+- Pour qu'une clé d'équipe isole vraiment les données de l'équipe, restreignez l'accès anonyme (`AUTH_ANONYMOUS_PERMISSIONS=`). Sinon un client sans clé voit tout ce que l'anonyme voit. Tant que `AUTH_ANONYMOUS_PERMISSIONS` n'est pas défini, l'anonyme garde les permissions transitoires, écriture comprise : un client sans clé peut alors créer des events, comme sur l'API REST.
 - Un refus (permission manquante, service hors scope) est renvoyé comme une erreur d'outil, lisible par l'assistant, par exemple `service "payment-api" is outside your scope`.
 
 ## 🔌 Configuration des Clients
@@ -132,6 +133,7 @@ Toutes les réponses sont du JSON au format de l'API REST (champs en camelCase, 
 | `today_events` | `per_page`, `page` | Events qui commencent aujourd'hui |
 | `search_events` | `source`, `type`, `priority`, `status`, `service`, `environment`, `start_date`, `end_date`, `per_page`, `page` | Recherche multi-critères, au moins un filtre requis |
 | `get_event` | `event_id` (requis) | Un event par son id ou par l'id de son message Slack |
+| `create_event` | `title`, `type`, `service`, `environment`, `status` (requis) ; `priority`, `message`, `source`, `owner`, `start_date`, `end_date`, `impact`, `pull_request_link`, `ticket`, `related_id` | Crée un event (voir ci-dessous) |
 
 Valeurs acceptées :
 
@@ -140,6 +142,8 @@ Valeurs acceptées :
 - `status` : `start`, `failure`, `success`, `warning`, `error`, `snapshot`, `user_update`, `recommandation`, `open`, `close`, `done`, `in_progress`, `planned`, `waiting_approval`
 - `environment` : `development`, `integration`, `TNR`, `UAT`, `recette`, `preproduction`, `production`, `mco`
 - `start_date` / `end_date` : filtrent sur la date de début de l'event, au format `YYYY-MM-DD` ou RFC 3339 (`2026-01-15T10:30:00Z`)
+
+`create_event` demande la permission `event:write` sur le service. Valeurs par défaut : `priority` `P3`, `source` `mcp`, `owner` l'appelant, `start_date` maintenant. Comme sur l'API, un `deployment` ou une `operation` créé avec le statut `start` ou `in_progress` pose un lock sur le service dans son environnement, et la création échoue si ce service y est déjà verrouillé. `related_id` relie l'event à un précédent, par exemple la fin d'un déploiement à son début.
 
 ### 📚 Catalog
 
@@ -192,4 +196,4 @@ Pour ajouter un outil :
 
 1. Déclarez-le avec `mcp.AddTool` dans `newMCPServer`, avec une structure d'entrée dont les tags `jsonschema` décrivent les paramètres.
 2. Appelez le service avec `rpcContext(ctx, <Service>_<Rpc>_FullMethodName)` : la RPC applique elle-même permissions et scope.
-3. Marquez-le `ReadOnlyHint` s'il ne modifie rien, et couvrez dans `mcp_test.go` le cas d'une clé d'équipe hors scope.
+3. Marquez-le `ReadOnlyHint` s'il ne modifie rien (sinon `DestructiveHint: false` s'il ne fait qu'ajouter, comme `create_event`), et couvrez dans `mcp_test.go` le cas d'une clé d'équipe hors scope.

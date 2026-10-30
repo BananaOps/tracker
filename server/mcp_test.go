@@ -107,11 +107,12 @@ func TestMCPListsReadOnlyTools(t *testing.T) {
 	for _, tool := range res.Tools {
 		names = append(names, tool.Name)
 		require.NotNil(t, tool.Annotations, tool.Name)
-		assert.True(t, tool.Annotations.ReadOnlyHint, tool.Name)
+		assert.Equal(t, tool.Name != "create_event", tool.Annotations.ReadOnlyHint, tool.Name)
 	}
 	assert.ElementsMatch(t, []string{
 		"list_events", "today_events", "search_events", "get_event",
 		"list_catalog", "get_catalog_service", "list_locks", "get_lock",
+		"create_event",
 	}, names)
 }
 
@@ -239,4 +240,69 @@ func TestPaginate(t *testing.T) {
 
 	page, _ = paginate(items, mcpPage{PerPage: 1000})
 	assert.Len(t, page, 12, "per_page is capped, not rejected")
+}
+
+func TestMCPCreateEvent(t *testing.T) {
+	h, endpoint := newMCPE2E(t)
+	s := mcpSession(t, endpoint, apiKeyHeader(h.keyA))
+	create := func(s *mcp.ClientSession, args map[string]any) (map[string]any, string) {
+		out, res := callTool(t, s, "create_event", args)
+		if msg := toolError(res); msg != "" {
+			return nil, msg
+		}
+		return out["event"].(map[string]any), ""
+	}
+	base := func(extra map[string]any) map[string]any {
+		args := map[string]any{"title": "Deploy service-a 1.2.0", "type": "deployment", "service": "service-a",
+			"environment": "production", "status": "success"}
+		for k, v := range extra {
+			args[k] = v
+		}
+		return args
+	}
+
+	ev, msg := create(s, base(map[string]any{"ticket": "OPS-1", "start_date": "2026-01-15T10:00:00Z", "end_date": "2026-01-15T10:30:00Z"}))
+	require.Empty(t, msg)
+	attrs := ev["attributes"].(map[string]any)
+	assert.Equal(t, "service-a", attrs["service"])
+	assert.Equal(t, "deployment", attrs["type"])
+	assert.Equal(t, "P3", attrs["priority"], "default priority")
+	assert.Equal(t, "mcp", attrs["source"], "default source")
+	assert.True(t, strings.HasPrefix(attrs["owner"].(string), "apikey:"), "the owner names the key: %v", attrs["owner"])
+	assert.Equal(t, "2026-01-15T10:00:00Z", attrs["startDate"])
+	assert.Equal(t, "OPS-1", ev["links"].(map[string]any)["ticket"])
+
+	got, res := callTool(t, s, "get_event", map[string]any{"event_id": ev["metadata"].(map[string]any)["id"]})
+	require.Empty(t, toolError(res))
+	assert.Equal(t, "Deploy service-a 1.2.0", got["event"].(map[string]any)["title"])
+
+	// A session user owns the events it creates.
+	ev, msg = create(mcpSession(t, endpoint, http.Header{"Cookie": {h.alice.String()}}), base(nil))
+	require.Empty(t, msg)
+	assert.Equal(t, "alice", ev["attributes"].(map[string]any)["owner"])
+
+	// A deployment that starts locks its service, unless it is already locked.
+	_, msg = create(s, base(map[string]any{"status": "start"}))
+	assert.Contains(t, msg, "already locked", "service-a is locked in production by the fixture")
+	_, msg = create(s, base(map[string]any{"status": "start", "environment": "UAT"}))
+	require.Empty(t, msg)
+	locks, res := callTool(t, s, "list_locks", nil)
+	require.Empty(t, toolError(res))
+	assert.Len(t, listedServices(t, locks, "locks", fieldString("service")), 2)
+
+	_, msg = create(s, base(map[string]any{"service": "service-b"}))
+	assert.Contains(t, msg, `service "service-b" is outside your scope`)
+	_, msg = create(mcpSession(t, endpoint, nil), base(nil))
+	assert.NotEmpty(t, msg, "the fixture grants no anonymous permission")
+
+	for name, extra := range map[string]map[string]any{
+		"unknown type":     {"type": "release"},
+		"missing title":    {"title": " "},
+		"missing status":   {"status": ""},
+		"bad date":         {"start_date": "15/01/2026"},
+		"end before start": {"start_date": "2026-01-15", "end_date": "2026-01-14"},
+	} {
+		_, msg = create(s, base(extra))
+		assert.NotEmpty(t, msg, name)
+	}
 }
