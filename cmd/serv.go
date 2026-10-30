@@ -26,7 +26,7 @@ import (
 	"github.com/bananaops/tracker/internal/config"
 	store "github.com/bananaops/tracker/internal/stores"
 	"github.com/bananaops/tracker/server"
-	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/runtime/server-middleware/docui"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -185,8 +185,7 @@ var serv = &cobra.Command{
 		}
 
 		// Setup Swagger documentation with go-swagger
-		opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.json"}
-		sh := middleware.SwaggerUI(opts, nil)
+		sh := docui.SwaggerUI(nil, docui.WithSpecURL("/swagger.json"))
 
 		// Serve swagger.json
 		if err := mux.HandlePath("GET", "/swagger.json", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
