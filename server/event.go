@@ -344,6 +344,7 @@ func (e *Event) SearchEvents(
 	if err != nil {
 		return nil, err
 	}
+	keepApprovalsOnly(eventsResult.Events)
 	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
@@ -368,6 +369,7 @@ func (e *Event) ListEvents(
 		if err != nil {
 			return nil, err
 		}
+		keepApprovalsOnly(eventsResult.Events)
 		eventsResult.TotalCount = uint32(total) // #nosec G115 -- a collection never holds 2^32 events
 		return eventsResult, nil
 	}
@@ -376,6 +378,7 @@ func (e *Event) ListEvents(
 	if err != nil {
 		return nil, err
 	}
+	keepApprovalsOnly(eventsResult.Events)
 	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
@@ -402,9 +405,26 @@ func (e *Event) TodayEvents(
 	if err != nil {
 		return nil, err
 	}
+	keepApprovalsOnly(eventsResult.Events)
 	eventsResult.TotalCount = uint32(len(eventsResult.Events))
 
 	return eventsResult, nil
+}
+
+// keepApprovalsOnly trims the changelog of events returned in bulk (list,
+// search, today) to its approval entries: lists only show whether an event
+// is approved, and the whole history was half of their payload. GetEvent and
+// GetEventChangelog still return it in full.
+func keepApprovalsOnly(events []*v1alpha1.Event) {
+	for _, ev := range events {
+		approvals := ev.Changelog[:0:0]
+		for _, entry := range ev.Changelog {
+			if entry.GetChangeType() == v1alpha1.ChangeType_approved {
+				approvals = append(approvals, entry)
+			}
+		}
+		ev.Changelog = approvals
+	}
 }
 
 // todayRange returns the bounds of the day of now, in the time zone of now
