@@ -1,10 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreatePanel } from '../contexts/createPanel'
-import CreateEvent from '../pages/CreateEvent'
-import CreateLock from '../pages/CreateLock'
-import CreateRpaOperation from '../pages/CreateRpaOperation'
-import CreateCatalog from '../pages/CreateCatalog'
-import CreateDrift from '../pages/CreateDrift'
+import { lazy, Suspense } from 'react'
+
+const CreateEvent = lazy(() => import('../pages/CreateEvent'))
+const CreateLock = lazy(() => import('../pages/CreateLock'))
+const CreateRpaOperation = lazy(() => import('../pages/CreateRpaOperation'))
+const CreateCatalog = lazy(() => import('../pages/CreateCatalog'))
+const CreateDrift = lazy(() => import('../pages/CreateDrift'))
 
 export default function CreatePanelHost() {
   const { openPanel, close, notifyCreated } = useCreatePanel()
@@ -20,18 +22,22 @@ export default function CreatePanelHost() {
 
   const shared = { asPanel: true as const, onClose: close, onSuccess: handleSuccess }
 
-  switch (openPanel) {
-    case 'event':
-      return <CreateEvent {...shared} />
-    case 'lock':
-      return <CreateLock {...shared} />
-    case 'rpa':
-      return <CreateRpaOperation {...shared} />
-    case 'service':
-      return <CreateCatalog {...shared} />
-    case 'drift':
-      return <CreateDrift {...shared} />
-    default:
-      return null
+  return <Suspense fallback={null}>{panel()}</Suspense>
+
+  function panel() {
+    switch (openPanel) {
+      case 'event':
+        return <CreateEvent {...shared} />
+      case 'lock':
+        return <CreateLock {...shared} />
+      case 'rpa':
+        return <CreateRpaOperation {...shared} />
+      case 'service':
+        return <CreateCatalog {...shared} />
+      case 'drift':
+        return <CreateDrift {...shared} />
+      default:
+        return null
+    }
   }
 }

@@ -3,7 +3,7 @@ import { Calendar, Clock, Table, GitBranch, Bot, LayoutDashboard, Rocket, Packag
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons'
 import { faRobot } from '@fortawesome/free-solid-svg-icons'
-import { useState, useRef, useEffect, type MouseEvent } from 'react'
+import { useState, useRef, useEffect, Suspense, type MouseEvent } from 'react'
 import ThemeToggle from './ThemeToggle'
 import OpenSourceBanner from './OpenSourceBanner'
 import StaticModeBanner from './StaticModeBanner'
@@ -49,6 +49,16 @@ const navigationSections = [
     ],
   },
 ]
+
+// Shown while a page chunk downloads.
+function PageLoading() {
+  return (
+    <div className="flex flex-1 items-center justify-center" role="status" aria-label="Loading page">
+      <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+        style={{ borderColor: 'rgb(var(--hud-primary))', borderTopColor: 'transparent' }} />
+    </div>
+  )
+}
 
 export default function Layout() {
   const location = useLocation()
@@ -260,7 +270,9 @@ export default function Layout() {
           </header>
 
           <main className="flex-1 flex flex-col overflow-hidden">
-            <Outlet />
+            <Suspense fallback={<PageLoading />}>
+              <Outlet />
+            </Suspense>
           </main>
         </div>
 

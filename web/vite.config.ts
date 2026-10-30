@@ -38,6 +38,20 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: mode !== 'production',
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            // React, the router and TanStack Query change far less often than
+            // the app: their own chunk stays cached across deploys.
+            groups: [
+              {
+                name: 'vendor-react',
+                test: /node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|@tanstack)[\\/]/,
+              },
+            ],
+          },
+        },
+      },
     },
   }
 })
