@@ -176,6 +176,22 @@ func TestMCPGlobalKeySeesEverything(t *testing.T) {
 	assert.Empty(t, toolError(res))
 }
 
+func TestMCPListEventsPagesUnfilteredList(t *testing.T) {
+	h, endpoint := newMCPE2E(t)
+	s := mcpSession(t, endpoint, apiKeyHeader(h.keyGlobal))
+
+	first, res := callTool(t, s, "list_events", map[string]any{"per_page": 2})
+	require.Empty(t, toolError(res))
+	second, res := callTool(t, s, "list_events", map[string]any{"per_page": 2, "page": 2})
+	require.Empty(t, toolError(res))
+
+	assert.Len(t, listedServices(t, first, "events", eventService), 2)
+	assert.Len(t, listedServices(t, second, "events", eventService), 1)
+	assert.EqualValues(t, 3, first["totalCount"])
+	assert.ElementsMatch(t, []string{"service-a", "service-b", ""},
+		append(listedServices(t, first, "events", eventService), listedServices(t, second, "events", eventService)...))
+}
+
 func TestMCPAnonymousFollowsAnonymousPermissions(t *testing.T) {
 	_, endpoint := newMCPE2E(t)
 	s := mcpSession(t, endpoint, nil)
