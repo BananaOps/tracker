@@ -72,7 +72,7 @@ export default function Layout() {
   const isActiveRoute = (href: string) => location.pathname === href
 
   const navItem = 'flex items-center px-2.5 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-150 cursor-pointer select-none'
-  const navActive = 'bg-white/10 text-white'
+  const navActive = 'bg-[#FFC83D]/12 text-white'
   const navInactive = 'text-white/45 hover:text-white/80 hover:bg-white/6'
 
   return (
@@ -87,7 +87,7 @@ export default function Layout() {
       <div className="flex">
         {/* Sidebar — fixed, décalée sous les banneaux */}
         <aside
-          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed z-40 transition-all duration-200 bg-[#0F1629]`}
+          className={`${isCollapsed ? 'w-[56px]' : 'w-[220px]'} flex flex-col fixed z-40 transition-all duration-200 bg-[#10264A]`}
           style={{
             borderRight: '1px solid rgba(255,255,255,0.06)',
             top: bannersHeight,
@@ -101,9 +101,9 @@ export default function Layout() {
           >
             <Link to="/dashboard" className="flex items-center gap-2.5 min-w-0">
               <div
-                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-[#E8580A]"
+                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-[#FFC83D]"
               >
-                <Rocket className="w-4 h-4 text-white" strokeWidth={2.5} />
+                <Rocket className="w-4 h-4 text-[#10264A]" strokeWidth={2.5} />
               </div>
             {!isCollapsed && (
                 <span className="text-[16px] font-bold text-white tracking-tight truncate">Tracker</span>
@@ -148,9 +148,9 @@ export default function Layout() {
                         className={`${navItem} ${isCollapsed ? 'justify-center' : ''} ${isActive ? navActive : navInactive}`}
                         title={isCollapsed ? item.name : ''}
                       >
-                        <Icon className={`w-4 h-4 shrink-0 ${isCollapsed ? '' : 'mr-2.5'} ${isActive ? 'text-[#E8580A]' : ''}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${isCollapsed ? '' : 'mr-2.5'} ${isActive ? 'text-[#FFC83D]' : ''}`} />
                         {!isCollapsed && <span className="truncate">{item.name}</span>}
-                        {!isCollapsed && isActive && <span className="w-1 h-3.5 rounded-full ml-auto bg-[#E8580A] opacity-80" />}
+                        {!isCollapsed && isActive && <span className="w-1 h-3.5 rounded-full ml-auto bg-[#FFC83D]" />}
                       </Link>
                     )
                   })}

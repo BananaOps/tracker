@@ -2,10 +2,11 @@ import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
 import { EventType, Environment, Event } from '../types/api'
-import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
 import { Calendar, Filter, X, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { format, subDays, eachDayOfInterval, parseISO, addDays } from 'date-fns'
 import Combobox from '../components/Combobox'
+import { useTheme } from '../contexts/theme'
 
 interface InsightFilters {
   environment: Environment | 'all'
@@ -28,14 +29,51 @@ interface EventDetailsModal {
   type: 'project' | 'date' | null
 }
 
-const COLORS = {
-  deployments: '#10b981',
-  incidents:   '#ef4444',
-  operations:  '#3b82f6',
-  drifts:      '#f59e0b'
+type SeriesKey = 'deployments' | 'drifts' | 'operations' | 'incidents'
+
+// Stack order, bottom to top. Each mode has its own steps, validated together
+// (adjacent pairs colorblind-safe) against the light and dark chart surfaces.
+const SERIES: { key: SeriesKey; label: string; light: string; dark: string }[] = [
+  { key: 'deployments', label: 'Deployments', light: '#3A63A8', dark: '#5B86D6' },
+  { key: 'drifts',      label: 'Drifts',      light: '#0F9E95', dark: '#14A99F' },
+  { key: 'operations',  label: 'Operations',  light: '#6C4AB6', dark: '#9A7FE0' },
+  { key: 'incidents',   label: 'Incidents',   light: '#C0330A', dark: '#E0583A' },
+]
+
+interface DayBucket extends Record<SeriesKey, number> {
+  day: string
+  label: string
+  total: number
+}
+
+interface SegmentProps {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  fill?: string
+  payload?: DayBucket
+}
+
+// One stacked segment: a 2px surface gap above every segment but the top one,
+// and 4px rounded corners on the top of the stack only.
+function StackSegment({ x = 0, y = 0, width = 0, height = 0, fill, payload, seriesKey }: SegmentProps & { seriesKey: SeriesKey }) {
+  if (height <= 0 || !payload) return null
+  const top = [...SERIES].reverse().find(s => payload[s.key] > 0)?.key
+  if (top !== seriesKey) {
+    const h = Math.max(height - 2, 1)
+    return <rect x={x} y={y + height - h} width={width} height={h} fill={fill} />
+  }
+  const r = Math.min(4, width / 2, height)
+  return (
+    <path fill={fill} d={`M${x},${y + height} V${y + r} Q${x},${y} ${x + r},${y} H${x + width - r} Q${x + width},${y} ${x + width},${y + r} V${y + height} Z`} />
+  )
 }
 
 export default function Insights() {
+  const { effectiveTheme } = useTheme()
+  const COLORS = useMemo(() => Object.fromEntries(
+    SERIES.map(s => [s.key, effectiveTheme === 'dark' ? s.dark : s.light])) as Record<SeriesKey, string>, [effectiveTheme])
   // ── Design tokens ────────────────────────────────────────────────────────────
   const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
   const T = {
@@ -99,23 +137,31 @@ export default function Insights() {
 
   const filteredEvents = events
 
-  const chartData = useMemo(() => {
-    const dateRange = eachDayOfInterval({ start: subDays(new Date(), selectedDays - 1), end: new Date() })
-    return dateRange.map(date => {
-      const dateStr = format(date, 'yyyy-MM-dd')
-      const dayEvents = filteredEvents.filter(event => {
-        const eventDate = format(parseISO(event.metadata?.createdAt || ''), 'yyyy-MM-dd')
-        return eventDate === dateStr
-      })
-      return {
-        date: format(date, 'MM/dd'),
-        deployments: dayEvents.filter(e => e.attributes.type === EventType.DEPLOYMENT).length,
-        incidents: dayEvents.filter(e => e.attributes.type === EventType.INCIDENT).length,
-        operations: dayEvents.filter(e => e.attributes.type === EventType.OPERATION).length,
-        drifts: dayEvents.filter(e => e.attributes.type === EventType.DRIFT).length,
-      }
-    })
-  }, [filteredEvents, selectedDays])
+  const chartData = useMemo<DayBucket[]>(() => {
+    const start = parseISO(startDate)
+    const end = parseISO(endDate)
+    if (start > end) return []
+    const buckets = new Map<string, DayBucket>()
+    for (const date of eachDayOfInterval({ start, end })) {
+      const day = format(date, 'yyyy-MM-dd')
+      buckets.set(day, { day, label: format(date, 'MM/dd'), deployments: 0, drifts: 0, operations: 0, incidents: 0, total: 0 })
+    }
+    const keyOf: Partial<Record<EventType, SeriesKey>> = {
+      [EventType.DEPLOYMENT]: 'deployments',
+      [EventType.DRIFT]: 'drifts',
+      [EventType.OPERATION]: 'operations',
+      [EventType.INCIDENT]: 'incidents',
+    }
+    for (const event of filteredEvents) {
+      if (!event.metadata?.createdAt) continue
+      const bucket = buckets.get(format(parseISO(event.metadata.createdAt), 'yyyy-MM-dd'))
+      const key = keyOf[event.attributes.type]
+      if (!bucket || !key) continue
+      bucket[key]++
+      bucket.total++
+    }
+    return Array.from(buckets.values())
+  }, [filteredEvents, startDate, endDate])
 
   const metrics = useMemo(() => {
     const deployments = filteredEvents.filter(e => e.attributes.type === EventType.DEPLOYMENT)
@@ -154,27 +200,21 @@ export default function Insights() {
       .slice(0, 10)
   }, [filteredEvents])
 
-  const pieData = useMemo(() => [
-    { name: 'Deployments', value: metrics.deployments, color: COLORS.deployments },
-    { name: 'Incidents', value: metrics.incidents, color: COLORS.incidents },
-    { name: 'Operations', value: metrics.operations, color: COLORS.operations },
-    { name: 'Drifts', value: metrics.drifts, color: COLORS.drifts },
-  ].filter(item => item.value > 0), [metrics])
+  const pieData = useMemo(() => SERIES
+    .map(({ key, label }) => ({ name: label, value: metrics[key], color: COLORS[key] }))
+    .filter(item => item.value > 0), [metrics, COLORS])
 
   const handleProjectClick = (projectName: string) => {
     const projectEvents = filteredEvents.filter(event => event.attributes.service?.startsWith(projectName))
     setEventModal({ isOpen: true, title: `Events for Project: ${projectName}`, events: projectEvents, type: 'project' })
   }
 
-  const handleChartClick = (data: { activeLabel?: string | number } | null) => {
-    if (!data || !data.activeLabel) return
-    const clickedDate = data.activeLabel
-    const fullDate = format(subDays(new Date(), 29 - chartData.findIndex(d => d.date === clickedDate)), 'yyyy-MM-dd')
-    const dayEvents = filteredEvents.filter(event => {
-      const eventDate = format(parseISO(event.metadata?.createdAt || ''), 'yyyy-MM-dd')
-      return eventDate === fullDate
-    })
-    setEventModal({ isOpen: true, title: `Events for ${clickedDate}`, events: dayEvents, type: 'date' })
+  const handleChartClick = (data: { activeTooltipIndex?: number } | null) => {
+    const bucket = data?.activeTooltipIndex !== undefined ? chartData[data.activeTooltipIndex] : undefined
+    if (!bucket) return
+    const dayEvents = filteredEvents.filter(event =>
+      event.metadata?.createdAt && format(parseISO(event.metadata.createdAt), 'yyyy-MM-dd') === bucket.day)
+    setEventModal({ isOpen: true, title: `Events for ${format(parseISO(bucket.day), 'dd/MM/yyyy')}`, events: dayEvents, type: 'date' })
   }
 
   const closeModal = () => setEventModal({ isOpen: false, title: '', events: [], type: null })
@@ -300,19 +340,20 @@ export default function Insights() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {[
-            { label: 'Deployments', value: metrics.deployments, pct: metrics.total > 0 ? Math.round((metrics.deployments / metrics.total) * 100) : 0 },
-            { label: 'Incidents', value: metrics.incidents, pct: metrics.total > 0 ? Math.round((metrics.incidents / metrics.total) * 100) : 0 },
-            { label: 'Operations', value: metrics.operations, pct: metrics.total > 0 ? Math.round((metrics.operations / metrics.total) * 100) : 0 },
-            { label: 'Drifts', value: metrics.drifts, pct: metrics.total > 0 ? Math.round((metrics.drifts / metrics.total) * 100) : 0 },
-          ].map(({ label, value, pct }) => (
+          {SERIES.map(({ key, label }) => ({
+            label, color: COLORS[key], value: metrics[key],
+            pct: metrics.total > 0 ? Math.round((metrics[key] / metrics.total) * 100) : 0,
+          })).map(({ label, color, value, pct }) => (
             <div key={label} className="relative p-6 rounded-xl overflow-hidden"
               style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.18)}` }}>
-              <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
+              <span className="absolute inset-x-0 top-0 h-1" style={{ background: color }} />
+              <p className="text-[10px] uppercase tracking-widest font-bold mb-3 flex items-center gap-2" style={{ color: T.onSurfaceVar }}>
+                <span className="w-2 h-2 rounded-xs" style={{ background: color }} />{label}
+              </p>
               <p className="text-4xl font-black mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color: T.onSurface }}>{value}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: a('outline-var', 0.2) }}>
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: T.primary }} />
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: color }} />
                 </div>
                 <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>{pct}%</span>
               </div>
@@ -329,31 +370,56 @@ export default function Insights() {
                 <h3 className="text-lg font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Timeline Evolution
                 </h3>
-                <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>Activity across all event types</p>
+                <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>Events per day, click a bar to list them</p>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: T.success }} />
                 <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>LIVE</span>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={380}>
-              <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }} onClick={handleChartClick}>
-                <CartesianGrid strokeDasharray="2 4" stroke={a('outline-var', 0.15)} />
-                <XAxis dataKey="date" axisLine={false} tickLine={false}
+            <div className="flex items-center gap-x-5 gap-y-2 flex-wrap mb-4">
+              {SERIES.map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{ background: COLORS[key] }} />
+                  <span style={{ color: T.onSurfaceVar }}>{label}</span>
+                  <span className="font-semibold tabular-nums" style={{ color: T.onSurface }}>{metrics[key]}</span>
+                </div>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={360}>
+              <BarChart data={chartData} margin={{ top: 10, right: 8, left: 0, bottom: 4 }} barCategoryGap="22%"
+                onClick={handleChartClick} style={{ cursor: 'pointer' }}>
+                <CartesianGrid vertical={false} stroke={a('outline-var', 0.25)} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} minTickGap={16}
                   tick={{ fontSize: 11, fill: T.onSurfaceVar }} dy={8} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: T.onSurfaceVar }} dx={-8} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: T.onSurfaceVar, fontWeight: 600 }}
-                  cursor={{ stroke: a('outline-var', 0.3), strokeDasharray: '4 4' }} />
-                <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px', color: T.onSurfaceVar }} />
-                <Line type="monotone" dataKey="deployments" stroke={COLORS.deployments} strokeWidth={2} name="Deployments"
-                  dot={{ r: 0 }} activeDot={{ r: 5, stroke: COLORS.deployments, strokeWidth: 2, fill: 'white' }} />
-                <Line type="monotone" dataKey="incidents" stroke={COLORS.incidents} strokeWidth={2} name="Incidents"
-                  dot={{ r: 0 }} activeDot={{ r: 5, stroke: COLORS.incidents, strokeWidth: 2, fill: 'white' }} />
-                <Line type="monotone" dataKey="operations" stroke={COLORS.operations} strokeWidth={2} name="Operations"
-                  dot={{ r: 0 }} activeDot={{ r: 5, stroke: COLORS.operations, strokeWidth: 2, fill: 'white' }} />
-                <Line type="monotone" dataKey="drifts" stroke={COLORS.drifts} strokeWidth={2} name="Drifts"
-                  dot={{ r: 0 }} activeDot={{ r: 5, stroke: COLORS.drifts, strokeWidth: 2, fill: 'white' }} />
-              </LineChart>
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} width={36}
+                  tick={{ fontSize: 11, fill: T.onSurfaceVar }} />
+                <Tooltip cursor={{ fill: a('outline-var', 0.12) }}
+                  content={({ active, payload }) => {
+                    const bucket = active ? (payload?.[0]?.payload as DayBucket | undefined) : undefined
+                    if (!bucket) return null
+                    return (
+                      <div className="px-3 py-2.5 rounded-lg text-xs min-w-[160px]" style={{ ...tooltipStyle, boxShadow: 'var(--shadow-ig-dropdown)' }}>
+                        <p className="font-semibold mb-1.5" style={{ color: T.onSurface }}>{format(parseISO(bucket.day), 'EEE dd MMM yyyy')}</p>
+                        {[...SERIES].reverse().map(({ key, label }) => (
+                          <div key={key} className="flex items-center gap-2 py-0.5">
+                            <span className="w-2 h-2 rounded-xs" style={{ background: COLORS[key] }} />
+                            <span style={{ color: T.onSurfaceVar }}>{label}</span>
+                            <span className="ml-auto font-semibold tabular-nums" style={{ color: T.onSurface }}>{bucket[key]}</span>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-2 pt-1.5 mt-1.5" style={{ borderTop: `1px solid ${a('outline-var', 0.25)}` }}>
+                          <span style={{ color: T.onSurfaceVar }}>Total</span>
+                          <span className="ml-auto font-bold tabular-nums" style={{ color: T.onSurface }}>{bucket.total}</span>
+                        </div>
+                      </div>
+                    )
+                  }} />
+                {SERIES.map(({ key, label }) => (
+                  <Bar key={key} dataKey={key} name={label} stackId="events" fill={COLORS[key]} maxBarSize={32}
+                    isAnimationActive={false} shape={(props: SegmentProps) => <StackSegment {...props} seriesKey={key} />} />
+                ))}
+              </BarChart>
             </ResponsiveContainer>
           </div>
 
@@ -381,6 +447,9 @@ export default function Insights() {
                       )}
                       {project.operations > 0 && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-sm" style={{ background: `${COLORS.operations}20`, color: COLORS.operations }}>{project.operations}o</span>
+                      )}
+                      {project.drifts > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-sm" style={{ background: `${COLORS.drifts}20`, color: COLORS.drifts }}>{project.drifts}dr</span>
                       )}
                     </div>
                   </div>
