@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Tracker is an event-tracking platform (deployments, incidents, drifts, RPA usage), service catalog and distributed lock service. Go backend (gRPC + grpc-gateway REST) backed by MongoDB (or FerretDB), with a React 19 / TypeScript / Vite / Tailwind 4 SPA in `web/`. The MCP endpoint for AI agents is served by the Go server at `/mcp` (`server/mcp.go`); the Python MCP server in `mcp-server/` is deprecated.
+Tracker is an event-tracking platform (deployments, incidents, drifts, RPA usage), service catalog and distributed lock service. Go backend (gRPC + grpc-gateway REST) backed by MongoDB (or FerretDB), with a React 19 / TypeScript / Vite / Tailwind 4 SPA in `web/`. The MCP endpoint for AI agents is served by the Go server at `/mcp` (`server/mcp.go`).
 
 ## Commands
 

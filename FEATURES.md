@@ -313,148 +313,66 @@ Clic sur n'importe quel événement pour voir :
 
 ### 📖 Vue d'ensemble
 
-Le serveur MCP permet d'interroger Tracker depuis des agents IA comme Kiro. Il expose les APIs de Tracker en lecture seule via le protocole MCP.
+Tracker sert un endpoint MCP sur `/mcp`, dans son propre serveur HTTP : les agents IA (Claude Code, Claude Desktop, Cursor, Kiro…) interrogent les events, le catalogue et les locks en langage naturel, sans rien installer. Les outils sont en lecture seule et soumis à l'authentification de Tracker (clés API, permissions, scope des équipes), comme l'API REST.
+
+> 📖 **Guide complet** : [docs/MCP_SERVER.md](./docs/MCP_SERVER.md)
 
 ### 🎯 Fonctionnalités
 
 **8 outils disponibles :**
 
 #### Events
-- **`list_events`** : Liste les événements avec filtres basiques (type, service, status)
-- **`today_events`** : Récupère tous les événements créés aujourd'hui
-- **`search_events`** : Recherche avancée avec filtres multiples
-- **`get_event`** : Récupère un événement spécifique par ID
+- **`list_events`** : Liste les événements, du plus récent au plus ancien, avec filtres optionnels (type, service, statut)
+- **`today_events`** : Événements qui commencent aujourd'hui
+- **`search_events`** : Recherche par source, type, priorité, statut, service, environnement et plage de dates
+- **`get_event`** : Un événement par son ID ou par l'ID de son message Slack
 
 #### Catalog
 - **`list_catalog`** : Liste les services du catalogue
-- **`get_catalog_service`** : Récupère un service spécifique par nom
+- **`get_catalog_service`** : Un service par son nom, avec versions, dépendances et liens
 
 #### Locks
 - **`list_locks`** : Liste les locks actifs
-- **`get_lock`** : Récupère un lock spécifique par ID
+- **`get_lock`** : Un lock par son ID
 
-### 🚀 Installation
+### 🚀 Configuration
 
-> 📖 **Guide complet** : Voir [mcp-server/QUICK_START.md](./mcp-server/QUICK_START.md)
+L'endpoint est actif par défaut (`MCP_ENABLED=true`). Exemple pour Claude Code :
 
 ```bash
-# 1. Installer uv si nécessaire
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.bashrc
+claude mcp add --transport http tracker https://tracker.example.com/mcp \
+  --header "Authorization: Bearer trk_..."
+```
 
-# 2. Installer les dépendances
-cd mcp-server
-uv sync
+Cursor, Kiro et les autres clients « Streamable HTTP » :
 
-# 3. Configurer dans Kiro (~/.kiro/settings/mcp.json)
+```json
 {
   "mcpServers": {
     "tracker": {
-      "command": "uvx",
-      "args": ["--from", "/chemin/vers/tracker/mcp-server", "tracker-mcp-server"],
-      "env": {
-        "TRACKER_URL": "http://localhost:8080"
-      },
-      "disabled": false,
-      "autoApprove": ["list_events", "today_events", "search_events", "list_catalog", "list_locks"]
+      "type": "http",
+      "url": "https://tracker.example.com/mcp",
+      "headers": { "Authorization": "Bearer trk_..." }
     }
   }
 }
 ```
 
-### ⚙️ Configuration
-
-**Variable d'environnement :**
-- `TRACKER_URL` : URL du serveur Tracker (défaut: `http://localhost:8080`)
-
-**Exemples d'URL :**
-```bash
-# Local
-TRACKER_URL=http://localhost:8080
-
-# Production
-TRACKER_URL=https://tracker.example.com
-
-# Réseau interne
-TRACKER_URL=http://10.0.0.5:9090
-```
-
-### 📖 Exemples d'Utilisation dans Kiro
+### 📖 Exemples d'Utilisation
 
 ```
-# Événements d'aujourd'hui
-"Quels sont les événements d'aujourd'hui ?"
-"Montre-moi les déploiements d'aujourd'hui"
-
-# Recherche avancée
-"Recherche les événements de type deployment en production avec un impact"
-"Trouve les incidents P1 du service auth-service entre le 2024-01-01 et 2024-01-15"
-"Montre les événements en échec de la semaine dernière"
-
-# Filtres par service
-"Trouve les événements du service afrr"
-"Montre-moi tous les événements du service user-api"
-
-# Catalogue
-"Liste tous les services du catalogue"
+"Quels sont les déploiements en production aujourd'hui ?"
+"Trouve les incidents P1 du service auth-service entre le 2026-01-01 et le 2026-01-15"
 "Donne-moi les détails du service auth-service"
-
-# Locks
-"Quels sont les locks actifs ?"
 "Y a-t-il un lock sur le service payment-api ?"
 ```
-
-### 🔧 Paramètres de Recherche Avancée
-
-L'outil `search_events` supporte de nombreux filtres :
-
-- **`source`** : Source (github-actions, jenkins, manual, etc.)
-- **`type`** : Type (deployment, operation, drift, incident, rpa_usage)
-- **`priority`** : Priorité (P1, P2, P3, P4, P5)
-- **`status`** : Statut (start, failure, success, warning, error, etc.)
-- **`service`** : Nom du service
-- **`start_date`** : Date de début (ISO 8601: YYYY-MM-DD ou YYYY-MM-DDTHH:MM:SSZ)
-- **`end_date`** : Date de fin (ISO 8601)
-- **`environment`** : Environnement (development, production, etc.)
-- **`impact`** : Booléen pour filtrer par impact
-- **`slack_id`** : ID du message Slack
-
-### 🔒 Sécurité
-
-- **Lecture seule** : Aucune opération de modification possible
-- **Pas d'authentification** : À utiliser sur des réseaux de confiance
-- **Timeout** : Requêtes HTTP avec timeout de 30 secondes
-
-### 🐛 Debugging
-
-**Vérifier la connexion :**
-```bash
-# Test direct de l'API
-curl http://localhost:8080/api/v1alpha1/events/list?perPage=1
-
-# Vérifier les logs dans Kiro
-# Ouvrir la vue "MCP Servers" dans Kiro
-```
-
-**Erreurs courantes :**
-- **"Connection refused"** : Vérifier que Tracker est démarré et l'URL
-- **"Module not found"** : Réinstaller avec `uv pip install -e .`
-- **"Tool not found"** : Redémarrer le serveur MCP depuis Kiro
-
-### 📚 Documentation Complète
-
-Voir le fichier `mcp-server/README.md` pour :
-- Guide d'installation détaillé
-- Exemples de configuration
-- Troubleshooting complet
-- Guide de développement
 
 ---
 
 ## 🐛 Besoin d'Aide ?
 
 - Consultez la documentation dans `/docs`
-- Voir `mcp-server/README.md` pour le serveur MCP
+- Voir [docs/MCP_SERVER.md](./docs/MCP_SERVER.md) pour le serveur MCP
 - Ouvrez une issue sur GitHub
 - Contactez l'équipe DevOps
 
