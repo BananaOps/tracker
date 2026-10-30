@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.22.0](https://github.com/BananaOps/tracker/compare/v0.21.1...v0.22.0) (2026-10-30)
+
+
+### ✨ Features
+
+* **auth:** local accounts, teams, permissions and API keys ([#200](https://github.com/BananaOps/tracker/issues/200)) ([31259c3](https://github.com/BananaOps/tracker/commit/31259c30e506bd9406f8166472b3f61803ae6b36))
+* **auth:** OpenID Connect login with team mapping ([#214](https://github.com/BananaOps/tracker/issues/214)) ([1b85a9a](https://github.com/BananaOps/tracker/commit/1b85a9ad519a1f171d3369e7e1d6bbdc3921c5a4))
+* **auth:** per-service team scope ([#216](https://github.com/BananaOps/tracker/issues/216)) ([0d06106](https://github.com/BananaOps/tracker/commit/0d06106631af34f21cd886446fb4a08d0b51bfa5))
+* **mcp:** serve the MCP endpoint from the Go server ([#238](https://github.com/BananaOps/tracker/issues/238)) ([ecede31](https://github.com/BananaOps/tracker/commit/ecede313113ff637ce8328c1e5b601af95370f57))
+
+
+### 🐛 Bug Fixes
+
+* audit follow-ups, date ranges, scope and frontend bugs ([#251](https://github.com/BananaOps/tracker/issues/251)) ([93c719d](https://github.com/BananaOps/tracker/commit/93c719d2fc6b37846c20cf9cd86719b31bd13a63))
+* **auth:** enforce the forced password change on the server ([#217](https://github.com/BananaOps/tracker/issues/217)) ([8f3a9ef](https://github.com/BananaOps/tracker/commit/8f3a9efa355a240fcd92da817bbfe685b18de7da))
+* correct the bugs found by the backend audit ([#250](https://github.com/BananaOps/tracker/issues/250)) ([ebbd362](https://github.com/BananaOps/tracker/commit/ebbd362134cc05ade449a45ac1fe2dc2555dce7a))
+* **deps:** bump Go, web and CI dependencies, Swagger UI on docui ([#255](https://github.com/BananaOps/tracker/issues/255)) ([12ac969](https://github.com/BananaOps/tracker/commit/12ac969afdcaae348d3b4335abd87043a6e8a562))
+* **deps:** patch axios, moment and brace-expansion advisories ([#215](https://github.com/BananaOps/tracker/issues/215)) ([f359d84](https://github.com/BananaOps/tracker/commit/f359d84bbb9983ba58e35518df3a92735adbc558))
+* **deps:** patch follow-redirects, source-map-js, vite and zod advisories ([#236](https://github.com/BananaOps/tracker/issues/236)) ([7dedf58](https://github.com/BananaOps/tracker/commit/7dedf58db0bf3de6b89483c8c8fa1b4f27260e7e))
+* **deps:** upgrade react-router-dom to v7 and patch vulnerable transitive packages ([#202](https://github.com/BananaOps/tracker/issues/202)) ([a4f9afc](https://github.com/BananaOps/tracker/commit/a4f9afc4a4c1f5f1c8756654aa4decbebae3a03c))
+* **deps:** upgrade tailwindcss to v4 and eslint to v10 ([#206](https://github.com/BananaOps/tracker/issues/206)) ([6723448](https://github.com/BananaOps/tracker/commit/67234483377af4fc87973c747c0cdd78c70b2191))
+* **docker:** run container as non-root user ([#198](https://github.com/BananaOps/tracker/issues/198)) ([1769020](https://github.com/BananaOps/tracker/commit/176902037d35dcdec1c72aa7815730edc94d8426))
+* **web:** keep the catalog SLA, clear every lint warning ([#253](https://github.com/BananaOps/tracker/issues/253)) ([9e4c988](https://github.com/BananaOps/tracker/commit/9e4c9881973d0df7fd1b81234c83dd5278f34c2b))
+* **web:** normalize event enums at the API layer, move the docs page ([#254](https://github.com/BananaOps/tracker/issues/254)) ([a87d044](https://github.com/BananaOps/tracker/commit/a87d044d373278f0ae83af0981c704c8df604665))
+* **web:** zero type and lint errors, dead code removed, Vitest and web CI ([#252](https://github.com/BananaOps/tracker/issues/252)) ([393648c](https://github.com/BananaOps/tracker/commit/393648cb402108781dd76146312bb6d198dbc139))
+
+
+### ⚡ Performance Improvements
+
+* list and search results carry only the approvals of the changelog ([#259](https://github.com/BananaOps/tracker/issues/259)) ([a7a535b](https://github.com/BananaOps/tracker/commit/a7a535b1d8111ec2a0d8a4c8393aae7167e6afc4))
+* paginate ListEvents, gzip the HTTP responses, cache the assets ([#257](https://github.com/BananaOps/tracker/issues/257)) ([a39d22a](https://github.com/BananaOps/tracker/commit/a39d22a708ef1e967916aa1dde1b7bbd6c4b0cb0))
+* **web:** load each page on demand, React in its own chunk ([#258](https://github.com/BananaOps/tracker/issues/258)) ([ec26ef5](https://github.com/BananaOps/tracker/commit/ec26ef53ee457be5a63d6e09d35e4110cf8a7195))
+
+
+### 📖 Documentation
+
+* add CLAUDE.md for project guidance and command instructions ([5d3dc27](https://github.com/BananaOps/tracker/commit/5d3dc27dd99fa105e9b58eba2bb536e7bfc0098a))
+* update CLAUDE.md for improved clarity and command structure ([e2475e5](https://github.com/BananaOps/tracker/commit/e2475e597dd5014871c1713ebfea0806bc80083d))
+
+
+### 👷 CI/CD
+
+* bump charts to 0.21.1 ([a7906b7](https://github.com/BananaOps/tracker/commit/a7906b79762bc395ac7c5ef29540cae9dd678bc1))
+* include dependabot updates in release-please ([#237](https://github.com/BananaOps/tracker/issues/237)) ([57c1b8f](https://github.com/BananaOps/tracker/commit/57c1b8f5dc61c9031323d69f6bb450891c7eeafb))
+* stop labelling fork pull requests in the PR title check ([#207](https://github.com/BananaOps/tracker/issues/207)) ([c9edcd8](https://github.com/BananaOps/tracker/commit/c9edcd86e66ac41e730d5154d33d51b284a74f88))
+* update all GitHub Actions to their latest major versions ([#205](https://github.com/BananaOps/tracker/issues/205)) ([48e03d7](https://github.com/BananaOps/tracker/commit/48e03d747cbc4c1ca228294cfa03e209eae2e001))
+
+
+### 🔧 Chores
+
+* **deps:** bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([#218](https://github.com/BananaOps/tracker/issues/218)) ([e9ba59b](https://github.com/BananaOps/tracker/commit/e9ba59bb8e11ad5b12d86f985263297664c77e0c))
+* **deps:** bump github.com/stretchr/testify from 1.11.1 to 1.12.1 ([#212](https://github.com/BananaOps/tracker/issues/212)) ([6c089c9](https://github.com/BananaOps/tracker/commit/6c089c95dcc101afb7d0f39456821b0cb31fac49))
+* **deps:** bump google.golang.org/grpc from 1.83.2 to 1.84.0 ([#210](https://github.com/BananaOps/tracker/issues/210)) ([bf7bd51](https://github.com/BananaOps/tracker/commit/bf7bd51fac5a4724e211dd15e456381dcccfdddb))
+* **deps:** bump google.golang.org/protobuf from 1.36.11 to 1.36.12 ([#211](https://github.com/BananaOps/tracker/issues/211)) ([5cb2ad5](https://github.com/BananaOps/tracker/commit/5cb2ad55505ad8e4743f015618c0a114469bf6f8))
+
 ## [0.21.1](https://github.com/BananaOps/tracker/compare/v0.21.0...v0.21.1) (2026-07-27)
 
 
