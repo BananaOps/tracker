@@ -523,7 +523,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 </button>
                 <button onClick={handleApprove} disabled={approvingEvent || isApproved}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg disabled:opacity-50"
-                  style={{ background: hud.primary, color: '#ffffff', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
+                  style={{ background: hud.primary, color: 'var(--on-ink)', boxShadow: `0 4px 16px ${ha('primary', 0.2)}` }}>
                   <CheckCircle className="w-4 h-4" /> {isApproved ? 'Approved' : 'Approve'}
                 </button>
                 <button onClick={existingLock ? handleUnlock : handleLock} disabled={lockingService || checkingLock}
@@ -544,7 +544,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={handleCancel} className="px-4 py-2.5 rounded-lg text-sm font-medium" style={{ background: hud.surfaceHigh, color: hud.onSurface }}>Cancel</button>
                 <button onClick={handleSave} disabled={updateMutation.isPending} className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
-                  style={{ background: hud.primary, color: '#ffffff' }}>
+                  style={{ background: hud.primary, color: 'var(--on-ink)' }}>
                   <Save className="w-4 h-4" /> {updateMutation.isPending ? 'Saving...' : 'Save'}
                 </button>
               </div>
@@ -666,7 +666,7 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                       <div className="px-5 py-4 flex flex-col gap-2">
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: hud.onSurfaceVar }}>Owner</span>
                         <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: hud.primary }}>
+                          <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-on-ink shrink-0" style={{ background: hud.primary }}>
                             {ownerInitials || '?'}
                           </span>
                           <span className="text-sm font-semibold truncate">{editedEvent.attributes.owner || 'Unassigned'}</span>

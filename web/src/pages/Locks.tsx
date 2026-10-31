@@ -218,7 +218,7 @@ export default function Locks() {
                         )}
                         <button onClick={() => handleUnlock(lock)} disabled={unlocking === lock.id}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50"
-                          style={{ color: 'white', background: T.error }}>
+                          style={{ color: 'var(--on-status)', background: T.error }}>
                           {unlocking === lock.id
                             ? <><RefreshCw className="w-3 h-3 animate-spin" /> Unlocking...</>
                             : <><Unlock className="w-3 h-3" /> Unlock</>
@@ -277,7 +277,7 @@ export default function Locks() {
               </button>
               <button onClick={handleUnlockConfirm} disabled={unlocking === selectedLock.id}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})`, color: 'white' }}>
+                style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})`, color: 'var(--on-ink)' }}>
                 <Unlock className="w-4 h-4" />
                 {unlocking === selectedLock.id ? 'Unlocking...' : 'Unlock'}
               </button>

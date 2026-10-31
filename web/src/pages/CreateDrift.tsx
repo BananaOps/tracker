@@ -309,7 +309,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
               className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
               style={{
                 background: `linear-gradient(135deg, ${hud.primary}, ${hud.primaryDim})`,
-                color: 'white',
+                color: 'var(--on-ink)',
                 boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
               }}>
               <GitBranch className="w-4 h-4" />

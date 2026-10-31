@@ -187,7 +187,7 @@ export default function DependencySelector({
           type="button"
           onClick={onAdd}
           disabled={!value.trim()}
-          className="px-3 py-2 bg-hud-primary text-white rounded-lg hover:bg-hud-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 bg-hud-primary text-on-ink rounded-lg hover:bg-hud-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
         </button>

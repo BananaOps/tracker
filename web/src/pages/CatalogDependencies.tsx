@@ -610,7 +610,7 @@ export default function CatalogDependencies() {
                   onClick={() => setLayoutType(lt)}
                   className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                   style={layoutType === lt
-                    ? { background: T.primary, color: 'white' }
+                    ? { background: T.primary, color: 'var(--on-ink)' }
                     : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                   }
                 >
@@ -630,7 +630,7 @@ export default function CatalogDependencies() {
                   onClick={() => setNodeSize(size)}
                   className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                   style={nodeSize === size
-                    ? { background: T.primary, color: 'white' }
+                    ? { background: T.primary, color: 'var(--on-ink)' }
                     : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                   }
                 >
@@ -652,7 +652,7 @@ export default function CatalogDependencies() {
                 onClick={() => setViewMode(mode)}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                 style={viewMode === mode
-                  ? { background: T.primary, color: 'white' }
+                  ? { background: T.primary, color: 'var(--on-ink)' }
                   : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                 }
               >
@@ -702,7 +702,7 @@ export default function CatalogDependencies() {
                     onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
                     className="px-3 py-1 text-xs font-medium rounded-full transition-all hover:opacity-90"
                     style={selectedTypes.includes(type)
-                      ? { background: T.primary, color: 'white' }
+                      ? { background: T.primary, color: 'var(--on-ink)' }
                       : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                     }
                   >

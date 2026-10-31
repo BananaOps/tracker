@@ -271,7 +271,7 @@
 @utility btn-primary {
   @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-semibold transition-all duration-150;
   background-color: rgb(var(--hud-primary));
-  color: white;
+  color: var(--on-ink);
   box-shadow: 0 1px 2px rgb(var(--hud-primary) / 0.25);
   &:hover {
     background-color: rgb(var(--hud-primary-dim));
@@ -367,82 +367,40 @@
 }
 
 @layer base {
-  /* ── Intergalactic Design System Tokens ── */
-  :root {
-    /* Surfaces */
-    --hud-bg:               239 241 246;   /* #eff1f6 */
-    --hud-surface:          255 255 255;   /* #ffffff */
-    --hud-surface-low:      243 245 249;   /* #f3f5f9 */
-    --hud-surface-high:     238 241 248;   /* #eef1f8 */
-    --hud-surface-highest:  224 230 241;   /* #e0e6f1 */
-
-    /* Brand */
-    --hud-primary:          27 53 117;     /* #1b3575 */
-    --hud-primary-dim:      21 44 104;     /* #152c68 */
-    --hud-secondary:        74 127 219;    /* #4a7fdb */
-    --hud-tertiary:         22 163 74;      /* #16a34a */
-
-    /* Text */
-    --hud-on-surface:       13 17 23;      /* #0d1117 */
-    --hud-on-surface-var:   110 120 145;   /* #6e7891 */
-
-    /* Borders */
-    --hud-outline:          176 186 208;   /* #b0bad0 */
-    --hud-outline-var:      197 203 220;   /* #c5cbdc */
-
-    /* Semantic */
-    --hud-success:          22 163 74;      /* #16a34a */
-    --hud-error:            192 51 10;      /* #c0330a */
-    --hud-warning:          245 158 11;     /* #f59e0b */
-
-    /* Sidebar */
-    --hud-sidebar-bg:       15 22 41;      /* #0f1629 */
-    --hud-sidebar-border:   32 40 61;      /* #20283d */
-    --hud-sidebar-active:   31 39 58;      /* #1f273a */
-    --hud-sidebar-text:     166 176 200;   /* #a6b0c8 */
-    --hud-sidebar-text-active: 255 255 255;
-    --hud-header-bg:        255 255 255;
-  }
-
+  /* TEMPORARY: compatibility bridge, removed in lot 5.
+     The legacy --hud-* variables (RGB channels, used as rgb(var(--hud-…))) now
+     point to the design system tokens, so every screen adopts the new palette
+     before it is redesigned. Declared on .dark too, so that a .dark subtree
+     (the showcase) recomputes them. Success stays neutral, like done. */
+  :root,
   .dark {
-    /* Surfaces */
-    --hud-bg:               13 17 23;      /* #0d1117 */
-    --hud-surface:          22 28 42;      /* #161c2a */
-    --hud-surface-low:      26 32 48;      /* #1a2030 */
-    --hud-surface-high:     30 37 53;      /* #1e2535 */
-    --hud-surface-highest:  42 50 69;      /* #2a3245 */
-
-    /* Brand */
-    --hud-primary:          74 127 219;    /* #4a7fdb */
-    --hud-primary-dim:      64 112 196;    /* #4070c4 */
-    --hud-secondary:        99 146 229;    /* #6392e5 */
-    --hud-tertiary:         34 197 94;      /* #22c55e */
-
-    /* Text */
-    --hud-on-surface:       232 235 242;   /* #e8ebf2 */
-    --hud-on-surface-var:   122 135 168;   /* #7a87a8 */
-
-    /* Borders */
-    --hud-outline:          111 124 158;   /* #6f7c9e */
-    --hud-outline-var:      78 88 117;     /* #4e5875 */
-
-    /* Semantic */
-    --hud-success:          34 197 94;      /* #22c55e */
-    --hud-error:            192 51 10;      /* #c0330a */
-    --hud-warning:          245 158 11;     /* #f59e0b */
-
-    /* Sidebar */
-    --hud-sidebar-bg:       8 13 24;       /* #080d18 */
-    --hud-sidebar-border:   28 35 53;      /* #1c2335 */
-    --hud-sidebar-active:   24 33 54;      /* #182136 */
-    --hud-sidebar-text:     140 151 178;   /* #8c97b2 */
-    --hud-sidebar-text-active: 255 255 255;
-    --hud-header-bg:        22 28 42;
+    --hud-bg:                  var(--paper-rgb);
+    --hud-surface:             var(--surface-rgb);
+    --hud-surface-low:         var(--sunken-rgb);
+    --hud-surface-high:        var(--sunken-rgb);
+    --hud-surface-highest:     var(--rule-soft-rgb);
+    --hud-primary:             var(--ink-rgb);
+    --hud-primary-dim:         var(--ink-hover-rgb);
+    --hud-secondary:           var(--muted-rgb);
+    --hud-tertiary:            var(--muted-rgb);
+    --hud-on-surface:          var(--ink-rgb);
+    --hud-on-surface-var:      var(--muted-rgb);
+    --hud-outline:             var(--rule-strong-rgb);
+    --hud-outline-var:         var(--rule-rgb);
+    --hud-success:             var(--muted-rgb);
+    --hud-error:               var(--failed-rgb);
+    --hud-warning:             var(--warning-rgb);
+    --hud-sidebar-bg:          var(--surface-rgb);
+    --hud-sidebar-border:      var(--rule-rgb);
+    --hud-sidebar-active:      var(--sunken-rgb);
+    --hud-sidebar-text:        var(--muted-rgb);
+    --hud-sidebar-text-active: var(--ink-rgb);
+    --hud-header-bg:           var(--surface-rgb);
   }
 
   body {
-    background-color: rgb(var(--hud-bg));
-    color: rgb(var(--hud-on-surface));
+    background-color: var(--paper);
+    color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
