@@ -104,7 +104,7 @@ export default function VersionCompliance() {
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-6 h-6" style={{ color: T.primary }} />
-            <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h1 className="text-3xl font-black tracking-tight">
               Version Compliance
             </h1>
           </div>
@@ -126,7 +126,7 @@ export default function VersionCompliance() {
               <div className="absolute top-2 right-3 w-12 h-12 rounded-full blur-xl opacity-20 pointer-events-none"
                 style={{ background: color }} />
               <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
-              <span className="text-4xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</span>
+              <span className="text-4xl font-black" style={{ fontFamily: 'var(--font-mono)', color }}>{value}</span>
             </div>
           ))}
         </div>
@@ -177,7 +177,7 @@ export default function VersionCompliance() {
         {filteredData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: T.surface }}>
             <Package className="w-16 h-16 mb-4 opacity-20" style={{ color: T.onSurfaceVar }} />
-            <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>No projects found</h3>
+            <h3 className="text-lg font-bold mb-2">No projects found</h3>
             <p className="text-sm" style={{ color: T.onSurfaceVar }}>Try adjusting your filters or search query</p>
           </div>
         ) : (
@@ -222,7 +222,7 @@ export default function VersionCompliance() {
                           <span className="text-sm" style={{ color: T.onSurfaceVar }}>-</span>
                         ) : (
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: status.color }}>
+                            <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-mono)', color: status.color }}>
                               {project.compliancePercentage}%
                             </span>
                             <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: a('outline-var', 0.2) }}>
@@ -232,12 +232,12 @@ export default function VersionCompliance() {
                           </div>
                         )}
                       </td>
-                      <td className="px-5 py-3.5 text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <td className="px-5 py-3.5 text-sm" style={{ fontFamily: 'var(--font-mono)' }}>
                         {project.totalCount}
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="text-sm font-bold" style={{
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: 'var(--font-mono)',
                           color: project.outdatedCount > 0 ? T.error : T.onSurfaceVar
                         }}>
                           {project.outdatedCount}

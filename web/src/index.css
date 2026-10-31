@@ -192,9 +192,6 @@
   --color-hud-error: rgb(var(--hud-error));
   --color-hud-warning: rgb(var(--hud-warning));
 
-  --font-grotesk: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
 
   --text-fs-100: 0.75rem;
   --text-fs-100--line-height: 1rem;
@@ -446,8 +443,7 @@
   body {
     background-color: rgb(var(--hud-bg));
     color: rgb(var(--hud-on-surface));
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

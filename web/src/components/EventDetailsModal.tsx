@@ -506,10 +506,10 @@ export default function EventDetailsModal({ event, onClose }: EventDetailsModalP
                 </div>
               )}
               {isEditing ? (
-                <input type="text" className="input text-3xl lg:text-4xl font-bold w-full" style={{ fontFamily: "'Space Grotesk',sans-serif" }}
+                <input type="text" className="input text-3xl lg:text-4xl font-bold w-full"
                   value={editedEvent.title} onChange={(e) => setEditedEvent({ ...editedEvent, title: e.target.value })} />
               ) : (<>
-                <h1 className={`font-bold tracking-tight ${expanded ? 'text-3xl lg:text-4xl' : 'text-2xl'}`} style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                <h1 className={`font-bold tracking-tight ${expanded ? 'text-3xl lg:text-4xl' : 'text-2xl'}`}>
                   {editedEvent.title}
                 </h1>
                 <p className="text-sm font-mono mt-1" style={{ color: hud.onSurfaceVar }}>{editedEvent.attributes.service}</p>

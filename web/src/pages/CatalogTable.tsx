@@ -242,7 +242,7 @@ export default function CatalogTable() {
             <div className="flex items-center justify-between">
               <h3
                 className="text-sm font-bold flex items-center gap-2 uppercase tracking-widest"
-                style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}
+                style={{ color: T.onSurfaceVar }}
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
@@ -490,7 +490,7 @@ export default function CatalogTable() {
               <div>
                 <h2
                   className="text-2xl font-bold"
-                  style={{ color: T.onSurface, fontFamily: "'Space Grotesk', sans-serif" }}
+                  style={{ color: T.onSurface }}
                 >
                   Catalog
                 </h2>

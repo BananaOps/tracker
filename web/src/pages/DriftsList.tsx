@@ -39,7 +39,7 @@ function HudModal({ title, onClose, children }: { title: ReactNode; onClose: () 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
       <div className="relative rounded-2xl w-full max-w-md p-6 shadow-2xl" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.15)}` }}>
         <div className="flex items-center justify-between mb-5">
-          <div className="font-bold text-sm" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>{title}</div>
+          <div className="font-bold text-sm" style={{ color: T.onSurface }}>{title}</div>
           <button onClick={onClose} className="p-1.5 rounded-lg transition-all" style={{ color: T.onSurfaceVar, background: a('outlineVar', 0.08) }}>
             <X className="w-4 h-4" />
           </button>
@@ -211,7 +211,7 @@ export default function DriftsList() {
         {/* ── Header ── */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Configuration Drifts</h1>
+            <h1 className="text-3xl font-black">Configuration Drifts</h1>
             <p className="text-sm mt-1" style={{ color: T.onSurfaceVar }}>
               {stats.active} active drift{stats.active !== 1 ? 's' : ''} — {stats.total} total
             </p>
@@ -241,7 +241,7 @@ export default function DriftsList() {
                 {icon}
               </span>
               <div className="min-w-0">
-                <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>{value}</p>
+                <p className="text-2xl font-bold leading-none" style={{ color: T.onSurface }}>{value}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider mt-1.5 truncate" style={{ color: T.onSurfaceVar }}>{label}</p>
                 <p className="text-[10px] mt-0.5 truncate" style={{ color: T.onSurfaceVar }}>{sub}</p>
               </div>

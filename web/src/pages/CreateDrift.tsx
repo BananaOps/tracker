@@ -93,7 +93,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
   const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
-      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+      <h3 className="text-xl font-bold">{title}</h3>
     </div>
   )
 
@@ -278,7 +278,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
 
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-4xl font-bold tracking-tight mb-2">
             Create a Drift
           </h2>
           <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
@@ -302,7 +302,7 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
             <button type="button" onClick={() => navigate('/drifts')}
               className="px-8 py-3 font-bold transition-colors hover:opacity-80"
-              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              style={{ color: hud.onSurfaceVar }}>
               Cancel
             </button>
             <button type="submit" disabled={createMutation.isPending}
@@ -310,7 +310,6 @@ export default function CreateDrift({ asPanel = false, onClose, onSuccess }: Cre
               style={{
                 background: `linear-gradient(135deg, ${hud.primary}, ${hud.primaryDim})`,
                 color: 'white',
-                fontFamily: "'Space Grotesk', sans-serif",
                 boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
               }}>
               <GitBranch className="w-4 h-4" />

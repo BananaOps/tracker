@@ -118,7 +118,7 @@ export default function Locks() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h1 className="text-3xl font-black tracking-tight">
               Locks
             </h1>
             <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
@@ -161,7 +161,7 @@ export default function Locks() {
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl"
             style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.5)}` }}>
             <Unlock className="w-16 h-16 mb-4 opacity-20" style={{ color: T.onSurfaceVar }} />
-            <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>No active locks</h3>
+            <h3 className="text-lg font-bold mb-2">No active locks</h3>
             <p className="text-sm mb-6" style={{ color: T.onSurfaceVar }}>All services are currently unlocked</p>
           </div>
         ) : (
@@ -198,12 +198,12 @@ export default function Locks() {
                       {lock.resource || '-'}
                     </td>
                     <td className="px-5 py-3.5 text-sm font-medium">{lock.who}</td>
-                    <td className="px-5 py-3.5 text-sm" style={{ color: T.onSurfaceVar, fontFamily: "'JetBrains Mono', monospace" }}>
+                    <td className="px-5 py-3.5 text-sm" style={{ color: T.onSurfaceVar, fontFamily: 'var(--font-mono)' }}>
                       {formatDate(lock.createdAt || lock.created_at)}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="px-2 py-0.5 rounded-sm text-xs font-bold"
-                        style={{ background: a('primary', 0.1), color: T.primary, fontFamily: "'JetBrains Mono', monospace" }}>
+                        style={{ background: a('primary', 0.1), color: T.primary, fontFamily: 'var(--font-mono)' }}>
                         {getTimeSince(lock.createdAt || lock.created_at)}
                       </span>
                     </td>
@@ -242,7 +242,7 @@ export default function Locks() {
             style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center gap-3 mb-6">
               <Unlock className="w-5 h-5" style={{ color: T.primary }} />
-              <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Unlock Service</h3>
+              <h3 className="text-xl font-bold">Unlock Service</h3>
             </div>
             <p className="text-sm mb-6" style={{ color: T.onSurfaceVar }}>
               Enter your name to unlock <strong style={{ color: T.onSurface }}>{selectedLock.service}</strong> in <strong style={{ color: T.onSurface }}>{getEnvironmentLabel(selectedLock.environment)}</strong>
@@ -272,12 +272,12 @@ export default function Locks() {
             <div className="flex gap-3">
               <button onClick={() => setShowUnlockPrompt(false)}
                 className="flex-1 px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-80"
-                style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+                style={{ color: T.onSurfaceVar }}>
                 Cancel
               </button>
               <button onClick={handleUnlockConfirm} disabled={unlocking === selectedLock.id}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})`, color: 'white', fontFamily: "'Space Grotesk', sans-serif" }}>
+                style={{ background: `linear-gradient(135deg, ${T.primary}, ${T.primaryDim})`, color: 'white' }}>
                 <Unlock className="w-4 h-4" />
                 {unlocking === selectedLock.id ? 'Unlocking...' : 'Unlock'}
               </button>

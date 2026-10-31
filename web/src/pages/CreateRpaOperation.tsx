@@ -121,7 +121,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
   const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
-      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+      <h3 className="text-xl font-bold">{title}</h3>
     </div>
   )
 
@@ -239,7 +239,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
                 </div>
                 <div className="flex flex-col items-center text-center py-2">
                   <Bot className="w-10 h-10 mb-4" style={{ color: hud.primary }} />
-                  <h4 className="font-bold mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>RPA Operation</h4>
+                  <h4 className="font-bold mb-3">RPA Operation</h4>
                   <p className="text-xs leading-relaxed" style={{ color: hud.onSurfaceVar }}>
                     Robotic Process Automation refers to the automation of repetitive business processes by software robots.
                   </p>
@@ -273,7 +273,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
 
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-4xl font-bold tracking-tight mb-2">
             Create an RPA Operation
           </h2>
           <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
@@ -297,7 +297,7 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
             <button type="button" onClick={() => navigate('/rpa')}
               className="px-8 py-3 font-bold transition-colors hover:opacity-80"
-              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              style={{ color: hud.onSurfaceVar }}>
               Cancel
             </button>
             <button type="submit" disabled={createMutation.isPending}
@@ -305,7 +305,6 @@ export default function CreateRpaOperation({ asPanel = false, onClose, onSuccess
               style={{
                 background: `linear-gradient(135deg, ${hud.primary}, ${hud.primaryDim})`,
                 color: 'white',
-                fontFamily: "'Space Grotesk', sans-serif",
                 boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
               }}>
               <Bot className="w-4 h-4" />

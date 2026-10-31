@@ -692,7 +692,7 @@ export default function EventsStreamline() {
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center space-x-2">
-                                <div className="font-semibold text-sm truncate" style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.onSurface }}>
+                                <div className="font-semibold text-sm truncate" style={{ color: T.onSurface }}>
                                   {displayName}
                                 </div>
                                 {hasOverlaps && (
@@ -772,7 +772,7 @@ export default function EventsStreamline() {
                                       <span className="w-5 h-5 rounded-md flex items-center justify-center border mr-1.5 shrink-0" style={{ background: 'rgb(var(--hud-surface-high))', color: envStyle.text, borderColor: envStyle.border }}>
                                         {getEventTypeIcon(event.attributes.type, 'w-3 h-3')}
                                       </span>
-                                      <div className="truncate flex-1 text-xs font-semibold" style={{ color: envStyle.text, fontFamily: "'Space Grotesk', sans-serif" }}>
+                                      <div className="truncate flex-1 text-xs font-semibold" style={{ color: envStyle.text }}>
                                         {event.title}
                                       </div>
                                       {event.attributes.impact && (

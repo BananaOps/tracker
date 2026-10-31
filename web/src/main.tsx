@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { CreatePanelProvider } from './contexts/CreatePanelContext'
 import App from './App'
+import '@fontsource-variable/spline-sans'
+import '@fontsource-variable/spline-sans-mono'
 import './index.css'
 import { config } from './config'
 

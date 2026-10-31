@@ -166,7 +166,7 @@ export default function RpaUsage() {
         {/* ── Header ── */}
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-4xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>RPA Usage</h1>
+            <h1 className="text-4xl font-black tracking-tight">RPA Usage</h1>
             <p className="text-sm mt-2 max-w-xl font-light leading-relaxed" style={{ color: T.onSurfaceVar }}>
               Real-time monitoring of automated processes. Granular analysis of RPA flows, performance metrics and critical transaction monitoring.
             </p>
@@ -179,12 +179,12 @@ export default function RpaUsage() {
           {/* Total Operations */}
           <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Total RPA Operations</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar }}>Total RPA Operations</p>
               <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#EFF4FF', color: '#1B3575', borderColor: '#C2D0EF' }}>
                 <FontAwesomeIcon icon={faRobot} className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface }}>
               {rpaOperations.length.toLocaleString()}
             </p>
             <div className="mt-5 flex items-center gap-2 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -196,12 +196,12 @@ export default function RpaUsage() {
           {/* This Month + sparkline */}
           <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>This Month</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar }}>This Month</p>
               <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#F3EEFF', color: '#5B21B6', borderColor: '#DDCFFA' }}>
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface }}>
               {thisMonthOps.length.toLocaleString()}
             </p>
             {/* Mini sparkline */}
@@ -222,12 +222,12 @@ export default function RpaUsage() {
           {/* Active Services */}
           <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>Active RPA Services</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: T.onSurfaceVar }}>Active RPA Services</p>
               <div className="w-10 h-10 rounded-lg flex items-center justify-center border" style={{ background: '#ECFDF3', color: '#166534', borderColor: '#BBF7D0' }}>
                 <Clock className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+            <p className="text-4xl font-bold tracking-tight" style={{ color: T.onSurface }}>
               {Object.keys(byService).length.toLocaleString()}
             </p>
             <p className="mt-5 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -240,7 +240,7 @@ export default function RpaUsage() {
         <div>
           <div className="p-8 rounded-2xl" style={{ background: T.surface, border: `1px solid ${a('outlineVar', 0.5)}` }}>
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold flex items-center gap-3" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+              <h3 className="text-xl font-bold flex items-center gap-3">
                 <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: T.tertiary }} />
                 Usage by Service
               </h3>
@@ -299,7 +299,7 @@ export default function RpaUsage() {
           <div className="px-8 py-6" style={{ borderBottom: `1px solid ${a('outlineVar', 0.08)}` }}>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
               <div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Recent Executions</h3>
+                <h3 className="text-xl font-bold">Recent Executions</h3>
                 <p className="text-xs mt-0.5" style={{ color: T.onSurfaceVar }}>
                   Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredOps.length)} of {filteredOps.length} operations
                 </p>

@@ -879,7 +879,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
         <div className="px-6 pt-5 pb-5 shrink-0" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}`, background: T.surface }}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight truncate" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight truncate" style={{ color: T.onSurface }}>
                 {service.name}
               </h2>
               <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
