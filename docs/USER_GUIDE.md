@@ -392,7 +392,12 @@ Click **"New Service"** in the header to register a new service.
 
 **Purpose:** Visualize service dependencies and relationships
 
-Accessible at `/catalog/dependencies`. Displays an interactive dependency graph of services registered in the catalog, with a **Legend** explaining the visual indicators.
+Accessible at `/catalog/dependencies`. Displays the dependency graph of the catalog, laid out in layers from the entry points (left) to what they depend on (right); an arrow `A → B` reads "A depends on B".
+
+- **Find a service** centers the graph on it and opens its details.
+- **Click a service** to highlight what it depends on and what is impacted if it fails, directly or at all levels; the side panel lists them and links to the service page.
+- Dashed nodes are dependencies outside the catalog; dashed arrows are links declared by only one of the two services.
+- Filter by type or platform; services without dependencies are hidden unless you check **Show … without dependencies**. See [Catalog](./CATALOG.md#architecture-view).
 
 ---
 
