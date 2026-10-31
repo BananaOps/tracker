@@ -4,10 +4,11 @@
 //   node scripts/build-tokens.mjs           write the file
 //   node scripts/build-tokens.mjs --check   exit 1 if the file is out of date
 //
-// Light colours go under :root, dark ones under .dark (the class set by
-// ThemeContext). Every opaque colour also gets an "-rgb" channel variable
-// (--paper-rgb: 243 241 236) for the rgb(var(--x) / α) form. Spacing, radii,
-// sizes, font families and type styles go under :root.
+// Light colours go under :root and .light, dark ones under .dark (ThemeContext
+// sets one of the two classes on <html>; either can also scope a subtree).
+// Every opaque colour also gets an "-rgb" channel variable (--paper-rgb:
+// 243 241 236) for the rgb(var(--x) / α) form. Spacing, radii, sizes, font
+// families and type styles go in the first block too.
 
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -76,7 +77,7 @@ export function buildTokensCss(tokens) {
       ' * Source: src/design/tokens.json (copy of docs/design-system/tokens.json).\n' +
       ' * Regenerate with: npm run tokens\n' +
       ' */\n',
-    block(':root', [
+    block(':root,\n.light', [
       ...colorLines(tokens.color.tokens, 'light'),
       ...shadows('light'),
       ...typeLines(tokens.type),

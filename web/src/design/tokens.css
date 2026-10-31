@@ -4,7 +4,8 @@
  * Regenerate with: npm run tokens
  */
 
-:root {
+:root,
+.light {
   --paper: #F3F1EC;
   --paper-rgb: 243 241 236;
   --surface: #FAF8F3;

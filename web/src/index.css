@@ -162,7 +162,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Legacy theme (Intergalactic), removed in lot 5. */
 @theme {
   /* Tailwind 3 line heights. v4 expresses them as unitless ratios, which a
      smaller child (text-[10px] inside text-xs) then inherits and shrinks by. */
@@ -174,7 +173,11 @@
   --text-2xl--line-height: 2rem;
   --text-3xl--line-height: 2.25rem;
   --text-4xl--line-height: 2.5rem;
+}
 
+/* Legacy theme (Intergalactic), removed in lot 5. Inline, so that hud-* utilities
+   read --hud-* where they are used and follow a .light / .dark subtree. */
+@theme inline {
   --color-hud-bg: rgb(var(--hud-bg));
   --color-hud-surface: rgb(var(--hud-surface));
   --color-hud-surface-low: rgb(var(--hud-surface-low));
@@ -370,9 +373,10 @@
   /* TEMPORARY: compatibility bridge, removed in lot 5.
      The legacy --hud-* variables (RGB channels, used as rgb(var(--hud-…))) now
      point to the design system tokens, so every screen adopts the new palette
-     before it is redesigned. Declared on .dark too, so that a .dark subtree
-     (the showcase) recomputes them. Success stays neutral, like done. */
+     before it is redesigned. Declared on .light and .dark too, so that a themed
+     subtree (the showcase) recomputes them. Success stays neutral, like done. */
   :root,
+  .light,
   .dark {
     --hud-bg:                  var(--paper-rgb);
     --hud-surface:             var(--surface-rgb);
