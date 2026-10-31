@@ -1,8 +1,168 @@
 @import 'tailwindcss';
+/* Design system tokens (generated from src/design/tokens.json). Unlayered on purpose:
+   --font-sans, --font-mono and --radius-xs..lg share Tailwind's theme names, and these
+   values override Tailwind's defaults, so font-sans, font-mono and rounded-* follow the tokens. */
+@import './design/tokens.css';
 @import '@fortawesome/fontawesome-svg-core/styles.css' layer(base);
 
 @custom-variant dark (&:is(.dark *));
 
+/* Design system: tokens exposed as utilities (bg-paper, text-ink, border-rule-strong,
+   bg-signature, text-impact…). Colours only appear in components through these. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-overlay: var(--overlay);
+  --color-scrim: var(--scrim);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-rule-strong: var(--rule-strong);
+  --color-grid: var(--grid);
+  --color-ink: var(--ink);
+  --color-ink-hover: var(--ink-hover);
+  --color-on-ink: var(--on-ink);
+  --color-muted: var(--muted);
+  --color-signature: var(--signature);
+  --color-on-signature: var(--on-signature);
+  --color-signature-wash: var(--signature-wash);
+  --color-needle: var(--needle);
+  --color-focus-ring: var(--focus-ring);
+  --color-failed: var(--failed);
+  --color-failed-wash: var(--failed-wash);
+  --color-warning: var(--warning);
+  --color-warning-wash: var(--warning-wash);
+  --color-on-status: var(--on-status);
+  --color-tag-line: var(--tag-line);
+  --color-impact: var(--impact);
+  --color-on-impact: var(--on-impact);
+  --color-impact-wash: var(--impact-wash);
+  --color-chart-done: var(--chart-done);
+  --color-chart-open: var(--chart-open);
+  --color-type-deployment: var(--type-deployment);
+  --color-type-operation: var(--type-operation);
+  --color-type-drift: var(--type-drift);
+  --color-type-rpa: var(--type-rpa);
+  --color-data-1: var(--data-1);
+  --color-data-2: var(--data-2);
+  --color-data-3: var(--data-3);
+  --color-data-4: var(--data-4);
+
+  --font-grotesk: var(--font-sans);
+
+  --spacing-space-1: var(--space-1);
+  --spacing-space-2: var(--space-2);
+  --spacing-space-3: var(--space-3);
+  --spacing-space-4: var(--space-4);
+  --spacing-space-5: var(--space-5);
+  --spacing-space-6: var(--space-6);
+  --spacing-space-8: var(--space-8);
+  --spacing-space-16: var(--space-16);
+  --spacing-control-md: var(--control-md);
+  --spacing-control-sm: var(--control-sm);
+  --spacing-row-pad-comfy: var(--row-pad-comfy);
+  --spacing-row-pad-compact: var(--row-pad-compact);
+  --spacing-sidebar-w: var(--sidebar-w);
+  --spacing-drawer-w: var(--drawer-w);
+}
+
+@utility shadow-overlay {
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Type styles from tokens.json: family, size, line height, weight and tracking.
+   The mono styles carry tabular figures. */
+@utility text-metric-xl {
+  font-family: var(--typo-metric-xl-family);
+  font-size: var(--typo-metric-xl-size);
+  line-height: var(--typo-metric-xl-line-height);
+  font-weight: var(--typo-metric-xl-weight);
+  letter-spacing: var(--typo-metric-xl-tracking);
+  font-variant-numeric: tabular-nums;
+}
+@utility text-metric {
+  font-family: var(--typo-metric-family);
+  font-size: var(--typo-metric-size);
+  line-height: var(--typo-metric-line-height);
+  font-weight: var(--typo-metric-weight);
+  letter-spacing: var(--typo-metric-tracking);
+  font-variant-numeric: tabular-nums;
+}
+@utility text-title-lg {
+  font-family: var(--typo-title-lg-family);
+  font-size: var(--typo-title-lg-size);
+  line-height: var(--typo-title-lg-line-height);
+  font-weight: var(--typo-title-lg-weight);
+  letter-spacing: var(--typo-title-lg-tracking);
+}
+@utility text-title {
+  font-family: var(--typo-title-family);
+  font-size: var(--typo-title-size);
+  line-height: var(--typo-title-line-height);
+  font-weight: var(--typo-title-weight);
+  letter-spacing: var(--typo-title-tracking);
+}
+@utility text-title-sm {
+  font-family: var(--typo-title-sm-family);
+  font-size: var(--typo-title-sm-size);
+  line-height: var(--typo-title-sm-line-height);
+  font-weight: var(--typo-title-sm-weight);
+  letter-spacing: var(--typo-title-sm-tracking);
+}
+@utility text-summary {
+  font-family: var(--typo-summary-family);
+  font-size: var(--typo-summary-size);
+  line-height: var(--typo-summary-line-height);
+  font-weight: var(--typo-summary-weight);
+  letter-spacing: var(--typo-summary-tracking);
+}
+@utility text-body-strong {
+  font-family: var(--typo-body-strong-family);
+  font-size: var(--typo-body-strong-size);
+  line-height: var(--typo-body-strong-line-height);
+  font-weight: var(--typo-body-strong-weight);
+  letter-spacing: var(--typo-body-strong-tracking);
+}
+@utility text-body {
+  font-family: var(--typo-body-family);
+  font-size: var(--typo-body-size);
+  line-height: var(--typo-body-line-height);
+  font-weight: var(--typo-body-weight);
+  letter-spacing: var(--typo-body-tracking);
+}
+@utility text-caption {
+  font-family: var(--typo-caption-family);
+  font-size: var(--typo-caption-size);
+  line-height: var(--typo-caption-line-height);
+  font-weight: var(--typo-caption-weight);
+  letter-spacing: var(--typo-caption-tracking);
+}
+@utility text-data {
+  font-family: var(--typo-data-family);
+  font-size: var(--typo-data-size);
+  line-height: var(--typo-data-line-height);
+  font-weight: var(--typo-data-weight);
+  letter-spacing: var(--typo-data-tracking);
+  font-variant-numeric: tabular-nums;
+}
+@utility text-data-sm {
+  font-family: var(--typo-data-sm-family);
+  font-size: var(--typo-data-sm-size);
+  line-height: var(--typo-data-sm-line-height);
+  font-weight: var(--typo-data-sm-weight);
+  letter-spacing: var(--typo-data-sm-tracking);
+  font-variant-numeric: tabular-nums;
+}
+@utility text-data-strong {
+  font-family: var(--typo-data-strong-family);
+  font-size: var(--typo-data-strong-size);
+  line-height: var(--typo-data-strong-line-height);
+  font-weight: var(--typo-data-strong-weight);
+  letter-spacing: var(--typo-data-strong-tracking);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Legacy theme (Intergalactic), removed in lot 5. */
 @theme {
   /* Tailwind 3 line heights. v4 expresses them as unitless ratios, which a
      smaller child (text-[10px] inside text-xs) then inherits and shrinks by. */

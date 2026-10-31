@@ -1,10 +1,12 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import process from 'node:process'
 import { describe, expect, it } from 'vitest'
 import tokens from './tokens.json'
 
-const web = resolve(__dirname, '../..')
+// Vitest runs from web/.
+const web = process.cwd()
 
 describe('design tokens', () => {
   it('keeps tokens.json in sync with docs/design-system', () => {
@@ -17,6 +19,16 @@ describe('design tokens', () => {
     expect(() =>
       execFileSync(process.execPath, ['scripts/build-tokens.mjs', '--check'], { cwd: web, stdio: 'pipe' }),
     ).not.toThrow()
+  })
+
+  it('exposes every colour and type style to Tailwind in index.css', () => {
+    const css = readFileSync(resolve(web, 'src/index.css'), 'utf8')
+    for (const token of tokens.color.tokens) {
+      expect(css, token.name).toContain(`--color-${token.name}: var(--${token.name});`)
+    }
+    for (const style of tokens.type.groups.flatMap((g) => g.styles)) {
+      expect(css, style.name).toContain(`@utility text-${style.name} {`)
+    }
   })
 
   it('gives every colour a light and a dark value', () => {
