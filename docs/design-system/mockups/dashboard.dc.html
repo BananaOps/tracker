@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracker — Dashboard</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="theme/tracker-tokens.css">
+<link rel="stylesheet" href="ds/tracker/components/bundle.css">
+<script src="ds/tracker/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&amp;family=Spline+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div data-theme="{{themeId}}" style="position: relative; min-height: 1640px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <div style="flex: 0 0 232px; max-width: 100%; background: var(--surface); box-shadow: inset -1px 0 0 var(--rule)">
+    <x-import component-from-global-scope="Tracker.Sidebar" active="Dashboard" groups="{{navGroups}}"></x-import>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; box-sizing: border-box; padding: 10px 32px; background: var(--surface); border-bottom: 1px solid var(--rule)">
+      <button type="button" onClick="{{openPalette}}" style="flex: 0 1 420px; display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper); color: var(--muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer">
+        <x-import component-from-global-scope="Tracker.Icon" name="search"></x-import>
+        <span style="flex: 1">Search or jump to…</span>
+        <x-import component-from-global-scope="Tracker.Kbd">⌘K</x-import>
+      </button>
+      <x-import component-from-global-scope="Tracker.Button" variant="primary" icon-right="chevron-down">New</x-import>
+    </header>
+
+    <div style="flex: 1 1 auto; display: flex; min-width: 0; align-items: stretch">
+      <main style="flex: 1 1 auto; min-width: 0; max-width: 1180px; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 24px">
+
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.035em">Dashboard</h1>
+            <span style="display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--muted)">
+              <x-import component-from-global-scope="Tracker.StatusMark" status="running" text="live" label="{{no}}" size="{{twelve}}"></x-import>
+              live · updated 15:31 · tue 07 apr 2026
+            </span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <x-import component-from-global-scope="Tracker.SegmentedControl" label="Scope" options="{{scopes}}" value="{{scope}}" on-change="{{setScope}}"></x-import>
+            <x-import component-from-global-scope="Tracker.SegmentedControl" label="Period" options="{{periods}}" default-value="24h"></x-import>
+          </div>
+        </div>
+
+        <sc-if value="{{isEveryone}}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; font-size: 18px; line-height: 28px; letter-spacing: -0.01em; max-width: 62em"><a href="#" onClick="{{showFailed}}" style="color: var(--failed); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 4px">2 deployments failed</a> and need attention. <span class="tk-hl">1 deployment is running</span> on production. <a href="#" onClick="{{showImpact}}" style="color: var(--impact); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 4px">2 events are impacting users</a>. <a href="#" style="color: var(--warning); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 4px">2 scheduling overlaps ahead</a>, the first at 16:30. 3 events completed.</p>
+        </sc-if>
+        <sc-if value="{{isTeam}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; font-size: 18px; line-height: 28px; letter-spacing: -0.01em; max-width: 62em">Nothing failed for payments-team today. <span class="tk-hl">1 deployment is running</span> on production and <a href="#" onClick="{{showImpact}}" style="color: var(--impact); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 4px">is impacting users</a>. <a href="#" style="color: var(--warning); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 4px">1 overlap ahead</a> at 16:30 on checkout.</p>
+        </sc-if>
+
+        <x-import component-from-global-scope="Tracker.MetricStrip" label="Today" items="{{metrics}}"></x-import>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+          <section class="tk-panel" style="flex: 3 1 480px; min-width: 0; padding: 20px 20px 8px; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px">
+              <div style="display: flex; align-items: baseline; gap: 10px">
+                <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Needs attention</h2>
+                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{attentionCount}}</span>
+              </div>
+              <a href="#" style="font-size: 13px; color: var(--ink); text-underline-offset: 3px">Open in Timeline →</a>
+            </div>
+            <sc-for list="{{attention}}" as="n" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; column-gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--rule-soft)">
+                <span style="display: flex; align-items: center; height: 22px">
+                  <x-import component-from-global-scope="Tracker.StatusMark" status="{{n.status}}" text="{{n.label}}"></x-import>
+                </span>
+                <div style="min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 1px">
+                  <span style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                    <sc-if value="{{n.impact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}"></x-import></sc-if>
+                    <a href="#" style="min-width: 0; font-size: 14px; line-height: 19px; font-weight: 500; color: var(--ink); text-decoration: none">{{n.title}}</a>
+                  </span>
+                  <span class="tk-meta">{{n.meta}}</span>
+                </div>
+                <x-import component-from-global-scope="Tracker.Button" variant="{{n.variant}}" size="sm" icon-right="{{n.icon}}">{{n.action}}</x-import>
+              </div>
+            </sc-for>
+            <sc-if value="{{noAttention}}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; padding: 16px 0; border-top: 1px solid var(--rule-soft); font-size: 14px; color: var(--muted)">Nothing needs attention for this scope.</p>
+            </sc-if>
+          </section>
+
+          <section class="tk-panel" style="flex: 2 1 320px; min-width: 0; padding: 20px 20px 8px; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px">
+              <div style="display: flex; align-items: baseline; gap: 10px">
+                <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Up next</h2>
+                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">today</span>
+              </div>
+              <a href="#" style="font-size: 13px; color: var(--ink); text-underline-offset: 3px">Open in Streamline →</a>
+            </div>
+            <sc-for list="{{next}}" as="u" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; column-gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--rule-soft)">
+                <span style="font-family: var(--font-mono); font-size: 12px; line-height: 19px; color: var(--muted); font-variant-numeric: tabular-nums">{{u.range}}</span>
+                <div style="min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                  <span style="display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 19px; font-weight: 500">
+                    <sc-if value="{{u.lock}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.Icon" name="locks" title="Lock"></x-import></sc-if>
+                    <span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{u.title}}</span>
+                  </span>
+                  <span class="tk-meta">{{u.meta}}</span>
+                </div>
+                <span style="display: flex; align-items: center; gap: 6px; height: 19px">
+                  <sc-if value="{{u.impact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}"></x-import></sc-if>
+                  <sc-if value="{{u.conflict}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.StatusMark" status="warning" text="overlap" label="{{no}}"></x-import></sc-if>
+                </span>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+
+        <section class="tk-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Activity</h2>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{shownCount}} of {{scopeCount}} events · last 24h</span>
+            </div>
+            <a href="#" style="font-size: 13px; color: var(--ink); text-underline-offset: 3px">Open in Timeline with these filters →</a>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+            <div role="group" aria-label="Status" style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{facets}}" as="f" hint-placeholder-count="5">
+                <button type="button" aria-pressed="{{f.pressed}}" onClick="{{f.pick}}" style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 5px; border: 1px solid {{f.border}}; background: {{f.bg}}; color: {{f.color}}; font: inherit; font-size: 13px; font-weight: {{f.weight}}; cursor: pointer">{{f.label}}<span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.8">{{f.count}}</span></button>
+              </sc-for>
+            </div>
+            <sc-if value="{{hasHour}}" hint-placeholder-val="{{ false }}">
+              <span class="tk-token"><span class="tk-token__key">hour</span><span>{{hourLabel}}</span><button type="button" class="tk-token__remove" aria-label="Remove hour filter" onClick="{{clearHour}}"><x-import component-from-global-scope="Tracker.Icon" name="close" size="{{twelve}}"></x-import></button></span>
+            </sc-if>
+            <span style="flex: 1 1 auto"></span>
+            <label style="flex: 0 1 260px; display: flex; align-items: center; gap: 8px; height: 30px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--rule-strong); border-radius: 5px; background: var(--surface); color: var(--muted)">
+              <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+              <input type="text" aria-label="Filter activity" placeholder="Filter activity" value="{{text}}" onChange="{{onText}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; color: var(--ink)">
+              <x-import component-from-global-scope="Tracker.Kbd">/</x-import>
+            </label>
+            <x-import component-from-global-scope="Tracker.SegmentedControl" label="Density" options="{{densities}}" value="{{density}}" on-change="{{setDensity}}"></x-import>
+          </div>
+
+          <div>
+            <div role="group" aria-label="Events per hour — select an hour to filter" style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; height: 60px; align-items: end; border-bottom: 1px solid var(--ink)">
+              <sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
+                <button type="button" aria-label="{{h.aria}}" aria-pressed="{{h.pressed}}" onClick="{{h.pick}}" style="display: flex; flex-direction: column-reverse; gap: 2px; height: 58px; padding: 2px 1px 0; border: 0; border-radius: 3px 3px 0 0; background: {{h.bg}}; cursor: {{h.cursor}}">
+                  <sc-for list="{{h.segs}}" as="s" hint-placeholder-count="1">
+                    <span style="display: block; height: 11px; border-radius: 2px; background: {{s.c}}"></span>
+                  </sc-for>
+                </button>
+              </sc-for>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; margin-top: 6px">
+              <sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
+                <span style="font-family: var(--font-mono); font-size: 10px; color: var(--muted)">{{h.label}}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="border-bottom: 1px solid var(--rule-soft)">
+            <x-import component-from-global-scope="Tracker.EventList" label="Activity" events="{{events}}" density="{{density}}" selected-id="{{selId}}" on-select="{{openEvent}}"></x-import>
+          </div>
+          <sc-if value="{{noEvents}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 8px 0">
+              <span style="font-size: 14px; color: var(--muted)">No events match these filters.</span>
+              <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" on-click="{{resetFilters}}">Clear filters</x-import>
+            </div>
+          </sc-if>
+        </section>
+      </main>
+
+      <sc-if value="{{drawerOpen}}" hint-placeholder-val="{{ false }}">
+        <aside aria-label="Event detail" style="flex: 0 0 auto; display: flex; align-items: stretch; max-width: 100%">
+          <x-import component-from-global-scope="Tracker.EventDrawer" event="{{drawerEvent}}" on-close="{{closeDrawer}}" on-filter="{{filterFromDrawer}}" on-link-ticket="{{noop}}" on-link-pull-request="{{noop}}"></x-import>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{paletteOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding: 96px 24px 24px">
+      <button type="button" aria-label="Close search" onClick="{{closePalette}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: transparent; cursor: default"></button>
+      <div style="position: relative; width: 100%; max-width: 640px">
+        <x-import component-from-global-scope="Tracker.CommandPalette" groups="{{paletteGroups}}" auto-focus="{{yes}}" on-close="{{closePalette}}" on-select="{{closePalette}}"></x-import>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["clair","sombre"],"default":"clair","section":"Affichage"},"$preview":{"width":1440,"height":1640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { scope: 'everyone', facet: 'all', hour: null, text: '', density: 'comfortable', selId: null, palette: false };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var scope = st.scope || 'everyone';
+    var facet = st.facet || 'all';
+    var text = st.text || '';
+    var density = st.density || 'comfortable';
+    var TEAM = 'payments-team';
+    var team = scope === 'my team';
+
+    var EV = [
+      { id: 'a11', start: '15:22', end: '', status: 'running', title: 'Deploy payment-service v1.14.0 → production', type: 'deployment', env: 'production', p: 'P2', owner: 'payments-team', svc: 'payment-service' },
+      { id: 'a10', start: '15:12', end: '15:16', status: 'failed', title: 'Deploy api-gateway v3.2.0 → pré-production', type: 'deployment', env: 'pré-production', p: 'P2', owner: 'platform-team', svc: 'api-gateway', summary: 'Health check failed on 3 of 4 pods. Rolled back to v3.1.4. A retry is scheduled at 17:00.' },
+      { id: 'a9', start: '15:09', end: '15:12', status: 'done', title: 'Restart worker pool — billing-service', type: 'operation', env: 'pré-production', p: 'P3', owner: 'payments-team', svc: 'billing-service' },
+      { id: 'a8', start: '15:04', end: '15:07', status: 'failed', title: 'Deploy monitoring v2.5.5 → mco', type: 'deployment', env: 'mco', p: 'P3', owner: 'infra-team', svc: 'monitoring', summary: 'Health check timed out on 2 of 3 replicas. The previous version is still serving traffic.' },
+      { id: 'a7', start: '14:48', end: '14:55', status: 'done', title: 'Terraform drift — firewall', type: 'drift', env: 'pré-production', p: 'P3', owner: 'infrastructure-team', svc: 'firewall' },
+      { id: 'a6', start: '13:40', end: '14:20', status: 'open', title: 'Update WAF rules — firewall', type: 'operation', env: 'pré-production', p: 'P3', owner: 'infrastructure-team', svc: 'firewall' },
+      { id: 'a5', start: '13:20', end: '13:26', status: 'warning', title: 'RPA email automation — notification-service', type: 'rpa', env: 'other', p: 'P4', owner: 'automation-team', svc: 'notification-service', summary: 'Run completed with warnings.' },
+      { id: 'a4', start: '12:15', end: '12:40', status: 'open', title: 'Database maintenance window — orders-db', type: 'operation', env: 'dev / integration', p: 'P3', owner: 'data-team', svc: 'orders-db' },
+      { id: 'a3', start: '11:30', end: '12:30', status: 'open', title: 'Investigate slow queries — orders-db', type: 'incident', env: 'pré-production', p: 'P2', owner: 'data-team', svc: 'orders-db' },
+      { id: 'a2', start: '10:05', end: '10:21', status: 'done', title: 'Deploy search-service v2.8.1 → production', type: 'deployment', env: 'production', p: 'P3', owner: 'search-team', svc: 'search-service' },
+      { id: 'a1', start: '09:12', end: '09:40', status: 'open', title: 'Rotate TLS certificates — edge-proxy', type: 'operation', env: 'production', p: 'P3', owner: 'platform-team', svc: 'edge-proxy' }
+    ];
+    EV.forEach(function (e) { e.impact = e.id === 'a11' || e.id === 'a3'; });
+    function hourOf(e) { return parseInt(e.start.split(':')[0], 10); }
+    function inFacet(e, f) {
+      if (f === 'all') return true;
+      if (f === 'attention') return e.status === 'failed' || e.status === 'warning';
+      if (f === 'impact') return e.impact;
+      return e.status === f;
+    }
+    var q = text.trim().toLowerCase();
+    var base = EV.filter(function (e) {
+      if (team && e.owner !== TEAM) return false;
+      if (q && (e.title + ' ' + e.svc + ' ' + e.owner + ' ' + e.env + ' ' + e.type).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    var scopeCount = EV.filter(function (e) { return !team || e.owner === TEAM; }).length;
+    var withHour = base.filter(function (e) { return st.hour == null || hourOf(e) === st.hour; });
+    var shown = withHour.filter(function (e) { return inFacet(e, facet); });
+
+    var FACETS = [['all', 'All'], ['attention', 'Needs attention'], ['impact', 'Impact'], ['running', 'Running'], ['open', 'Open'], ['done', 'Done']];
+    var facets = FACETS.map(function (f) {
+      var on = f[0] === facet;
+      return {
+        label: f[1], count: withHour.filter(function (e) { return inFacet(e, f[0]); }).length,
+        pressed: on ? 'true' : 'false', bg: on ? 'var(--ink)' : 'var(--surface)', color: on ? 'var(--on-ink)' : 'var(--ink)',
+        border: on ? 'var(--ink)' : 'var(--rule-strong)', weight: on ? '500' : '400',
+        pick: function () { self.setState({ facet: f[0] }); },
+        isImpact: f[0] === 'impact'
+      };
+    });
+
+    var SEG_ORDER = ['done', 'open', 'warning', 'failed', 'running'];
+    var SEG_C = { done: 'var(--chart-done)', open: 'var(--chart-open)', warning: 'var(--warning)', failed: 'var(--failed)', running: 'var(--needle)' };
+    var histBase = base.filter(function (e) { return inFacet(e, facet); });
+    var hours = [];
+    for (var h = 0; h < 24; h++) {
+      (function (hr) {
+        var evs = histBase.filter(function (e) { return hourOf(e) === hr; });
+        evs.sort(function (a, b) { return SEG_ORDER.indexOf(a.status) - SEG_ORDER.indexOf(b.status); });
+        var on = st.hour === hr;
+        hours.push({
+          label: hr % 3 === 0 ? (hr < 10 ? '0' + hr : '' + hr) : '',
+          segs: evs.map(function (e) { return { c: SEG_C[e.status] }; }),
+          aria: (hr < 10 ? '0' + hr : hr) + ':00, ' + evs.length + ' events',
+          pressed: on ? 'true' : 'false',
+          bg: on ? 'var(--signature-wash)' : 'transparent',
+          cursor: evs.length ? 'pointer' : 'default',
+          pick: function () { if (evs.length || on) self.setState({ hour: on ? null : hr }); }
+        });
+      })(h);
+    }
+
+    var events = shown.map(function (e) {
+      return { id: e.id, time: e.start, status: e.status, impact: e.impact, title: e.title, meta: [e.type, e.env, e.p, e.owner] };
+    });
+
+    var sel = null;
+    EV.forEach(function (e) { if (e.id === st.selId) sel = e; });
+    var drawerEvent = null;
+    if (sel) {
+      var hist = [{ time: sel.start + ':00', status: 'running', text: 'Started by ' + sel.owner }];
+      if (sel.end) hist.push({ time: sel.end + ':00', status: sel.status === 'running' ? 'done' : sel.status, text: sel.status === 'failed' ? 'Marked failed' : (sel.status === 'warning' ? 'Completed with warnings' : (sel.status === 'done' ? 'Completed' : 'Waiting for follow-up')) });
+      var EXTRA = {
+        a11: { impact: true, note: 'status page updated · #payments-ops', pr: { label: '#1287', title: 'payments/payment-service · Bump to 1.14.0' }, ticket: { label: 'PAY-342', title: 'Rollout 1.14 to production' } },
+        a10: { pr: { label: '#904', title: 'platform/api-gateway · Release 3.2.0' }, ticket: { label: 'PLAT-118', title: 'api-gateway 3.2 rollout' } },
+        a8: { pr: { label: '#77', title: 'infra/monitoring · Bump to 2.5.5' } },
+        a7: { pr: { label: '#219', title: 'infra/terraform-firewall · Reconcile WAF rules' } },
+        a6: { ticket: { label: 'SEC-57', title: 'WAF rules for new partner IPs' } },
+        a4: { ticket: { label: 'DATA-210', title: 'Monthly maintenance window' } },
+        a3: { impact: true, note: 'slower order history for some users', ticket: { label: 'INC-4411', title: 'Slow queries on orders-db' } },
+        a2: { pr: { label: '#651', title: 'search/search-service · Release 2.8.1' } },
+        a1: { ticket: { label: 'PLAT-112', title: 'Rotate edge certificates' } }
+      };
+      var X = EXTRA[sel.id] || {};
+      drawerEvent = {
+        type: sel.type === 'rpa' ? 'rpa_usage' : sel.type, priority: sel.p,
+        status: sel.status, time: sel.start + (sel.end ? ' – ' + sel.end : ' – now') + ' · 07 apr 2026', title: sel.title, summary: sel.summary,
+        service: sel.svc, environment: sel.env, owner: sel.owner,
+        impact: !!X.impact, impactNote: X.note, pullRequest: X.pr || null, ticket: X.ticket || null,
+        fields: [['started', sel.start + ':00'], ['ended', sel.end ? sel.end + ':00' : 'in progress'], ['event id', sel.id]],
+        history: hist
+      };
+    }
+
+    var ATT = [
+      { status: 'failed', label: 'failed', title: 'Deploy api-gateway v3.2.0 → pré-production', meta: '15:12 · platform-team · retry scheduled at 17:00', action: 'Open', variant: 'ghost', icon: '', owners: ['platform-team'] },
+      { status: 'failed', label: 'failed', title: 'Deploy monitoring v2.5.5 → mco', meta: '15:04 · infra-team · no retry scheduled', action: 'Open', variant: 'ghost', icon: '', owners: ['infra-team'] },
+      { status: 'running', label: 'running', title: 'Deploy payment-service v1.14.0 → production', meta: '15:22 · payments-team · status page updated', action: 'Open', variant: 'ghost', icon: '', owners: ['payments-team'], impact: true },
+      { status: 'open', label: 'open', title: 'Investigate slow queries — orders-db', meta: '11:30 · data-team · INC-4411 · slower order history', action: 'Open', variant: 'ghost', icon: '', owners: ['data-team'], impact: true },
+      { status: 'warning', label: 'overlap', title: 'Checkout deploy × orders-db migration', meta: 'production · 16:30 – 16:45 · payments-team, data-team', action: 'Resolve', variant: 'secondary', icon: 'arrow-right', owners: ['payments-team', 'data-team'] },
+      { status: 'warning', label: 'overlap', title: 'api-gateway retry × firewall rule change', meta: 'pré-production · 17:10 – 17:20 · platform-team, infrastructure-team', action: 'Resolve', variant: 'secondary', icon: 'arrow-right', owners: ['platform-team', 'infrastructure-team'] },
+      { status: 'warning', label: 'warning', title: 'RPA email automation — notification-service', meta: '13:20 · automation-team · completed with warnings', action: 'Open', variant: 'ghost', icon: '', owners: ['automation-team'] }
+    ];
+    var attention = ATT.filter(function (a) { return !team || a.owners.indexOf(TEAM) !== -1; });
+
+    var NEXT = [
+      { range: '16:00 – 16:45', title: 'Deploy checkout v4.0.0 → production', meta: 'deployment · production · payments-team', conflict: true, lock: false, owner: 'payments-team' },
+      { range: '16:00 – 18:00', title: 'Billing close — billing-service', meta: 'lock · pré-production · payments-team', conflict: false, lock: true, owner: 'payments-team' },
+      { range: '16:30 – 17:30', title: 'Schema migration — orders-db', meta: 'operation · production · data-team · orders read-only ~5 min', conflict: true, lock: false, owner: 'data-team', impact: true },
+      { range: '17:00 – 17:20', title: 'Retry api-gateway v3.2.0 → pré-production', meta: 'deployment · pré-production · platform-team', conflict: true, lock: false, owner: 'platform-team' },
+      { range: '17:10 – 17:40', title: 'Firewall rule change — dmz', meta: 'operation · pré-production · infrastructure-team', conflict: true, lock: false, owner: 'infrastructure-team' },
+      { range: '18:30 – 19:00', title: 'Deploy search-service v2.9.0 → production', meta: 'deployment · production · search-team', conflict: false, lock: false, owner: 'search-team' }
+    ];
+    var next = NEXT.filter(function (n) { return !team || n.owner === TEAM; });
+
+    var metrics = team
+      ? [{ label: 'events / 24h', value: '2', sub: '1 running' }, { label: 'success', value: '100%', sub: '1 of 1 finished' }, { label: 'failed', value: '0', sub: 'none today' }, { label: 'users impacted', value: '1', sub: '1 running', tone: 'impact' }, { label: 'overlaps ahead', value: '1', sub: 'next at 16:30', tone: 'warning' }]
+      : [{ label: 'events / 24h', value: '11', sub: '1 running, 4 open' }, { label: 'success', value: '60.0%', sub: '3 of 5 finished' }, { label: 'failed', value: '2', sub: 'since 15:04', tone: 'failed' }, { label: 'users impacted', value: '2', sub: '1 running, 1 open', tone: 'impact' }, { label: 'overlaps ahead', value: '2', sub: 'next at 16:30', tone: 'warning' }];
+
+    var navGroups = [
+      { label: 'operations', items: [{ name: 'Dashboard', icon: 'dashboard' }, { name: 'Timeline', icon: 'timeline' }, { name: 'Streamline', icon: 'streamline' }, { name: 'Calendar', icon: 'calendar' }, { name: 'Overlaps', icon: 'overlaps', count: 2 }, { name: 'Insights', icon: 'insights' }] },
+      { label: 'services', items: [{ name: 'Catalog', icon: 'catalog' }, { name: 'Architecture', icon: 'architecture' }, { name: 'Compliance', icon: 'compliance' }] },
+      { label: 'infrastructure', items: [{ name: 'Drifts', icon: 'drifts' }, { name: 'RPA usage', icon: 'rpa' }, { name: 'Locks', icon: 'locks', count: 1 }] },
+      { label: 'resources', items: [{ name: 'Links', icon: 'links' }, { name: 'Docs', icon: 'docs' }] }
+    ];
+
+    var paletteGroups = [
+      { label: 'jump to', items: [{ label: 'Streamline', icon: 'streamline', hint: 'G S' }, { label: 'Timeline', icon: 'timeline', hint: 'G T' }, { label: 'Overlaps', icon: 'overlaps', hint: 'G O' }, { label: 'Locks', icon: 'locks', hint: 'G L' }] },
+      { label: 'create', items: [{ label: 'New event', icon: 'plus', kbd: 'E' }, { label: 'New lock', icon: 'locks', kbd: 'L' }, { label: 'New drift', icon: 'drifts', kbd: 'D' }] },
+      { label: 'recent', items: [{ label: 'Deploy api-gateway v3.2.0 → pré-production', icon: 'deployment', hint: 'failed · 15:12' }, { label: 'Checkout deploy × orders-db migration', icon: 'overlaps', hint: 'overlap · 16:30' }] }
+    ];
+
+    return {
+      themeId: (this.props.theme ?? 'clair') === 'sombre' ? 'dark' : 'light',
+      yes: true, no: false, twelve: 12,
+      navGroups: navGroups,
+      scopes: ['everyone', 'my team'], scope: scope, setScope: function (v) { self.setState({ scope: v, selId: null }); },
+      isEveryone: !team, isTeam: team,
+      periods: ['24h', '7d', '30d'],
+      metrics: metrics,
+      attention: attention, attentionCount: attention.length, noAttention: attention.length === 0,
+      next: next,
+      facets: facets,
+      hasHour: st.hour != null, hourLabel: st.hour != null ? (st.hour < 10 ? '0' + st.hour : st.hour) + ':00 – ' + ((st.hour + 1) < 10 ? '0' + (st.hour + 1) : (st.hour + 1)) + ':00' : '',
+      clearHour: function () { self.setState({ hour: null }); },
+      text: text, onText: function (e) { self.setState({ text: e.target.value }); },
+      densities: ['comfortable', 'compact'], density: density, setDensity: function (v) { self.setState({ density: v }); },
+      hours: hours,
+      events: events, shownCount: shown.length, scopeCount: scopeCount, noEvents: shown.length === 0,
+      resetFilters: function () { self.setState({ facet: 'all', hour: null, text: '' }); },
+      showImpact: function (e) { if (e && e.preventDefault) e.preventDefault(); self.setState({ facet: 'impact', hour: null }); },
+      showFailed: function (e) { if (e && e.preventDefault) e.preventDefault(); self.setState({ facet: 'attention', hour: null }); },
+      selId: st.selId, openEvent: function (ev) { self.setState({ selId: ev.id }); },
+      drawerOpen: !!drawerEvent, drawerEvent: drawerEvent, closeDrawer: function () { self.setState({ selId: null }); },
+      filterFromDrawer: function (key, value) { self.setState({ text: value, facet: 'all', hour: null }); },
+      noop: function () {},
+      paletteOpen: !!st.palette, paletteGroups: paletteGroups,
+      openPalette: function () { self.setState({ palette: true }); },
+      closePalette: function () { self.setState({ palette: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

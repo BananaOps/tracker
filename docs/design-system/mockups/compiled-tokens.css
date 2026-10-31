@@ -1,0 +1,37 @@
+/* Tracker — CSS variables compiled from the Tracker design system tokens.json (light first, dark under data-theme). */
+:root, [data-theme="light"] {
+  --paper: #F3F1EC; --surface: #FAF8F3; --sunken: #F1EEE7; --overlay: #FCFBF8; --scrim: rgba(20, 19, 17, 0.28);
+  --rule: #DCD8CF; --rule-soft: #E7E3DA; --rule-strong: #8C867A; --grid: #E9E5DC;
+  --ink: #141311; --ink-hover: #2E2C28; --on-ink: #FAF8F3; --muted: #615C52;
+  --signature: #D4F53C; --on-signature: #141311; --signature-wash: #EEF5CC; --needle: #141311; --focus-ring: #141311;
+  --failed: #C2261C; --failed-wash: #FBE4DF; --warning: #8F5A00; --warning-wash: #F7EBD3; --on-status: #FAF8F3; --tag-line: #B5AFA3;
+  --impact: #B5126F; --on-impact: #FAF8F3; --impact-wash: #FBE3F0;
+  --chart-done: #8C867A; --chart-open: #D3CEC4;
+  --data-1: #141311; --data-2: #5C574D; --data-3: #9C968A; --data-4: #CFCAC0;
+  --type-deployment: #3355D6; --type-operation: #0E8A80; --type-drift: #7A4CC9; --type-rpa: #5F7186;
+  --shadow-overlay: 0 1px 0 rgba(20, 19, 17, 0.04), 0 16px 40px rgba(20, 19, 17, 0.14);
+  /* canvas-only extension, candidate for the system: overlap hatch */
+  --overlap-hatch: rgba(143, 90, 0, 0.16);
+  --lock-hatch: rgba(20, 19, 17, 0.07);
+}
+[data-theme="dark"] {
+  --paper: #131210; --surface: #1B1A17; --sunken: #22211D; --overlay: #211F1C; --scrim: rgba(0, 0, 0, 0.55);
+  --rule: #2E2C27; --rule-soft: #262420; --rule-strong: #6E695F; --grid: #25231F;
+  --ink: #EDEAE3; --ink-hover: #D2CEC5; --on-ink: #141311; --muted: #A39E93;
+  --signature: #D4F53C; --on-signature: #141311; --signature-wash: #2A2F16; --needle: #D4F53C; --focus-ring: #D4F53C;
+  --failed: #FF7A6B; --failed-wash: #3D1D18; --warning: #F0B44A; --warning-wash: #382A12; --on-status: #141311; --tag-line: #55514A;
+  --impact: #FF5CB0; --on-impact: #141311; --impact-wash: #3A1529;
+  --chart-done: #6E695F; --chart-open: #3A3732;
+  --data-1: #EDEAE3; --data-2: #A39E93; --data-3: #6E695F; --data-4: #45423B;
+  --type-deployment: #7F9BFF; --type-operation: #3FC7BA; --type-drift: #B39BFF; --type-rpa: #9DB0C4;
+  --shadow-overlay: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --overlap-hatch: rgba(240, 180, 74, 0.16);
+  --lock-hatch: rgba(237, 234, 227, 0.07);
+}
+:root {
+  --font-sans: "Spline Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-16: 64px;
+  --radius-xs: 3px; --radius-sm: 5px; --radius-md: 6px; --radius-lg: 8px;
+  --control-md: 38px; --control-sm: 30px; --row-pad-comfy: 12px; --row-pad-compact: 6px; --sidebar-w: 232px; --drawer-w: 480px;
+}

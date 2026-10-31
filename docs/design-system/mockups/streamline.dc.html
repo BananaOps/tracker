@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracker — Streamline</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="theme/tracker-tokens.css">
+<link rel="stylesheet" href="ds/tracker/components/bundle.css">
+<script src="ds/tracker/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&amp;family=Spline+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div data-theme="{{themeId}}" style="position: relative; min-height: 1180px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <div style="flex: 0 0 232px; max-width: 100%; background: var(--surface); box-shadow: inset -1px 0 0 var(--rule)">
+    <x-import component-from-global-scope="Tracker.Sidebar" active="Streamline" groups="{{navGroups}}"></x-import>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; box-sizing: border-box; padding: 10px 32px; background: var(--surface); border-bottom: 1px solid var(--rule)">
+      <button type="button" onClick="{{openPalette}}" style="flex: 0 1 420px; display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper); color: var(--muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer">
+        <x-import component-from-global-scope="Tracker.Icon" name="search"></x-import>
+        <span style="flex: 1">Search or jump to…</span>
+        <x-import component-from-global-scope="Tracker.Kbd">⌘K</x-import>
+      </button>
+      <x-import component-from-global-scope="Tracker.Button" variant="primary" icon-right="chevron-down">New</x-import>
+    </header>
+
+    <div style="flex: 1 1 auto; display: flex; min-width: 0; align-items: stretch">
+      <main style="flex: 1 1 auto; min-width: 0; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 16px">
+
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.035em">Streamline</h1>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--muted)">scheduled work across services · tue 07 apr 2026</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+            <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" on-click="{{goToday}}">Today</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" aria-label="Previous period" on-click="{{panLeft}}">←</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" aria-label="Next period" on-click="{{panRight}}">→</x-import>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink); padding: 0 6px; font-variant-numeric: tabular-nums">{{rangeLabel}}</span>
+            <x-import component-from-global-scope="Tracker.SegmentedControl" label="Zoom" options="{{zooms}}" default-value="8h"></x-import>
+          </div>
+        </div>
+
+        <nav aria-label="Saved views" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; border-bottom: 1px solid var(--rule)">
+          <sc-for list="{{views}}" as="v" hint-placeholder-count="4">
+            <a href="#" aria-current="{{v.current}}" onClick="{{v.pick}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px 10px; margin-bottom: -1px; border-bottom: 2px solid {{v.line}}; color: {{v.color}}; font-size: 14px; font-weight: {{v.weight}}; text-decoration: none">{{v.label}}<span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{v.count}}</span></a>
+          </sc-for>
+          <span style="flex: 1 1 auto"></span>
+          <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" icon="plus">Save view</x-import>
+        </nav>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px">
+          <div style="position: relative; flex: 1 1 420px; min-width: 0">
+            <div role="group" aria-label="Filter" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 38px; box-sizing: border-box; padding: 4px 8px; border: 1px solid {{qBorder}}; border-radius: 6px; background: var(--surface); color: var(--muted)">
+              <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+              <sc-for list="{{tokens}}" as="t" hint-placeholder-count="0">
+                <span class="tk-token"><span class="tk-token__key">{{t.key}}</span><span>{{t.text}}</span><button type="button" class="tk-token__remove" aria-label="{{t.aria}}" onClick="{{t.remove}}"><x-import component-from-global-scope="Tracker.Icon" name="close" size="{{twelve}}"></x-import></button></span>
+              </sc-for>
+              <input type="text" aria-label="Filter scheduled work" placeholder="{{qPlaceholder}}" value="{{qText}}" onChange="{{onQText}}" onFocus="{{qFocus}}" onBlur="{{qBlur}}" onKeyDown="{{qKey}}" style="flex: 1 1 160px; min-width: 140px; height: 28px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink)">
+              <sc-if value="{{hasQuery}}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" on-click="{{clearQuery}}">Clear</x-import>
+              </sc-if>
+              <x-import component-from-global-scope="Tracker.Kbd">/</x-import>
+            </div>
+            <sc-if value="{{qOpen}}" hint-placeholder-val="{{ false }}">
+              <div class="tk-palette" style="position: absolute; top: 44px; left: 0; right: 0; z-index: 20; max-width: none">
+                <div class="tk-palette__list" role="listbox" aria-label="Suggestions">
+                  <sc-for list="{{qGroups}}" as="g" hint-placeholder-count="2">
+                    <div role="group" aria-label="{{g.label}}">
+                      <div class="tk-palette__group" aria-hidden="true">{{g.label}}</div>
+                      <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+                        <div role="option" aria-selected="false" class="tk-palette__item" onMouseDown="{{it.pick}}">
+                          <sc-if value="{{it.hasGlyph}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.StatusMark" status="{{it.glyph}}" label="{{no}}"></x-import></sc-if>
+                          <sc-if value="{{it.hasIcon}}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="Tracker.Icon" name="{{it.icon}}"></x-import></sc-if>
+                          <span class="tk-palette__label" style="font-family: {{it.font}}">{{it.label}}</span>
+                          <span class="tk-palette__hint">{{it.hint}}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+                <div class="tk-palette__footer" aria-hidden="true"><span>↵ add</span><span>key:value</span><span>key:a,b</span><span>-key:value excludes</span><span>esc close</span></div>
+              </div>
+            </sc-if>
+          </div>
+          <x-import component-from-global-scope="Tracker.SegmentedControl" label="Group by" options="{{groupOptions}}" value="{{groupBy}}" on-change="{{setGroupBy}}"></x-import>
+          <label style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--surface); font-size: 13px; color: var(--ink); cursor: pointer">
+            <input type="checkbox" checked="{{conflictsOnly}}" onChange="{{toggleConflicts}}" style="width: 14px; height: 14px; margin: 0; accent-color: #141311">
+            Overlaps only
+          </label>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: -4px">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{resultLine}}</span>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">filters synced · timeline, streamline, calendar</span>
+        </div>
+
+        <sc-if value="{{hasOverlaps}}" hint-placeholder-val="{{ true }}">
+          <div role="status" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; border-radius: 6px; background: var(--warning-wash)">
+            <x-import component-from-global-scope="Tracker.StatusMark" status="warning" text="overlap" label="{{no}}"></x-import>
+            <span style="font-size: 14px; font-weight: 500; color: var(--ink)">{{ovHeadline}}</span>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--muted)">{{ovDetail}}</span>
+            <span style="flex: 1 1 auto"></span>
+            <span style="display: inline-flex; align-items: center; gap: 6px">
+              <x-import component-from-global-scope="Tracker.Kbd">P</x-import>
+              <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" on-click="{{prevOverlap}}">Previous</x-import>
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px">
+              <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" icon-right="arrow-right" on-click="{{nextOverlap}}">Next overlap</x-import>
+              <x-import component-from-global-scope="Tracker.Kbd">N</x-import>
+            </span>
+          </div>
+        </sc-if>
+
+        <div>
+          <div aria-label="Day overview" style="position: relative; height: 26px; border-radius: 4px; background: var(--sunken)">
+            <sc-for list="{{mmMarks}}" as="m" hint-placeholder-count="12">
+              <span style="position: absolute; top: 6px; height: 14px; left: {{m.x}}%; width: {{m.w}}px; border-radius: 1px; background: {{m.c}}"></span>
+            </sc-for>
+            <span style="position: absolute; top: 0; bottom: 0; left: 64.65%; width: 0; border-left: 1.5px solid var(--needle)"></span>
+            <span style="position: absolute; top: 0; bottom: 0; left: {{mmLeft}}%; width: {{mmWidth}}%; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 4px"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--muted)"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+        </div>
+
+        <div style="border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); overflow: hidden">
+          <div style="overflow-x: auto">
+            <div style="width: 1136px">
+              <div style="display: flex; border-bottom: 1px solid var(--rule)">
+                <div style="width: 176px; flex: none; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; border-right: 1px solid var(--rule); font-family: var(--font-mono); font-size: 11px; color: var(--muted); position: sticky; left: 0; z-index: 3; background: var(--surface)">{{groupHeading}}</div>
+                <div style="width: 960px; flex: none; position: relative; padding: 6px 0 2px">
+                  <x-import component-from-global-scope="Tracker.TimeRuler" start-hour="{{winFrom}}" end-hour="{{winTo}}" now="15:31" width="{{rulerW}}" marks="{{rulerMarks}}"></x-import>
+                  <sc-for list="{{axisOverlaps}}" as="o" hint-placeholder-count="2">
+                    <span style="position: absolute; bottom: 0; height: 3px; left: {{o.x}}px; width: {{o.w}}px; background: var(--warning)"></span>
+                  </sc-for>
+                </div>
+              </div>
+
+              <sc-for list="{{sections}}" as="sec" hint-placeholder-count="4">
+                <div>
+                  <div style="display: flex; height: 28px; border-bottom: 1px solid var(--rule); background: var(--sunken)">
+                    <div style="width: 176px; flex: none; box-sizing: border-box; padding: 0 12px; display: flex; align-items: center; gap: 8px; position: sticky; left: 0; z-index: 3; background: var(--sunken)">
+                      <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--ink)">{{sec.name}}</span>
+                      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{sec.count}}</span>
+                    </div>
+                    <div style="width: 960px; flex: none"></div>
+                  </div>
+                  <sc-for list="{{sec.lanes}}" as="ln" hint-placeholder-count="3">
+                    <div style="display: flex; height: 40px; border-bottom: 1px solid var(--rule-soft)">
+                      <div style="width: 176px; flex: none; box-sizing: border-box; padding: 0 12px; display: flex; flex-direction: column; justify-content: center; gap: 1px; border-right: 1px solid var(--rule); position: sticky; left: 0; z-index: 3; background: var(--surface)">
+                        <span style="font-size: 13px; line-height: 16px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ln.name}}</span>
+                        <span style="font-family: var(--font-mono); font-size: 10.5px; line-height: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ln.sub}}</span>
+                      </div>
+                      <div style="width: 960px; flex: none; position: relative; overflow: hidden; background-image: repeating-linear-gradient(to right, var(--rule-soft) 0 1px, transparent 1px 120px), linear-gradient(to right, var(--paper) 0 {{nowX}}px, transparent {{nowX}}px)">
+                        <sc-for list="{{ln.locks}}" as="lk" hint-placeholder-count="0">
+                          <span style="position: absolute; top: 4px; bottom: 4px; left: {{lk.x}}px; width: {{lk.w}}px; box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px dashed var(--tag-line); border-radius: 4px; background-image: repeating-linear-gradient(45deg, var(--lock-hatch) 0 5px, transparent 5px 10px); font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden">
+                            <x-import component-from-global-scope="Tracker.Icon" name="locks" size="{{twelve}}"></x-import>{{lk.label}}
+                          </span>
+                        </sc-for>
+                        <sc-for list="{{ln.hatches}}" as="ht" hint-placeholder-count="0">
+                          <span style="position: absolute; top: 0; bottom: 0; left: {{ht.x}}px; width: {{ht.w}}px; box-sizing: border-box; border-left: 1px solid var(--warning); border-right: 1px solid var(--warning); background-color: {{ht.bg}}; background-image: repeating-linear-gradient(135deg, var(--overlap-hatch) 0 3px, transparent 3px 7px)"></span>
+                        </sc-for>
+                        <sc-for list="{{ln.bars}}" as="b" hint-placeholder-count="1">
+                          <button type="button" aria-label="{{b.aria}}" onClick="{{b.pick}}" style="position: absolute; top: 8px; height: 24px; left: {{b.x}}px; width: {{b.w}}px; box-sizing: border-box; margin: 0; padding: 0 7px; display: flex; align-items: center; gap: 5px; border: {{b.border}}; border-radius: 4px; background: {{b.bg}}; box-shadow: {{b.shadow}}; outline: {{b.outline}}; outline-offset: 1px; color: {{b.color}}; font-family: var(--font-mono); font-size: 11px; white-space: nowrap; overflow: hidden; cursor: pointer">
+                            <sc-if value="{{b.inside}}" hint-placeholder-val="{{ false }}">
+                              <sc-if value="{{b.impact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.Icon" name="impact" size="{{twelve}}"></x-import></sc-if>
+                              <sc-if value="{{b.hasGlyph}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.StatusMark" status="{{b.status}}" label="{{no}}" size="{{twelve}}"></x-import></sc-if>
+                              <span>{{b.label}}</span>
+                            </sc-if>
+                          </button>
+                          <sc-if value="{{b.outside}}" hint-placeholder-val="{{ true }}">
+                            <span style="position: absolute; top: 8px; height: 24px; left: {{b.lx}}px; display: flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11px; color: {{b.lcolor}}; white-space: nowrap; pointer-events: none">
+                              <sc-if value="{{b.impact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}"></x-import></sc-if>
+                              <sc-if value="{{b.hasGlyph}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.StatusMark" status="{{b.status}}" label="{{no}}" size="{{twelve}}"></x-import></sc-if>
+                              {{b.label}}
+                            </span>
+                          </sc-if>
+                        </sc-for>
+                        <span style="position: absolute; top: 0; bottom: 0; left: {{nowX}}px; width: 0; border-left: 1.5px solid var(--needle)"></span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <sc-if value="{{noLanes}}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 20px 16px">
+                  <span style="font-size: 14px; color: var(--muted)">No scheduled work matches these filters in this period.</span>
+                  <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" on-click="{{clearQuery}}">Clear filters</x-import>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--muted)">
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="display: inline-block; width: 28px; height: 14px; box-sizing: border-box; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--surface); box-shadow: inset 0 -3px 0 var(--impact)"></span>users impacted</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px"><span style="display: inline-block; width: 28px; height: 14px; box-sizing: border-box; border-left: 1px solid var(--warning); border-right: 1px solid var(--warning); background-image: repeating-linear-gradient(135deg, var(--overlap-hatch) 0 3px, transparent 3px 7px)"></span>overlap</span>
+          <span style="width: 1px; height: 14px; background: var(--rule)"></span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">←</x-import><x-import component-from-global-scope="Tracker.Kbd">→</x-import> pan</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">−</x-import><x-import component-from-global-scope="Tracker.Kbd">+</x-import> zoom</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">T</x-import> today</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">N</x-import><x-import component-from-global-scope="Tracker.Kbd">P</x-import> overlaps</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">/</x-import> filter</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">G</x-import><x-import component-from-global-scope="Tracker.Kbd">D</x-import> dashboard</span>
+        </div>
+      </main>
+
+      <sc-if value="{{showEventDrawer}}" hint-placeholder-val="{{ false }}">
+        <aside aria-label="Event detail" style="flex: 0 0 auto; display: flex; align-items: stretch; max-width: 100%">
+          <x-import component-from-global-scope="Tracker.EventDrawer" event="{{drawerEvent}}" on-close="{{closeSel}}" on-filter="{{filterFromDrawer}}" on-link-ticket="{{noop}}" on-link-pull-request="{{noop}}"></x-import>
+        </aside>
+      </sc-if>
+
+      <sc-if value="{{showOverlapDrawer}}" hint-placeholder-val="{{ true }}">
+        <aside class="tk-drawer" aria-label="Overlap detail" style="flex: 0 0 auto">
+          <div class="tk-drawer__head">
+            <div class="tk-drawer__bar">
+              <x-import component-from-global-scope="Tracker.StatusMark" status="warning" text="overlap"></x-import>
+              <span class="tk-meta">{{ov.where}}</span>
+              <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" icon="close" aria-label="Close detail" on-click="{{closeSel}}"></x-import>
+            </div>
+            <h2 class="tk-drawer__title">{{ov.title}}</h2>
+            <span class="tk-meta">{{ov.position}}</span>
+          </div>
+          <div class="tk-drawer__body">
+            <div>
+              <h3 class="tk-drawer__section-label">window</h3>
+              <div style="position: relative; height: 72px; border-radius: 4px; background: var(--sunken)">
+                <span style="position: absolute; top: 0; bottom: 0; left: {{ov.zl}}%; width: {{ov.zw}}%; border-left: 1px solid var(--warning); border-right: 1px solid var(--warning); background-color: var(--warning-wash); background-image: repeating-linear-gradient(135deg, var(--overlap-hatch) 0 3px, transparent 3px 7px)"></span>
+                <span style="position: absolute; top: 10px; height: 22px; left: {{ov.al}}%; width: {{ov.aw}}%; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--surface); font-family: var(--font-mono); font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden">{{ov.aLabel}}</span>
+                <span style="position: absolute; top: 40px; height: 22px; left: {{ov.bl}}%; width: {{ov.bw}}%; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--surface); font-family: var(--font-mono); font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden">{{ov.bLabel}}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--muted)">
+                <sc-for list="{{ov.ticks}}" as="tk" hint-placeholder-count="4"><span>{{tk}}</span></sc-for>
+              </div>
+            </div>
+            <div>
+              <h3 class="tk-drawer__section-label">events in conflict</h3>
+              <div style="border-bottom: 1px solid var(--rule-soft)">
+                <x-import component-from-global-scope="Tracker.EventList" label="Events in conflict" events="{{ov.events}}" on-select="{{selectEventFromList}}"></x-import>
+              </div>
+            </div>
+            <div>
+              <h3 class="tk-drawer__section-label">suggested slots</h3>
+              <sc-for list="{{ov.slots}}" as="sl" hint-placeholder-count="2">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule-soft)">
+                  <div style="min-width: 0; display: flex; flex-direction: column; gap: 3px">
+                    <span style="font-size: 14px; line-height: 19px; font-weight: 500">{{sl.text}}</span>
+                    <span class="tk-meta">{{sl.meta}}</span>
+                  </div>
+                  <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm">Apply</x-import>
+                </div>
+              </sc-for>
+            </div>
+            <div>
+              <h3 class="tk-drawer__section-label">teams</h3>
+              <dl class="tk-fields">
+                <sc-for list="{{ov.teams}}" as="tm" hint-placeholder-count="2">
+                  <dt>{{tm.team}}</dt><dd><a href="#">{{tm.channel}}</a></dd>
+                </sc-for>
+              </dl>
+            </div>
+          </div>
+          <div class="tk-drawer__foot">
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" icon="copy">Copy link</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="secondary">Accept overlap</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="primary">Notify both teams</x-import>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{paletteOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 30; background: var(--scrim); display: flex; justify-content: center; align-items: flex-start; padding: 96px 24px 24px">
+      <button type="button" aria-label="Close search" onClick="{{closePalette}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: transparent; cursor: default"></button>
+      <div style="position: relative; width: 100%; max-width: 640px">
+        <x-import component-from-global-scope="Tracker.CommandPalette" groups="{{paletteGroups}}" auto-focus="{{yes}}" on-close="{{closePalette}}" on-select="{{closePalette}}"></x-import>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["clair","sombre"],"default":"clair","section":"Affichage"},"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: { kind: 'overlap', id: 'O1' }, groupBy: 'environment', conflictsOnly: false, tokens: [], qText: '', qOpen: false, view: 'all', pan: 0, palette: false };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    function m(t) { var p = t.split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); }
+    function hm(x) { var h = Math.floor(x / 60), mi = x % 60; return (h < 10 ? '0' : '') + h + ':' + (mi < 10 ? '0' : '') + mi; }
+    var NOW = m('15:31');
+
+    var EV = [
+      { id: 'a1', svc: 'edge-proxy', env: 'production', owner: 'platform-team', type: 'operation', p: 'P3', status: 'open', s: m('09:12'), e: m('09:40'), short: 'TLS rotation', title: 'Rotate TLS certificates — edge-proxy' },
+      { id: 'a2', svc: 'search-service', env: 'production', owner: 'search-team', type: 'deployment', p: 'P3', status: 'done', s: m('10:05'), e: m('10:21'), short: 'deploy v2.8.1', title: 'Deploy search-service v2.8.1 → production' },
+      { id: 'a3', svc: 'orders-db', env: 'pré-production', owner: 'data-team', type: 'incident', p: 'P2', status: 'open', s: m('11:30'), e: m('12:30'), short: 'slow queries', title: 'Investigate slow queries — orders-db' },
+      { id: 'a4', svc: 'orders-db', env: 'dev / integration', owner: 'data-team', type: 'operation', p: 'P3', status: 'open', s: m('12:15'), e: m('12:40'), short: 'maintenance', title: 'Database maintenance window — orders-db' },
+      { id: 'a5', svc: 'notification-service', env: 'other', owner: 'automation-team', type: 'rpa', p: 'P4', status: 'warning', s: m('13:20'), e: m('13:26'), short: 'email automation', title: 'RPA email automation — notification-service' },
+      { id: 'a6', svc: 'firewall', env: 'pré-production', owner: 'infrastructure-team', type: 'operation', p: 'P3', status: 'open', s: m('13:40'), e: m('14:20'), short: 'WAF rules', title: 'Update WAF rules — firewall' },
+      { id: 'a7', svc: 'firewall', env: 'pré-production', owner: 'infrastructure-team', type: 'drift', p: 'P3', status: 'done', s: m('14:48'), e: m('14:55'), short: 'drift', title: 'Terraform drift — firewall' },
+      { id: 'a8', svc: 'monitoring', env: 'mco', owner: 'infra-team', type: 'deployment', p: 'P3', status: 'failed', s: m('15:04'), e: m('15:07'), short: 'deploy v2.5.5', title: 'Deploy monitoring v2.5.5 → mco' },
+      { id: 'a9', svc: 'billing-service', env: 'pré-production', owner: 'payments-team', type: 'operation', p: 'P3', status: 'done', s: m('15:09'), e: m('15:12'), short: 'restart', title: 'Restart worker pool — billing-service' },
+      { id: 'a10', svc: 'api-gateway', env: 'pré-production', owner: 'platform-team', type: 'deployment', p: 'P2', status: 'failed', s: m('15:12'), e: m('15:16'), short: 'deploy v3.2.0', title: 'Deploy api-gateway v3.2.0 → pré-production' },
+      { id: 'a11', svc: 'payment-service', env: 'production', owner: 'payments-team', type: 'deployment', p: 'P2', status: 'running', s: m('15:22'), e: NOW, exp: m('15:50'), short: 'deploy v1.14.0', title: 'Deploy payment-service v1.14.0 → production' },
+      { id: 'u1', svc: 'checkout', env: 'production', owner: 'payments-team', type: 'deployment', p: 'P2', status: 'open', sched: true, s: m('16:00'), e: m('16:45'), short: 'deploy v4.0.0', title: 'Deploy checkout v4.0.0 → production' },
+      { id: 'u2', svc: 'orders-db', env: 'production', owner: 'data-team', type: 'operation', p: 'P1', status: 'open', sched: true, s: m('16:30'), e: m('17:30'), short: 'schema migration', title: 'Schema migration — orders-db' },
+      { id: 'u3', svc: 'api-gateway', env: 'pré-production', owner: 'platform-team', type: 'deployment', p: 'P2', status: 'open', sched: true, s: m('17:00'), e: m('17:20'), short: 'retry v3.2.0', title: 'Retry api-gateway v3.2.0 → pré-production' },
+      { id: 'u4', svc: 'firewall', env: 'pré-production', owner: 'infrastructure-team', type: 'operation', p: 'P2', status: 'open', sched: true, s: m('17:10'), e: m('17:40'), short: 'rule change', title: 'Firewall rule change — dmz' },
+      { id: 'u5', svc: 'search-service', env: 'production', owner: 'search-team', type: 'deployment', p: 'P3', status: 'open', sched: true, s: m('18:30'), e: m('19:00'), short: 'deploy v2.9.0', title: 'Deploy search-service v2.9.0 → production' }
+    ];
+    var LOCKS = [{ svc: 'billing-service', env: 'pré-production', owner: 'payments-team', s: m('16:00'), e: m('18:00'), label: 'locked · billing close' }];
+    var OVS = [
+      { id: 'O1', env: 'production', s: m('16:30'), e: m('16:45'), ev: ['u1', 'u2'], title: 'Checkout deploy overlaps orders-db migration',
+        r0: m('16:00'), r1: m('17:30'), ticks: ['16:00', '16:30', '17:00', '17:30'],
+        slots: [{ text: 'Shift schema migration to 16:45', meta: 'orders-db · 16:45 – 17:45 · no new overlap' }, { text: 'Shift checkout deploy to 17:30', meta: 'checkout · 17:30 – 18:15 · no new overlap' }],
+        teams: [{ team: 'payments-team', channel: '#payments-ops' }, { team: 'data-team', channel: '#data-oncall' }] },
+      { id: 'O2', env: 'pré-production', s: m('17:10'), e: m('17:20'), ev: ['u3', 'u4'], title: 'api-gateway retry overlaps firewall rule change',
+        r0: m('17:00'), r1: m('17:40'), ticks: ['17:00', '17:10', '17:20', '17:30', '17:40'],
+        slots: [{ text: 'Shift firewall change to 17:20', meta: 'firewall · 17:20 – 17:50 · no new overlap' }, { text: 'Move api-gateway retry to 16:45', meta: 'api-gateway · 16:45 – 17:05 · no new overlap' }],
+        teams: [{ team: 'platform-team', channel: '#platform-oncall' }, { team: 'infrastructure-team', channel: '#infra-ops' }] }
+    ];
+    var IMPACT = { a11: true, a3: true, u2: true };
+    EV.forEach(function (e) { e.impact = !!IMPACT[e.id]; e.impactStr = e.impact ? 'true' : 'false'; });
+    var byId = {}; EV.forEach(function (e) { byId[e.id] = e; });
+
+    var KEYS = {
+      env: { field: 'env', hint: 'production, pré-production…' },
+      status: { field: 'status', hint: 'failed, running, open…' },
+      type: { field: 'type', hint: 'deployment, operation, drift…' },
+      owner: { field: 'owner', hint: 'payments-team…' },
+      service: { field: 'svc', hint: 'checkout, orders-db…' },
+      priority: { field: 'p', hint: 'P1 – P4' },
+      impact: { field: 'impactStr', hint: 'true — events that touch users' }
+    };
+    var tokens = st.tokens || [];
+    var qText = st.qText || '';
+    var free = (qText.indexOf(':') === -1 ? qText : '').trim().toLowerCase();
+    function matchTokens(e, exceptKey) {
+      for (var i = 0; i < tokens.length; i++) {
+        var t = tokens[i];
+        if (t.key === exceptKey) continue;
+        var v = e[KEYS[t.key].field];
+        var hit = t.values.indexOf(v) !== -1;
+        if (t.neg ? hit : !hit) return false;
+      }
+      return true;
+    }
+    function matchText(e) {
+      return !free || (e.title + ' ' + e.svc + ' ' + e.owner + ' ' + e.env + ' ' + e.type).toLowerCase().indexOf(free) !== -1;
+    }
+    var visible = EV.filter(function (e) { return matchTokens(e) && matchText(e); });
+    var visIds = {}; visible.forEach(function (e) { visIds[e.id] = true; });
+    var activeOvs = OVS.filter(function (o) { return o.ev.every(function (id) { return visIds[id]; }); });
+    var inOv = {}; activeOvs.forEach(function (o) { o.ev.forEach(function (id) { inOv[id] = o.id; }); });
+    if (st.conflictsOnly) visible = visible.filter(function (e) { return inOv[e.id]; });
+
+    var sel = st.sel || null;
+    var selOv = null, selEv = null;
+    if (sel && sel.kind === 'overlap') activeOvs.forEach(function (o) { if (o.id === sel.id) selOv = o; });
+    if (sel && sel.kind === 'event' && visIds[sel.id]) selEv = byId[sel.id];
+
+    var focusStart = selOv ? selOv.s : (selEv ? selEv.s : null);
+    var from = focusStart != null ? Math.max(0, Math.min(16, Math.floor(focusStart / 60) - 1)) : 12;
+    from = Math.max(0, Math.min(16, from + (st.pan || 0)));
+    var to = from + 8;
+    var F = from * 60, T = to * 60;
+    function px(x) { return Math.round((x - F) * 2); }
+    var nowX = Math.max(-2, Math.min(962, px(NOW)));
+
+    var LBL = { failed: 'var(--failed)', warning: 'var(--warning)', running: 'var(--ink)', done: 'var(--muted)', open: 'var(--muted)', sched: 'var(--ink)' };
+    function barFor(e) {
+      if (e.e <= F || e.s >= T) return [];
+      var kind = e.sched ? 'sched' : e.status;
+      var x0 = px(Math.max(e.s, F)), x1 = px(Math.min(e.e, T));
+      var w = Math.max(8, x1 - x0);
+      var glyph = e.status === 'failed' || e.status === 'warning' || e.status === 'running';
+      var labelW = e.short.length * 6.7 + 16 + (glyph ? 17 : 0);
+      var inside = w >= labelW && e.status !== 'running';
+      var anchor = Math.min(e.exp || e.e, T);
+      var selected = (selEv && selEv.id === e.id) || (selOv && selOv.ev.indexOf(e.id) !== -1);
+      var styles = {
+        failed: ['1px solid var(--failed)', 'var(--failed-wash)', 'var(--failed)'],
+        warning: ['1px solid var(--warning)', 'var(--warning-wash)', 'var(--warning)'],
+        running: ['1px solid var(--signature)', 'var(--signature)', 'var(--on-signature)'],
+        done: ['1px solid var(--tag-line)', 'var(--sunken)', 'var(--muted)'],
+        open: ['1px dashed var(--tag-line)', 'var(--surface)', 'var(--muted)'],
+        sched: [inOv[e.id] ? '1px solid var(--warning)' : '1px solid var(--rule-strong)', 'var(--surface)', 'var(--ink)']
+      }[kind];
+      var out = [{
+        x: x0, w: w, border: styles[0], bg: styles[1], color: styles[2], impact: e.impact, shadow: e.impact ? 'inset 0 -3px 0 var(--impact)' : 'none',
+        outline: selected ? '2px solid var(--focus-ring)' : 'none',
+        inside: inside, outside: !inside, lx: px(anchor) + 6, lcolor: LBL[kind],
+        label: e.short, status: e.status, hasGlyph: glyph,
+        aria: e.title + ', ' + hm(e.s) + ' to ' + hm(e.exp || e.e) + ', ' + (e.sched ? 'scheduled' : e.status) + (e.impact ? ', users impacted' : ''),
+        pick: function () { self.setState({ sel: { kind: 'event', id: e.id }, pan: 0 }); }
+      }];
+      if (e.exp && e.exp > e.e && e.exp > F) {
+        var g0 = px(Math.max(e.e, F)), g1 = px(Math.min(e.exp, T));
+        out.push({ x: g0, w: Math.max(4, g1 - g0), border: '1px dashed var(--ink)', bg: 'transparent', color: 'var(--ink)', impact: false, shadow: 'none', outline: 'none', inside: false, outside: false, lx: 0, lcolor: '', label: '', status: 'running', hasGlyph: false, aria: 'Expected end ' + hm(e.exp), pick: out[0].pick });
+      }
+      return out;
+    }
+
+    var ENV_ORDER = ['production', 'pré-production', 'dev / integration', 'mco', 'other'];
+    var TEAM_ORDER = ['payments-team', 'data-team', 'platform-team', 'infrastructure-team', 'infra-team', 'search-team', 'automation-team'];
+    var SVC_ORDER = ['payment-service', 'checkout', 'orders-db', 'search-service', 'edge-proxy', 'firewall', 'api-gateway', 'billing-service', 'monitoring', 'notification-service'];
+    var groupBy = st.groupBy || 'environment';
+    var secKey = groupBy === 'team' ? 'owner' : 'env';
+    var ORDER = groupBy === 'team' ? TEAM_ORDER : ENV_ORDER;
+    var lockVisible = !st.conflictsOnly;
+    var totalBars = 0, totalLanes = 0;
+    var sections = [];
+    ORDER.forEach(function (sk) {
+      var evs = visible.filter(function (e) { return e[secKey] === sk; });
+      var lks = lockVisible ? LOCKS.filter(function (l) { return l[secKey] === sk && l.e > F && l.s < T && (!tokens.length || tokens.every(function (t) { return t.key === 'owner' || t.key === 'env' || t.key === 'service'; })); }) : [];
+      var laneKeys = [];
+      evs.concat(lks).forEach(function (x) { var k = x.svc + '|' + x.env; if (laneKeys.indexOf(k) === -1) laneKeys.push(k); });
+      laneKeys.sort(function (a, b) { return SVC_ORDER.indexOf(a.split('|')[0]) - SVC_ORDER.indexOf(b.split('|')[0]); });
+      var lanes = [];
+      laneKeys.forEach(function (k) {
+        var svc = k.split('|')[0], env = k.split('|')[1];
+        var lev = evs.filter(function (e) { return e.svc === svc && e.env === env; });
+        var bars = [];
+        lev.forEach(function (e) { bars = bars.concat(barFor(e)); });
+        var locks = lks.filter(function (l) { return l.svc === svc && l.env === env; }).map(function (l) {
+          var x0 = px(Math.max(l.s, F)), x1 = px(Math.min(l.e, T));
+          return { x: x0, w: x1 - x0, label: l.label + ' · ' + hm(l.s) + ' – ' + hm(l.e) };
+        });
+        var hatches = [];
+        activeOvs.forEach(function (o) {
+          if (o.ev.some(function (id) { return byId[id].svc === svc && byId[id].env === env && visIds[id]; }) && o.e > F && o.s < T) {
+            var x0 = px(Math.max(o.s, F)), x1 = px(Math.min(o.e, T));
+            hatches.push({ x: x0, w: Math.max(2, x1 - x0), bg: selOv && selOv.id === o.id ? 'var(--warning-wash)' : 'transparent' });
+          }
+        });
+        if (!bars.length && !locks.length) return;
+        totalBars += lev.length;
+        var first = lev[0] || lks[0];
+        lanes.push({ name: svc, sub: groupBy === 'team' ? env : first.owner, bars: bars, locks: locks, hatches: hatches });
+      });
+      if (lanes.length) { totalLanes += lanes.length; sections.push({ name: sk, count: lanes.length + (lanes.length > 1 ? ' lanes' : ' lane'), lanes: lanes }); }
+    });
+
+    var rulerMarks = visible.filter(function (e) { return e.s >= F && e.s < T; }).map(function (e) { return { at: hm(e.s), status: e.sched ? 'open' : e.status }; });
+    var axisOverlaps = activeOvs.filter(function (o) { return o.e > F && o.s < T; }).map(function (o) { var x0 = px(Math.max(o.s, F)); return { x: x0, w: Math.max(3, px(Math.min(o.e, T)) - x0) }; });
+
+    var MM = { failed: 'var(--failed)', warning: 'var(--warning)', running: 'var(--needle)', done: 'var(--chart-done)', open: 'var(--chart-done)' };
+    var mmMarks = visible.map(function (e) { return { x: (e.s / 1440 * 100).toFixed(2), w: 2, c: MM[e.status] }; })
+      .concat(activeOvs.map(function (o) { return { x: (o.s / 1440 * 100).toFixed(2), w: 4, c: 'var(--warning)' }; }));
+
+    var ovIdx = selOv ? activeOvs.indexOf(selOv) : -1;
+    function goOv(i) { if (!activeOvs.length) return; var n = (i + activeOvs.length) % activeOvs.length; self.setState({ sel: { kind: 'overlap', id: activeOvs[n].id }, pan: 0 }); }
+    var firstOv = activeOvs[0];
+    var ovDetail = selOv ? (ovIdx + 1) + ' of ' + activeOvs.length + ' · ' + selOv.env + ' ' + hm(selOv.s) + ' – ' + hm(selOv.e) : (firstOv ? 'next: ' + firstOv.env + ' at ' + hm(firstOv.s) : '');
+
+    var ov = null;
+    if (selOv) {
+      var A = byId[selOv.ev[0]], B = byId[selOv.ev[1]], span = selOv.r1 - selOv.r0;
+      function pc(x) { return ((x - selOv.r0) / span * 100).toFixed(2); }
+      ov = {
+        where: selOv.env + ' · ' + hm(selOv.s) + ' – ' + hm(selOv.e) + ' · ' + (selOv.e - selOv.s) + ' min',
+        title: selOv.title,
+        position: 'overlap ' + (ovIdx + 1) + ' of ' + activeOvs.length + ' in view',
+        zl: pc(selOv.s), zw: ((selOv.e - selOv.s) / span * 100).toFixed(2),
+        al: pc(A.s), aw: ((A.e - A.s) / span * 100).toFixed(2), aLabel: A.svc + ' · ' + A.short,
+        bl: pc(B.s), bw: ((B.e - B.s) / span * 100).toFixed(2), bLabel: B.svc + ' · ' + B.short,
+        ticks: selOv.ticks,
+        events: [A, B].map(function (e) { return { id: e.id, time: hm(e.s), status: e.status, impact: e.impact, title: e.title, meta: [e.type, e.env, e.p, e.owner, hm(e.s) + ' – ' + hm(e.e)] }; }),
+        slots: selOv.slots, teams: selOv.teams
+      };
+    }
+    var drawerEvent = null;
+    if (selEv) {
+      var hist = [];
+      if (selEv.sched) hist.push({ time: hm(selEv.s) + ':00', status: 'open', text: 'Scheduled by ' + selEv.owner });
+      else {
+        hist.push({ time: hm(selEv.s) + ':00', status: 'running', text: 'Started by ' + selEv.owner });
+        if (selEv.status !== 'running') hist.push({ time: hm(selEv.e) + ':00', status: selEv.status, text: selEv.status === 'failed' ? 'Marked failed' : (selEv.status === 'warning' ? 'Completed with warnings' : (selEv.status === 'done' ? 'Completed' : 'Waiting for follow-up')) });
+      }
+      if (inOv[selEv.id]) hist.push({ time: hm(selEv.s) + ':00', status: 'warning', text: 'Overlaps another event in ' + selEv.env });
+      var EXTRA = {
+        a11: { impact: true, note: 'status page updated · #payments-ops', pr: { label: '#1287', title: 'payments/payment-service · Bump to 1.14.0' }, ticket: { label: 'PAY-342', title: 'Rollout 1.14 to production' } },
+        a10: { pr: { label: '#904', title: 'platform/api-gateway · Release 3.2.0' }, ticket: { label: 'PLAT-118', title: 'api-gateway 3.2 rollout' } },
+        a8: { pr: { label: '#77', title: 'infra/monitoring · Bump to 2.5.5' } },
+        a7: { pr: { label: '#219', title: 'infra/terraform-firewall · Reconcile WAF rules' } },
+        a6: { ticket: { label: 'SEC-57', title: 'WAF rules for new partner IPs' } },
+        a4: { ticket: { label: 'DATA-210', title: 'Monthly maintenance window' } },
+        a3: { impact: true, note: 'slower order history for some users', ticket: { label: 'INC-4411', title: 'Slow queries on orders-db' } },
+        a2: { pr: { label: '#651', title: 'search/search-service · Release 2.8.1' } },
+        a1: { ticket: { label: 'PLAT-112', title: 'Rotate edge certificates' } },
+        u1: { pr: { label: '#1301', title: 'payments/checkout · Release 4.0.0' }, ticket: { label: 'PAY-350', title: 'Checkout 4.0 launch' } },
+        u2: { impact: true, note: 'orders read-only for about 5 min', pr: { label: '#88', title: 'data/orders-schema · Add index on created_at' }, ticket: { label: 'DATA-215', title: 'Orders schema migration' } },
+        u3: { pr: { label: '#904', title: 'platform/api-gateway · Release 3.2.0' }, ticket: { label: 'PLAT-118', title: 'api-gateway 3.2 rollout' } },
+        u4: { ticket: { label: 'SEC-61', title: 'DMZ rule change' } },
+        u5: { pr: { label: '#660', title: 'search/search-service · Release 2.9.0' } }
+      };
+      var X = EXTRA[selEv.id] || {};
+      drawerEvent = {
+        type: selEv.type === 'rpa' ? 'rpa_usage' : selEv.type, priority: selEv.p,
+        status: selEv.status, time: hm(selEv.s) + ' – ' + hm(selEv.exp || selEv.e) + ' · 07 apr 2026', title: selEv.title,
+        service: selEv.svc, environment: selEv.env, owner: selEv.owner,
+        impact: !!X.impact, impactNote: X.note, pullRequest: X.pr || null, ticket: X.ticket || null,
+        fields: [['window', hm(selEv.s) + ' – ' + hm(selEv.exp || selEv.e)], ['scheduled', selEv.sched ? 'yes' : 'no'], ['event id', selEv.id]],
+        history: hist
+      };
+    }
+
+    function addToken(key, value, neg) {
+      var next = tokens.map(function (t) { return { key: t.key, values: t.values.slice(), neg: t.neg }; });
+      var found = null; next.forEach(function (t) { if (t.key === key && !!t.neg === !!neg) found = t; });
+      if (found) { if (found.values.indexOf(value) === -1) found.values.push(value); }
+      else next.push({ key: key, values: [value], neg: !!neg });
+      self.setState({ tokens: next, qText: '', view: 'custom' });
+    }
+    var tokenVals = tokens.map(function (t, i) {
+      return {
+        key: (t.neg ? '-' : '') + t.key, text: (t.neg ? '≠ ' : '') + t.values.join(', '), aria: 'Remove filter ' + t.key + ' ' + t.values.join(' '),
+        remove: function () { self.setState({ tokens: tokens.filter(function (_, j) { return j !== i; }), view: 'custom' }); }
+      };
+    });
+
+    var qGroups = [];
+    var keyMatch = /^(-?)([a-z]+):(.*)$/.exec(qText.trim().toLowerCase());
+    function countFor(field, val, key) { return EV.filter(function (e) { return e[field] === val && matchTokens(e, key); }).length; }
+    if (keyMatch && KEYS[keyMatch[2]]) {
+      var key = keyMatch[2], neg = keyMatch[1] === '-', part = keyMatch[3].trim(), field = KEYS[key].field;
+      var vals = [];
+      EV.forEach(function (e) { if (vals.indexOf(e[field]) === -1) vals.push(e[field]); });
+      vals = vals.filter(function (v) { return !part || v.toLowerCase().indexOf(part) !== -1; });
+      qGroups.push({ label: (neg ? 'exclude ' : '') + key, items: vals.map(function (v) {
+        return { label: v, hint: countFor(field, v, key) + ' in view', icon: '', hasIcon: false, glyph: key === 'status' ? v : '', hasGlyph: key === 'status', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); addToken(key, v, neg); } };
+      }) });
+    } else if (!qText.trim()) {
+      qGroups.push({ label: 'recent', items: [
+        { label: 'status:failed env:production', hint: 'yesterday', icon: 'filter', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ tokens: [{ key: 'status', values: ['failed'], neg: false }, { key: 'env', values: ['production'], neg: false }], qText: '', view: 'custom' }); } },
+        { label: 'owner:infra-team -status:done', hint: 'last week', icon: 'filter', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ tokens: [{ key: 'owner', values: ['infra-team'], neg: false }, { key: 'status', values: ['done'], neg: true }], qText: '', view: 'custom' }); } }
+      ] });
+      qGroups.push({ label: 'filter by', items: Object.keys(KEYS).map(function (k) {
+        return { label: k + ':', hint: KEYS[k].hint, icon: 'filter', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ qText: k + ':' }); } };
+      }) });
+    } else {
+      var txt = qText.trim().toLowerCase();
+      var direct = [];
+      ['svc', 'owner', 'env', 'type'].forEach(function (field) {
+        var keyName = field === 'svc' ? 'service' : field;
+        var seen = [];
+        EV.forEach(function (e) { var v = e[field]; if (seen.indexOf(v) === -1 && v.toLowerCase().indexOf(txt) !== -1) { seen.push(v); direct.push({ key: keyName, v: v, field: field }); } });
+      });
+      if (direct.length) qGroups.push({ label: 'filter by value', items: direct.slice(0, 5).map(function (d) {
+        return { label: d.key + ':' + d.v, hint: countFor(d.field, d.v, d.key) + ' in view', icon: 'filter', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); addToken(d.key, d.v, false); } };
+      }) });
+      var keysHit = Object.keys(KEYS).filter(function (k) { return k.indexOf(txt) === 0; });
+      if (keysHit.length) qGroups.push({ label: 'keys', items: keysHit.map(function (k) {
+        return { label: k + ':', hint: KEYS[k].hint, icon: 'filter', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-mono)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ qText: k + ':' }); } };
+      }) });
+      qGroups.push({ label: 'text', items: [{ label: 'Titles, services and teams containing “' + qText.trim() + '”', hint: visible.length + ' in view', icon: 'search', hasIcon: true, hasGlyph: false, glyph: '', font: 'var(--font-sans)', pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ qOpen: false }); } }] });
+    }
+
+    var VIEWS = [
+      { id: 'all', label: 'All work', tokens: [], conflictsOnly: false, count: EV.length },
+      { id: 'overlaps', label: 'Overlaps', tokens: [], conflictsOnly: true, count: OVS.length },
+      { id: 'impact', label: 'Impact', tokens: [{ key: 'impact', values: ['true'], neg: false }], conflictsOnly: false, count: EV.filter(function (e) { return e.impact; }).length },
+      { id: 'team', label: 'My team', tokens: [{ key: 'owner', values: ['payments-team'], neg: false }], conflictsOnly: false, count: EV.filter(function (e) { return e.owner === 'payments-team'; }).length },
+      { id: 'prod', label: 'Production deploys', tokens: [{ key: 'env', values: ['production'], neg: false }, { key: 'type', values: ['deployment'], neg: false }], conflictsOnly: false, count: EV.filter(function (e) { return e.env === 'production' && e.type === 'deployment'; }).length }
+    ];
+    var curView = st.view || 'all';
+    var views = VIEWS.map(function (v) {
+      var on = v.id === curView;
+      return { label: v.label, count: v.count, current: on ? 'page' : 'false', line: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--ink)' : 'var(--muted)', weight: on ? '600' : '400',
+        pick: function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); self.setState({ view: v.id, tokens: v.tokens, conflictsOnly: v.conflictsOnly, qText: '', pan: 0 }); } };
+    });
+
+    var navGroups = [
+      { label: 'operations', items: [{ name: 'Dashboard', icon: 'dashboard' }, { name: 'Timeline', icon: 'timeline' }, { name: 'Streamline', icon: 'streamline' }, { name: 'Calendar', icon: 'calendar' }, { name: 'Overlaps', icon: 'overlaps', count: 2 }, { name: 'Insights', icon: 'insights' }] },
+      { label: 'services', items: [{ name: 'Catalog', icon: 'catalog' }, { name: 'Architecture', icon: 'architecture' }, { name: 'Compliance', icon: 'compliance' }] },
+      { label: 'infrastructure', items: [{ name: 'Drifts', icon: 'drifts' }, { name: 'RPA usage', icon: 'rpa' }, { name: 'Locks', icon: 'locks', count: 1 }] },
+      { label: 'resources', items: [{ name: 'Links', icon: 'links' }, { name: 'Docs', icon: 'docs' }] }
+    ];
+    var paletteGroups = [
+      { label: 'jump to', items: [{ label: 'Dashboard', icon: 'dashboard', hint: 'G D' }, { label: 'Timeline', icon: 'timeline', hint: 'G T' }, { label: 'Overlaps', icon: 'overlaps', hint: 'G O' }, { label: 'Locks', icon: 'locks', hint: 'G L' }] },
+      { label: 'create', items: [{ label: 'New event', icon: 'plus', kbd: 'E' }, { label: 'New lock', icon: 'locks', kbd: 'L' }] },
+      { label: 'services', items: [{ label: 'checkout', icon: 'service', hint: 'payments-team' }, { label: 'orders-db', icon: 'service', hint: 'data-team' }] }
+    ];
+
+    var hasQuery = tokens.length > 0 || !!qText.trim();
+    return {
+      themeId: (this.props.theme ?? 'clair') === 'sombre' ? 'dark' : 'light',
+      yes: true, no: false, twelve: 12,
+      navGroups: navGroups,
+      rangeLabel: hm(F) + ' – ' + (to === 24 ? '24:00' : hm(T)),
+      zooms: ['4h', '8h', '24h', '7d'],
+      goToday: function () { self.setState({ sel: null, pan: 0 }); },
+      panLeft: function () { self.setState({ pan: (st.pan || 0) - 2 }); },
+      panRight: function () { self.setState({ pan: (st.pan || 0) + 2 }); },
+      views: views,
+      tokens: tokenVals, qText: qText, hasQuery: hasQuery,
+      qPlaceholder: tokens.length ? 'Add a filter or search…' : 'Filter by env, status, type, team, service — or type to search',
+      qBorder: st.qOpen ? 'var(--ink)' : 'var(--rule-strong)',
+      onQText: function (e) { self.setState({ qText: e.target.value, qOpen: true }); },
+      qFocus: function () { self.setState({ qOpen: true }); },
+      qBlur: function () { self.setState({ qOpen: false }); },
+      qKey: function (e) {
+        if (e.key === 'Escape') { self.setState({ qOpen: false }); if (e.target && e.target.blur) e.target.blur(); }
+        else if (e.key === 'Backspace' && !qText && tokens.length) { self.setState({ tokens: tokens.slice(0, -1), view: 'custom' }); }
+        else if (e.key === 'Enter') {
+          var g = qGroups[0]; if (g && g.items[0]) g.items[0].pick(e);
+        }
+      },
+      clearQuery: function () { self.setState({ tokens: [], qText: '', view: 'all', conflictsOnly: false }); },
+      qOpen: !!st.qOpen, qGroups: qGroups,
+      groupOptions: ['environment', 'team'], groupBy: groupBy, setGroupBy: function (v) { self.setState({ groupBy: v }); },
+      conflictsOnly: !!st.conflictsOnly, toggleConflicts: function (e) { self.setState({ conflictsOnly: e.target.checked, view: e.target.checked ? 'overlaps' : 'all' }); },
+      resultLine: totalBars + ' events · ' + totalLanes + ' lanes · ' + activeOvs.length + (activeOvs.length === 1 ? ' overlap' : ' overlaps') + ' · ' + visible.filter(function (e) { return e.impact && e.e > F && e.s < T; }).length + ' impacting users' + (hasQuery ? ' · filtered' : ''),
+      hasOverlaps: activeOvs.length > 0,
+      ovHeadline: activeOvs.length + (activeOvs.length === 1 ? ' overlap' : ' overlaps') + ' in this period',
+      ovDetail: ovDetail,
+      prevOverlap: function () { goOv(ovIdx < 0 ? activeOvs.length - 1 : ovIdx - 1); },
+      nextOverlap: function () { goOv(ovIdx < 0 ? 0 : ovIdx + 1); },
+      mmMarks: mmMarks, mmLeft: (F / 1440 * 100).toFixed(2), mmWidth: ((T - F) / 1440 * 100).toFixed(2),
+      groupHeading: groupBy === 'team' ? 'team · service' : 'environment · service',
+      winFrom: from, winTo: to, rulerW: 960, rulerMarks: rulerMarks, axisOverlaps: axisOverlaps,
+      sections: sections, noLanes: sections.length === 0, nowX: nowX,
+      showEventDrawer: !!drawerEvent, drawerEvent: drawerEvent,
+      showOverlapDrawer: !!ov, ov: ov || { where: '', title: '', position: '', zl: 0, zw: 0, al: 0, aw: 0, bl: 0, bw: 0, aLabel: '', bLabel: '', ticks: [], events: [], slots: [], teams: [] },
+      closeSel: function () { self.setState({ sel: null, pan: 0 }); },
+      filterFromDrawer: function (key, value) { addToken(key, value, false); },
+      noop: function () {},
+      selectEventFromList: function (e) { self.setState({ sel: { kind: 'event', id: e.id }, pan: 0 }); },
+      paletteOpen: !!st.palette, paletteGroups: paletteGroups,
+      openPalette: function () { self.setState({ palette: true }); },
+      closePalette: function () { self.setState({ palette: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
