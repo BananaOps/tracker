@@ -435,3 +435,13 @@
 .dark .dark\:hover\:bg-gray-800:hover {
   background-color: rgb(var(--hud-surface)) !important;
 }
+
+/* React Flow controls follow the theme (the library styles them light). */
+.react-flow .react-flow__controls-button {
+  background: rgb(var(--hud-surface));
+  border-bottom-color: rgb(var(--hud-outline-var) / 0.5);
+  fill: rgb(var(--hud-on-surface-var));
+}
+.react-flow .react-flow__controls-button:hover {
+  background: rgb(var(--hud-surface-high));
+}

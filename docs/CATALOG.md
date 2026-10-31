@@ -455,13 +455,14 @@ Navigate to `/catalog/{service-name}` to view:
 - **Service information** (type, language, owner, version)
 - **Links** to repository and documentation
 
-### Global Dependencies View
+### Architecture View
 
-Navigate to `/catalog/dependencies` to view:
-- **Complete dependency graph** of all services
-- **Filter by SLA level** to focus on critical services
-- **Search functionality** to find specific services
-- **Statistics** showing total services and dependencies
+Navigate to `/catalog/dependencies` (**Architecture** in the sidebar) to view the dependency graph of the whole catalog:
+- **Layered layout**, left to right: entry points on the left, what they depend on to the right. An arrow `A → B` reads "A depends on B".
+- **Focus**: click a service (or find it with the search box) to highlight what it depends on and what is impacted if it fails, one level (**Direct**) or transitively (**All levels**). A side panel lists them, with the SLA, platform and owner of the service; double-click a service, or use **Open service page**, to open its page.
+- **Dependencies outside the catalog** (a database, an external API) appear as dashed nodes.
+- **Links declared on one side only** (in `dependenciesIn` of one service but missing from `dependenciesOut` of the other, or the reverse) are drawn dashed and counted in the header, so the catalog can be fixed.
+- **Filters** by type and platform; services without any dependency are hidden unless **Show … without dependencies** is checked.
 
 ### Understanding Dependencies
 
@@ -475,11 +476,9 @@ Navigate to `/catalog/dependencies` to view:
 
 ### Dependency Graph Features
 
-- **Interactive navigation**: Click on any service node to view its details
-- **Color coding**: Nodes are colored by SLA level (red=critical, orange=high, yellow=medium, green=low)
+- **SLA**: each node shows a colored dot with its SLA level (red=critical, orange=high, yellow=medium, green=low)
 - **Zoom and pan**: Use mouse wheel to zoom, drag to pan
-- **Minimap**: Overview of the entire graph in the corner
-- **Animated edges**: Flow direction is indicated by animated arrows
+- **Minimap**: Overview of the entire graph in the corner of the Architecture view
 
 ## Integration with Events
 
