@@ -2,15 +2,14 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
-import { catalogListQuery } from '../lib/queries'
 import { format, addDays, isWithinInterval, isSameDay, startOfDay, endOfDay, addHours, getHours, subDays, subHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { Package, Globe, Calendar, Clock, ChevronDown, AlertTriangle } from 'lucide-react'
 import type { Event } from '../types/api'
-import { getEnvironmentLabel, getEventTypeIcon, getEventTypeLabel, getPriorityLabel, getStatusLabel, isEventApproved } from '../lib/eventUtils'
+import { getEnvironmentLabel, getEventTypeIcon, isEventApproved } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
-import PageFiltersHeader from '../components/filters/PageFiltersHeader'
-import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { TimeViewFilters } from '../components/filters/TimeViewFilters'
+import { useTimeViewFilter } from '../hooks/useTimeViewFilter'
 
 type GroupBy = 'service' | 'environment'
 type ViewMode = 'week' | 'day'
@@ -34,123 +33,26 @@ export default function EventsStreamline() {
   const [groupBy, setGroupBy] = useState<GroupBy>('service')
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [showSidebar, setShowSidebar] = useState(false)
-  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
-  const [endDate, setEndDate] = useState<Date>(new Date())
-  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('Last 7 days')
+  // Filters and period are shared by the time views and kept in the URL.
+  const { query, setQuery, serverParams, filter, from: startDate, to: endDate, periodFromUrl, setPeriod } = useTimeViewFilter(() => ({
+    from: subDays(new Date(), 7),
+    to: new Date(),
+  }))
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>(periodFromUrl ? 'Custom range' : 'Last 7 days')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
-  const [serviceSearchQuery, setServiceSearchQuery] = useState('')
-  
-  // États des filtres
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
-  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-
   const { data, isLoading } = useQuery({
-    queryKey: ['events', 'streamline', startDate.toISOString(), endDate.toISOString()],
+    queryKey: ['events', 'streamline', startDate.toISOString(), endDate.toISOString(), serverParams],
     queryFn: () => eventsApi.search({
+      ...serverParams,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     }),
     refetchInterval: 30_000,
   })
 
-  const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    ...catalogListQuery,
-    refetchInterval: 30_000,
-  })
-
   const allEvents = useMemo(() => data?.events ?? [], [data])
-  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
-
-  // Extraire les valeurs uniques pour les filtres
-  const catalogServices = useMemo(() => {
-    return catalogs.map(c => c.name).sort()
-  }, [catalogs])
-
-  const filteredCatalogServices = useMemo(() => {
-    if (!serviceSearchQuery.trim()) return catalogServices
-    const query = serviceSearchQuery.toLowerCase()
-    return catalogServices.filter(service => service.toLowerCase().includes(query))
-  }, [catalogServices, serviceSearchQuery])
-
-  const uniqueEnvironments = useMemo(() => {
-    const invalidValues = ['environment', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map(e => e.attributes.environment)
-          .filter(env => env && !invalidValues.includes(env.toLowerCase().trim()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniqueTypes = useMemo(() => {
-    const invalidValues = ['event', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map(e => e.attributes.type)
-          .filter(type => type && !invalidValues.includes(type.toLowerCase().trim()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniquePriorities = useMemo(() => {
-    const invalidValues = ['priority', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map(e => e.attributes.priority)
-          .filter(priority => priority && !invalidValues.includes(priority.toLowerCase().trim()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniqueStatuses = useMemo(() => {
-    const invalidValues = ['status', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map(e => e.attributes.status)
-          .filter(status => status && !invalidValues.includes(status.toLowerCase().trim()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  // Appliquer les filtres
-  const events = useMemo(() => {
-    return allEvents.filter(event => {
-      if (selectedEnvironments.length > 0) {
-        const eventEnv = String(event.attributes.environment || '').toLowerCase()
-        if (!selectedEnvironments.some(env => env.toLowerCase() === eventEnv)) return false
-      }
-
-      if (selectedTypes.length > 0) {
-        const eventType = String(event.attributes.type || '').toLowerCase()
-        if (!selectedTypes.some(type => type.toLowerCase() === eventType)) return false
-      }
-
-      if (selectedPriorities.length > 0) {
-        const eventPriority = String(event.attributes.priority || '').toLowerCase()
-        if (!selectedPriorities.some(priority => priority.toLowerCase() === eventPriority)) return false
-      }
-
-      if (selectedStatuses.length > 0) {
-        const eventStatus = String(event.attributes.status || '').toLowerCase()
-        if (!selectedStatuses.some(status => status.toLowerCase() === eventStatus)) return false
-      }
-
-      if (selectedServices.length > 0) {
-        if (!selectedServices.includes(event.attributes.service)) return false
-      }
-
-      return true
-    })
-  }, [allEvents, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices])
+  const events = useMemo(() => filter(allEvents), [allEvents, filter])
 
   // Calculer la période affichée basée sur les dates sélectionnées
   const today = new Date()
@@ -160,8 +62,7 @@ export default function EventsStreamline() {
   
   const handleTimeRangeSelect = (range: TimeRange) => {
     const { start, end } = range.getValue()
-    setStartDate(start)
-    setEndDate(end)
+    setPeriod({ from: start, to: end })
     setSelectedTimeRange(range.label)
   }
 
@@ -170,8 +71,7 @@ export default function EventsStreamline() {
       // Créer les dates et forcer l'heure à minuit pour le début et 23:59:59 pour la fin
       const start = startOfDay(new Date(customStartDate))
       const end = endOfDay(new Date(customEndDate))
-      setStartDate(start)
-      setEndDate(end)
+      setPeriod({ from: start, to: end })
       setSelectedTimeRange('Custom range')
     }
   }
@@ -219,34 +119,6 @@ export default function EventsStreamline() {
     return groups
   }, [events, groupBy, viewMode, startDate, endDate, dayStart, dayEnd])
 
-  // Fonctions pour gérer les filtres
-  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
-    if (selected.includes(value)) {
-      setter(selected.filter(v => v !== value))
-    } else {
-      setter([...selected, value])
-    }
-  }
-
-  const clearAllFilters = () => {
-    setSelectedEnvironments([])
-    setSelectedTypes([])
-    setSelectedPriorities([])
-    setSelectedStatuses([])
-    setSelectedServices([])
-  }
-
-  const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
-    selectedPriorities.length + selectedStatuses.length + selectedServices.length
-
-  const activeFilterTags = useMemo(() => ([
-    ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
-    ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
-    ...selectedPriorities.map((priority) => ({ key: `priority-${priority}`, label: `Priority: ${getPriorityLabel(priority)}`, onRemove: () => toggleFilter(priority, selectedPriorities, setSelectedPriorities) })),
-    ...selectedStatuses.map((status) => ({ key: `status-${status}`, label: `Status: ${getStatusLabel(status)}`, onRemove: () => toggleFilter(status, selectedStatuses, setSelectedStatuses) })),
-    ...selectedServices.map((service) => ({ key: `service-${service}`, label: `Service: ${service}`, onRemove: () => toggleFilter(service, selectedServices, setSelectedServices) })),
-  ]), [selectedTypes, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
-
   const [showTimeRangePicker, setShowTimeRangePicker] = useState(false)
   const timeRangeRef = useRef<HTMLDivElement>(null)
 
@@ -260,7 +132,7 @@ export default function EventsStreamline() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  if (isLoading || catalogLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen" style={{ background: 'rgb(var(--hud-bg))' }}>
         <div className="text-sm font-medium" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>Loading…</div>
@@ -272,16 +144,6 @@ export default function EventsStreamline() {
     groupedEvents[b].length - groupedEvents[a].length
   )
 
-  const getTypeVisual = (type: string) => {
-    const t = String(type).toLowerCase()
-    if (t === 'deployment' || t === '1') return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
-    if (t === 'operation' || t === '2') return { bg: '#F3EEFF', text: '#5B3AAE', border: '#D9CCFF' }
-    if (t === 'incident' || t === '4') return { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }
-    if (t === 'drift' || t === '3') return { bg: '#EAFBFA', text: '#0F766E', border: '#BDECE8' }
-    if (t === 'rpa_usage' || t === '5') return { bg: '#FFF4EA', text: '#C2410C', border: '#FFD5B0' }
-    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
-  }
-
   const getEnvironmentBadgeStyle = (environment?: string) => {
     const env = String(environment || '').toLowerCase()
     if (env === 'production' || env === '7') return { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }
@@ -289,81 +151,6 @@ export default function EventsStreamline() {
     if (env === 'development' || env === '1' || env === 'integration' || env === '2') return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
     return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
   }
-
-  const getPriorityBadgeStyle = (priority?: string) => {
-    const p = String(priority || '').toLowerCase()
-    if (p === 'p1' || p === '1') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    if (p === 'p2' || p === '2') return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0' }
-    if (p === 'p3' || p === '3') return { bg: '#FDFCE8', text: '#6B6000', border: '#F0EA90' }
-    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
-  }
-
-  const getStatusBadgeStyle = (status?: string) => {
-    const s = String(status || '').toLowerCase()
-    if (s === 'success' || s === '3' || s === 'done' || s === '11') return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
-    if (s === 'failure' || s === '2' || s === 'error' || s === '5') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    if (s === 'start' || s === '1' || s === 'in_progress' || s === '12') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
-  }
-
-  const sidebarSections = [
-    {
-      title: 'Event Type',
-      options: uniqueTypes.map((type) => {
-        const value = String(type)
-        const checked = selectedTypes.includes(value)
-        return {
-          key: `type-${value}`,
-          label: getEventTypeLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedTypes, setSelectedTypes),
-          palette: getTypeVisual(value),
-        }
-      }),
-    },
-    {
-      title: 'Environment',
-      options: uniqueEnvironments.map((env) => {
-        const value = String(env)
-        const checked = selectedEnvironments.includes(value)
-        return {
-          key: `environment-${value}`,
-          label: getEnvironmentLabel(value) ?? value,
-          checked,
-          onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
-          palette: getEnvironmentBadgeStyle(value),
-        }
-      }),
-    },
-    {
-      title: 'Priority',
-      options: uniquePriorities.map((priority) => {
-        const value = String(priority)
-        const checked = selectedPriorities.includes(value)
-        return {
-          key: `priority-${value}`,
-          label: getPriorityLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedPriorities, setSelectedPriorities),
-          palette: getPriorityBadgeStyle(value),
-        }
-      }),
-    },
-    {
-      title: 'Status',
-      options: uniqueStatuses.map((status) => {
-        const value = String(status)
-        const checked = selectedStatuses.includes(value)
-        return {
-          key: `status-${value}`,
-          label: getStatusLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedStatuses, setSelectedStatuses),
-          palette: getStatusBadgeStyle(value),
-        }
-      }),
-    },
-  ]
 
   const a = (v: string, o: number) => `rgb(var(--hud-${v}) / ${o})`
   const T = {
@@ -382,41 +169,13 @@ export default function EventsStreamline() {
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden gap-4 p-4" style={{ background: T.bg, color: T.onSurface }}>
 
-      {/* Sidebar */}
-      {showSidebar && (
-        <FiltersSidebar
-          activeFiltersCount={activeFiltersCount}
-          onClearAllFilters={clearAllFilters}
-          sections={sidebarSections}
-          serviceFilter={{
-            title: 'Service',
-            searchQuery: serviceSearchQuery,
-            onSearchQueryChange: setServiceSearchQuery,
-            options: filteredCatalogServices.map((service) => ({
-              key: `service-${service}`,
-              label: service,
-              checked: selectedServices.includes(service),
-              onToggle: () => toggleFilter(service, selectedServices, setSelectedServices),
-            })),
-            emptyText: 'No services found',
-            noDataText: 'No services',
-          }}
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden gap-4 min-w-0" style={{ background: T.bg }}>
 
-        {/* Top Bar */}
-        <PageFiltersHeader
-          title="Events Streamline"
-          subtitle={`Operational planning view grouped by ${groupBy === 'service' ? 'service' : 'environment'}${activeFiltersCount > 0 ? ` • ${activeFiltersCount} active` : ''}`}
-          filterCount={activeFiltersCount}
-          isSidebarOpen={showSidebar}
-          onToggleSidebar={() => setShowSidebar(!showSidebar)}
-          onClearAllFilters={clearAllFilters}
-          tags={activeFilterTags}
-        />
+        <div className="flex flex-col gap-space-3">
+          <h1 className="text-title-lg text-ink">Streamline</h1>
+          <TimeViewFilters query={query} onChange={setQuery} events={allEvents} resultCount={events.length} />
+        </div>
 
         {/* Time Controls Bar */}
         <div className="px-6 py-3 flex items-center justify-between shrink-0 rounded-xl"
