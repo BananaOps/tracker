@@ -2,27 +2,37 @@ interface FooterProps {
   isCollapsed?: boolean
 }
 
+const link = 'text-muted hover:text-ink hover:underline underline-offset-2'
+
 export default function Footer({ isCollapsed = false }: FooterProps) {
   return (
     <footer
-      className={`fixed bottom-0 right-0 border-t border-hud-outline-var/30 z-30 transition-all duration-200 ${
-        isCollapsed ? 'left-[56px]' : 'left-[220px]'
+      className={`fixed right-0 bottom-0 z-30 border-t border-rule bg-surface transition-[left] duration-[180ms] ease-ds ${
+        isCollapsed ? 'left-[60px]' : 'left-sidebar-w'
       }`}
-      style={{ background: 'rgb(var(--hud-surface))' }}
     >
-      <style>{`
-        @keyframes banana-swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
-        .banana-animate { display: inline-block; animation: banana-swing 2s ease-in-out infinite; }
-      `}</style>
-      <div className="px-6 py-2">
-        <div className="flex items-center justify-between text-xs text-hud-on-surface-var">
-          <span>Made with <span className="banana-animate">🍌</span> by <a href="https://github.com/BananaOps" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-hud-on-surface">BananaOps</a> • <a href="https://github.com/BananaOps/tracker/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-hud-on-surface">Apache 2.0</a></span>
-          <div className="flex items-center gap-3">
-            <a href="https://github.com/BananaOps/tracker/stargazers" target="_blank" rel="noopener noreferrer" className="hover:text-hud-on-surface">⭐ Star</a>
-            <a href="https://github.com/BananaOps/tracker/issues" target="_blank" rel="noopener noreferrer" className="hover:text-hud-on-surface">🐛 Issues</a>
-            <a href="https://github.com/BananaOps/tracker/discussions" target="_blank" rel="noopener noreferrer" className="hover:text-hud-on-surface">💬 Discuss</a>
-          </div>
-        </div>
+      <div className="flex items-center justify-between px-space-6 py-2 font-mono text-[11px] text-muted">
+        <span>
+          made by{' '}
+          <a href="https://github.com/BananaOps" target="_blank" rel="noopener noreferrer" className={link}>
+            BananaOps
+          </a>{' '}
+          ·{' '}
+          <a href="https://github.com/BananaOps/tracker/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className={link}>
+            Apache 2.0
+          </a>
+        </span>
+        <span className="flex items-center gap-space-3">
+          <a href="https://github.com/BananaOps/tracker/stargazers" target="_blank" rel="noopener noreferrer" className={link}>
+            star
+          </a>
+          <a href="https://github.com/BananaOps/tracker/issues" target="_blank" rel="noopener noreferrer" className={link}>
+            issues
+          </a>
+          <a href="https://github.com/BananaOps/tracker/discussions" target="_blank" rel="noopener noreferrer" className={link}>
+            discuss
+          </a>
+        </span>
       </div>
     </footer>
   )

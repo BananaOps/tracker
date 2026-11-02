@@ -39,6 +39,7 @@ describe('design system showcase', () => {
       'StatusMark and ImpactMark',
       'SegmentedControl and MetricStrip',
       'EventList and TimeRuler',
+      'QueryBar and saved views',
       'Sidebar',
       'EventDrawer',
       'CommandPalette',

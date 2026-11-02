@@ -1,16 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { eventsApi } from '../lib/api'
-import { catalogListQuery } from '../lib/queries'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isWithinInterval, startOfDay, endOfDay } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Event } from '../types/api'
-import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeLabel, getEnvironmentLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
-import PageFiltersHeader from '../components/filters/PageFiltersHeader'
-import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { TimeViewFilters } from '../components/filters/TimeViewFilters'
+import { useTimeQuery } from '../hooks/useTimeQuery'
+import { matchEvent, toSearchParams } from '../lib/query'
 import { Button } from '../components/ui/button'
 import { ScrollArea } from '../components/ui/scroll-area'
 
@@ -18,16 +18,11 @@ export default function EventsCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [showSidebar, setShowSidebar] = useState(false) // Fermé par défaut
-  const [serviceSearch, setServiceSearch] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  
-  // États des filtres
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  // Filters are shared with Timeline and Streamline and kept in the URL; the calendar keeps
+  // its month navigation.
+  const { query, setQuery } = useTimeQuery()
+  const serverParams = useMemo(() => toSearchParams(query), [query])
+
   const calendarGridRef = useRef<HTMLDivElement | null>(null)
   const [maxEventLinesPerDay, setMaxEventLinesPerDay] = useState(3)
 
@@ -37,8 +32,9 @@ export default function EventsCalendar() {
 
   // Récupérer les événements avec une clé qui change chaque mois pour forcer le refresh
   const { data } = useQuery({
-    queryKey: ['events', 'calendar', monthStart.toISOString(), monthEnd.toISOString()],
+    queryKey: ['events', 'calendar', monthStart.toISOString(), monthEnd.toISOString(), serverParams],
     queryFn: () => eventsApi.search({
+      ...serverParams,
       startDate: monthStart.toISOString(),
       endDate: monthEnd.toISOString(),
     }),
@@ -46,59 +42,10 @@ export default function EventsCalendar() {
     refetchInterval: 30_000,
   })
 
-  const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    ...catalogListQuery,
-    refetchInterval: 30_000,
-  })
-
   const allEvents = useMemo(() => data?.events ?? [], [data])
-  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
 
-  // Extraire les services du catalogue
-  const catalogServices = useMemo(() => {
-    return catalogs.map((c) => c.name).sort()
-  }, [catalogs])
-
-  // Filtrer les services par recherche
-  const filteredCatalogServices = useMemo(() => {
-    if (!serviceSearch) return catalogServices
-    return catalogServices.filter((service: string) => 
-      service.toLowerCase().includes(serviceSearch.toLowerCase())
-    )
-  }, [catalogServices, serviceSearch])
-
-  // Filtrer les valeurs invalides
-  const filterInvalidValues = (values: unknown[]) => {
-    const invalidValues = new Set(['event', 'environment', 'priority', 'status', 'unspecified', 'unknown', ''])
-    return values
-      .filter((v): v is string | number => v !== null && v !== undefined)
-      .map(v => String(v).trim())
-      .filter(v => !invalidValues.has(v.toLowerCase()))
-  }
-
-  // Extraire les valeurs uniques pour les filtres
-  const uniqueEnvironments = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e) => e.attributes.environment).filter(Boolean)))
-    return filterInvalidValues(values).sort()
-  }, [allEvents])
-
-  const uniquePriorities = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e) => e.attributes.priority)))
-    return filterInvalidValues(values).sort()
-  }, [allEvents])
-
-  const uniqueStatuses = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e) => e.attributes.status)))
-    return filterInvalidValues(values).sort()
-  }, [allEvents])
-
-  const uniqueTypes = useMemo(() => {
-    const values = Array.from(new Set(allEvents.map((e) => e.attributes.type)))
-    return filterInvalidValues(values).sort()
-  }, [allEvents])
-
-  // Filtrer les événements
-  const events = useMemo(() => {
+  // Événements qui touchent le mois en cours, puis ceux qui passent le filtre
+  const monthEvents = useMemo(() => {
     return allEvents.filter((event) => {
       // Filtre par date : événements qui touchent le mois en cours
       const startDateStr = event.attributes.startDate || event.metadata?.createdAt
@@ -114,51 +61,11 @@ export default function EventsCalendar() {
         if (!eventInMonth) return false
       }
 
-      // Filtre par recherche
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase()
-        const matchesTitle = event.title?.toLowerCase().includes(query)
-        const matchesService = event.attributes.service?.toLowerCase().includes(query)
-        const matchesMessage = event.attributes.message?.toLowerCase().includes(query)
-        if (!matchesTitle && !matchesService && !matchesMessage) return false
-      }
-
-      // Filtre par environnement
-      if (selectedEnvironments.length > 0) {
-        const eventEnv = String(event.attributes.environment || '').toLowerCase()
-        const hasMatch = selectedEnvironments.some(env => env.toLowerCase() === eventEnv)
-        if (!hasMatch) return false
-      }
-
-      // Filtre par service
-      if (selectedServices.length > 0) {
-        if (!selectedServices.includes(event.attributes.service)) return false
-      }
-
-      // Filtre par priorité
-      if (selectedPriorities.length > 0) {
-        const eventPriority = String(event.attributes.priority || '').toLowerCase()
-        const hasMatch = selectedPriorities.some(priority => priority.toLowerCase() === eventPriority)
-        if (!hasMatch) return false
-      }
-
-      // Filtre par status
-      if (selectedStatuses.length > 0) {
-        const eventStatus = String(event.attributes.status || '').toLowerCase()
-        const hasMatch = selectedStatuses.some(status => status.toLowerCase() === eventStatus)
-        if (!hasMatch) return false
-      }
-
-      // Filtre par type
-      if (selectedTypes.length > 0) {
-        const eventType = String(event.attributes.type || '').toLowerCase()
-        const hasMatch = selectedTypes.some(type => type.toLowerCase() === eventType)
-        if (!hasMatch) return false
-      }
-
       return true
     })
-  }, [allEvents, searchQuery, selectedEnvironments, selectedServices, selectedPriorities, selectedStatuses, selectedTypes, monthStart, monthEnd])
+  }, [allEvents, monthStart, monthEnd])
+
+  const events = useMemo(() => monthEvents.filter((event) => matchEvent(event, query)), [monthEvents, query])
 
   const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd])
   
@@ -262,35 +169,6 @@ export default function EventsCalendar() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   }
 
-  // Fonctions pour gérer les filtres
-  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
-    if (selected.includes(value)) {
-      setter(selected.filter(v => v !== value))
-    } else {
-      setter([...selected, value])
-    }
-  }
-
-  const clearAllFilters = () => {
-    setSelectedEnvironments([])
-    setSelectedServices([])
-    setSelectedPriorities([])
-    setSelectedStatuses([])
-    setSelectedTypes([])
-    setSearchQuery('')
-  }
-
-  const activeFiltersCount = selectedEnvironments.length + selectedServices.length + 
-    selectedPriorities.length + selectedStatuses.length + selectedTypes.length
-
-  const activeFilterTags = useMemo(() => ([
-    ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
-    ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
-    ...selectedPriorities.map((priority) => ({ key: `priority-${priority}`, label: `Priority: ${getPriorityLabel(priority)}`, onRemove: () => toggleFilter(priority, selectedPriorities, setSelectedPriorities) })),
-    ...selectedStatuses.map((status) => ({ key: `status-${status}`, label: `Status: ${getStatusLabel(status)}`, onRemove: () => toggleFilter(status, selectedStatuses, setSelectedStatuses) })),
-    ...selectedServices.map((service) => ({ key: `service-${service}`, label: `Service: ${service}`, onRemove: () => toggleFilter(service, selectedServices, setSelectedServices) })),
-  ]), [selectedTypes, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
-
   const getTypePalette = (type?: string) => {
     const t = String(type || '').toLowerCase()
     if (t === 'deployment' || t === 'release' || t === '1') return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF', solid: '#1B3575' }
@@ -320,14 +198,6 @@ export default function EventsCalendar() {
     return { bg: '#EEF1F8', text: '#475569', border: '#D5DBE8' }
   }
 
-  const getPriorityPalette = (priority?: string) => {
-    const p = String(priority || '').toLowerCase()
-    if (p === 'p1' || p === '1') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    if (p === 'p2' || p === '2') return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0' }
-    if (p === 'p3' || p === '3') return { bg: '#FDFCE8', text: '#6B6000', border: '#F0EA90' }
-    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
-  }
-
   const getImpactLabel = (impact?: unknown) => {
     const value = String(impact || '').toLowerCase().trim()
     if (!value || value === 'false' || value === '0' || value === 'none' || value === 'null' || value === 'undefined') return null
@@ -335,104 +205,13 @@ export default function EventsCalendar() {
     return `Impact ${String(impact).toUpperCase()}`
   }
 
-  const sidebarSections = [
-    {
-      title: 'Event Type',
-      options: uniqueTypes.map((type) => {
-        const value = String(type)
-        const checked = selectedTypes.includes(value)
-        return {
-          key: `type-${value}`,
-          label: getEventTypeLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedTypes, setSelectedTypes),
-          palette: getTypePalette(value),
-        }
-      }),
-    },
-    {
-      title: 'Environment',
-      options: uniqueEnvironments.map((env) => {
-        const value = String(env)
-        const checked = selectedEnvironments.includes(value)
-        return {
-          key: `environment-${value}`,
-          label: getEnvironmentLabel(value) ?? value,
-          checked,
-          onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
-          palette: getEnvironmentPalette(value),
-        }
-      }),
-    },
-    {
-      title: 'Priority',
-      options: uniquePriorities.map((priority) => {
-        const value = String(priority)
-        const checked = selectedPriorities.includes(value)
-        return {
-          key: `priority-${value}`,
-          label: getPriorityLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedPriorities, setSelectedPriorities),
-          palette: getPriorityPalette(value),
-        }
-      }),
-    },
-    {
-      title: 'Status',
-      options: uniqueStatuses.map((status) => {
-        const value = String(status)
-        const checked = selectedStatuses.includes(value)
-        return {
-          key: `status-${value}`,
-          label: getStatusLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedStatuses, setSelectedStatuses),
-          palette: getStatusPalette(value),
-        }
-      }),
-    },
-  ]
-
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden gap-4 p-4" style={{ background: 'rgb(var(--hud-bg))' }}>
-      {/* Sidebar Filters - Style Datadog */}
-      {showSidebar && (
-        <FiltersSidebar
-          activeFiltersCount={activeFiltersCount}
-          onClearAllFilters={clearAllFilters}
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          sections={sidebarSections}
-          serviceFilter={{
-            title: 'Service',
-            searchQuery: serviceSearch,
-            onSearchQueryChange: setServiceSearch,
-            options: filteredCatalogServices.map((service: string) => ({
-              key: `service-${service}`,
-              label: service,
-              checked: selectedServices.includes(service),
-              onToggle: () => toggleFilter(service, selectedServices, setSelectedServices),
-            })),
-            emptyText: 'No services found',
-            noDataText: catalogLoading ? 'Loading...' : 'No services',
-          }}
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden gap-4 min-w-0">
-        {/* Header */}
-        <div>
-          <PageFiltersHeader
-            title="Events Calendar"
-            subtitle={`${events.length} event${events.length > 1 ? 's' : ''}${activeFiltersCount > 0 ? ` • ${activeFiltersCount} active` : ''}`}
-            filterCount={activeFiltersCount}
-            isSidebarOpen={showSidebar}
-            onToggleSidebar={() => setShowSidebar(!showSidebar)}
-            onClearAllFilters={clearAllFilters}
-            tags={activeFilterTags}
-          />
+        <div className="flex flex-col gap-space-3">
+          <h1 className="text-title-lg text-ink">Calendar</h1>
+          <TimeViewFilters query={query} onChange={setQuery} events={monthEvents} resultCount={events.length} />
         </div>
 
         {/* Calendar Content */}

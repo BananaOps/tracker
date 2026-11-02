@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { CSSProperties } from 'react'
 import { eventsApi } from '../lib/api'
-import { catalogListQuery } from '../lib/queries'
 import { format, subDays, startOfDay, endOfDay, subHours, isToday, isYesterday } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import type { Event } from '../types/api'
@@ -9,11 +8,11 @@ import {
   ArrowUp, ArrowDown, Calendar,
   ChevronRight, CheckCircle, Clock 
 } from 'lucide-react'
-import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, getStatusLabel, isEventApproved } from '../lib/eventUtils'
+import { getEventTypeIcon, getEventTypeColor, getEventTypeLabel, getEnvironmentLabel, getPriorityLabel, isEventApproved } from '../lib/eventUtils'
 import { SourceIcon } from '../components/EventLinks'
 import EventDetailsModal from '../components/EventDetailsModal'
-import PageFiltersHeader from '../components/filters/PageFiltersHeader'
-import FiltersSidebar from '../components/filters/FiltersSidebar'
+import { TimeViewFilters } from '../components/filters/TimeViewFilters'
+import { useTimeViewFilter } from '../hooks/useTimeViewFilter'
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,100 +50,32 @@ const timeRanges: TimeRange[] = [
 ]
 
 export default function EventsTimeline() {
-  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
-  const [endDate, setEndDate] = useState<Date>(new Date())
-  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('Last 7 days')
-  const [showSidebar, setShowSidebar] = useState(false)
+  // Filters and period are shared by the time views and kept in the URL.
+  const { query, setQuery, serverParams, filter, from: startDate, to: endDate, periodFromUrl, setPeriod } = useTimeViewFilter(() => ({
+    from: subDays(new Date(), 7),
+    to: new Date(),
+  }))
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>(periodFromUrl ? 'Custom range' : 'Last 7 days')
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [sortField, setSortField] = useState<SortField>('startDate')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [serviceSearchQuery, setServiceSearchQuery] = useState('')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
-  
-  // États des filtres
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([])
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
-  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([])
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-
   const { data, isLoading } = useQuery({
-    queryKey: ['events', 'timeline', startDate.toISOString(), endDate.toISOString()],
+    queryKey: ['events', 'timeline', startDate.toISOString(), endDate.toISOString(), serverParams],
     queryFn: () => eventsApi.search({
+      ...serverParams,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     }),
     refetchInterval: 30_000,
   })
 
-  const { data: catalogData, isLoading: catalogLoading } = useQuery({
-    ...catalogListQuery,
-    refetchInterval: 30_000,
-  })
-
   const allEvents = useMemo(() => data?.events ?? [], [data])
-  const catalogs = useMemo(() => catalogData?.catalogs ?? [], [catalogData])
-
-  const catalogServices = useMemo(() => {
-    return catalogs.map((c) => c.name).sort()
-  }, [catalogs])
-
-  const filteredCatalogServices = useMemo(() => {
-    if (!serviceSearchQuery.trim()) return catalogServices
-    const query = serviceSearchQuery.toLowerCase()
-    return catalogServices.filter((service: string) => service.toLowerCase().includes(query))
-  }, [catalogServices, serviceSearchQuery])
-
-  const uniqueEnvironments = useMemo<string[]>(() => {
-    const invalidValues = ['environment', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map((e: Event) => String(e.attributes.environment || '').trim())
-          .filter((env: string) => env && !invalidValues.includes(env.toLowerCase()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniqueTypes = useMemo<string[]>(() => {
-    const invalidValues = ['event', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map((e: Event) => String(e.attributes.type || '').trim())
-          .filter((type: string) => type && !invalidValues.includes(type.toLowerCase()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniquePriorities = useMemo<string[]>(() => {
-    const invalidValues = ['priority', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map((e: Event) => String(e.attributes.priority || '').trim())
-          .filter((priority: string) => priority && !invalidValues.includes(priority.toLowerCase()))
-      )
-    ).sort()
-  }, [allEvents])
-
-  const uniqueStatuses = useMemo<string[]>(() => {
-    const invalidValues = ['status', 'unspecified', 'unknown', '']
-    return Array.from(
-      new Set(
-        allEvents
-          .map((e: Event) => String(e.attributes.status || '').trim())
-          .filter((status: string) => status && !invalidValues.includes(status.toLowerCase()))
-      )
-    ).sort()
-  }, [allEvents])
 
   const handleTimeRangeSelect = (range: TimeRange) => {
     const { start, end } = range.getValue()
-    setStartDate(start)
-    setEndDate(end)
+    setPeriod({ from: start, to: end })
     setSelectedTimeRange(range.label)
   }
 
@@ -153,56 +84,15 @@ export default function EventsTimeline() {
       // Créer les dates et forcer l'heure à minuit pour le début et 23:59:59 pour la fin
       const start = startOfDay(new Date(customStartDate))
       const end = endOfDay(new Date(customEndDate))
-      setStartDate(start)
-      setEndDate(end)
+      setPeriod({ from: start, to: end })
       setSelectedTimeRange('Custom range')
     }
   }
 
   const events = useMemo(() => {
-    const filtered = allEvents.filter((event: Event) => {
+    const filtered = filter(allEvents).filter((event: Event) => {
       const eventDate = getEventDateForSort(event, sortField)
-      if (!eventDate) return false
-      if (eventDate < startDate || eventDate > endDate) return false
-
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase()
-        const matchesTitle = event.title.toLowerCase().includes(query)
-        const matchesService = event.attributes.service.toLowerCase().includes(query)
-        const matchesMessage = event.attributes.message?.toLowerCase().includes(query)
-        if (!matchesTitle && !matchesService && !matchesMessage) return false
-      }
-
-      if (selectedEnvironments.length > 0) {
-        const eventEnv = String(event.attributes.environment || '').toLowerCase()
-        const hasMatch = selectedEnvironments.some(env => env.toLowerCase() === eventEnv)
-        if (!hasMatch) return false
-      }
-
-      if (selectedTypes.length > 0) {
-        const eventType = String(event.attributes.type || '').toLowerCase()
-        const hasMatch = selectedTypes.some(type => type.toLowerCase() === eventType)
-        if (!hasMatch) return false
-      }
-
-      if (selectedPriorities.length > 0) {
-        const eventPriority = String(event.attributes.priority || '').toLowerCase()
-        const hasMatch = selectedPriorities.some(priority => priority.toLowerCase() === eventPriority)
-        if (!hasMatch) return false
-      }
-
-      if (selectedStatuses.length > 0) {
-        const eventStatus = String(event.attributes.status || '').toLowerCase()
-        const hasMatch = selectedStatuses.some(status => status.toLowerCase() === eventStatus)
-        if (!hasMatch) return false
-      }
-
-      if (selectedServices.length > 0) {
-        if (!selectedServices.includes(event.attributes.service)) return false
-      }
-
-      return true
+      return !!eventDate && eventDate >= startDate && eventDate <= endDate
     })
     
     const sorted = [...filtered].sort((a, b) => {
@@ -212,35 +102,7 @@ export default function EventsTimeline() {
     })
     
     return sorted
-  }, [allEvents, startDate, endDate, searchQuery, selectedEnvironments, selectedTypes, selectedPriorities, selectedStatuses, selectedServices, sortOrder, sortField])
-
-  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
-    if (selected.includes(value)) {
-      setter(selected.filter(v => v !== value))
-    } else {
-      setter([...selected, value])
-    }
-  }
-
-  const clearAllFilters = () => {
-    setSelectedEnvironments([])
-    setSelectedTypes([])
-    setSelectedPriorities([])
-    setSelectedStatuses([])
-    setSelectedServices([])
-    setSearchQuery('')
-  }
-
-  const activeFiltersCount = selectedEnvironments.length + selectedTypes.length + 
-    selectedPriorities.length + selectedStatuses.length + selectedServices.length
-
-  const activeFilterTags = useMemo(() => ([
-    ...selectedTypes.map((type) => ({ key: `type-${type}`, label: `Type: ${getEventTypeLabel(type)}`, onRemove: () => toggleFilter(type, selectedTypes, setSelectedTypes) })),
-    ...selectedEnvironments.map((env) => ({ key: `environment-${env}`, label: `Environment: ${getEnvironmentLabel(env)}`, onRemove: () => toggleFilter(env, selectedEnvironments, setSelectedEnvironments) })),
-    ...selectedPriorities.map((priority) => ({ key: `priority-${priority}`, label: `Priority: ${getPriorityLabel(priority)}`, onRemove: () => toggleFilter(priority, selectedPriorities, setSelectedPriorities) })),
-    ...selectedStatuses.map((status) => ({ key: `status-${status}`, label: `Status: ${getStatusLabel(status)}`, onRemove: () => toggleFilter(status, selectedStatuses, setSelectedStatuses) })),
-    ...selectedServices.map((service) => ({ key: `service-${service}`, label: `Service: ${service}`, onRemove: () => toggleFilter(service, selectedServices, setSelectedServices) })),
-  ]), [selectedTypes, selectedEnvironments, selectedPriorities, selectedStatuses, selectedServices])
+  }, [allEvents, filter, startDate, endDate, sortOrder, sortField])
 
   const liveEventsCount = events.filter((event) => {
     const status = String(event.attributes.status || '').toLowerCase()
@@ -294,134 +156,18 @@ export default function EventsTimeline() {
     return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
   }
 
-  const getTypePalette = (type?: string) => {
-    const t = String(type || '').toLowerCase()
-    if (t === 'deployment' || t === '1') return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
-    if (t === 'operation' || t === '2') return { bg: '#F3EEFF', text: '#5B3AAE', border: '#D9CCFF' }
-    if (t === 'incident' || t === '4') return { bg: '#FEECEC', text: '#B42318', border: '#F7C9C9' }
-    if (t === 'drift' || t === '3') return { bg: '#EAFBFA', text: '#0F766E', border: '#BDECE8' }
-    if (t === 'rpa_usage' || t === '5') return { bg: '#FFF4EA', text: '#C2410C', border: '#FFD5B0' }
-    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
-  }
-
-  const getPriorityPalette = (priority?: string) => {
-    const p = String(priority || '').toLowerCase()
-    if (p === 'p1' || p === '1') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    if (p === 'p2' || p === '2') return { bg: '#FFF8E8', text: '#8C5A00', border: '#FFE0A0' }
-    if (p === 'p3' || p === '3') return { bg: '#FDFCE8', text: '#6B6000', border: '#F0EA90' }
-    return { bg: '#EEF1F8', text: '#6E7891', border: '#D5DBE8' }
-  }
-
-  const getStatusPalette = (status?: string) => {
-    const s = String(status || '').toLowerCase()
-    if (s === 'success' || s === '3' || s === 'done' || s === '11') return { bg: '#ECFDF3', text: '#166534', border: '#BBF7D0' }
-    if (s === 'failure' || s === '2' || s === 'error' || s === '5') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    if (s === 'start' || s === '1' || s === 'in_progress' || s === '12') return { bg: '#FFF0E8', text: '#B84400', border: '#FFC8A0' }
-    return { bg: '#EFF4FF', text: '#1B3575', border: '#C2D0EF' }
-  }
-
-  const sidebarSections = [
-    {
-      title: 'Event Type',
-      options: uniqueTypes.map((type) => {
-        const value = String(type)
-        const checked = selectedTypes.includes(value)
-        return {
-          key: `type-${value}`,
-          label: getEventTypeLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedTypes, setSelectedTypes),
-          palette: getTypePalette(value),
-        }
-      }),
-    },
-    {
-      title: 'Environment',
-      options: uniqueEnvironments.map((env) => {
-        const value = String(env)
-        const checked = selectedEnvironments.includes(value)
-        return {
-          key: `environment-${value}`,
-          label: getEnvironmentLabel(value) ?? value,
-          checked,
-          onToggle: () => toggleFilter(value, selectedEnvironments, setSelectedEnvironments),
-          palette: getEnvironmentBadgeStyle(value),
-        }
-      }),
-    },
-    {
-      title: 'Priority',
-      options: uniquePriorities.map((priority) => {
-        const value = String(priority)
-        const checked = selectedPriorities.includes(value)
-        return {
-          key: `priority-${value}`,
-          label: getPriorityLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedPriorities, setSelectedPriorities),
-          palette: getPriorityPalette(value),
-        }
-      }),
-    },
-    {
-      title: 'Status',
-      options: uniqueStatuses.map((status) => {
-        const value = String(status)
-        const checked = selectedStatuses.includes(value)
-        return {
-          key: `status-${value}`,
-          label: getStatusLabel(value),
-          checked,
-          onToggle: () => toggleFilter(value, selectedStatuses, setSelectedStatuses),
-          palette: getStatusPalette(value),
-        }
-      }),
-    },
-  ]
-
-  if (isLoading || catalogLoading) {
+  if (isLoading) {
     return <div className="text-center py-12">Loading...</div>
   }
 
   return (
     <div className="flex h-screen overflow-hidden gap-4 p-4" style={{ background: 'rgb(var(--hud-bg))' }}>{/* Removed extra padding/borders */}
-      {/* Sidebar Filters - Style Datadog */}
-      {showSidebar && (
-        <FiltersSidebar
-          activeFiltersCount={activeFiltersCount}
-          onClearAllFilters={clearAllFilters}
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          sections={sidebarSections}
-          serviceFilter={{
-            title: 'Service',
-            searchQuery: serviceSearchQuery,
-            onSearchQueryChange: setServiceSearchQuery,
-            options: filteredCatalogServices.map((service) => ({
-              key: `service-${service}`,
-              label: service,
-              checked: selectedServices.includes(service),
-              onToggle: () => toggleFilter(service, selectedServices, setSelectedServices),
-            })),
-            emptyText: 'No services found',
-            noDataText: 'No services',
-          }}
-        />
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden gap-4 min-w-0">
         {/* Top Bar */}
-        <div>
-          <PageFiltersHeader
-            title="Events Timeline"
-            subtitle={`${events.length} event${events.length > 1 ? 's' : ''}${activeFiltersCount > 0 ? ` • ${activeFiltersCount} active` : ''}`}
-            filterCount={activeFiltersCount}
-            isSidebarOpen={showSidebar}
-            onToggleSidebar={() => setShowSidebar(!showSidebar)}
-            onClearAllFilters={clearAllFilters}
-            tags={activeFilterTags}
-          />
+        <div className="flex flex-col gap-space-3">
+          <h1 className="text-title-lg text-ink">Timeline</h1>
+          <TimeViewFilters query={query} onChange={setQuery} events={allEvents} resultCount={events.length} />
         </div>
 
         <div className="px-4 py-3 rounded-xl" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
@@ -566,9 +312,6 @@ export default function EventsTimeline() {
           {events.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-lg mb-4" style={{ color: 'rgb(var(--hud-on-surface-var))' }}>No events found</p>
-              {activeFiltersCount > 0 && (
-                <Button onClick={clearAllFilters}>Clear All Filters</Button>
-              )}
             </div>
           ) : (
             <div className="flex flex-col gap-4 pb-2 pr-1">

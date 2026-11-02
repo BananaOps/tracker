@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { CreateEventRequest, Event, ListEventsResponse, Catalog, ChangelogEntry, EventType, Priority, Status, Environment } from '../types/api'
+import { EnvironmentToNumber, PriorityToNumber, StatusToNumber, type CreateEventRequest, type Event, type ListEventsResponse, type Catalog, type ChangelogEntry, type EventType, type Priority, type Status, type Environment } from '../types/api'
 import { staticEventsApi, staticCatalogApi, staticLocksApi } from './staticApi'
 import { catalogFromAPI, convertEventFromAPI, type ApiEventRequest } from './apiConverters'
 // Détecter si on est en mode statique (GitHub Pages)
@@ -40,7 +40,8 @@ const realEventsApi = {
     return eventsFromAPI(data)
   },
 
-  // Enums are accepted by name ('drift', 'production') or by number
+  // Enums are accepted by name ('drift', 'production') or by number. Priority, status and
+  // environment go as numbers: their proto names differ from ours (P1, TNR, UAT, recommandation).
   search: async (params: {
     source?: string
     type?: EventType | number
@@ -50,8 +51,17 @@ const realEventsApi = {
     startDate?: string
     endDate?: string
     environment?: Environment | number
+    /** Only true filters: the proto field is a plain bool, false means "not set". */
+    impact?: boolean
   }) => {
-    const { data } = await axiosInstance.get<ListEventsResponse>('/events/search', { params })
+    const query = {
+      ...params,
+      priority: typeof params.priority === 'string' ? PriorityToNumber[params.priority] : params.priority,
+      status: typeof params.status === 'string' ? StatusToNumber[params.status] : params.status,
+      environment: typeof params.environment === 'string' ? EnvironmentToNumber[params.environment] : params.environment,
+      impact: params.impact ? true : undefined,
+    }
+    const { data } = await axiosInstance.get<ListEventsResponse>('/events/search', { params: query })
     return eventsFromAPI(data)
   },
 

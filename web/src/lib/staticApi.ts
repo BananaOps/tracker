@@ -40,6 +40,15 @@ export const staticEventsApi: EventsApi = {
     if (params.status) {
       filtered = filtered.filter((e) => e.attributes?.status === params.status)
     }
+    if (params.type) {
+      filtered = filtered.filter((e) => e.attributes?.type === params.type)
+    }
+    if (params.priority) {
+      filtered = filtered.filter((e) => e.attributes?.priority === params.priority)
+    }
+    if (params.impact) {
+      filtered = filtered.filter((e) => e.attributes?.impact === true)
+    }
     
     // Filtrage par date pour les insights
     if (params.startDate || params.endDate) {

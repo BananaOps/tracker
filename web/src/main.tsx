@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { CreatePanelProvider } from './contexts/CreatePanelContext'
+import { TimeQueryProvider } from './contexts/TimeQueryContext'
 import App from './App'
 import '@fontsource-variable/spline-sans'
 import '@fontsource-variable/spline-sans-mono'
@@ -57,7 +58,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <CreatePanelProvider>
-          <App />
+          <TimeQueryProvider>
+            <App />
+          </TimeQueryProvider>
         </CreatePanelProvider>
       </QueryClientProvider>
     </ThemeProvider>

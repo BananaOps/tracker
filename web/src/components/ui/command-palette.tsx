@@ -23,6 +23,8 @@ export interface PaletteGroup {
   /** Groups keep the given order: Jump to, Create, then the results. */
   label: string
   items: PaletteItem[]
+  /** Results groups (services, links): shown only once something is typed. */
+  searchOnly?: boolean
 }
 
 export interface CommandPaletteProps {
@@ -96,31 +98,33 @@ export function CommandPalette({
               <Command.Empty className="px-space-4 pt-2.5 pb-1 font-mono text-[11px] leading-4 text-muted">
                 {`No results for “${query}”`}
               </Command.Empty>
-              {groups.map((group) => (
-                <Command.Group
-                  key={group.label}
-                  heading={group.label}
-                  className="[&_[cmdk-group-heading]]:px-space-4 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:text-muted"
-                >
-                  {group.items.map((item) => (
-                    <Command.Item
-                      key={item.id ?? item.label}
-                      value={item.id ?? item.label}
-                      keywords={[item.label, item.hint ?? ''].filter(Boolean)}
-                      onSelect={() => choose(item)}
-                      className={cn(
-                        'group/item flex cursor-pointer items-center gap-2.5 px-space-4 py-2 text-[14px] text-ink',
-                        'data-[selected=true]:bg-signature-wash',
-                      )}
-                    >
-                      {item.icon && <Icon name={item.icon} className="text-muted group-data-[selected=true]/item:text-ink" />}
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {item.hint && <span className="whitespace-nowrap font-mono text-[11px] text-muted">{item.hint}</span>}
-                      {item.kbd && <Kbd>{item.kbd}</Kbd>}
-                    </Command.Item>
-                  ))}
-                </Command.Group>
-              ))}
+              {groups
+                .filter((group) => !group.searchOnly || query.trim())
+                .map((group) => (
+                  <Command.Group
+                    key={group.label}
+                    heading={group.label}
+                    className="[&_[cmdk-group-heading]]:px-space-4 [&_[cmdk-group-heading]]:pt-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:text-muted"
+                  >
+                    {group.items.map((item) => (
+                      <Command.Item
+                        key={item.id ?? item.label}
+                        value={item.id ?? item.label}
+                        keywords={[item.label, item.hint ?? ''].filter(Boolean)}
+                        onSelect={() => choose(item)}
+                        className={cn(
+                          'group/item flex cursor-pointer items-center gap-2.5 px-space-4 py-2 text-[14px] text-ink',
+                          'data-[selected=true]:bg-signature-wash',
+                        )}
+                      >
+                        {item.icon && <Icon name={item.icon} className="text-muted group-data-[selected=true]/item:text-ink" />}
+                        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                        {item.hint && <span className="whitespace-nowrap font-mono text-[11px] text-muted">{item.hint}</span>}
+                        {item.kbd && <Kbd>{item.kbd}</Kbd>}
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                ))}
             </Command.List>
             <div aria-hidden="true" className="flex flex-wrap gap-space-4 border-t border-rule px-space-4 py-2.5 font-mono text-[11px] text-muted">
               <span>↑ ↓ move</span>
