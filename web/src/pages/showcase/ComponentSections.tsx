@@ -10,11 +10,16 @@ import { ImpactMark } from '../../components/ui/impact-mark'
 import { Kbd } from '../../components/ui/kbd'
 import { Logo } from '../../components/ui/logo'
 import { MetricStrip, type Metric } from '../../components/ui/metric-strip'
+import { QueryBar, QueryEmptyState } from '../../components/ui/query-bar'
+import { SavedViews } from '../../components/ui/saved-views'
 import { SegmentedControl } from '../../components/ui/segmented-control'
 import { Sidebar, type NavGroup } from '../../components/ui/sidebar'
 import { StatusMark } from '../../components/ui/status-mark'
 import { TimeRuler } from '../../components/ui/time-ruler'
 import type { DrawerEvent } from '../../lib/event-drawer'
+import { parseQuery, serializeQuery, type Query } from '../../lib/query'
+import { currentView, DEFAULT_VIEWS } from '../../lib/saved-views'
+import { Environment, EventType, Priority, Status, type Event } from '../../types/api'
 import { DS_STATUSES } from '../../lib/status'
 import { Example, Section, ThemeColumns } from './layout'
 
@@ -102,6 +107,32 @@ const PALETTE: PaletteGroup[] = [
   },
   { label: 'Events', items: [{ id: 'ev-1', label: 'Deploy monitoring v2.5.5 → mco', icon: 'deployment', hint: 'failed · 15:04' }] },
 ]
+
+function apiEvent(title: string, a: Partial<Event['attributes']>): Event {
+  return {
+    title,
+    attributes: { message: '', source: 'showcase', type: EventType.DEPLOYMENT, priority: Priority.P3, service: 'checkout', status: Status.SUCCESS, environment: Environment.PRODUCTION, ...a },
+  }
+}
+
+const API_EVENTS: Event[] = [
+  apiEvent('Deploy checkout v4.0.0 → production', { status: Status.FAILURE, impact: true, owner: 'payments-team' }),
+  apiEvent('Schema migration on orders-db', { service: 'orders-db', type: EventType.OPERATION, status: Status.IN_PROGRESS, owner: 'data-team' }),
+  apiEvent('Terraform drift — firewall', { service: 'network', type: EventType.DRIFT, status: Status.WARNING, environment: Environment.PREPRODUCTION, owner: 'network-team' }),
+  apiEvent('Deploy orders-db v2.1.0 → mco', { service: 'orders-db', environment: Environment.MCO, owner: 'data-team' }),
+]
+
+function QueryDemo() {
+  const [query, setQuery] = useState<Query>(parseQuery('env:production,mco -status:done'))
+  const q = serializeQuery(query)
+  return (
+    <div className="flex flex-col gap-space-3">
+      <SavedViews views={DEFAULT_VIEWS} currentId={currentView(DEFAULT_VIEWS, q)?.id} counts={{ all: 4, impact: 1, 'production-deploys': 1 }} onSelect={(v) => setQuery(parseQuery(v.q))} onSave={() => {}} />
+      <QueryBar query={query} onChange={setQuery} events={API_EVENTS} label="Filter sample events" />
+      <QueryEmptyState query={parseQuery('service:orders-db status:failed')} events={API_EVENTS} onChange={() => {}} />
+    </div>
+  )
+}
 
 function EventListDemo() {
   const [density, setDensity] = useState<Density>('comfortable')
@@ -256,6 +287,10 @@ export function ComponentSections() {
             </div>
           )}
         </ThemeColumns>
+      </Section>
+
+      <Section id="ds-query" title="QueryBar and saved views" description="key:value, key:a,b, -key:value, quoted phrases and free text. / focuses the filter of the page.">
+        <ThemeColumns>{() => <QueryDemo />}</ThemeColumns>
       </Section>
 
       <Section id="ds-nav" title="Sidebar" description="The active page in signature. The rail is 60 px wide.">
