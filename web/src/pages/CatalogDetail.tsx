@@ -879,7 +879,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
         <div className="px-6 pt-5 pb-5 shrink-0" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}`, background: T.surface }}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight truncate" style={{ color: T.onSurface, fontFamily: "'Space Grotesk',sans-serif" }}>
+              <h2 className="text-2xl lg:text-3xl font-bold tracking-tight truncate" style={{ color: T.onSurface }}>
                 {service.name}
               </h2>
               <p className="mt-1 text-sm" style={{ color: T.onSurfaceVar }}>
@@ -890,7 +890,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
               <button
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm font-bold shadow-lg"
-                style={{ background: T.primary, color: '#ffffff', boxShadow: `0 4px 16px ${a('primary', 0.2)}` }}
+                style={{ background: T.primary, color: 'var(--on-ink)', boxShadow: `0 4px 16px ${a('primary', 0.2)}` }}
               >
                 <Edit className="w-4 h-4" />
                 <span>Edit</span>
@@ -1040,7 +1040,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
           <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${a('outline-var', 0.3)}` }}>
             <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>Owner</span>
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: T.primary }}>
+              <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-on-ink shrink-0" style={{ background: T.primary }}>
                 {(service.owner || '?').split(/[\s.@]/).filter(Boolean).slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join('') || '?'}
               </span>
               <span className="text-sm font-semibold truncate" style={{ color: T.onSurface }}>{service.owner || 'Unassigned'}</span>
@@ -1847,7 +1847,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                   onClick={confirmAddResource}
                   disabled={!newResourceName.trim()}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
-                  style={{ background: T.primary, color: '#ffffff' }}
+                  style={{ background: T.primary, color: 'var(--on-ink)' }}
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Resource</span>
@@ -1956,7 +1956,7 @@ export default function CatalogDetail({ serviceNameProp, onClose }: CatalogDetai
                   onClick={confirmEditResource}
                   disabled={!editResourceName.trim()}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all disabled:opacity-50"
-                  style={{ background: T.primary, color: '#ffffff' }}
+                  style={{ background: T.primary, color: 'var(--on-ink)' }}
                 >
                   <Check className="w-4 h-4" />
                   <span>Save Changes</span>

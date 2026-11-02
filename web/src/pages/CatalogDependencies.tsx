@@ -565,7 +565,7 @@ export default function CatalogDependencies() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-3xl font-black tracking-tight flex items-center gap-3">
               <GitBranch className="w-8 h-8" style={{ color: T.primary }} />
               <span>Global Dependencies</span>
             </h2>
@@ -590,7 +590,7 @@ export default function CatalogDependencies() {
             </div>
             <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
             <div className="flex items-end justify-between">
-              <span className="text-4xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>{value}</span>
+              <span className="text-4xl font-black" style={{ fontFamily: 'var(--font-mono)', color }}>{value}</span>
               <span style={{ color }}>{icon}</span>
             </div>
           </div>
@@ -610,7 +610,7 @@ export default function CatalogDependencies() {
                   onClick={() => setLayoutType(lt)}
                   className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                   style={layoutType === lt
-                    ? { background: T.primary, color: 'white' }
+                    ? { background: T.primary, color: 'var(--on-ink)' }
                     : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                   }
                 >
@@ -630,7 +630,7 @@ export default function CatalogDependencies() {
                   onClick={() => setNodeSize(size)}
                   className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                   style={nodeSize === size
-                    ? { background: T.primary, color: 'white' }
+                    ? { background: T.primary, color: 'var(--on-ink)' }
                     : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                   }
                 >
@@ -652,7 +652,7 @@ export default function CatalogDependencies() {
                 onClick={() => setViewMode(mode)}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg transition-all hover:opacity-90 flex items-center gap-1"
                 style={viewMode === mode
-                  ? { background: T.primary, color: 'white' }
+                  ? { background: T.primary, color: 'var(--on-ink)' }
                   : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                 }
               >
@@ -702,7 +702,7 @@ export default function CatalogDependencies() {
                     onClick={() => toggleFilter(type, selectedTypes, setSelectedTypes)}
                     className="px-3 py-1 text-xs font-medium rounded-full transition-all hover:opacity-90"
                     style={selectedTypes.includes(type)
-                      ? { background: T.primary, color: 'white' }
+                      ? { background: T.primary, color: 'var(--on-ink)' }
                       : { background: T.surfaceHigh, color: T.onSurfaceVar, border: `1px solid ${a('outline-var', 0.3)}` }
                     }
                   >
@@ -801,7 +801,7 @@ export default function CatalogDependencies() {
           <div className="p-4" style={{ background: T.surfaceHigh, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <h3 className="text-sm font-bold">
                   Dependency Graph
                 </h3>
                 <p className="text-xs mt-0.5" style={{ color: T.onSurfaceVar }}>
@@ -843,7 +843,7 @@ export default function CatalogDependencies() {
       ) : (
         <div className="rounded-xl overflow-hidden" style={{ background: T.surface }}>
           <div className="p-4" style={{ background: T.surfaceHigh, borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
-            <h3 className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h3 className="text-sm font-bold">
               Dependencies List View
             </h3>
             <p className="text-xs mt-0.5" style={{ color: T.onSurfaceVar }}>
@@ -996,7 +996,7 @@ export default function CatalogDependencies() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold" style={{ color: totalDepsColor, fontFamily: "'JetBrains Mono', monospace" }}>
+                            <span className="text-sm font-bold" style={{ color: totalDepsColor, fontFamily: 'var(--font-mono)' }}>
                               {totalDeps}
                             </span>
                             {totalDeps > 0 && (

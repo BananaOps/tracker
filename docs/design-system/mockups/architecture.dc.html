@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracker — Architecture</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="theme/tracker-tokens.css">
+<link rel="stylesheet" href="ds/tracker/components/bundle.css">
+<script src="ds/tracker/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&amp;family=Spline+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div data-theme="{{themeId}}" style="position: relative; height: 900px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); display: flex; align-items: stretch; overflow: hidden">
+
+  <div style="flex: 0 0 auto; display: flex; background: var(--surface); box-shadow: inset -1px 0 0 var(--rule)">
+    <x-import component-from-global-scope="Tracker.Sidebar" active="Architecture" groups="{{navGroups}}" collapsed="{{navCollapsed}}" on-toggle="{{toggleNav}}"></x-import>
+  </div>
+
+  <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column">
+    <header style="flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; box-sizing: border-box; padding: 10px 24px; background: var(--surface); border-bottom: 1px solid var(--rule)">
+      <button type="button" style="flex: 0 1 420px; display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper); color: var(--muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer">
+        <x-import component-from-global-scope="Tracker.Icon" name="search"></x-import>
+        <span style="flex: 1">Search or jump to…</span>
+        <x-import component-from-global-scope="Tracker.Kbd">⌘K</x-import>
+      </button>
+      <x-import component-from-global-scope="Tracker.Button" variant="primary" icon-right="chevron-down">New</x-import>
+    </header>
+
+    <div style="flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 56px; box-sizing: border-box; padding: 9px 24px; border-bottom: 1px solid var(--rule); background: var(--surface)">
+      <div style="display: flex; align-items: baseline; gap: 10px; margin-right: 8px">
+        <h1 style="margin: 0; font-size: 19px; line-height: 26px; font-weight: 600; letter-spacing: -0.02em">Architecture</h1>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">{{countLine}}</span>
+      </div>
+      <div style="position: relative; flex: 0 1 280px; min-width: 200px">
+        <label style="display: flex; align-items: center; gap: 8px; height: 36px; box-sizing: border-box; padding: 0 8px; border: 1px solid {{findBorder}}; border-radius: 6px; background: var(--paper); color: var(--muted)">
+          <x-import component-from-global-scope="Tracker.Icon" name="search"></x-import>
+          <input type="text" aria-label="Find a service" placeholder="Find a service" value="{{findText}}" onChange="{{onFind}}" onFocus="{{findFocus}}" onBlur="{{findBlur}}" onKeyDown="{{findKey}}" style="flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink)">
+          <x-import component-from-global-scope="Tracker.Kbd">F</x-import>
+        </label>
+        <sc-if value="{{findOpen}}" hint-placeholder-val="{{ false }}">
+          <div class="tk-palette" style="position: absolute; top: 42px; left: 0; width: 340px; z-index: 30">
+            <div class="tk-palette__list" role="listbox" aria-label="Services">
+              <sc-for list="{{findItems}}" as="fi" hint-placeholder-count="4">
+                <div role="option" aria-selected="false" class="tk-palette__item" onMouseDown="{{fi.pick}}">
+                  <x-import component-from-global-scope="Tracker.Icon" name="service"></x-import>
+                  <span class="tk-palette__label">{{fi.name}}</span>
+                  <span class="tk-palette__hint">{{fi.hint}}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{findEmpty}}" hint-placeholder-val="{{ false }}"><div class="tk-palette__group">No service matches “{{findText}}”</div></sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <span style="flex: 1 1 auto"></span>
+      <x-import component-from-global-scope="Tracker.SegmentedControl" label="Show" options="{{showOptions}}" value="{{showVal}}" on-change="{{setShow}}"></x-import>
+      <x-import component-from-global-scope="Tracker.SegmentedControl" label="View" options="{{viewOptions}}" value="{{view}}" on-change="{{setView}}"></x-import>
+    </div>
+
+    <div style="flex: 1 1 auto; min-height: 0; display: flex; align-items: stretch">
+
+      <div style="position: relative; flex: 1 1 auto; min-width: 0; display: flex">
+        <div style="flex: 1 1 auto; min-width: 0; overflow: auto; display: flex; background-color: var(--paper); background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 24px 24px">
+
+          <sc-if value="{{isGraph}}" hint-placeholder-val="{{ true }}">
+            <div style="margin: auto; flex: none; width: {{gWz}}px; height: {{gHz}}px; padding: 56px 24px 64px">
+              <div style="position: relative; width: {{gW}}px; height: {{gH}}px; transform: scale({{zoom}}); transform-origin: 0 0">
+                <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+                  <defs>
+                    <marker id="archArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" style="fill: var(--rule-strong)"></path></marker>
+                    <marker id="archArrowImpact" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" style="fill: var(--impact)"></path></marker>
+                    <marker id="archArrowInk" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 Z" style="fill: var(--ink)"></path></marker>
+                  </defs>
+                </svg>
+                <sc-for list="{{edges}}" as="e" hint-placeholder-count="16">
+                  <svg width="{{gW}}" height="{{gH}}" viewBox="{{viewBox}}" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; display: {{e.disp}}" aria-hidden="true">
+                    <path d="{{e.d}}" fill="none" marker-end="{{e.marker}}" stroke-dasharray="{{e.dash}}" style="stroke: {{e.stroke}}; stroke-width: {{e.sw}}; opacity: {{e.op}}"></path>
+                  </svg>
+                </sc-for>
+                <sc-for list="{{nodes}}" as="n" hint-placeholder-count="15">
+                  <div style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; width: 160px; display: {{n.disp}}; opacity: {{n.op}}">
+                    <sc-if value="{{n.failTag}}" hint-placeholder-val="{{ false }}">
+                      <span style="position: absolute; left: 0; top: -28px"><x-import component-from-global-scope="Tracker.StatusMark" status="failed" text="if down"></x-import></span>
+                    </sc-if>
+                    <button type="button" aria-pressed="{{n.pressed}}" aria-label="{{n.aria}}" onClick="{{n.pick}}" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; width: 160px; height: 54px; box-sizing: border-box; padding: 0 10px; border: {{n.border}}; border-radius: 6px; background: {{n.bg}}; color: var(--ink); text-align: left; font: inherit; cursor: pointer; box-shadow: {{n.shadow}}">
+                      <span style="display: flex; align-items: center; gap: 6px; min-width: 0">
+                        <span style="flex: 1; min-width: 0; font-size: 13px; line-height: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.name}}</span>
+                        <span style="flex: none; font-family: var(--font-mono); font-size: 10px; line-height: 14px; font-weight: {{n.slaWeight}}; color: {{n.slaColor}}">{{n.slaShort}}</span>
+                      </span>
+                      <span style="font-family: var(--font-mono); font-size: 10.5px; line-height: 14px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.sub}}</span>
+                    </button>
+                    <span style="position: absolute; top: -9px; right: 8px; display: flex; gap: 4px">
+                      <sc-if value="{{n.hasLive}}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; background: var(--surface); border: 1px solid var(--rule)"><x-import component-from-global-scope="Tracker.StatusMark" status="{{n.liveStatus}}" text="{{n.liveText}}" label="{{no}}" size="{{twelve}}"></x-import></span></sc-if>
+                      <sc-if value="{{n.liveImpact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}" title="Event impacting users"></x-import></sc-if>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isList}}" hint-placeholder-val="{{ false }}">
+            <div style="flex: 1 1 auto; min-width: 0; padding: 24px">
+              <div class="tk-panel" style="overflow: hidden">
+                <div role="row" style="display: grid; grid-template-columns: 36px minmax(0, 1.6fr) minmax(0, 1fr) 72px 80px minmax(0, 1.4fr) 92px; column-gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 11px; color: var(--muted); background: var(--sunken)">
+                  <span>#</span><span>service</span><span>owner</span><span>sla</span><span>direct</span><span>breaks if down</span><span></span>
+                </div>
+                <sc-for list="{{ranking}}" as="r" hint-placeholder-count="15">
+                  <div role="row" style="display: grid; grid-template-columns: 36px minmax(0, 1.6fr) minmax(0, 1fr) 72px 80px minmax(0, 1.4fr) 92px; column-gap: 12px; align-items: center; padding: 8px 16px; border-top: 1px solid var(--rule-soft)">
+                    <span style="font-family: var(--font-mono); font-size: 12px; color: var(--muted)">{{r.rank}}</span>
+                    <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 500">{{r.name}}</span><span class="tk-meta">{{r.platform}}</span></span>
+                    <span class="tk-meta" style="color: var(--ink)">{{r.owner}}</span>
+                    <span style="font-family: var(--font-mono); font-size: 11px; font-weight: {{r.slaWeight}}; color: {{r.slaColor}}">{{r.sla}}</span>
+                    <span style="font-family: var(--font-mono); font-size: 12px">{{r.direct}}</span>
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                      <span style="flex: 1; height: 8px; border-radius: 2px; background: var(--sunken); overflow: hidden"><span style="display: block; height: 8px; width: {{r.barW}}%; background: var(--impact)"></span></span>
+                      <span style="flex: none; font-family: var(--font-mono); font-size: 12px; font-weight: 500; min-width: 64px">{{r.total}} · {{r.crit}} crit</span>
+                    </span>
+                    <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" on-click="{{r.pick}}">Simulate</x-import>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{isGraph}}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; top: 16px; left: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; max-width: calc(100% - 32px); box-sizing: border-box; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); font-family: var(--font-mono); font-size: 11px; color: var(--muted)">
+            <sc-if value="{{noSel}}" hint-placeholder-val="{{ false }}">
+              <span style="font-family: var(--font-sans); font-size: 13px; color: var(--ink)">Select a service to simulate its failure</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px">arrows point to what a service calls</span>
+            </sc-if>
+            <sc-if value="{{legendImpact}}" hint-placeholder-val="{{ true }}">
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 2px solid var(--failed); border-radius: 3px; background: var(--failed-wash)"></span>down</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1.5px solid var(--impact); border-radius: 3px; background: var(--impact-wash)"></span>breaks directly</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1.5px dashed var(--impact); border-radius: 3px"></span>breaks in cascade</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1px solid var(--rule-strong); border-radius: 3px; opacity: 0.35"></span>unaffected</span>
+            </sc-if>
+            <sc-if value="{{legendNeeds}}" hint-placeholder-val="{{ false }}">
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 3px; background: var(--signature-wash)"></span>selected</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1.5px solid var(--ink); border-radius: 3px"></span>needed directly</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 12px; box-sizing: border-box; border: 1.5px dashed var(--ink); border-radius: 3px"></span>needed in cascade</span>
+            </sc-if>
+          </div>
+          <div style="position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface)">
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" aria-label="Zoom out" on-click="{{zoomOut}}">−</x-import>
+            <span style="min-width: 44px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--ink)">{{zoomLabel}}</span>
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" aria-label="Zoom in" on-click="{{zoomIn}}">+</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" on-click="{{zoomFit}}">Fit</x-import>
+          </div>
+          <div style="position: absolute; left: 16px; bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--muted)">
+            <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">F</x-import> find</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">M</x-import> switch mode</span>
+            <span style="display: inline-flex; align-items: center; gap: 4px"><x-import component-from-global-scope="Tracker.Kbd">esc</x-import> clear</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{hasSel}}" hint-placeholder-val="{{ true }}">
+        <aside aria-label="Impact analysis" style="flex: 0 0 360px; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--rule); background: var(--surface); overflow: hidden">
+          <div style="flex: none; padding: 16px 20px 14px; background: var(--sunken); border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span class="tk-type"><x-import component-from-global-scope="Tracker.Icon" name="service" size="{{twelve}}"></x-import>{{s.type}}</span>
+              <span class="tk-chip tk-chip--quiet" style="height: 22px">sla {{s.sla}}</span>
+              <span style="flex: 1"></span>
+              <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" icon="close" aria-label="Clear selection" on-click="{{clearSel}}"></x-import>
+            </div>
+            <h2 class="tk-drawer__title">{{s.name}}</h2>
+            <div class="tk-chips">
+              <button type="button" class="tk-chip" title="Owner"><x-import component-from-global-scope="Tracker.Icon" name="owner" size="{{fourteen}}"></x-import><span class="tk-chip__text">{{s.owner}}</span></button>
+              <span class="tk-chip tk-chip--quiet">{{s.platform}}</span>
+              <span class="tk-chip tk-chip--quiet">{{s.lang}}</span>
+            </div>
+            <x-import component-from-global-scope="Tracker.SegmentedControl" label="Analysis" options="{{modeOptions}}" value="{{modeVal}}" on-change="{{setMode}}"></x-import>
+          </div>
+
+          <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 18px">
+            <p style="margin: 0; font-size: 16px; line-height: 24px; letter-spacing: -0.01em">{{s.sentence}}</p>
+            <x-import component-from-global-scope="Tracker.MetricStrip" label="Impact" items="{{s.metrics}}"></x-import>
+
+            <sc-for list="{{s.groups}}" as="g" hint-placeholder-count="2">
+              <div>
+                <h3 class="tk-drawer__section-label">{{g.label}}</h3>
+                <div style="display: flex; flex-direction: column">
+                  <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+                    <button type="button" onClick="{{it.pick}}" style="display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; column-gap: 10px; align-items: center; padding: 8px 0; border: 0; border-top: 1px solid var(--rule-soft); background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer">
+                      <span style="display: flex; color: var(--muted)">
+                        <sc-if value="{{it.impact}}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}" title="Breaks if the selected service is down"></x-import></sc-if>
+                        <sc-if value="{{it.notImpact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.Icon" name="service"></x-import></sc-if>
+                      </span>
+                      <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 19px; font-weight: 500">{{it.name}}</span><span class="tk-meta">{{it.meta}}</span></span>
+                      <span style="font-family: var(--font-mono); font-size: 11px; font-weight: {{it.slaWeight}}; color: {{it.slaColor}}">{{it.sla}}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{s.hasTeams}}" hint-placeholder-val="{{ true }}">
+              <div>
+                <h3 class="tk-drawer__section-label">teams to notify</h3>
+                <dl class="tk-fields">
+                  <sc-for list="{{s.teams}}" as="tm" hint-placeholder-count="3"><dt>{{tm.team}}</dt><dd><a href="#">{{tm.channel}}</a></dd></sc-for>
+                </dl>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{s.hasLive}}" hint-placeholder-val="{{ true }}">
+              <div>
+                <h3 class="tk-drawer__section-label">on {{s.name}} today</h3>
+                <sc-for list="{{s.live}}" as="lv" hint-placeholder-count="1">
+                  <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px solid var(--rule-soft)">
+                    <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                      <x-import component-from-global-scope="Tracker.StatusMark" status="{{lv.status}}" text="{{lv.statusText}}"></x-import>
+                      <sc-if value="{{lv.impact}}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="Tracker.ImpactMark"></x-import></sc-if>
+                      <span class="tk-meta">{{lv.time}}</span>
+                    </span>
+                    <span style="font-size: 14px; line-height: 19px; font-weight: 500">{{lv.title}}</span>
+                    <span class="tk-meta">{{lv.note}}</span>
+                    <a href="#" style="font-size: 13px; color: var(--ink); text-underline-offset: 3px">Open in Streamline →</a>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div class="tk-drawer__foot" style="flex: none; padding: 14px 20px">
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" icon="copy">Copy link</x-import>
+            <x-import component-from-global-scope="Tracker.Button" variant="{{s.catalogVariant}}" icon="catalog">Open in catalog</x-import>
+            <sc-if value="{{s.canNotify}}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="Tracker.Button" variant="primary">{{s.notifyLabel}}</x-import>
+            </sc-if>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["clair","sombre"],"default":"clair","section":"Affichage"},"startsel":{"editor":"enum","options":["orders-db","notification-service","checkout","none"],"default":"orders-db","section":"Départ"},"startview":{"editor":"enum","options":["graph","ranking"],"default":"graph","section":"Départ"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var p = props || {};
+    var start = p.startsel ?? 'orders-db';
+    this.state = { sel: start === 'none' ? null : start, mode: 'impact', show: 'all services', view: p.startview ?? 'graph', zoom: 1, nav: true, find: '', findOpen: false };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var S = [
+      { id: 'web-storefront', owner: 'storefront-team', sla: 'critical', platform: 'cloudfront', lang: 'typescript' },
+      { id: 'mobile-bff', owner: 'mobile-team', sla: 'high', platform: 'kubernetes', lang: 'kotlin' },
+      { id: 'api-gateway', owner: 'platform-team', sla: 'critical', platform: 'api gateway', lang: 'golang' },
+      { id: 'checkout', owner: 'payments-team', sla: 'critical', platform: 'kubernetes', lang: 'typescript' },
+      { id: 'search-service', owner: 'search-team', sla: 'high', platform: 'kubernetes', lang: 'java' },
+      { id: 'account-service', owner: 'identity-team', sla: 'high', platform: 'kubernetes', lang: 'golang' },
+      { id: 'payment-service', owner: 'payments-team', sla: 'critical', platform: 'kubernetes', lang: 'golang' },
+      { id: 'order-service', owner: 'orders-team', sla: 'critical', platform: 'kubernetes', lang: 'kotlin' },
+      { id: 'catalog-service', owner: 'catalog-team', sla: 'high', platform: 'kubernetes', lang: 'java' },
+      { id: 'search-index', owner: 'search-team', sla: 'medium', platform: 'ec2', lang: 'elasticsearch' },
+      { id: 'auth-service', owner: 'identity-team', sla: 'critical', platform: 'kubernetes', lang: 'golang' },
+      { id: 'payments-db', owner: 'payments-team', sla: 'critical', platform: 'rds', lang: 'postgresql' },
+      { id: 'billing-service', owner: 'payments-team', sla: 'high', platform: 'kubernetes', lang: 'kotlin' },
+      { id: 'orders-db', owner: 'data-team', sla: 'critical', platform: 'rds', lang: 'postgresql' },
+      { id: 'notification-service', owner: 'automation-team', sla: 'medium', platform: 'lambda', lang: 'python' }
+    ];
+    var DEPS = {
+      'web-storefront': ['api-gateway'], 'mobile-bff': ['api-gateway'],
+      'api-gateway': ['checkout', 'search-service', 'account-service'],
+      'checkout': ['payment-service', 'order-service', 'catalog-service'],
+      'search-service': ['catalog-service', 'search-index'],
+      'account-service': ['auth-service', 'notification-service'],
+      'payment-service': ['payments-db', 'billing-service'],
+      'order-service': ['orders-db', 'notification-service']
+    };
+    var CHANNEL = { 'storefront-team': '#storefront', 'mobile-team': '#mobile-oncall', 'platform-team': '#platform-oncall', 'payments-team': '#payments-ops', 'search-team': '#search', 'identity-team': '#identity-oncall', 'orders-team': '#orders-oncall', 'catalog-team': '#catalog', 'data-team': '#data-oncall', 'automation-team': '#automation' };
+    var LIVE = {
+      'orders-db': [{ status: 'open', statusText: 'scheduled', title: 'Schema migration — orders-db', time: '16:30 – 17:30', impact: true, note: 'production · orders read-only for about 5 min' }],
+      'payment-service': [{ status: 'running', statusText: 'running', title: 'Deploy payment-service v1.14.0 → production', time: '15:22 – now', impact: true, note: 'production · status page updated' }],
+      'api-gateway': [{ status: 'failed', statusText: 'failed', title: 'Deploy api-gateway v3.2.0 → pré-production', time: '15:12', impact: false, note: 'pré-production · retry scheduled at 17:00' }],
+      'checkout': [{ status: 'open', statusText: 'scheduled', title: 'Deploy checkout v4.0.0 → production', time: '16:00 – 16:45', impact: false, note: 'production · overlaps the orders-db migration' }],
+      'notification-service': [{ status: 'warning', statusText: 'warning', title: 'RPA email automation — notification-service', time: '13:20', impact: false, note: 'other · completed with warnings' }]
+    };
+    var byId = {}; S.forEach(function (s) { byId[s.id] = s; DEPS[s.id] = DEPS[s.id] || []; });
+    var REV = {}; S.forEach(function (s) { REV[s.id] = []; });
+    S.forEach(function (s) { DEPS[s.id].forEach(function (d) { REV[d].push(s.id); }); });
+
+    /* automatic layering: column = longest path from an entry point; order = barycenter of callers */
+    var level = {};
+    function lv(id) {
+      if (level[id] != null) return level[id];
+      var callers = REV[id];
+      level[id] = callers.length ? Math.max.apply(null, callers.map(lv)) + 1 : 0;
+      return level[id];
+    }
+    S.forEach(function (s) { lv(s.id); });
+    var maxLevel = Math.max.apply(null, S.map(function (s) { return level[s.id]; }));
+    var cols = []; for (var c = 0; c <= maxLevel; c++) cols.push([]);
+    S.forEach(function (s) { cols[level[s.id]].push(s.id); });
+    var maxRows = Math.max.apply(null, cols.map(function (c) { return c.length; }));
+    var NW = 160, NH = 54, CP = 192, RP = 84, PAD = 28;
+    var pos = {};
+    cols.forEach(function (col, ci) {
+      col.sort(function (a, b) {
+        function bc(id) { var ys = REV[id].filter(function (r) { return pos[r]; }).map(function (r) { return pos[r].y; }); return ys.length ? ys.reduce(function (x, y) { return x + y; }, 0) / ys.length : 0; }
+        var d = bc(a) - bc(b); return d !== 0 ? d : (a < b ? -1 : 1);
+      });
+      var off = (maxRows - col.length) * RP / 2;
+      col.forEach(function (id, ri) { pos[id] = { x: PAD + ci * CP, y: PAD + off + ri * RP }; });
+    });
+    var gW = PAD * 2 + maxLevel * CP + NW, gH = PAD * 2 + (maxRows - 1) * RP + NH;
+
+    function closure(start, graph) {
+      var depth = {}; var queue = [start]; depth[start] = 0;
+      while (queue.length) {
+        var cur = queue.shift();
+        graph[cur].forEach(function (n) { if (depth[n] == null) { depth[n] = depth[cur] + 1; queue.push(n); } });
+      }
+      delete depth[start];
+      return depth;
+    }
+    var mode = st.mode || 'impact';
+    var sel = st.sel && byId[st.sel] ? st.sel : null;
+    var reach = sel ? closure(sel, mode === 'impact' ? REV : DEPS) : {};
+    var pathOnly = st.show === 'impact path' && !!sel;
+
+    var SLA_SHORT = { critical: 'crit', high: 'high', medium: 'med', low: 'low' };
+    function slaColor(s) { return s === 'critical' ? 'var(--ink)' : 'var(--muted)'; }
+    function slaWeight(s) { return s === 'critical' ? '600' : '400'; }
+    function liveOf(id) {
+      var l = LIVE[id] || []; var order = ['failed', 'warning', 'running'];
+      var worst = null; order.forEach(function (o) { if (!worst && l.some(function (e) { return e.status === o; })) worst = o; });
+      return { worst: worst, impact: l.some(function (e) { return e.impact; }) };
+    }
+
+    var nodes = S.map(function (s) {
+      var p = pos[s.id], isSel = s.id === sel, d = reach[s.id], inSet = isSel || d != null;
+      var border = '1px solid var(--rule-strong)', bg = 'var(--surface)', shadow = 'none', op = 1;
+      if (sel) {
+        if (isSel) {
+          if (mode === 'impact') { border = '2px solid var(--failed)'; bg = 'var(--failed-wash)'; }
+          else { border = '2px solid var(--ink)'; bg = 'var(--signature-wash)'; }
+          shadow = 'var(--shadow-overlay)';
+        } else if (d != null) {
+          if (mode === 'impact') { border = d === 1 ? '1.5px solid var(--impact)' : '1.5px dashed var(--impact)'; bg = d === 1 ? 'var(--impact-wash)' : 'var(--surface)'; }
+          else { border = d === 1 ? '1.5px solid var(--ink)' : '1.5px dashed var(--ink)'; }
+        } else { op = 0.35; }
+      }
+      var lo = liveOf(s.id);
+      var dependents = Object.keys(closure(s.id, REV)).length;
+      return {
+        x: p.x, y: p.y, name: s.id, sub: s.platform + ' · ' + s.owner,
+        slaShort: SLA_SHORT[s.sla], slaColor: slaColor(s.sla), slaWeight: slaWeight(s.sla),
+        border: border, bg: bg, shadow: shadow, op: op, disp: pathOnly && !inSet ? 'none' : 'block',
+        failTag: isSel && mode === 'impact',
+        hasLive: !!lo.worst, liveStatus: lo.worst || 'done', liveText: lo.worst || '', liveImpact: lo.impact,
+        pressed: isSel ? 'true' : 'false',
+        aria: s.id + ', ' + s.sla + ' SLA, ' + s.owner + '. ' + dependents + (dependents === 1 ? ' service depends' : ' services depend') + ' on it.',
+        pick: function () { self.setState({ sel: isSel ? null : s.id }); }
+      };
+    });
+
+    var edges = [];
+    S.forEach(function (s) {
+      DEPS[s.id].forEach(function (t) {
+        var a = pos[s.id], b = pos[t];
+        var x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x - 4, y2 = b.y + NH / 2, dx = Math.max(28, (x2 - x1) / 2);
+        var onPath = false;
+        if (sel) {
+          if (mode === 'impact') onPath = (s.id === sel || reach[s.id] != null) && (t === sel || reach[t] != null) && reach[s.id] != null;
+          else onPath = (s.id === sel || reach[s.id] != null) && reach[t] != null;
+        }
+        var stroke = 'var(--rule-strong)', sw = 1.25, marker = 'url(#archArrow)', op = sel ? 0.3 : 1, dash = 'none';
+        if (onPath) {
+          op = 1; sw = 2;
+          if (mode === 'impact') { stroke = 'var(--impact)'; marker = 'url(#archArrowImpact)'; }
+          else { stroke = 'var(--ink)'; marker = 'url(#archArrowInk)'; }
+        }
+        edges.push({ d: 'M' + x1 + ' ' + y1 + ' C' + (x1 + dx) + ' ' + y1 + ', ' + (x2 - dx) + ' ' + y2 + ', ' + x2 + ' ' + y2, stroke: stroke, sw: sw, marker: marker, op: op, dash: dash, disp: pathOnly && !onPath ? 'none' : 'inline' });
+      });
+    });
+
+    function itemFor(id, d) {
+      var s = byId[id];
+      return { name: id, meta: s.owner + ' · ' + s.platform + (d > 1 ? ' · ' + d + ' hops' : ''), sla: s.sla, slaColor: slaColor(s.sla), slaWeight: slaWeight(s.sla), impact: mode === 'impact', notImpact: mode !== 'impact', pick: function () { self.setState({ sel: id }); } };
+    }
+    var sInfo = null;
+    if (sel) {
+      var me = byId[sel];
+      var ids = Object.keys(reach);
+      var direct = ids.filter(function (i) { return reach[i] === 1; });
+      var cascade = ids.filter(function (i) { return reach[i] > 1; }).sort(function (a, b) { return reach[a] - reach[b]; });
+      var crit = ids.filter(function (i) { return byId[i].sla === 'critical'; }).length;
+      var teams = []; ids.forEach(function (i) { if (teams.indexOf(byId[i].owner) === -1) teams.push(byId[i].owner); });
+      var entries = ids.filter(function (i) { return REV[i].length === 0; });
+      var depthMax = ids.reduce(function (m, i) { return Math.max(m, reach[i]); }, 0);
+      var sentence, metrics, groups;
+      if (mode === 'impact') {
+        sentence = ids.length === 0 ? 'Nothing depends on ' + sel + '. If it goes down, only ' + sel + ' itself is affected.'
+          : 'If ' + sel + ' goes down, ' + ids.length + (ids.length === 1 ? ' service breaks' : ' services break') + ', ' + crit + ' with critical SLA, across ' + teams.length + (teams.length === 1 ? ' team. ' : ' teams. ') + (entries.length ? (entries.length === 1 ? 'Entry point down: ' : 'Entry points down: ') + entries.join(', ') + '.' : 'No entry point goes down.');
+        metrics = [{ label: 'services down', value: String(ids.length), tone: ids.length ? 'impact' : undefined }, { label: 'critical sla', value: String(crit) }, { label: 'teams', value: String(teams.length) }, { label: 'entry points', value: String(entries.length) }];
+        groups = [];
+        if (direct.length) groups.push({ label: 'breaks directly · ' + direct.length, items: direct.map(function (i) { return itemFor(i, 1); }) });
+        if (cascade.length) groups.push({ label: 'breaks in cascade · ' + cascade.length, items: cascade.map(function (i) { return itemFor(i, reach[i]); }) });
+      } else {
+        sentence = ids.length === 0 ? sel + ' has no dependencies in the catalog.' : sel + ' needs ' + ids.length + (ids.length === 1 ? ' service' : ' services') + ' to work, ' + crit + ' with critical SLA, up to ' + depthMax + (depthMax === 1 ? ' hop' : ' hops') + ' away.';
+        metrics = [{ label: 'dependencies', value: String(ids.length) }, { label: 'critical sla', value: String(crit) }, { label: 'teams', value: String(teams.length) }, { label: 'depth', value: String(depthMax) }];
+        groups = [];
+        if (direct.length) groups.push({ label: 'needed directly · ' + direct.length, items: direct.map(function (i) { return itemFor(i, 1); }) });
+        if (cascade.length) groups.push({ label: 'needed in cascade · ' + cascade.length, items: cascade.map(function (i) { return itemFor(i, reach[i]); }) });
+      }
+      var live = (LIVE[sel] || []);
+      sInfo = {
+        name: sel, type: 'project', sla: me.sla, owner: me.owner, platform: me.platform, lang: me.lang,
+        sentence: sentence, metrics: metrics, groups: groups,
+        teams: mode === 'impact' ? teams.map(function (t) { return { team: t, channel: CHANNEL[t] || '#' + t }; }) : [],
+        hasTeams: mode === 'impact' && teams.length > 0,
+        live: live, hasLive: live.length > 0,
+        canNotify: mode === 'impact' && teams.length > 0, notifyLabel: 'Notify ' + teams.length + (teams.length === 1 ? ' team' : ' teams'),
+        catalogVariant: mode === 'impact' && teams.length > 0 ? 'secondary' : 'primary'
+      };
+    }
+
+    var ranking = S.map(function (s) {
+      var r = closure(s.id, REV), ids = Object.keys(r);
+      return { id: s.id, total: ids.length, crit: ids.filter(function (i) { return byId[i].sla === 'critical'; }).length, direct: REV[s.id].length, s: s };
+    }).sort(function (a, b) { return b.total - a.total || b.crit - a.crit || (a.id < b.id ? -1 : 1); });
+    var maxTotal = ranking[0].total || 1;
+    var rankingRows = ranking.map(function (r, i) {
+      return { rank: i + 1, name: r.id, platform: r.s.platform + ' · ' + r.s.lang, owner: r.s.owner, sla: r.s.sla, slaColor: slaColor(r.s.sla), slaWeight: slaWeight(r.s.sla), direct: r.direct, total: r.total, crit: r.crit, barW: Math.round(r.total / maxTotal * 100),
+        pick: function () { self.setState({ sel: r.id, view: 'graph', mode: 'impact' }); } };
+    });
+
+    var q = (st.find || '').trim().toLowerCase();
+    var matches = S.filter(function (s) { return !q || s.id.indexOf(q) !== -1 || s.owner.indexOf(q) !== -1; }).slice(0, 6);
+    var findItems = matches.map(function (s) {
+      return { name: s.id, hint: s.owner + ' · ' + s.sla, pick: function (e) { if (e && e.preventDefault) e.preventDefault(); self.setState({ sel: s.id, find: '', findOpen: false, view: 'graph' }); } };
+    });
+
+    var zoom = st.zoom || 1;
+    var edgeCount = 0; S.forEach(function (s) { edgeCount += DEPS[s.id].length; });
+    var navGroups = [
+      { label: 'operations', items: [{ name: 'Dashboard', icon: 'dashboard' }, { name: 'Timeline', icon: 'timeline' }, { name: 'Streamline', icon: 'streamline' }, { name: 'Calendar', icon: 'calendar' }, { name: 'Overlaps', icon: 'overlaps', count: 2 }, { name: 'Insights', icon: 'insights' }] },
+      { label: 'services', items: [{ name: 'Catalog', icon: 'catalog' }, { name: 'Architecture', icon: 'architecture' }, { name: 'Compliance', icon: 'compliance' }] },
+      { label: 'infrastructure', items: [{ name: 'Drifts', icon: 'drifts' }, { name: 'RPA usage', icon: 'rpa' }, { name: 'Locks', icon: 'locks', count: 1 }] },
+      { label: 'resources', items: [{ name: 'Links', icon: 'links' }, { name: 'Docs', icon: 'docs' }] }
+    ];
+    var blankS = { name: '', type: '', sla: '', owner: '', platform: '', lang: '', sentence: '', metrics: [], groups: [], teams: [], hasTeams: false, live: [], hasLive: false, canNotify: false, notifyLabel: '', catalogVariant: 'primary' };
+
+    return {
+      themeId: (this.props.theme ?? 'clair') === 'sombre' ? 'dark' : 'light',
+      yes: true, no: false, twelve: 12, fourteen: 14,
+      navGroups: navGroups, navCollapsed: st.nav !== false, toggleNav: function () { self.setState({ nav: !(st.nav !== false) }); },
+      countLine: S.length + ' services · ' + edgeCount + ' dependencies · auto layout',
+      findText: st.find || '', findOpen: !!st.findOpen, findItems: findItems, findEmpty: findItems.length === 0,
+      findBorder: st.findOpen ? 'var(--ink)' : 'var(--rule-strong)',
+      onFind: function (e) { self.setState({ find: e.target.value, findOpen: true }); },
+      findFocus: function () { self.setState({ findOpen: true }); },
+      findBlur: function () { self.setState({ findOpen: false }); },
+      findKey: function (e) {
+        if (e.key === 'Enter' && findItems[0]) findItems[0].pick(e);
+        else if (e.key === 'Escape') { self.setState({ findOpen: false, find: '' }); if (e.target && e.target.blur) e.target.blur(); }
+      },
+      showOptions: ['all services', 'impact path'], showVal: st.show || 'all services', setShow: function (v) { self.setState({ show: v }); },
+      viewOptions: ['graph', 'ranking'], view: st.view || 'graph', setView: function (v) { self.setState({ view: v }); },
+      isGraph: (st.view || 'graph') === 'graph', isList: st.view === 'ranking',
+      gW: gW, gH: gH, gWz: Math.round(gW * zoom), gHz: Math.round(gH * zoom), zoom: zoom, viewBox: '0 0 ' + gW + ' ' + gH,
+      zoomLabel: Math.round(zoom * 100) + '%',
+      zoomIn: function () { self.setState({ zoom: Math.min(1.6, Math.round((zoom + 0.1) * 10) / 10) }); },
+      zoomOut: function () { self.setState({ zoom: Math.max(0.5, Math.round((zoom - 0.1) * 10) / 10) }); },
+      zoomFit: function () { self.setState({ zoom: 1 }); },
+      nodes: nodes, edges: edges,
+      noSel: !sel, legendImpact: !!sel && mode === 'impact', legendNeeds: !!sel && mode !== 'impact',
+      hasSel: !!sInfo, s: sInfo || blankS,
+      modeOptions: ['if it fails', 'what it needs'], modeVal: mode === 'impact' ? 'if it fails' : 'what it needs',
+      setMode: function (v) { self.setState({ mode: v === 'if it fails' ? 'impact' : 'needs' }); },
+      clearSel: function () { self.setState({ sel: null }); },
+      ranking: rankingRows
+    };
+  }
+}
+</script>
+</body>
+</html>

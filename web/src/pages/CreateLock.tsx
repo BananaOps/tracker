@@ -128,7 +128,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
   const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
-      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+      <h3 className="text-xl font-bold">{title}</h3>
     </div>
   )
 
@@ -232,7 +232,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
                 </div>
                 <div className="flex flex-col items-center text-center py-2">
                   <Lock className="w-10 h-10 mb-4" style={{ color: formData.service ? hud.error : hud.onSurfaceVar }} />
-                  <h4 className="font-bold mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>What is a lock?</h4>
+                  <h4 className="font-bold mb-3">What is a lock?</h4>
                   <p className="text-xs leading-relaxed" style={{ color: hud.onSurfaceVar }}>
                     A lock prevents concurrent deployments or operations on a service. Only one team member can deploy or modify a locked service at a time.
                   </p>
@@ -274,7 +274,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
 
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-4xl font-bold tracking-tight mb-2">
             New Lock
           </h2>
           <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
@@ -299,7 +299,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
               type="button"
               onClick={() => navigate('/locks')}
               className="px-8 py-3 font-bold transition-colors hover:opacity-80"
-              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}
+              style={{ color: hud.onSurfaceVar }}
             >
               Cancel
             </button>
@@ -309,8 +309,7 @@ export default function CreateLock({ asPanel = false, onClose, onSuccess }: Crea
               className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
               style={{
                 background: `linear-gradient(135deg, ${hud.primary}, ${ha('primary-dim', 1)})`,
-                color: 'white',
-                fontFamily: "'Space Grotesk', sans-serif",
+                color: 'var(--on-ink)',
                 boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
               }}
             >

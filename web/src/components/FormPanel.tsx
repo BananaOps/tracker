@@ -103,7 +103,7 @@ export default function FormPanel({
             {icon}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-bold tracking-tight truncate" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-xl font-bold tracking-tight truncate">
               {title}
             </h2>
             {subtitle && (

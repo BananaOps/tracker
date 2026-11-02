@@ -320,7 +320,7 @@ function ResultRow({ result, active, onSelect, onHover }: ResultRowProps) {
         active ? 'bg-hud-primary/10' : 'hover:bg-hud-surface-low'
       }`}
     >
-      <div className={`shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-white text-xs ${
+      <div className={`shrink-0 w-7 h-7 rounded-ig flex items-center justify-center text-on-ink text-xs ${
         isLink ? 'bg-hud-primary' : 'bg-hud-tertiary'
       }`}>
         {isLink

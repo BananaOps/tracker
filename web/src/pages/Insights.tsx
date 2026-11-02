@@ -211,7 +211,7 @@ export default function Insights() {
 
         {/* Header */}
         <div className="p-5 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
-          <h1 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h1 className="text-3xl font-black tracking-tight">
             Insights
           </h1>
           <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: T.onSurfaceVar }}>
@@ -309,7 +309,7 @@ export default function Insights() {
             <div key={label} className="relative p-6 rounded-xl overflow-hidden"
               style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.18)}` }}>
               <p className="text-[10px] uppercase tracking-widest font-bold mb-3" style={{ color: T.onSurfaceVar }}>{label}</p>
-              <p className="text-4xl font-black mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color: T.onSurface }}>{value}</p>
+              <p className="text-4xl font-black mb-2" style={{ fontFamily: 'var(--font-mono)', color: T.onSurface }}>{value}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: a('outline-var', 0.2) }}>
                   <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: T.primary }} />
@@ -326,7 +326,7 @@ export default function Insights() {
           <div className="xl:col-span-2 p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                <h3 className="text-lg font-bold">
                   Timeline Evolution
                 </h3>
                 <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>Activity across all event types</p>
@@ -359,7 +359,7 @@ export default function Insights() {
 
           {/* Top Projects */}
           <div className="p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
-            <h3 className="text-lg font-bold mb-5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h3 className="text-lg font-bold mb-5">
               Top Projects
             </h3>
             <div className="space-y-2">
@@ -367,7 +367,7 @@ export default function Insights() {
                 <div key={project.project} onClick={() => handleProjectClick(project.project)}
                   className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:opacity-80"
                   style={{ background: index < 3 ? a('primary', 0.08) : a('outline-var', 0.05), border: `1px solid ${index < 3 ? a('primary', 0.2) : a('outline-var', 0.1)}` }}>
-                  <span className="text-sm font-bold w-6 text-center" style={{ color: T.onSurfaceVar, fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span className="text-sm font-bold w-6 text-center" style={{ color: T.onSurfaceVar, fontFamily: 'var(--font-mono)' }}>
                     {index < 3 ? ['🥇','🥈','🥉'][index] : `#${index+1}`}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -384,7 +384,7 @@ export default function Insights() {
                       )}
                     </div>
                   </div>
-                  <span className="text-xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color: T.primary }}>
+                  <span className="text-xl font-black" style={{ fontFamily: 'var(--font-mono)', color: T.primary }}>
                     {project.total}
                   </span>
                 </div>
@@ -396,7 +396,7 @@ export default function Insights() {
         {/* Distribution chart */}
         {pieData.length > 0 && (
           <div className="p-6 rounded-xl" style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
-            <h3 className="text-lg font-bold mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h3 className="text-lg font-bold mb-6">
               Event Distribution
             </h3>
             <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
@@ -418,7 +418,7 @@ export default function Insights() {
                   <div key={name} className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} />
                     <span className="text-sm font-medium">{name}</span>
-                    <span className="text-sm font-black ml-auto" style={{ fontFamily: "'JetBrains Mono', monospace", color }}>
+                    <span className="text-sm font-black ml-auto" style={{ fontFamily: 'var(--font-mono)', color }}>
                       {value}
                     </span>
                     <span className="text-xs" style={{ color: T.onSurfaceVar }}>
@@ -428,7 +428,7 @@ export default function Insights() {
                 ))}
                 <div className="pt-3" style={{ borderTop: `1px solid ${a('outline-var', 0.15)}` }}>
                   <span className="text-xs font-bold" style={{ color: T.onSurfaceVar }}>Total: </span>
-                  <span className="text-sm font-black" style={{ fontFamily: "'JetBrains Mono', monospace", color: T.primary }}>{metrics.total}</span>
+                  <span className="text-sm font-black" style={{ fontFamily: 'var(--font-mono)', color: T.primary }}>{metrics.total}</span>
                 </div>
               </div>
             </div>
@@ -444,7 +444,7 @@ export default function Insights() {
             style={{ background: T.surface, border: `1px solid ${a('outline-var', 0.2)}` }}>
             <div className="flex items-center justify-between p-6" style={{ borderBottom: `1px solid ${a('outline-var', 0.15)}` }}>
               <div>
-                <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{eventModal.title}</h3>
+                <h3 className="text-xl font-bold">{eventModal.title}</h3>
                 <p className="text-sm mt-0.5" style={{ color: T.onSurfaceVar }}>
                   {eventModal.events.length} event{eventModal.events.length !== 1 ? 's' : ''} found
                 </p>

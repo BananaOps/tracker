@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Tracker — Recherche et filtres</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="theme/tracker-tokens.css">
+<link rel="stylesheet" href="ds/tracker/components/bundle.css">
+<script src="ds/tracker/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&amp;family=Spline+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div data-theme="{{themeId}}" style="width: 1440px; height: 1080px; box-sizing: border-box; padding: 56px 64px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 48px">
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <h2 style="margin: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--ink)">filtrer ce que je regarde · barre de filtre de page</h2>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">1 · focus, champ vide</span>
+      <div style="display: flex; align-items: center; gap: 6px; min-height: 38px; box-sizing: border-box; padding: 4px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--surface); color: var(--muted)">
+        <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+        <span style="flex: 1; font-size: 14px">Filter by env, status, type, team, service — or type to search</span>
+        <x-import component-from-global-scope="Tracker.Kbd">/</x-import>
+      </div>
+      <div class="tk-palette" style="max-width: none">
+        <div class="tk-palette__list">
+          <div class="tk-palette__group">recent</div>
+          <div class="tk-palette__item" aria-selected="true"><x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">status:failed env:production</span><span class="tk-palette__hint">yesterday</span></div>
+          <div class="tk-palette__item"><x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">owner:infra-team -status:done</span><span class="tk-palette__hint">last week</span></div>
+          <div class="tk-palette__group">filter by</div>
+          <div class="tk-palette__item"><x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">env:</span><span class="tk-palette__hint">production, pré-production…</span></div>
+          <div class="tk-palette__item"><x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">status:</span><span class="tk-palette__hint">failed, running, open…</span></div>
+          <div class="tk-palette__item"><x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">owner:</span><span class="tk-palette__hint">payments-team…</span></div>
+          <div class="tk-palette__item"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">impact:true</span><span class="tk-palette__hint">3 events touch users</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">2 · une clé tapée, les valeurs proposées avec leur nombre</span>
+      <div style="display: flex; align-items: center; gap: 6px; min-height: 38px; box-sizing: border-box; padding: 4px 8px; border: 1px solid var(--ink); border-radius: 6px; background: var(--surface); color: var(--muted)">
+        <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+        <span style="flex: 1; font-size: 14px; color: var(--ink)">status:f<span style="display: inline-block; width: 1px; height: 16px; margin-left: 1px; vertical-align: -3px; background: var(--ink)"></span></span>
+        <x-import component-from-global-scope="Tracker.Kbd">/</x-import>
+      </div>
+      <div class="tk-palette" style="max-width: none">
+        <div class="tk-palette__list">
+          <div class="tk-palette__group">status</div>
+          <div class="tk-palette__item" aria-selected="true"><x-import component-from-global-scope="Tracker.StatusMark" status="failed" label="{{no}}"></x-import><span class="tk-palette__label" style="font-family: var(--font-mono)">failed</span><span class="tk-palette__hint">2 in view</span><x-import component-from-global-scope="Tracker.Kbd">↵</x-import></div>
+        </div>
+        <div class="tk-palette__footer"><span>↵ add</span><span>key:a,b</span><span>-key:value excludes</span><span>⌫ removes the last filter</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">3 · filtres appliqués, résultat et vue enregistrable</span>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 38px; box-sizing: border-box; padding: 4px 8px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--surface); color: var(--muted)">
+        <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+        <span class="tk-token"><span class="tk-token__key">env</span><span>production, pré-production</span><button type="button" class="tk-token__remove" aria-label="Remove filter env"><x-import component-from-global-scope="Tracker.Icon" name="close" size="{{twelve}}"></x-import></button></span>
+        <span class="tk-token"><span class="tk-token__key">-status</span><span>≠ done</span><button type="button" class="tk-token__remove" aria-label="Remove filter status"><x-import component-from-global-scope="Tracker.Icon" name="close" size="{{twelve}}"></x-import></button></span>
+        <span style="flex: 1 1 120px; font-size: 14px; color: var(--ink)">checkout</span>
+        <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm">Clear</x-import>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">1 event · 1 lane · filtered · synced to timeline, calendar</span>
+        <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm" icon="plus">Save as view</x-import>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">4 · aucun résultat, on propose quoi retirer</span>
+      <div class="tk-panel" style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 14px; line-height: 21px">No scheduled work matches <span style="font-family: var(--font-mono); font-size: 12px">service:checkout status:failed</span> between 12:00 and 20:00.</span>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">try without</span>
+          <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm">status:failed · 1 result</x-import>
+          <x-import component-from-global-scope="Tracker.Button" variant="secondary" size="sm">service:checkout · 2 results</x-import>
+          <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm">Clear all</x-import>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <h2 style="margin: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--ink)">aller quelque part · recherche globale ⌘K</h2>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">« check » trouve un service, un événement, une page</span>
+      <div style="background: var(--scrim); border-radius: 8px; padding: 24px">
+        <x-import component-from-global-scope="Tracker.CommandPalette" default-query="check" groups="{{paletteGroups}}"></x-import>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">syntaxe et raccourcis, communs à toutes les pages</span>
+      <dl class="tk-fields" style="grid-template-columns: 150px minmax(0, 1fr)">
+        <dt>env:production</dt><dd>one value</dd>
+        <dt>env:production,mco</dt><dd>any of these values</dd>
+        <dt>-status:done</dt><dd>exclude a value</dd>
+        <dt>impact:true</dt><dd>events that touch users, whatever their status</dd>
+        <dt>"schema migration"</dt><dd>exact phrase in titles</dd>
+        <dt>/</dt><dd>focus the page filter</dd>
+        <dt>⌘K</dt><dd>search and jump anywhere</dd>
+        <dt>⌫ on empty field</dt><dd>remove the last filter</dd>
+        <dt>G then D, T, S</dt><dd>go to dashboard, timeline, streamline</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["clair","sombre"],"default":"clair","section":"Affichage"},"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      themeId: (this.props.theme ?? 'clair') === 'sombre' ? 'dark' : 'light',
+      no: false, yes: true, twelve: 12,
+      paletteGroups: [
+        { label: 'services', items: [{ label: 'checkout', icon: 'service', hint: 'payments-team · 3 envs' }] },
+        { label: 'events', items: [{ label: 'Deploy checkout v4.0.0 → production', icon: 'deployment', hint: 'scheduled · 16:00' }, { label: 'Checkout deploy × orders-db migration', icon: 'overlaps', hint: 'overlap · 16:30' }] },
+        { label: 'jump to', items: [{ label: 'Streamline filtered on checkout', icon: 'streamline', hint: 'service:checkout' }, { label: 'Catalog › checkout', icon: 'catalog', hint: 'payments-team' }] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

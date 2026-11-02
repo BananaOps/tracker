@@ -251,7 +251,7 @@ export default function Layout() {
               <button
                 type="button"
                 onClick={() => open('event')}
-                className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-white"
+                className="flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-semibold transition-all duration-150 text-on-ink"
                 style={{
                   background: 'rgb(var(--hud-primary))',
                   boxShadow: '0 1px 2px rgb(var(--hud-primary) / 0.3)',

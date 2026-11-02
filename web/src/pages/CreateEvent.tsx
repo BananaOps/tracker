@@ -181,7 +181,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
   const SectionHeader = ({ icon, title, color }: { icon: ReactNode; title: string; color?: string }) => (
     <div className="flex items-center gap-3 mb-8">
       <span style={{ color: color || hud.primary }}>{icon}</span>
-      <h3 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+      <h3 className="text-xl font-bold">{title}</h3>
     </div>
   )
 
@@ -474,7 +474,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
                 </div>
                 <div className="flex flex-col items-center text-center py-2">
                   <Repeat className="w-10 h-10 mb-4" style={{ color: isRecurring ? hud.primary : hud.success }} />
-                  <h4 className="font-bold mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Recurrence</h4>
+                  <h4 className="font-bold mb-4">Recurrence</h4>
                   <label className="inline-flex items-center cursor-pointer">
                     <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="sr-only peer" />
                     <div className="relative w-14 h-7 rounded-full peer transition-colors"
@@ -556,7 +556,7 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
       <div className="max-w-5xl mx-auto p-8">
         {/* Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-4xl font-bold tracking-tight mb-2">
             Create a New Event
           </h2>
           <p className="max-w-2xl leading-relaxed" style={{ color: hud.onSurfaceVar }}>
@@ -587,15 +587,14 @@ export default function CreateEvent({ asPanel = false, onClose, onSuccess }: Cre
           <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${ha('outline-var', 0.15)}` }}>
             <button type="button" onClick={() => navigate(-1)}
               className="px-8 py-3 font-bold transition-colors hover:opacity-80"
-              style={{ color: hud.onSurfaceVar, fontFamily: "'Space Grotesk', sans-serif" }}>
+              style={{ color: hud.onSurfaceVar }}>
               Cancel
             </button>
             <button type="submit" disabled={createMutation.isPending}
               className="flex items-center gap-2 px-10 py-3 rounded-xl font-bold shadow-lg transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
               style={{
                 background: `linear-gradient(135deg, ${hud.primary}, ${ha('primary-dim', 1)})`,
-                color: 'white',
-                fontFamily: "'Space Grotesk', sans-serif",
+                color: 'var(--on-ink)',
                 boxShadow: `0 4px 20px ${ha('primary', 0.25)}`,
               }}>
               <Plus className="w-4 h-4" />

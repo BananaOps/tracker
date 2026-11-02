@@ -8,9 +8,9 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-hud-primary text-white shadow-[0_1px_2px_rgb(var(--hud-primary)/0.25)] hover:bg-hud-primary-dim hover:shadow-[0_2px_6px_rgb(var(--hud-primary)/0.35)]",
+          "bg-hud-primary text-on-ink shadow-[0_1px_2px_rgb(var(--hud-primary)/0.25)] hover:bg-hud-primary-dim hover:shadow-[0_2px_6px_rgb(var(--hud-primary)/0.35)]",
         destructive:
-          "bg-hud-error text-white shadow-[0_1px_2px_rgb(var(--hud-error)/0.25)] hover:bg-hud-error/90",
+          "bg-hud-error text-on-status shadow-[0_1px_2px_rgb(var(--hud-error)/0.25)] hover:bg-hud-error/90",
         outline:
           "border border-hud-outline-var bg-hud-surface text-hud-on-surface hover:bg-hud-surface-high hover:border-hud-outline",
         secondary:

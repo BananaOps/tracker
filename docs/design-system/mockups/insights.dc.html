@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tracker — Insights</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="theme/tracker-tokens.css">
+<link rel="stylesheet" href="ds/tracker/components/bundle.css">
+<script src="ds/tracker/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&amp;family=Spline+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div data-theme="{{themeId}}" style="min-height: 1840px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <div style="flex: 0 0 232px; max-width: 100%; background: var(--surface); box-shadow: inset -1px 0 0 var(--rule)">
+    <x-import component-from-global-scope="Tracker.Sidebar" active="Insights" groups="{{navGroups}}"></x-import>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; box-sizing: border-box; padding: 10px 32px; background: var(--surface); border-bottom: 1px solid var(--rule)">
+      <button type="button" style="flex: 0 1 420px; display: flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--paper); color: var(--muted); font: inherit; font-size: 14px; text-align: left; cursor: pointer">
+        <x-import component-from-global-scope="Tracker.Icon" name="search"></x-import>
+        <span style="flex: 1">Search or jump to…</span>
+        <x-import component-from-global-scope="Tracker.Kbd">⌘K</x-import>
+      </button>
+      <x-import component-from-global-scope="Tracker.Button" variant="primary" icon-right="chevron-down">New</x-import>
+    </header>
+
+    <main style="width: 100%; max-width: 1180px; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.035em">Insights</h1>
+          <span style="font-family: var(--font-mono); font-size: 12px; color: var(--muted)">09 mar – 07 apr 2026 · compared with 07 feb – 08 mar</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 4px 0 10px; border: 1px solid var(--rule-strong); border-radius: 6px; background: var(--surface); color: var(--muted)">
+            <x-import component-from-global-scope="Tracker.Icon" name="filter"></x-import>
+            <span style="font-size: 13px">All environments, teams and services</span>
+            <x-import component-from-global-scope="Tracker.Button" variant="ghost" size="sm" icon="plus">Filter</x-import>
+          </div>
+          <x-import component-from-global-scope="Tracker.SegmentedControl" label="Period" options="{{periods}}" default-value="30d"></x-import>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="Tracker.MetricStrip" label="Last 30 days" items="{{metrics}}"></x-import>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+        <section class="tk-panel" style="flex: 2 1 520px; min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Activity</h2>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">changes per day · {{activityTotal}}</span>
+            </div>
+            <div role="group" aria-label="Show type" style="display: flex; flex-wrap: wrap; gap: 4px">
+              <sc-for list="{{typeToggles}}" as="tt" hint-placeholder-count="4">
+                <button type="button" aria-pressed="{{tt.pressed}}" onClick="{{tt.pick}}" style="display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border: 1px solid {{tt.border}}; border-radius: 5px; background: var(--surface); color: var(--ink); font-family: var(--font-mono); font-size: 11px; opacity: {{tt.op}}; cursor: pointer"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{tt.c}}"></span>{{tt.label}}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position: relative">
+            <div style="display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; height: 132px; align-items: end; border-bottom: 1px solid var(--ink)">
+              <sc-for list="{{days}}" as="d" hint-placeholder-count="30">
+                <div title="{{d.tip}}" style="display: flex; flex-direction: column-reverse; gap: 1px; height: 132px; background: {{d.bg}}">
+                  <sc-for list="{{d.segs}}" as="sg" hint-placeholder-count="2">
+                    <span style="display: block; height: {{sg.h}}px; border-radius: 1px; background: {{sg.c}}"></span>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <svg viewBox="0 0 300 132" preserveAspectRatio="none" style="position: absolute; left: 0; top: 0; width: 100%; height: 132px; overflow: visible; pointer-events: none" aria-hidden="true">
+              <polyline points="{{prevPoints}}" fill="none" vector-effect="non-scaling-stroke" stroke-dasharray="4 3" style="stroke: var(--muted); stroke-width: 1.5"></polyline>
+            </svg>
+            <div style="display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; margin-top: 6px">
+              <sc-for list="{{days}}" as="d" hint-placeholder-count="30">
+                <span style="font-family: var(--font-mono); font-size: 10px; color: var(--muted); white-space: nowrap">{{d.label}}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted)">
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 0; border-top: 1.5px dashed var(--muted)"></span>previous 30 days, same weekday</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; background: var(--sunken); border: 1px solid var(--rule)"></span>weekend</span>
+          </div>
+        </section>
+
+        <section class="tk-panel" style="flex: 1 1 300px; min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px">
+            <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">By type</h2>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">vs previous 30 days</span>
+          </div>
+          <sc-for list="{{types}}" as="ty" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) 36px 64px; column-gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--rule-soft)">
+              <span style="display: flex; color: var(--muted)"><x-import component-from-global-scope="Tracker.Icon" name="{{ty.icon}}"></x-import></span>
+              <div style="min-width: 0; display: flex; flex-direction: column; gap: 5px">
+                <span style="font-size: 14px; line-height: 18px; font-weight: 500">{{ty.label}}</span>
+                <span style="display: block; height: 4px; border-radius: 2px; background: var(--sunken)"><span style="display: block; height: 4px; border-radius: 2px; width: {{ty.share}}%; background: {{ty.c}}"></span></span>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums">{{ty.count}}</span>
+              <span style="font-family: var(--font-mono); font-size: 11px; text-align: right; color: {{ty.deltaColor}}; font-weight: {{ty.deltaWeight}}">{{ty.delta}}</span>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+
+      <section class="tk-panel" style="padding: 20px 20px 8px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+          <div style="display: flex; align-items: baseline; gap: 10px">
+            <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">Reliability and impact by service</h2>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">top 11 of 17 services · sorted by {{sortLabel}}</span>
+          </div>
+          <x-import component-from-global-scope="Tracker.SegmentedControl" label="Sort by" options="{{sortOptions}}" value="{{sortVal}}" on-change="{{setSort}}"></x-import>
+        </div>
+        <div style="overflow-x: auto">
+          <div style="min-width: 940px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) 92px minmax(0, 1.2fr) 92px 84px minmax(0, 1.4fr) 132px; column-gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule); font-family: var(--font-mono); font-size: 11px; color: var(--muted)">
+              <span>service</span><span>changes</span><span>failure rate</span><span>incidents</span><span>restore</span><span>user impact</span><span></span>
+            </div>
+            <sc-for list="{{services}}" as="sv" hint-placeholder-count="11">
+              <div style="display: grid; grid-template-columns: minmax(0, 1.5fr) 92px minmax(0, 1.2fr) 92px 84px minmax(0, 1.4fr) 132px; column-gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule-soft)">
+                <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; line-height: 19px; font-weight: 500">{{sv.name}}</span><span class="tk-meta">{{sv.owner}}</span></span>
+                <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink)">{{sv.changes}}<span style="color: var(--muted)"> · {{sv.deploys}} dep</span></span>
+                <span style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                  <span style="flex: 1; height: 6px; border-radius: 2px; background: var(--sunken); overflow: hidden"><span style="display: block; height: 6px; width: {{sv.rateW}}%; background: {{sv.rateC}}"></span></span>
+                  <span style="flex: none; min-width: 40px; font-family: var(--font-mono); font-size: 12px; text-align: right; color: {{sv.rateText}}; font-weight: {{sv.rateWeight}}">{{sv.rate}}</span>
+                </span>
+                <span style="font-family: var(--font-mono); font-size: 12px">{{sv.incidents}} <span style="color: {{sv.incDeltaC}}; font-weight: {{sv.incDeltaW}}">{{sv.incDelta}}</span></span>
+                <span style="font-family: var(--font-mono); font-size: 12px">{{sv.restore}}</span>
+                <span style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                  <sc-if value="{{sv.hasImpact}}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="Tracker.ImpactMark" compact="{{yes}}"></x-import></sc-if>
+                  <span style="flex: 1; height: 6px; border-radius: 2px; background: var(--sunken); overflow: hidden"><span style="display: block; height: 6px; width: {{sv.impactW}}%; background: var(--impact)"></span></span>
+                  <span style="flex: none; min-width: 48px; font-family: var(--font-mono); font-size: 12px; text-align: right; color: {{sv.impactText}}">{{sv.impact}}</span>
+                </span>
+                <span style="display: flex; justify-content: flex-end; gap: 4px">
+                  <a href="#" style="font-size: 12px; color: var(--ink); text-underline-offset: 3px">Timeline</a>
+                  <span style="color: var(--muted)">·</span>
+                  <a href="#" style="font-size: 12px; color: var(--ink); text-underline-offset: 3px">Simulate</a>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="padding: 8px 0 12px; border-top: 1px solid var(--rule-soft); font-family: var(--font-mono); font-size: 11px; color: var(--muted)">failure rate = failed deployments ÷ deployments · restore = median incident duration · user impact = time spent by events flagged impact</div>
+      </section>
+
+      <section class="tk-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div style="display: flex; align-items: baseline; gap: 10px">
+              <h2 style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.01em">12-month trend</h2>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted)">may 2025 – apr 2026</span>
+            </div>
+            <span style="font-size: 14px; line-height: 21px">{{trendSentence}}</span>
+          </div>
+          <x-import component-from-global-scope="Tracker.SegmentedControl" label="Measure" options="{{trendOptions}}" value="{{trendVal}}" on-change="{{setTrend}}"></x-import>
+        </div>
+        <div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; height: 168px; align-items: end; border-bottom: 1px solid var(--ink)">
+            <sc-for list="{{trend}}" as="tr" hint-placeholder-count="12">
+              <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 4px; height: 168px; border-radius: 4px 4px 0 0; background: {{tr.colBg}}">
+                <span style="text-align: center; font-family: var(--font-mono); font-size: 10.5px; color: {{tr.labelC}}; font-weight: {{tr.labelW}}">{{tr.value}}</span>
+                <span style="display: block; height: {{tr.h}}px; margin: 0 6px; border-radius: 2px 2px 0 0; background: {{tr.c}}"></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; margin-top: 6px">
+            <sc-for list="{{trend}}" as="tr" hint-placeholder-count="12">
+              <span style="text-align: center; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted)"><span style="padding: {{tr.monthPad}}; border-radius: 3px; background: {{tr.monthBg}}; color: {{tr.monthC}}">{{tr.month}}</span></span>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["clair","sombre"],"default":"clair","section":"Affichage"},"$preview":{"width":1440,"height":1840}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sort: 'user impact', hidden: {}, trend: 'user impact' };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var hidden = st.hidden || {};
+
+    /* daily activity: 30 days from mon 09 mar 2026; counts distributed deterministically to exact totals */
+    var TYPES = [
+      { key: 'deployment', label: 'deployments', total: 80, prev: 74, c: 'var(--type-deployment)', icon: 'deployment', phase: 0.3 },
+      { key: 'operation', label: 'operations', total: 32, prev: 30, c: 'var(--type-operation)', icon: 'operation', phase: 1.9 },
+      { key: 'drift', label: 'drifts', total: 32, prev: 41, c: 'var(--type-drift)', icon: 'drifts', phase: 3.1 },
+      { key: 'rpa', label: 'rpa usage', total: 12, prev: 9, c: 'var(--type-rpa)', icon: 'rpa', phase: 4.4 }
+    ];
+    function distribute(total, phase) {
+      var w = [], sum = 0;
+      for (var i = 0; i < 30; i++) { var wk = (i % 7 >= 5) ? 0.22 : 1; var v = wk * (1 + 0.45 * Math.sin(i * 1.3 + phase)); w.push(v); sum += v; }
+      var raw = w.map(function (v) { return v / sum * total; });
+      var out = raw.map(Math.floor), left = total - out.reduce(function (a, b) { return a + b; }, 0);
+      raw.map(function (v, i) { return { i: i, r: v - Math.floor(v) }; }).sort(function (a, b) { return b.r - a.r; }).slice(0, left).forEach(function (o) { out[o.i]++; });
+      return out;
+    }
+    TYPES.forEach(function (t) { t.days = distribute(t.total, t.phase); t.prevDays = distribute(t.prev, t.phase + 0.8); });
+    var UNIT = 9;
+    var MONTHS = ['mar', 'apr'];
+    var days = [];
+    var prevTot = [];
+    for (var i = 0; i < 30; i++) {
+      var dayNum = 9 + i, label = '', month = 'mar';
+      if (dayNum > 31) { dayNum -= 31; month = 'apr'; }
+      if (i % 7 === 0) label = (dayNum < 10 ? '0' : '') + dayNum + ' ' + month;
+      var segs = [], tot = 0, ptot = 0, tip = [];
+      TYPES.forEach(function (t) {
+        ptot += t.prevDays[i];
+        if (hidden[t.key]) return;
+        if (t.days[i]) { segs.push({ h: t.days[i] * UNIT - 1, c: t.c }); tot += t.days[i]; tip.push(t.days[i] + ' ' + t.label); }
+      });
+      prevTot.push(ptot);
+      days.push({ segs: segs, label: label, bg: (i % 7 >= 5) ? 'var(--sunken)' : 'transparent', tip: (dayNum < 10 ? '0' : '') + dayNum + ' ' + month + ' · ' + (tip.join(', ') || 'no changes') });
+    }
+    var visibleTypes = TYPES.filter(function (t) { return !hidden[t.key]; });
+    var prevVisible = [];
+    for (var k = 0; k < 30; k++) { var s = 0; visibleTypes.forEach(function (t) { s += t.prevDays[k]; }); prevVisible.push(s); }
+    var prevPoints = prevVisible.map(function (v, idx) { return ((idx + 0.5) * 10).toFixed(1) + ',' + (132 - v * UNIT).toFixed(1); }).join(' ');
+    var activityTotal = visibleTypes.reduce(function (a, t) { return a + t.total; }, 0) + ' changes';
+    var typeToggles = TYPES.map(function (t) {
+      var on = !hidden[t.key];
+      return { label: t.label, c: t.c, pressed: on ? 'true' : 'false', op: on ? 1 : 0.45, border: on ? 'var(--rule-strong)' : 'var(--rule)',
+        pick: function () { var h = Object.assign({}, hidden); if (h[t.key]) delete h[t.key]; else if (Object.keys(h).length < TYPES.length - 1) h[t.key] = true; self.setState({ hidden: h }); } };
+    });
+
+    function pct(cur, prev) { var p = Math.round((cur - prev) / prev * 100); return (p > 0 ? '+' : (p < 0 ? '−' : '±')) + Math.abs(p) + ' %'; }
+    var all = TYPES.concat([{ key: 'incident', label: 'incidents', total: 22, prev: 26, c: 'var(--ink)', icon: 'incident', worseIfUp: true }]);
+    var grand = all.reduce(function (a, t) { return a + t.total; }, 0);
+    var types = all.map(function (t) {
+      var worse = t.worseIfUp && t.total > t.prev;
+      return { label: t.label, icon: t.icon, count: t.total, share: Math.round(t.total / grand * 100), c: t.c, delta: pct(t.total, t.prev), deltaColor: worse ? 'var(--warning)' : 'var(--muted)', deltaWeight: worse ? '500' : '400' };
+    });
+
+    var SV = [
+      { name: 'orders-db', owner: 'data-team', deploys: 3, ops: 3, failed: 1, incidents: 4, prevInc: 2, restore: 52, impact: 110 },
+      { name: 'payment-service', owner: 'payments-team', deploys: 12, ops: 2, failed: 1, incidents: 3, prevInc: 4, restore: 31, impact: 45 },
+      { name: 'api-gateway', owner: 'platform-team', deploys: 10, ops: 2, failed: 2, incidents: 2, prevInc: 3, restore: 24, impact: 30 },
+      { name: 'notification-service', owner: 'automation-team', deploys: 6, ops: 3, failed: 0, incidents: 3, prevInc: 1, restore: 75, impact: 25 },
+      { name: 'checkout', owner: 'payments-team', deploys: 9, ops: 1, failed: 0, incidents: 2, prevInc: 3, restore: 40, impact: 10 },
+      { name: 'search-service', owner: 'search-team', deploys: 10, ops: 1, failed: 0, incidents: 2, prevInc: 2, restore: 18, impact: 0 },
+      { name: 'firewall', owner: 'infrastructure-team', deploys: 2, ops: 13, failed: 0, incidents: 1, prevInc: 3, restore: 12, impact: 0 },
+      { name: 'monitoring', owner: 'infra-team', deploys: 7, ops: 1, failed: 1, incidents: 1, prevInc: 2, restore: 15, impact: 0 },
+      { name: 'catalog-service', owner: 'catalog-team', deploys: 4, ops: 1, failed: 0, incidents: 2, prevInc: 3, restore: 33, impact: 0 },
+      { name: 'auth-service', owner: 'identity-team', deploys: 6, ops: 1, failed: 0, incidents: 1, prevInc: 1, restore: 9, impact: 0 },
+      { name: 'billing-service', owner: 'payments-team', deploys: 5, ops: 1, failed: 0, incidents: 1, prevInc: 2, restore: 20, impact: 0 }
+    ];
+    function hmin(m) { if (!m) return '—'; var h = Math.floor(m / 60), r = m % 60; return h ? h + ' h ' + (r < 10 ? '0' : '') + r : r + ' min'; }
+    var sort = st.sort || 'user impact';
+    var KEY = { 'user impact': function (s) { return s.impact * 1000 + s.incidents; }, 'failure rate': function (s) { return s.failed / s.deploys * 1000 + s.failed; }, 'incidents': function (s) { return s.incidents * 1000 + s.restore; }, 'changes': function (s) { return s.deploys + s.ops; } };
+    var maxImpact = Math.max.apply(null, SV.map(function (s) { return s.impact; }));
+    var services = SV.slice().sort(function (a, b) { return KEY[sort](b) - KEY[sort](a); }).map(function (s) {
+      var rate = s.failed / s.deploys, high = rate >= 0.15, d = s.incidents - s.prevInc;
+      return {
+        name: s.name, owner: s.owner, changes: s.deploys + s.ops, deploys: s.deploys,
+        rate: Math.round(rate * 100) + ' %', rateW: Math.min(100, Math.round(rate / 0.4 * 100)), rateC: high ? 'var(--warning)' : 'var(--data-2)', rateText: high ? 'var(--warning)' : 'var(--ink)', rateWeight: high ? '600' : '400',
+        incidents: s.incidents, incDelta: d === 0 ? '±0' : (d > 0 ? '+' + d : '−' + Math.abs(d)), incDeltaC: d > 0 ? 'var(--warning)' : 'var(--muted)', incDeltaW: d > 0 ? '600' : '400',
+        restore: s.restore + ' min',
+        impact: hmin(s.impact), impactW: Math.round(s.impact / maxImpact * 100), hasImpact: s.impact > 0, impactText: s.impact > 0 ? 'var(--impact)' : 'var(--muted)'
+      };
+    });
+
+    var MONTHS12 = ['may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'jan', 'feb', 'mar', 'apr'];
+    var SERIES = {
+      'user impact': { v: [9.5, 8.0, 11.2, 7.4, 6.8, 6.0, 7.2, 5.1, 4.4, 5.9, 6.2, 3.7], fmt: function (x) { return x.toFixed(1) + ' h'; }, c: 'var(--impact)', sentence: 'User impact fell from 9.5 h to 3.7 h a month, its lowest level in a year.' },
+      'failure rate': { v: [11.2, 10.4, 12.1, 9.8, 9.5, 8.6, 9.1, 8.2, 7.9, 8.8, 9.5, 6.3], fmt: function (x) { return x.toFixed(1) + '%'; }, c: 'var(--ink)', sentence: 'The failure rate fell from 11.2 % to 6.3 %, after a plateau around 9 % this winter.' },
+      'incidents': { v: [31, 28, 35, 30, 27, 25, 29, 24, 22, 28, 26, 22], fmt: function (x) { return String(x); }, c: 'var(--ink)', sentence: 'Incidents went from 31 to 22 a month (−29 %), with a peak of 35 in July.' },
+      'deployments': { v: [58, 61, 55, 49, 63, 70, 72, 66, 54, 68, 74, 80], fmt: function (x) { return String(x); }, c: 'var(--type-deployment)', sentence: 'Deployments rose from 58 to 80 a month (+38 %) while failures went down.' }
+    };
+    var tKey = st.trend || 'user impact';
+    var ser = SERIES[tKey];
+    var maxV = Math.max.apply(null, ser.v);
+    var trend = ser.v.map(function (v, idx) {
+      var last = idx === ser.v.length - 1;
+      return { value: ser.fmt(v), h: Math.max(2, Math.round(v / maxV * 136)), c: ser.c, month: last ? 'now' : MONTHS12[idx],
+        colBg: last ? 'var(--signature-wash)' : 'transparent', labelC: last ? 'var(--ink)' : 'var(--muted)', labelW: last ? '600' : '400',
+        monthBg: last ? 'var(--signature)' : 'transparent', monthC: last ? 'var(--on-signature)' : 'var(--muted)', monthPad: last ? '1px 5px' : '0' };
+    });
+
+    var navGroups = [
+      { label: 'operations', items: [{ name: 'Dashboard', icon: 'dashboard' }, { name: 'Timeline', icon: 'timeline' }, { name: 'Streamline', icon: 'streamline' }, { name: 'Calendar', icon: 'calendar' }, { name: 'Overlaps', icon: 'overlaps', count: 2 }, { name: 'Insights', icon: 'insights' }] },
+      { label: 'services', items: [{ name: 'Catalog', icon: 'catalog' }, { name: 'Architecture', icon: 'architecture' }, { name: 'Compliance', icon: 'compliance' }] },
+      { label: 'infrastructure', items: [{ name: 'Drifts', icon: 'drifts' }, { name: 'RPA usage', icon: 'rpa' }, { name: 'Locks', icon: 'locks', count: 1 }] },
+      { label: 'resources', items: [{ name: 'Links', icon: 'links' }, { name: 'Docs', icon: 'docs' }] }
+    ];
+
+    return {
+      themeId: (this.props.theme ?? 'clair') === 'sombre' ? 'dark' : 'light',
+      yes: true, no: false,
+      navGroups: navGroups,
+      periods: ['7d', '30d', '90d', '12m'],
+      metrics: [
+        { label: 'events', value: '178', delta: '−1 % vs prev.', trend: 'flat' },
+        { label: 'deployments', value: '80', delta: '+8 % vs prev.', trend: 'flat' },
+        { label: 'failure rate', value: '6.3%', delta: '−3.2 pts vs prev.', trend: 'better' },
+        { label: 'incidents', value: '22', delta: '−4 vs prev.', trend: 'better' },
+        { label: 'time to restore', value: '38 min', delta: '+7 min vs prev.', trend: 'worse' },
+        { label: 'user impact', value: '3 h 40', delta: '−2 h 30 vs prev.', trend: 'better', tone: 'impact' }
+      ],
+      activityTotal: activityTotal, days: days, prevPoints: prevPoints, typeToggles: typeToggles, types: types,
+      services: services, sortOptions: ['user impact', 'failure rate', 'incidents', 'changes'], sortVal: sort, sortLabel: sort,
+      setSort: function (v) { self.setState({ sort: v }); },
+      sortImpact: function (e) { if (e && e.preventDefault) e.preventDefault(); self.setState({ sort: 'user impact' }); },
+      trend: trend, trendOptions: ['user impact', 'failure rate', 'incidents', 'deployments'], trendVal: tKey, trendSentence: ser.sentence,
+      setTrend: function (v) { self.setState({ trend: v }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

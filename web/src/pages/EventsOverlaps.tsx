@@ -242,7 +242,7 @@ export default function EventsOverlaps() {
           <div className="rounded-xl p-5" style={{ background: 'rgb(var(--hud-surface))', border: '1px solid rgb(var(--hud-outline-var) / 0.2)' }}>
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
-                <h1 className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Event Overlaps</h1>
+                <h1 className="text-3xl font-black">Event Overlaps</h1>
                 <p className="text-sm mt-1" style={{ color: T.onSurfaceVar }}>
                   {overlaps.length} conflict{overlaps.length !== 1 ? 's' : ''} detected over {format(startDate, 'dd MMM', { locale: fr })} – {format(endDate, 'dd MMM yyyy', { locale: fr })}
                 </p>
@@ -361,12 +361,12 @@ export default function EventsOverlaps() {
             <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl"
               style={{ background: overlaps.length > 0 ? 'rgba(251,146,60,0.06)' : a('success', 0.04) }} />
             <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>
                 Total Overlaps
               </span>
               <AlertTriangle className="w-4 h-4" style={{ color: overlaps.length > 0 ? '#fb923c' : T.success }} />
             </div>
-            <div className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif", color: overlaps.length > 0 ? '#fb923c' : T.onSurface }}>
+            <div className="text-4xl font-black" style={{ color: overlaps.length > 0 ? '#fb923c' : T.onSurface }}>
               {String(overlaps.length).padStart(2, '0')}
             </div>
             <div className="mt-4 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -378,12 +378,12 @@ export default function EventsOverlaps() {
           <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow }}>
             <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: a('primary', 0.04) }} />
             <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>
                 Days Affected
               </span>
               <CalendarIcon className="w-4 h-4" style={{ color: T.primary }} />
             </div>
-            <div className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+            <div className="text-4xl font-black">
               {String(overlapsByDay.size).padStart(2, '0')}
             </div>
             <div className="mt-4 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -395,12 +395,12 @@ export default function EventsOverlaps() {
           <div className="p-6 rounded-xl relative overflow-hidden" style={{ background: T.surfaceLow }}>
             <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full blur-3xl" style={{ background: a('tertiary', 0.04) }} />
             <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar, fontFamily: "'Space Grotesk',sans-serif" }}>
+              <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: T.onSurfaceVar }}>
                 Services Involved
               </span>
               <Users className="w-4 h-4" style={{ color: T.tertiary }} />
             </div>
-            <div className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+            <div className="text-4xl font-black">
               {String(servicesInvolved).padStart(2, '0')}
             </div>
             <div className="mt-4 text-xs" style={{ color: T.onSurfaceVar }}>
@@ -429,7 +429,7 @@ export default function EventsOverlaps() {
                     <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${a('outlineVar', 0.08)}` }}>
                       <div className="flex items-center gap-3">
                         <CalendarIcon className="w-4 h-4" style={{ color: T.primary }} />
-                        <span className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                        <span className="text-sm font-bold">
                           {format(day, 'EEEE dd MMMM yyyy', { locale: fr })}
                         </span>
                       </div>
@@ -533,7 +533,7 @@ export default function EventsOverlaps() {
             {/* Period summary */}
             <div className="p-6 rounded-2xl space-y-4" style={{ background: T.surface }}>
               <div>
-                <h3 className="text-sm font-bold" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Period Summary</h3>
+                <h3 className="text-sm font-bold">Period Summary</h3>
                 <p className="text-xs mt-1" style={{ color: T.onSurfaceVar }}>
                   {format(startDate, 'dd MMM', { locale: fr })} – {format(endDate, 'dd MMM yyyy', { locale: fr })}
                 </p>
@@ -563,7 +563,7 @@ export default function EventsOverlaps() {
             {/* Most affected services */}
             {mostAffectedServices.length > 0 && (
               <div className="p-6 rounded-2xl" style={{ background: T.surface }}>
-                <h3 className="text-sm font-bold mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Most Affected Services</h3>
+                <h3 className="text-sm font-bold mb-4">Most Affected Services</h3>
                 <div className="space-y-3">
                   {mostAffectedServices.map(([service, count]) => {
                     const max = mostAffectedServices[0][1]
