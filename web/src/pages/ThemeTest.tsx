@@ -1,16 +1,15 @@
-import type { ReactNode } from 'react'
 import { useTheme } from '../contexts/theme'
 import { colorGroups, colorValues, TYPE_STYLE_CLASSES } from '../design/showcase'
 import tokens from '../design/tokens.json'
 import { cn } from '../lib/utils'
+import { ComponentSections } from './showcase/ComponentSections'
+import { Section, ThemeColumns, type ThemeId } from './showcase/layout'
 
 /*
- * Living showcase of the design system (docs/design-system/). Every token and,
- * from lot 2 on, every component is shown in the light and the dark theme side
- * by side, whatever the theme of the page.
+ * Living showcase of the design system (docs/design-system/). Every token and
+ * every component is shown in the light and the dark theme side by side,
+ * whatever the theme of the page. Add each new component here, in all its states.
  */
-
-type ThemeId = 'light' | 'dark'
 
 const RADIUS_CLASSES: Record<string, string> = {
   'radius-xs': 'rounded-xs',
@@ -20,31 +19,6 @@ const RADIUS_CLASSES: Record<string, string> = {
 }
 
 const typeGroups = tokens.type.groups
-
-function ThemeColumns({ children }: { children: (theme: ThemeId) => ReactNode }) {
-  return (
-    <div className="grid gap-space-6 lg:grid-cols-2">
-      {(['light', 'dark'] as const).map((theme) => (
-        <div key={theme} className={cn(theme, 'rounded-md border border-rule bg-paper p-space-5 text-ink')}>
-          <p className="mb-space-4 text-data-sm text-muted">{theme}</p>
-          {children(theme)}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Section({ id, title, description, children }: { id: string; title: string; description: string; children: ReactNode }) {
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-space-4">
-      <div className="flex flex-col gap-space-1">
-        <h2 id={id} className="text-title text-ink">{title}</h2>
-        <p className="text-body text-muted">{description}</p>
-      </div>
-      {children}
-    </section>
-  )
-}
 
 function Swatch({ name, theme }: { name: string; theme: ThemeId }) {
   return (
@@ -167,6 +141,8 @@ export default function ThemeTest() {
           )}
         </ThemeColumns>
       </Section>
+
+      <ComponentSections />
 
       <Section
         id="ds-bridge"

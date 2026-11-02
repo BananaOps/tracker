@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { ThemeProvider } from '../contexts/ThemeContext'
 import tokens from '../design/tokens.json'
@@ -8,9 +9,11 @@ import ThemeTest from './ThemeTest'
 
 function renderShowcase() {
   return render(
-    <ThemeProvider>
-      <ThemeTest />
-    </ThemeProvider>,
+    <MemoryRouter>
+      <ThemeProvider>
+        <ThemeTest />
+      </ThemeProvider>
+    </MemoryRouter>,
   )
 }
 
@@ -27,7 +30,20 @@ describe('design system showcase', () => {
 
   it('shows each section in the light and the dark theme', () => {
     const { container } = renderShowcase()
-    for (const name of ['Colour', 'Typography', 'Radius, spacing and size', 'Legacy bridge']) {
+    for (const name of [
+      'Colour',
+      'Typography',
+      'Radius, spacing and size',
+      'Icon and logo',
+      'Button, Kbd and Highlight',
+      'StatusMark and ImpactMark',
+      'SegmentedControl and MetricStrip',
+      'EventList and TimeRuler',
+      'Sidebar',
+      'EventDrawer',
+      'CommandPalette',
+      'Legacy bridge',
+    ]) {
       const section = screen.getByRole('region', { name })
       expect(section.querySelectorAll(':scope .light').length).toBe(1)
       expect(section.querySelectorAll(':scope .dark').length).toBe(1)
