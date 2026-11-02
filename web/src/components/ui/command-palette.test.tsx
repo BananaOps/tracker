@@ -16,6 +16,7 @@ const groups: PaletteGroup[] = [
   },
   { label: 'Create', items: [{ label: 'New event', icon: 'plus', kbd: 'E', run: createEvent }] },
   { label: 'Events', items: [{ id: 'e1', label: 'Deploy monitoring v2.5.5 → mco', icon: 'deployment', hint: 'failed · 15:04' }] },
+  { label: 'Links', searchOnly: true, items: [{ id: 'l1', label: 'Grafana', icon: 'links', hint: 'Monitoring' }] },
 ]
 
 function Harness({ onSelect }: { onSelect?: (item: PaletteItem) => void }) {
@@ -62,6 +63,13 @@ describe('CommandPalette', () => {
     expect(createEvent).toHaveBeenCalled()
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ label: 'New event' }))
     expect(screen.getByTestId('state')).toHaveTextContent('closed')
+  })
+
+  it('shows search-only groups once something is typed', async () => {
+    render(<Harness />)
+    expect(screen.queryByText('Grafana')).toBeNull()
+    await userEvent.type(screen.getByRole('combobox'), 'graf')
+    expect(screen.getByRole('option', { name: /Grafana/ })).toBeInTheDocument()
   })
 
   it('closes with Escape', async () => {

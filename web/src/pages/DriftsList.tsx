@@ -12,6 +12,7 @@ import { faJira } from '@fortawesome/free-brands-svg-icons'
 import { getEnvironmentLabel, getStatusLabel } from '../lib/eventUtils'
 import EventDetailsModal from '../components/EventDetailsModal'
 import { StatusBadge, EnvBadge } from '../components/Badges'
+import { isActiveDrift } from '../lib/drifts'
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const V = {
@@ -98,11 +99,7 @@ export default function DriftsList() {
 
   useEffect(() => { loadDrifts() }, [createdTick])
 
-  // Active drifts = exclude done/close/closed/failed
-  const activeDrifts = useMemo(() =>
-    allDrifts.filter(d => !['failed', 'done', 'closed', 'close'].includes(String(d.attributes.status || '').toLowerCase())),
-    [allDrifts]
-  )
+  const activeDrifts = useMemo(() => allDrifts.filter(isActiveDrift), [allDrifts])
 
   const baseDrifts = viewMode === 'active' ? activeDrifts : allDrifts
 

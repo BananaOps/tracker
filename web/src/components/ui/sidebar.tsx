@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -28,13 +29,17 @@ export interface SidebarProps {
   collapsed?: boolean
   /** Shows a collapse / expand button at the bottom. */
   onToggle?: () => void
+  /** Content at the bottom, above the toggle (theme, external links). */
+  footer?: ReactNode
   className?: string
+  style?: CSSProperties
 }
 
 /** The main navigation in four groups. The active page is the "you are here" of the brand. */
-export function Sidebar({ groups, active, logo = true, homeTo = '/', collapsed = false, onToggle, className }: SidebarProps) {
+export function Sidebar({ groups, active, logo = true, homeTo = '/', collapsed = false, onToggle, footer, className, style }: SidebarProps) {
   return (
     <aside
+      style={style}
       className={cn(
         'box-border flex flex-col border-r border-rule bg-surface',
         collapsed ? 'w-[60px] items-center gap-[18px] px-2.5 py-4' : 'w-sidebar-w gap-[22px] px-3.5 pt-[18px] pb-6',
@@ -53,7 +58,7 @@ export function Sidebar({ groups, active, logo = true, homeTo = '/', collapsed =
           <Logo size={collapsed ? 28 : 26} word={!collapsed} />
         </Link>
       )}
-      <nav aria-label="Main" className={cn('flex flex-col', collapsed ? 'items-center gap-2.5' : 'gap-[18px]')}>
+      <nav aria-label="Main" className={cn('-mx-1 flex min-h-0 flex-col overflow-y-auto px-1', collapsed ? 'items-center gap-2.5' : 'gap-[18px]')}>
         {groups.map((group) => (
           <div
             key={group.label}
@@ -107,17 +112,20 @@ export function Sidebar({ groups, active, logo = true, homeTo = '/', collapsed =
           </div>
         ))}
       </nav>
-      {onToggle && (
-        <div className={cn('mt-auto flex', collapsed && 'justify-center')}>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={collapsed ? 'arrow-right' : 'rows'}
-            aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
-            onClick={onToggle}
-          >
-            {collapsed ? null : 'Collapse'}
-          </Button>
+      {(footer || onToggle) && (
+        <div className={cn('mt-auto flex flex-col gap-2', collapsed && 'items-center')}>
+          {footer}
+          {onToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={collapsed ? 'arrow-right' : 'rows'}
+              aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+              onClick={onToggle}
+            >
+              {collapsed ? null : 'Collapse'}
+            </Button>
+          )}
         </div>
       )}
     </aside>
