@@ -1,10 +1,11 @@
+import type { IconName } from '@/components/ui/icons'
 import { EventType, Status } from '@/types/api'
 
 /** The five statuses of the design system, drawn by StatusMark. */
 export type DsStatus = 'failed' | 'warning' | 'running' | 'done' | 'open'
 
 /** Icons that stand for an event type in the custom icon set. */
-export type TypeIconName = 'deployment' | 'operation' | 'drifts' | 'incident' | 'rpa'
+export type TypeIconName = Extract<IconName, 'deployment' | 'operation' | 'drifts' | 'incident' | 'rpa'>
 
 const STATUS_MAP: Record<string, DsStatus> = {
   [Status.FAILURE]: 'failed',

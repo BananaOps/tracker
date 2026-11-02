@@ -1,26 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ThemeProvider } from '../contexts/ThemeContext'
 import tokens from '../design/tokens.json'
 import { typeStyles } from '../lib/utils'
 import { colorGroups, TYPE_STYLE_CLASSES } from '../design/showcase'
 import ThemeTest from './ThemeTest'
-
-// jsdom has no matchMedia; ThemeProvider reads it for the system theme.
-beforeAll(() => {
-  if (typeof window.matchMedia !== 'function') {
-    window.matchMedia = ((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as typeof window.matchMedia
-  }
-})
 
 function renderShowcase() {
   return render(
