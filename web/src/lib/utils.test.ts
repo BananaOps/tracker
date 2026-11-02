@@ -12,6 +12,12 @@ describe('cn', () => {
     expect(cn('text-sm', 'text-data')).toBe('text-data')
   })
 
+  it('knows the spacing and size tokens', () => {
+    expect(cn('h-control-md w-control-md', 'h-7 w-7')).toBe('h-7 w-7')
+    expect(cn('gap-space-2', 'gap-2')).toBe('gap-2')
+    expect(cn('p-4', 'p-space-5')).toBe('p-space-5')
+  })
+
   it('treats shadow-overlay as a shadow', () => {
     expect(cn('shadow-xs', 'shadow-overlay')).toBe('shadow-overlay')
   })
