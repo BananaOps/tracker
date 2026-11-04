@@ -1,12 +1,15 @@
 package server
 
 import (
+	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"sort"
 	"strings"
+	"time"
 
 	catalogv1 "github.com/bananaops/tracker/generated/proto/catalog/v1alpha1"
 	eventv1 "github.com/bananaops/tracker/generated/proto/event/v1alpha1"
@@ -18,6 +21,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -204,7 +208,117 @@ func newMCPServer(events *Event, catalogs *Catalog, locks *Lock) *mcp.Server {
 		return protoResult(r)
 	})
 
+	mcp.AddTool(srv, &mcp.Tool{
+		Name: "create_event",
+		Description: "Create a Tracker event (deployment, operation, drift, incident or RPA usage). " +
+			"A deployment or operation created with status start or in_progress also locks its service in its environment, " +
+			"and fails if that service is already locked there. Requires the event:write permission on the service.",
+		Annotations: &mcp.ToolAnnotations{DestructiveHint: new(false), OpenWorldHint: new(false)},
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in mcpCreateEventInput) (*mcp.CallToolResult, any, error) {
+		req, err := in.request(ctx, time.Now())
+		if err != nil {
+			return nil, nil, err
+		}
+		r, err := events.CreateEvent(rpcContext(ctx, eventv1.EventService_CreateEvent_FullMethodName), req)
+		if err != nil {
+			return nil, nil, err
+		}
+		return protoResult(r)
+	})
+
 	return srv
+}
+
+type mcpCreateEventInput struct {
+	Title           string `json:"title" jsonschema:"short title, for example Deploy payment-api 2.3.0"`
+	Type            string `json:"type" jsonschema:"event type: deployment, operation, drift, incident or rpa_usage"`
+	Service         string `json:"service" jsonschema:"service name, as in the catalog"`
+	Environment     string `json:"environment" jsonschema:"environment: development, integration, TNR, UAT, recette, preproduction, production or mco"`
+	Status          string `json:"status" jsonschema:"status, for example start, in_progress, success, failure, open, close, done, planned"`
+	Priority        string `json:"priority,omitempty" jsonschema:"priority: P1 to P5, default P3"`
+	Message         string `json:"message,omitempty" jsonschema:"description of the event"`
+	Source          string `json:"source,omitempty" jsonschema:"what reports the event, default mcp"`
+	Owner           string `json:"owner,omitempty" jsonschema:"person or team in charge, default the caller (user name or apikey:<prefix>)"`
+	StartDate       string `json:"start_date,omitempty" jsonschema:"start, YYYY-MM-DD or RFC 3339, default now"`
+	EndDate         string `json:"end_date,omitempty" jsonschema:"end, YYYY-MM-DD or RFC 3339"`
+	Impact          bool   `json:"impact,omitempty" jsonschema:"true when the event impacts users"`
+	PullRequestLink string `json:"pull_request_link,omitempty" jsonschema:"URL of the pull request"`
+	Ticket          string `json:"ticket,omitempty" jsonschema:"ticket reference, for example OPS-1234"`
+	RelatedID       string `json:"related_id,omitempty" jsonschema:"id of the event this one follows, for example the start of a deployment"`
+}
+
+// request builds the CreateEvent request, with the defaults of the tool.
+func (in mcpCreateEventInput) request(ctx context.Context, now time.Time) (*eventv1.CreateEventRequest, error) {
+	for field, value := range map[string]string{"title": in.Title, "service": in.Service} {
+		if strings.TrimSpace(value) == "" {
+			return nil, fmt.Errorf("%s is required", field)
+		}
+	}
+	attrs := &eventv1.EventAttributes{
+		Message: in.Message, Source: cmp.Or(in.Source, "mcp"), Service: in.Service, Impact: in.Impact,
+		Owner: cmp.Or(in.Owner, callerName(ctx)), RelatedId: in.RelatedID, Priority: eventv1.Priority_P3,
+	}
+	for _, e := range []struct {
+		value, field string
+		values       map[string]int32
+		set          func(int32)
+		required     bool
+	}{
+		{in.Type, "type", eventv1.Type_value, func(v int32) { attrs.Type = eventv1.Type(v) }, true},
+		{in.Environment, "environment", eventv1.Environment_value, func(v int32) { attrs.Environment = eventv1.Environment(v) }, true},
+		{in.Status, "status", eventv1.Status_value, func(v int32) { attrs.Status = eventv1.Status(v) }, true},
+		{in.Priority, "priority", eventv1.Priority_value, func(v int32) { attrs.Priority = eventv1.Priority(v) }, false},
+	} {
+		if e.required && e.value == "" {
+			return nil, fmt.Errorf("%s is required", e.field)
+		}
+		if err := parseEnum(e.value, e.values, e.field, e.set); err != nil {
+			return nil, err
+		}
+	}
+	start, err := parseToolDate(in.StartDate, "start_date", now)
+	if err != nil {
+		return nil, err
+	}
+	attrs.StartDate = timestamppb.New(start)
+	if in.EndDate != "" {
+		end, err := parseToolDate(in.EndDate, "end_date", now)
+		if err != nil {
+			return nil, err
+		}
+		if end.Before(start) {
+			return nil, errors.New("end_date is before start_date")
+		}
+		attrs.EndDate = timestamppb.New(end)
+	}
+	return &eventv1.CreateEventRequest{
+		Title:      in.Title,
+		Attributes: attrs,
+		Links:      &eventv1.EventLinks{PullRequestLink: in.PullRequestLink, Ticket: in.Ticket},
+	}, nil
+}
+
+// parseToolDate reads a date as YYYY-MM-DD (midnight UTC) or RFC 3339; an
+// empty value is now.
+func parseToolDate(value, field string, now time.Time) (time.Time, error) {
+	if value == "" {
+		return now, nil
+	}
+	for _, layout := range []string{time.RFC3339, time.DateOnly} {
+		if t, err := time.Parse(layout, value); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("%s %q is neither YYYY-MM-DD nor RFC 3339", field, value)
+}
+
+// callerName names the caller in the event owner and its changelog: the
+// username of a session, apikey:<prefix> for an API key, mcp otherwise.
+func callerName(ctx context.Context) string {
+	if p, ok := auth.FromContext(ctx); ok && p.Username != "" {
+		return p.Username
+	}
+	return "mcp"
 }
 
 type mcpPage struct {
