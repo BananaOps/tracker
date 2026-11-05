@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/coreos/go-oidc/v3 v3.21.0
-	github.com/go-openapi/runtime/server-middleware v0.33.3
+	github.com/go-openapi/runtime/server-middleware v0.33.4
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/klauspost/compress v1.20.1
 	github.com/modelcontextprotocol/go-sdk v1.8.0
