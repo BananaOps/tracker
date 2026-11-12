@@ -16,7 +16,7 @@
 
 ## High-level architecture
 
-Tracker is a Go backend plus a React/Vite frontend, with a small Python MCP server in `mcp-server/` and Helm/Kubernetes assets under `helm/`.
+Tracker is a Go backend plus a React/Vite frontend, with Helm/Kubernetes assets under `helm/`. The MCP endpoint for AI agents is served by the Go server at `/mcp` (`server/mcp.go`).
 
 The backend exposes three gRPC services: events, catalog, and locks. `cmd/serv.go` wires them into both gRPC and grpc-gateway HTTP endpoints, serves Swagger UI and `/swagger.json`, exposes Prometheus on `:8081`, and serves the built frontend from `web/dist` when present. It also injects runtime frontend config via `/config.js`.
 
