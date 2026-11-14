@@ -1,10 +1,22 @@
+import type { IconName } from '@/components/ui/icons'
 import { EventType, Status } from '@/types/api'
 
 /** The five statuses of the design system, drawn by StatusMark. */
 export type DsStatus = 'failed' | 'warning' | 'running' | 'done' | 'open'
 
+export const DS_STATUSES: DsStatus[] = ['failed', 'warning', 'running', 'done', 'open']
+
+/** Text colour of a status glyph shown alone. Only failed and warning carry a hue. */
+export const statusTone: Record<DsStatus, string> = {
+  failed: 'text-failed',
+  warning: 'text-warning',
+  running: 'text-needle',
+  done: 'text-muted',
+  open: 'text-muted',
+}
+
 /** Icons that stand for an event type in the custom icon set. */
-export type TypeIconName = 'deployment' | 'operation' | 'drifts' | 'incident' | 'rpa'
+export type TypeIconName = Extract<IconName, 'deployment' | 'operation' | 'drifts' | 'incident' | 'rpa'>
 
 const STATUS_MAP: Record<string, DsStatus> = {
   [Status.FAILURE]: 'failed',

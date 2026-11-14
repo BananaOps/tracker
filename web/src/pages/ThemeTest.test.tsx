@@ -1,32 +1,19 @@
 import { render, screen, within } from '@testing-library/react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
 import { ThemeProvider } from '../contexts/ThemeContext'
 import tokens from '../design/tokens.json'
 import { typeStyles } from '../lib/utils'
 import { colorGroups, TYPE_STYLE_CLASSES } from '../design/showcase'
 import ThemeTest from './ThemeTest'
 
-// jsdom has no matchMedia; ThemeProvider reads it for the system theme.
-beforeAll(() => {
-  if (typeof window.matchMedia !== 'function') {
-    window.matchMedia = ((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    })) as typeof window.matchMedia
-  }
-})
-
 function renderShowcase() {
   return render(
-    <ThemeProvider>
-      <ThemeTest />
-    </ThemeProvider>,
+    <MemoryRouter>
+      <ThemeProvider>
+        <ThemeTest />
+      </ThemeProvider>
+    </MemoryRouter>,
   )
 }
 
@@ -43,7 +30,20 @@ describe('design system showcase', () => {
 
   it('shows each section in the light and the dark theme', () => {
     const { container } = renderShowcase()
-    for (const name of ['Colour', 'Typography', 'Radius, spacing and size', 'Legacy bridge']) {
+    for (const name of [
+      'Colour',
+      'Typography',
+      'Radius, spacing and size',
+      'Icon and logo',
+      'Button, Kbd and Highlight',
+      'StatusMark and ImpactMark',
+      'SegmentedControl and MetricStrip',
+      'EventList and TimeRuler',
+      'Sidebar',
+      'EventDrawer',
+      'CommandPalette',
+      'Legacy bridge',
+    ]) {
       const section = screen.getByRole('region', { name })
       expect(section.querySelectorAll(':scope .light').length).toBe(1)
       expect(section.querySelectorAll(':scope .dark').length).toBe(1)
